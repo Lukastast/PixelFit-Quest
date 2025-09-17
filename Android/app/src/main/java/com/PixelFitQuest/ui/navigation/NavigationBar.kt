@@ -20,7 +20,6 @@ fun NavigationBar(navController: NavController, currentRoute: String) {
             .paint(
                 painter = painterResource(id = R.drawable.navbar),
                 contentScale = ContentScale.Crop,
-
                 ),
         containerColor = Color.Transparent,
     ) {
