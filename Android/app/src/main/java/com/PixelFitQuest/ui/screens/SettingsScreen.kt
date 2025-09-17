@@ -8,9 +8,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.PixelFitQuest.ui.theme.typography
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
+
+private val auth: FirebaseAuth = Firebase.auth
 
 @Composable
 fun SettingsScreen(navController: NavController) {
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -58,6 +66,15 @@ fun SettingsScreen(navController: NavController) {
                 .padding(vertical = 8.dp)
         ) {
             Text("Sync Devices")
+        }
+        Button(
+            onClick = {
+                Firebase.auth.signOut()
+                navController.navigate("login") { popUpTo("home") { inclusive = true }}
+                      },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Sign Out", style = typography.labelLarge)
         }
     }
 }
