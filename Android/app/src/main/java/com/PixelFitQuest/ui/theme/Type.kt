@@ -9,10 +9,13 @@ import androidx.compose.ui.unit.sp
 import com.PixelFitQuest.R // Adjust if your R is in a different package
 
 // Custom FontFamily for Jacquard 24
-val jacquard24 = FontFamily(
+/*val jacquard24 = FontFamily(
     Font(R.font.jacquard24regular, FontWeight.Normal) // References the TTF file (rename to jacquard24_regular.ttf if needed)
-)
+)*/
 
+val determination = FontFamily(
+    Font(R.font.determination, FontWeight.Normal) // References the TTF file (rename to jacquard24_regular.ttf if needed)
+)
 // Updated Typography with Jacquard 24
 val typography = Typography(
     bodyLarge = TextStyle(
@@ -24,21 +27,24 @@ val typography = Typography(
     ),
     // Add custom styles using Jacquard 24, e.g., for headings or labels
     displayLarge = TextStyle(
-        fontFamily = jacquard24,
+        //fontFamily = jacquard24,
+        fontFamily = determination,
         fontWeight = FontWeight.Normal,
         fontSize = 57.sp,
         lineHeight = 64.sp,
         letterSpacing = (-0.25).sp
     ),
     titleLarge = TextStyle(
-        fontFamily = jacquard24,
+        //fontFamily = jacquard24,
+        fontFamily = determination,
         fontWeight = FontWeight.Normal,
         fontSize = 64.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp
     ),
     labelLarge = TextStyle(
-        fontFamily = jacquard24,
+        //fontFamily = jacquard24,
+        fontFamily = determination,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         lineHeight = 20.sp,
