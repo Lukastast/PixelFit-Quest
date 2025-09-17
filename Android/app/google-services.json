@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "380513407761",
+    "project_id": "pixel-fit-quest",
+    "storage_bucket": "pixel-fit-quest.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:380513407761:android:ba8546b1fb98783c54b2b0",
+        "android_client_info": {
+          "package_name": "com.PixelFitQuest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxWR17FCDQM4pjrbrgGifYwttFAohjxuQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
