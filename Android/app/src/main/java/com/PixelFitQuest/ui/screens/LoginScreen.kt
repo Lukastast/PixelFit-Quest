@@ -1,22 +1,20 @@
 package com.PixelFitQuest.ui.screens
 
-import android.graphics.drawable.Drawable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.PixelFitQuest.R
@@ -24,13 +22,6 @@ import com.PixelFitQuest.ui.theme.PixelFitQuestTheme
 import com.PixelFitQuest.ui.theme.typography
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.launch
-
-fun Modifier.draw9Patch(drawable: Drawable) = drawBehind {
-    drawIntoCanvas { canvas ->
-        drawable.bounds = android.graphics.Rect(0, 0, size.width.toInt(), size.height.toInt())
-        drawable.draw(canvas.nativeCanvas)
-    }
-}
 
 @Composable
 fun LoginScreen(
@@ -42,34 +33,33 @@ fun LoginScreen(
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    val context = LocalContext.current
-    val backgroundDrawable = ContextCompat.getDrawable(context, R.drawable.logsigninbackground)!!
-    val boardDrawable = ContextCompat.getDrawable(context, R.drawable.questloginboard)!!
-
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background 9-patch image
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .draw9Patch(backgroundDrawable)
+        // Background PNG image
+        Image(
+            painter = painterResource(R.drawable.logsigninbackground),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillBounds
         )
 
-        // Foreground 9-patch image
-        Box(
+        // Foreground board PNG image
+        Image(
+            painter = painterResource(R.drawable.questloginboard),
+            contentDescription = null,
             modifier = Modifier
                 .fillMaxSize(0.95f)
                 .aspectRatio(1f)
                 .padding(8.dp)
                 .align(Alignment.Center)
-                .scale(1.2f)
-                .draw9Patch(boardDrawable)
+                .scale(scaleX = 1.2f, scaleY = 1.5f),
+            contentScale = ContentScale.FillBounds
         )
 
         // Foreground login content
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = 70.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -80,24 +70,80 @@ fun LoginScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email", style = typography.labelLarge) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                modifier = Modifier.fillMaxWidth()
+            Text(
+                text = "Email:",
+                style = typography.labelLarge,
+                modifier = Modifier
+                    .align(Alignment.Start)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .width(280.dp)
+                    .height(50.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.inputfield),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+                TextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    modifier = Modifier.fillMaxHeight().fillMaxWidth(0.96f),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        errorIndicatorColor = Color.Transparent
+                    )
+                )
+            }
 
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password", style = typography.labelLarge) },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth()
+            Text(
+                text = "Password:",
+                style = typography.labelLarge,
+                modifier = Modifier
+                    .align(Alignment.Start)
             )
+
+            Box(
+                modifier = Modifier
+                    .width(280.dp)
+                    .height(50.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.inputfield),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+                TextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    modifier = Modifier.fillMaxHeight().fillMaxWidth(0.96f),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        errorIndicatorColor = Color.Transparent
+                    )
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
