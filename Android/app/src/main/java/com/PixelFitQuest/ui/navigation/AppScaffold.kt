@@ -27,9 +27,9 @@ import com.PixelFitQuest.Helpers.SETTINGS_SCREEN
 import com.PixelFitQuest.Helpers.SIGNUP_SCREEN
 import com.PixelFitQuest.Helpers.WORKOUT_SCREEN
 import com.PixelFitQuest.R
+import com.PixelFitQuest.ui.screens.LoginScreen
 import com.PixelFitQuest.ui.view.CustomizationScreen
 import com.PixelFitQuest.ui.view.HomeScreen
-import com.PixelFitQuest.ui.view.LoginScreen
 import com.PixelFitQuest.ui.view.SettingsScreen
 import com.PixelFitQuest.ui.view.SignupScreen
 import com.PixelFitQuest.ui.view.WorkoutScreen

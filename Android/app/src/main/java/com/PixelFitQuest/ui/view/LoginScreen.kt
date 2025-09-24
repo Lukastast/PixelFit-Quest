@@ -1,24 +1,32 @@
-package com.PixelFitQuest.ui.view
+package com.PixelFitQuest.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -28,9 +36,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.PixelFitQuest.Helpers.SIGNUP_SCREEN
 import com.PixelFitQuest.R
 import com.PixelFitQuest.ext.AuthenticationButton
-import com.PixelFitQuest.Helpers.SIGNUP_SCREEN
+import com.PixelFitQuest.ext.launchCredManBottomSheet
 import com.PixelFitQuest.ui.theme.typography
 import com.PixelFitQuest.viewmodel.LoginViewModel
 
@@ -46,63 +55,157 @@ fun LoginScreen(
     val email = viewModel.email.collectAsState()
     val password = viewModel.password.collectAsState()
 
-    Box(Modifier.fillMaxSize()) {
+    LaunchedEffect(Unit) {
+        launchCredManBottomSheet(context) { credential ->
+            viewModel.onLogInWithGoogle(credential, openAndPopUp)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Background PNG image
         Image(
             painter = painterResource(R.drawable.logsigninbackground),
             contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier.matchParentSize()
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillBounds
         )
+
+        // Foreground board PNG image
+        Image(
+            painter = painterResource(R.drawable.questloginboard),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize(0.95f)
+                .aspectRatio(1f)
+                .padding(8.dp)
+                .align(Alignment.Center)
+                .scale(scaleX = 1.2f, scaleY = 1.5f),
+            contentScale = ContentScale.FillBounds
+        )
+
+        // Foreground login content
         Column(
-            Modifier.fillMaxSize().padding(horizontal = 32.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 70.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Login", style = typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.height(48.dp))
-            OutlinedTextField(
-                value = email.value,
-                onValueChange = { viewModel.updateEmail(it) },
-                placeholder = { Text(stringResource(R.string.email), style = typography.labelLarge) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(16.dp))
-            OutlinedTextField(
-                value = password.value,
-                onValueChange = { viewModel.updatePassword (it) },
-                label = {Text(stringResource(R.string.password) , style = typography.labelLarge) },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth()
+            Text(
+                text = "Login",
+                style = typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Email:",
+                style = typography.labelLarge,
+                modifier = Modifier
+                    .align(Alignment.Start)
+            )
+
+            Box(
+                modifier = Modifier
+                    .width(280.dp)
+                    .height(50.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.inputfield),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+                TextField(
+                    value = email.value,
+                    onValueChange = { viewModel.updateEmail(it) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    modifier = Modifier.fillMaxHeight().fillMaxWidth(0.96f),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        errorIndicatorColor = Color.Transparent
+                    )
+                )
+            }
+
+            Text(
+                text = "Password:",
+                style = typography.labelLarge,
+                modifier = Modifier
+                    .align(Alignment.Start)
+            )
+
+            Box(
+                modifier = Modifier
+                    .width(280.dp)
+                    .height(50.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.inputfield),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+                TextField(
+                    value = password.value,
+                    onValueChange = { viewModel.updatePassword(it) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    modifier = Modifier.fillMaxHeight().fillMaxWidth(0.96f),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        errorIndicatorColor = Color.Transparent
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             TextButton(onClick = { openScreen(SIGNUP_SCREEN) }) {
                 Text(text = stringResource(R.string.sign_up_description), fontSize = 16.sp)
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
-                onClick = { viewModel.onLogInClick(openAndPopUp) },
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(16.dp, 0.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text(
-                    text = stringResource(R.string.sign_in),
-                    fontSize = 16.sp,
-                    modifier = modifier.padding(0.dp, 6.dp)
-                )
+                Button(
+                    onClick = { viewModel.onLogInClick(openAndPopUp) },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = stringResource(R.string.log_in),
+                        fontSize = 16.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                AuthenticationButton(
+                    buttonText = R.string.login_with_google,
+                    modifier = Modifier.weight(1f)
+                ) { credential ->
+                    viewModel.onLogInWithGoogle(credential, openAndPopUp)
+                }
             }
 
-            Spacer(Modifier.height(16.dp))
-
-            AuthenticationButton(buttonText = R.string.sign_in_with_google) { credential ->
-                            viewModel.onLogInWithGoogle(credential, openAndPopUp)
-                        }
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

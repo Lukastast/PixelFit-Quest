@@ -28,26 +28,30 @@ import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import kotlinx.coroutines.launch
 
 @Composable
-fun AuthenticationButton(buttonText: Int, onRequestResult: (Credential) -> Unit) {
+fun AuthenticationButton(
+    buttonText: Int,
+    modifier: Modifier = Modifier,
+    onRequestResult: (Credential) -> Unit
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     Button(
         onClick = { coroutineScope.launch { launchCredManButtonUI(context, onRequestResult) } },
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(16.dp, 0.dp)
     ) {
         Icon(
-                    painter = painterResource(id = R.drawable.google_g),
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    contentDescription = "Google logo"
-                )
+            painter = painterResource(id = R.drawable.google_g),
+            modifier = Modifier.padding(horizontal = 8.dp),
+            contentDescription = "Google logo"
+        )
 
         Text(
             text = stringResource(buttonText),
             fontSize = 16.sp,
-            modifier = Modifier.padding(0.dp, 6.dp)
+            modifier = Modifier.padding(0.dp, 0.dp)
         )
     }
 }

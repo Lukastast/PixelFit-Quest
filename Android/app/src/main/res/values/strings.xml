@@ -5,7 +5,8 @@
     <string name="password">Password</string>
     <string name="confirm_password">Confirm password</string>
     <string name="sign_in">Sign in</string>
-    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="log_in">Log in</string>
+    <string name="login_with_google"></string>
     <string name="no_accounts_error">No Google accounts found on this device</string>
     <string name="sign_up">Sign up</string>
     <string name="sign_up_description">Don\'t have an account? Click here to Sign Up!</string>
@@ -24,5 +25,5 @@
     <string name="profile_provider">Account provider: %1$s</string>
     <string name="update">Update</string>
     <string name="or">or</string>
-    <string name="sign_up_with_google">Sign up with Google</string>
+    <string name="sign_up_with_google"></string>
 </resources>
