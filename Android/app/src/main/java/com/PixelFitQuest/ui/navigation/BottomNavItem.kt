@@ -25,7 +25,7 @@ sealed class BottomNavItem(
         route = WORKOUT_SCREEN,
         selectedIcon = R.drawable.workoutbuttonclicked,
         unSelectedIcon = R.drawable.workoutbuttonunclicked,
-        label = "Profile")
+        label = "Workout")
     object Customization : BottomNavItem(
         route = CUSTOMIZATION_SCREEN,
         selectedIcon = R.drawable.customizationbuttonclicked,
