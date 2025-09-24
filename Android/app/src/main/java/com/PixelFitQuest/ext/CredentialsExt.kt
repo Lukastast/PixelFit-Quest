@@ -108,7 +108,6 @@ suspend fun launchCredManBottomSheet(
         onRequestResult(result.credential)
     } catch (e: NoCredentialException) {
         Log.d(ERROR_TAG, e.message.orEmpty())
-        Log.d(ERROR_TAG,"error1")
         //If the bottom sheet was launched with filter by authorized accounts, we launch it again
         //without filter so the user can see all available accounts, not only the ones that have
         //been previously authorized in this app
@@ -117,6 +116,5 @@ suspend fun launchCredManBottomSheet(
         }
     } catch (e: GetCredentialException) {
         Log.d(ERROR_TAG, e.message.orEmpty())
-        Log.d(ERROR_TAG,"error2")
     }
 }
