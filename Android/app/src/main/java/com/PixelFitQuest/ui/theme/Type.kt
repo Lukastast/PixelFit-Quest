@@ -16,7 +16,6 @@ import com.PixelFitQuest.R // Adjust if your R is in a different package
 val determination = FontFamily(
     Font(R.font.determination, FontWeight.Normal) // References the TTF file (rename to jacquard24_regular.ttf if needed)
 )
-// Updated Typography with Jacquard 24
 val typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default, // Keep default for body text
@@ -50,5 +49,4 @@ val typography = Typography(
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     )
-    // Uncomment and customize other styles as needed
 )
