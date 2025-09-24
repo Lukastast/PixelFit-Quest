@@ -3,6 +3,7 @@ package com.PixelFitQuest.viewmodel
 import android.util.Log
 import androidx.credentials.Credential
 import androidx.credentials.CustomCredential
+import com.PixelFitQuest.Helpers.AuthErrorMapper
 import com.PixelFitQuest.Helpers.ERROR_TAG
 import com.PixelFitQuest.Helpers.UNEXPECTED_CREDENTIAL
 import com.PixelFitQuest.ext.isValidEmail
@@ -61,20 +62,11 @@ class LoginViewModel @Inject constructor(
 
         launchCatching(
             onError = { e ->
-                val errorMessage = when (e) {
-                    is FirebaseAuthException -> {
-                        Log.e(ERROR_TAG, "Firebase error code: ${e.errorCode}")
-                        when (e.errorCode) {
-                            "ERROR_INVALID_EMAIL" -> "Invalid email"
-                            "ERROR_WRONG_PASSWORD" -> "Incorrect password"
-                            "ERROR_USER_NOT_FOUND" -> "No account found with this email"
-                            "ERROR_USER_DISABLED" -> "Account disabled"
-                            "ERROR_INVALID_CREDENTIAL" -> "Invalid email or password"
-                            else -> e.message ?: "Login failed"
-                        }
-                    }
-                    else -> e.message ?: "An error occurred"
-                }
+                val errorMessage = AuthErrorMapper.mapError(
+                    e,
+                    mappings = AuthErrorMapper.loginErrorMappings,
+                    errorTag = ERROR_TAG
+                )
                 _authState.value = AuthState.Error(errorMessage)
             }
         ) {
