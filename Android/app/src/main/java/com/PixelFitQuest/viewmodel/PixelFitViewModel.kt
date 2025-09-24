@@ -9,11 +9,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 open class PixelFitViewModel : ViewModel() {
-    fun launchCatching(block: suspend CoroutineScope.() -> Unit) =
-        viewModelScope.launch(
-            CoroutineExceptionHandler { _, throwable ->
-                Log.d(ERROR_TAG, throwable.toString())
-            },
-            block = block
-        )
+    fun launchCatching(
+        onError: (Throwable) -> Unit = {},
+        block: suspend CoroutineScope.() -> Unit
+    ) = viewModelScope.launch(
+        CoroutineExceptionHandler { _, throwable ->
+            Log.d(ERROR_TAG, throwable.toString())
+            onError(throwable)
+        },
+        block = block
+    )
 }
