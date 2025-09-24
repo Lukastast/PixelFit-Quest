@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,6 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -40,7 +42,9 @@ import com.PixelFitQuest.Helpers.SIGNUP_SCREEN
 import com.PixelFitQuest.R
 import com.PixelFitQuest.ext.AuthenticationButton
 import com.PixelFitQuest.ext.launchCredManBottomSheet
+import com.PixelFitQuest.ui.theme.PixelFitQuestTheme
 import com.PixelFitQuest.ui.theme.typography
+import com.PixelFitQuest.viewmodel.AuthState
 import com.PixelFitQuest.viewmodel.LoginViewModel
 
 @Composable
@@ -54,6 +58,7 @@ fun LoginScreen(
 
     val email = viewModel.email.collectAsState()
     val password = viewModel.password.collectAsState()
+    val authState = viewModel.authState.collectAsState().value
 
     LaunchedEffect(Unit) {
         launchCredManBottomSheet(context) { credential ->
@@ -118,6 +123,7 @@ fun LoginScreen(
                     contentScale = ContentScale.FillBounds
                 )
                 TextField(
+                    singleLine = true,
                     value = email.value,
                     onValueChange = { viewModel.updateEmail(it) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -155,6 +161,7 @@ fun LoginScreen(
                     contentScale = ContentScale.FillBounds
                 )
                 TextField(
+                    singleLine = true,
                     value = password.value,
                     onValueChange = { viewModel.updatePassword(it) },
                     visualTransformation = PasswordVisualTransformation(),
@@ -175,6 +182,19 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            if (authState is AuthState.Error) {
+                Text(
+                    text = authState.message,
+                    style = typography.labelLarge,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
+            if (authState is AuthState.Loading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            }
+
             TextButton(onClick = { openScreen(SIGNUP_SCREEN) }) {
                 Text(text = stringResource(R.string.sign_up_description), fontSize = 16.sp)
             }
@@ -187,7 +207,8 @@ fun LoginScreen(
             ) {
                 Button(
                     onClick = { viewModel.onLogInClick(openAndPopUp) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    enabled = authState !is AuthState.Loading
                 ) {
                     Text(
                         text = stringResource(R.string.log_in),
@@ -207,5 +228,21 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
         }
+    }
+}
+
+@Preview(
+    showBackground = true,
+    device = "id:pixel_5",
+    showSystemUi = true,
+    backgroundColor = 0xFFFFFFFF
+)
+@Composable
+fun LoginScreenPreview() {
+    PixelFitQuestTheme {
+        LoginScreen(
+            openScreen = {},
+            openAndPopUp = { _, _ -> }
+        )
     }
 }
