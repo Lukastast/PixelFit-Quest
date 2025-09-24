@@ -12,7 +12,20 @@
           "package_name": "com.PixelFitQuest"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "380513407761-lku8a1qfheg7lfghg4litfrg4212fieo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.PixelFitQuest",
+            "certificate_hash": "22658768304e099a44d628c1a611aea25f60669e"
+          }
+        },
+        {
+          "client_id": "380513407761-344qiqvd3t1javubtts87dp45shk3fvd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAxWR17FCDQM4pjrbrgGifYwttFAohjxuQ"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "380513407761-344qiqvd3t1javubtts87dp45shk3fvd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
