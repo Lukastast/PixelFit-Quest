@@ -100,7 +100,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            AuthenticationButton(buttonText = R.string.sign_in_with_google) { credential ->
+            AuthenticationButton(buttonText = R.string.login_with_google) { credential ->
                             viewModel.onLogInWithGoogle(credential, openAndPopUp)
                         }
         }
