@@ -19,8 +19,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             PixelFitQuestTheme {
-                AppScaffold()
-                }
+                    AppScaffold()
             }
+        }
         }
     }

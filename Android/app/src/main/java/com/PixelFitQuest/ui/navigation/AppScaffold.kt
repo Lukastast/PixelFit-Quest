@@ -1,14 +1,16 @@
 package com.PixelFitQuest.ui.navigation
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -16,6 +18,7 @@ import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -43,6 +46,8 @@ fun AppScaffold() {
     val isUserLoggedIn = appState.currentUser != null
 
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
             if (isUserLoggedIn && currentRoute in listOf(
@@ -73,10 +78,11 @@ fun AppScaffold() {
                                         id = if (currentRoute == item.route) item.selectedIcon else item.unSelectedIcon
                                     ),
                                     contentDescription = item.label,
-                                    tint = Color.Unspecified
+                                    tint = Color.Unspecified,
+                                    modifier = Modifier.size(72.dp),
                                 )
                             },
-                            label = { Text(item.label) },
+                            //label = { Text(item.label) },
                             selected = currentRoute == item.route,
                             colors = NavigationBarItemDefaults.colors(
                                 indicatorColor = Color.Transparent
