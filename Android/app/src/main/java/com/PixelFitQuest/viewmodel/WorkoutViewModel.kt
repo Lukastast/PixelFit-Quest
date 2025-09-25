@@ -1,6 +1,6 @@
-package com.PixelFitQuest.ui.viewmodel
+package com.PixelFitQuest.viewmodel
 
-import androidx.lifecycle.ViewModel
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,7 +10,7 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 @HiltViewModel
-class WorkoutViewModel @Inject constructor() : ViewModel() {
+class WorkoutViewModel @Inject constructor() : PixelFitViewModel() {
 
     private val _workoutState = MutableStateFlow(WorkoutState())
     val workoutState: StateFlow<WorkoutState> = _workoutState.asStateFlow()

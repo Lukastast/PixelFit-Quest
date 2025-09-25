@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.PixelFitQuest.ui.viewmodel.WorkoutViewModel
+import com.PixelFitQuest.viewmodel.WorkoutViewModel
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
