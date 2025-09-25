@@ -44,14 +44,13 @@ import com.PixelFitQuest.ext.AuthenticationButton
 import com.PixelFitQuest.ext.launchCredManBottomSheet
 import com.PixelFitQuest.ui.theme.PixelFitQuestTheme
 import com.PixelFitQuest.ui.theme.typography
-import com.PixelFitQuest.viewmodel.AuthState
+import com.PixelFitQuest.model.AuthState
 import com.PixelFitQuest.viewmodel.LoginViewModel
 
 @Composable
 fun LoginScreen(
     openScreen: (String) -> Unit,
     openAndPopUp: (String, String) -> Unit,
-    modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
