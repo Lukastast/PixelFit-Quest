@@ -45,16 +45,11 @@ fun SettingsScreen(restartApp: (String) -> Unit,
         Text(
             text = "Settings",
             style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        Text(
-            text = "Customize your PixelFit Quest experience.",
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
         ProfileImage(viewModel)
 
         Spacer(

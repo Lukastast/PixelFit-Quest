@@ -1,5 +1,6 @@
 package com.pixelfitquest.ui.view
 
+import AutoSizeText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.pixelfitquest.ui.theme.typography
 
 @Composable
 fun CustomizationScreen(openScreen: (String) -> Unit) {
@@ -28,12 +31,12 @@ fun CustomizationScreen(openScreen: (String) -> Unit) {
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Customize Your Avatar",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 16.dp)
+        AutoSizeText(
+            text = "Customize",
+            style = typography.titleLarge.copy(color = MaterialTheme.colorScheme.primary),
+            modifier = Modifier.padding(bottom = 8.dp),
+            maxFontSize = 50.sp,
+            minFontSize = 30.sp
         )
 
         Text(
