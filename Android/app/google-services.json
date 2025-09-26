@@ -7,43 +7,6 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:380513407761:android:ba8546b1fb98783c54b2b0",
-        "android_client_info": {
-          "package_name": "com.PixelFitQuest"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "380513407761-46oc7pg8c8c7mc6i5f1l5002loit04pq.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.PixelFitQuest",
-            "certificate_hash": "d7c0082202a4808d51334619429891cf420bcdf4"
-          }
-        },
-        {
-          "client_id": "380513407761-344qiqvd3t1javubtts87dp45shk3fvd.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAxWR17FCDQM4pjrbrgGifYwttFAohjxuQ"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "380513407761-344qiqvd3t1javubtts87dp45shk3fvd.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:380513407761:android:57abba349671732254b2b0",
         "android_client_info": {
           "package_name": "com.pixelfitquest"

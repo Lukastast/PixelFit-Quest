@@ -86,7 +86,8 @@ class AccountServiceImpl @Inject constructor() : AccountService {
             id = this.uid,
             email = this.email ?: "",
             provider = this.providerId,
-            displayName = this.displayName ?: ""
+            displayName = this.displayName ?: "",
+            profilePictureUrl = this.photoUrl?.toString() ?: ""  // Add this line for Google profile pic URL
         )
     }
 }

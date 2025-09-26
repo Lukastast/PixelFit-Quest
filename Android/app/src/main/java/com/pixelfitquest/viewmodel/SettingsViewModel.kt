@@ -3,6 +3,7 @@ package com.pixelfitquest.viewmodel
 import com.pixelfitquest.model.User
 import com.pixelfitquest.model.service.AccountService
 import com.pixelfitquest.Helpers.LOGIN_SCREEN
+import com.pixelfitquest.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,6 +41,15 @@ class SettingsViewModel @Inject constructor(
         launchCatching {
             accountService.deleteAccount()
             //restartApp(SPLASH_SCREEN)
+        }
+    }
+
+    fun getProfilePictureModel(): Any? {
+        val url = user.value.profilePictureUrl
+        return if (url.isNullOrBlank()) {
+            R.mipmap.app_icon_round  // Int: Local resource ID
+        } else {
+            url  // String: Remote URL
         }
     }
 }
