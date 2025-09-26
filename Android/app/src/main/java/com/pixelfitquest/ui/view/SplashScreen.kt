@@ -43,7 +43,7 @@ fun SplashScreen(
     // Logic: Check auth, delay, fade out, then navigate
     LaunchedEffect(Unit) {
         viewModel.checkAuthState { isAuthenticated ->
-            delay(1000)  // 2-second delay
+            delay(1000)  // 1-second delay
             visible = false  // Trigger fade out
             delay(500)  // Wait for animation to finish
             if (isAuthenticated) {
