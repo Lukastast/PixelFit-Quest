@@ -1,4 +1,4 @@
-package com.PixelFitQuest.model
+package com.PixelFitQuest.model.service
 
 sealed class AuthState {
     object Idle : AuthState()

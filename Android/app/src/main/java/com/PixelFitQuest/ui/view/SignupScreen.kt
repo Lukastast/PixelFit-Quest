@@ -44,15 +44,16 @@ import com.PixelFitQuest.Helpers.LOGIN_SCREEN
 import com.PixelFitQuest.R
 import com.PixelFitQuest.ext.AuthenticationButton
 import com.PixelFitQuest.ext.launchCredManBottomSheet
+import com.PixelFitQuest.model.service.AuthState
 import com.PixelFitQuest.ui.theme.PixelFitQuestTheme
 import com.PixelFitQuest.ui.theme.typography
-import com.PixelFitQuest.model.AuthState
 import com.PixelFitQuest.viewmodel.SignupViewModel
 
 @Composable
 fun SignupScreen(
     openScreen: (String) -> Unit,
     openAndPopUp: (String, String) -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: SignupViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
