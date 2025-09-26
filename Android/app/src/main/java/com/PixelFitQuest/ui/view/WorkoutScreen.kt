@@ -145,8 +145,8 @@ fun WorkoutScreen(
                     color = if (workoutState.verticalAccel < -1f) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
                 // Optional tilt warning (based on gravity mag deviation)
-                val gravityMag = sqrt((workoutState.verticalAccel + 9.81f).pow(2).toDouble()).toFloat()  // Approx
-                if (abs(gravityMag - 9.81f) > 2f) {
+                // Use the actual gravity magnitude from the state, not verticalAccel + 9.81f
+                if (abs(workoutState.gravityMag - 9.81f) > 2f) {
                     Text(
                         "Tilt detected: Hold steadier for accuracy",
                     )
