@@ -1,4 +1,4 @@
-package com.pixelfitquest.ui.screens
+package com.pixelfitquest.ui.view
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
