@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "com.PixelFitQuest"
+    namespace = "com.pixelfitquest"
     compileSdk = 36
 
     defaultConfig {
