@@ -1,5 +1,6 @@
 package com.pixelfitquest.ui.view
 
+import com.pixelfitquest.ui.components.AutoSizeText
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -30,7 +31,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.WorkoutViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,22 +115,25 @@ fun WorkoutScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Header
-        Text(
-            text = "Workout Tracker (Orientation-Robust)",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+        AutoSizeText(
+            text = "Workout Tracker",
+            style = typography.titleLarge.copy(color = MaterialTheme.colorScheme.primary),
+            modifier = Modifier.padding(bottom = 8.dp),
+            maxFontSize = 50.sp,
+            minFontSize = 30.sp
         )
 
         // Controls
+        Button(
+            onClick = { viewModel.startWorkout() },
+            enabled = !workoutState.isTracking
+        ) {
+            Text("Start Tracking")
+        }
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Button(
-                onClick = { viewModel.startWorkout() },
-                enabled = !workoutState.isTracking
-            ) {
-                Text("Start Tracking")
-            }
+
             Button(
                 onClick = { viewModel.stopWorkout() },
                 enabled = workoutState.isTracking

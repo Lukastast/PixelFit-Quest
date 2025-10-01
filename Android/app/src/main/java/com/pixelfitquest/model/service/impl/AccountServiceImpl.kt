@@ -38,10 +38,6 @@ class AccountServiceImpl @Inject constructor() : AccountService {
         return Firebase.auth.currentUser.toPixelFitUser()
     }
 
-//    override suspend fun createAnonymousAccount() {
-//        Firebase.auth.signInAnonymously().await()
-//    }
-
     override suspend fun updateDisplayName(newDisplayName: String) {
         val profileUpdates = userProfileChangeRequest {
             displayName = newDisplayName
@@ -86,7 +82,9 @@ class AccountServiceImpl @Inject constructor() : AccountService {
             id = this.uid,
             email = this.email ?: "",
             provider = this.providerId,
-            displayName = this.displayName ?: ""
+            displayName = this.displayName ?: "",
+            profilePictureUrl = this.photoUrl?.toString() ?: "",
+            isLinkedWithGoogle = this.providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID } //"google.com"
         )
     }
 }

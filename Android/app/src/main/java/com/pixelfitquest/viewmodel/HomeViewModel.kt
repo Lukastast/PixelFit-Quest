@@ -5,6 +5,7 @@ import com.pixelfitquest.model.UserGameData
 import com.pixelfitquest.model.service.AccountService
 import com.pixelfitquest.repository.UserRepository  // Add this import
 import com.pixelfitquest.Helpers.SIGNUP_SCREEN
+import com.pixelfitquest.Helpers.SPLASH_SCREEN
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,7 +33,7 @@ class HomeViewModel @Inject constructor(
     fun initialize(restartApp: (String) -> Unit) {
         launchCatching {
             accountService.currentUser.collect { user ->
-                if (user == null) restartApp(SIGNUP_SCREEN)
+                if (user == null) restartApp(SPLASH_SCREEN)
             }
         }
     }
