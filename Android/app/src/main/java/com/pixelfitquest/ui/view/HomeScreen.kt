@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pixelfitquest.ui.theme.PixelFitQuestTheme
 import com.pixelfitquest.viewmodel.HomeViewModel
-import com.PixelFitQuest.Helpers.TypewriterText
 
 @Composable
 fun HomeScreen(
@@ -81,6 +80,7 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
+
 
             if (error != null) {
                 Text(

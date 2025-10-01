@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,32 +30,32 @@ fun TypewriterText(
     onComplete: () -> Unit = {},
     modifier: Modifier = Modifier,
     style: TextStyle = typography.labelLarge,
-    textAlign: TextAlign = TextAlign.Start,
+    textAlign: TextAlign = TextAlign.Left,
     color: Color = Color.White
 ) {
     var displayedText by remember { mutableStateOf("") }
     var job by remember { mutableStateOf<Job?>(null) }
     val context = LocalContext.current
 
+    // Create SoundPool
     val soundPool = remember {
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_GAME)
-            .build()
         SoundPool.Builder()
-            .setMaxStreams(5)
-            .setAudioAttributes(audioAttributes)
+            .setMaxStreams(5)  // Allow up to 5 simultaneous blips
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build()
+            )
             .build()
     }
 
-    var soundId by remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(Unit) {
-        soundId = soundPool.load(context, R.raw.typewriter_blip, 1)
-    }
+    // Load sound
+    val soundId = remember { soundPool.load(context, R.raw.typewriter_blip, 1) }
 
     DisposableEffect(Unit) {
         onDispose {
-            soundPool.release()
+            soundPool.release()  // Release resources
         }
     }
 
@@ -70,7 +69,7 @@ fun TypewriterText(
                 stringBuilder.append(char)
                 displayedText = stringBuilder.toString()
                 if (soundId != 0) {
-                    soundPool.play(soundId, 1f, 1f, 0, 0, 1f)
+                    soundPool.play(soundId, 1f, 1f, 0, 0, 1f)  // Play: volume L/R, priority, loop, rate
                 }
                 delay(delayMs)
             }
@@ -84,6 +83,7 @@ fun TypewriterText(
         style = style,
         textAlign = textAlign,
         modifier = modifier
+            .fillMaxSize()
             .clickable {
                 job?.cancel() // Cancel only the typewriter job
                 displayedText = text
