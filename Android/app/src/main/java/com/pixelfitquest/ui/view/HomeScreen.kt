@@ -81,6 +81,7 @@ fun HomeScreen(
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
+
             if (error != null) {
                 Text(
                     text = "Error: $error",
