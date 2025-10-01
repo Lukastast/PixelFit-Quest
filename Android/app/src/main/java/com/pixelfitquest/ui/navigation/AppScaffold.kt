@@ -28,9 +28,11 @@ import com.pixelfitquest.Helpers.HOME_SCREEN
 import com.pixelfitquest.Helpers.LOGIN_SCREEN
 import com.pixelfitquest.Helpers.SETTINGS_SCREEN
 import com.pixelfitquest.Helpers.SIGNUP_SCREEN
+import com.pixelfitquest.Helpers.SPLASH_SCREEN
 import com.pixelfitquest.Helpers.WORKOUT_SCREEN
 import com.pixelfitquest.R
 import com.pixelfitquest.ui.screens.LoginScreen
+import com.pixelfitquest.ui.screens.SplashScreen
 import com.pixelfitquest.ui.view.CustomizationScreen
 import com.pixelfitquest.ui.view.HomeScreen
 import com.pixelfitquest.ui.view.SettingsScreen
@@ -50,7 +52,10 @@ fun AppScaffold() {
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-            if (isUserLoggedIn && currentRoute in listOf(
+            // Explicitly return nothing (empty composable) if on splash to avoid any layout space reservation
+            if (currentRoute == SPLASH_SCREEN) {
+                // Empty - no bar
+            } else if (isUserLoggedIn && currentRoute in listOf(
                     HOME_SCREEN,
                     WORKOUT_SCREEN,
                     CUSTOMIZATION_SCREEN,
@@ -98,7 +103,7 @@ fun AppScaffold() {
     ) { innerPaddingModifier ->
         NavHost(
             navController = appState.navController,
-            startDestination = if (isUserLoggedIn) HOME_SCREEN else SIGNUP_SCREEN,
+            startDestination = SPLASH_SCREEN,
             modifier = Modifier.padding(innerPaddingModifier)
         ) {
             pixelFitGraph(appState)
@@ -107,6 +112,12 @@ fun AppScaffold() {
 }
 
 fun NavGraphBuilder.pixelFitGraph(appState: AppState) {
+    composable(SPLASH_SCREEN) {
+        SplashScreen(
+            navController = appState.navController
+        )
+    }
+
     composable(SIGNUP_SCREEN) {
         SignupScreen(
             openScreen = { route -> appState.navigate(route) },
