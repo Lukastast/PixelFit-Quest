@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.pixelfitquest.R
+import com.pixelfitquest.model.User
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -127,6 +129,51 @@ fun ExitAppCard(onSignOutClick: () -> Unit) {
     }
 }
 
+@Composable
+fun GoogleLinkCard(
+    user: User?, // Assuming User is your user profile model with isLinkedWithGoogle: Boolean
+    onLinkClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+
+    //if (user == null || user.isLinkedWithGoogle) {
+      //  return
+   // }
+
+    var showLinkDialog by remember { mutableStateOf(false) }
+
+    AccountCenterCard(
+        stringResource(R.string.link_google_account), // Assume you have this string resource
+        Icons.Filled.Link, // Or appropriate icon, e.g., Icons.Filled.AccountCircle for Google
+        modifier.card()
+    ) {
+        showLinkDialog = true
+    }
+
+    if (showLinkDialog) {
+        AlertDialog(
+            title = { Text(stringResource(R.string.link_google_title)) }, // e.g., "Link Google Account"
+            text = { Text(stringResource(R.string.link_google_description)) },
+            dismissButton = {
+                Button(onClick = { showLinkDialog = false }) {
+                    Text(text = stringResource(R.string.cancel))
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onLinkClick() // This should trigger Google sign-in flow to get idToken, then call linkAccountWithGoogle
+                        showLinkDialog = false
+                    }
+                ) {
+                    Text(text = stringResource(R.string.link_google)) // e.g., "Link Account"
+                }
+            },
+            onDismissRequest = { showLinkDialog = false }
+        )
+    }
+    TODO("missing logic from credentials, aka authentication button / logic")
+}
 @Composable
 fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
     var showRemoveAccDialog by remember { mutableStateOf(false) }

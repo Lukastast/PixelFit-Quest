@@ -19,12 +19,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.pixelfitquest.Helpers.DisplayNameCard
 import com.pixelfitquest.Helpers.ExitAppCard
+import com.pixelfitquest.Helpers.GoogleLinkCard
 import com.pixelfitquest.Helpers.RemoveAccountCard
 import com.pixelfitquest.Helpers.card
 import com.pixelfitquest.model.User
 import com.pixelfitquest.viewmodel.SettingsViewModel
 import java.util.Locale
 import com.pixelfitquest.R
+import com.pixelfitquest.ext.AuthenticationButton
 
 
 @Composable
@@ -80,6 +82,17 @@ fun SettingsScreen(restartApp: (String) -> Unit,
                 )
                 ExitAppCard { viewModel.onSignOutClick(restartApp) }
                 RemoveAccountCard { viewModel.onDeleteAccountClick(restartApp) }
+                //if (!user.isLinkedWithGoogle) {
+                //                    //needs to be changed with link button
+                //                    AuthenticationButton(
+                //                        buttonText = R.string.link_google_account,
+                //                        modifier = Modifier
+                //                            .fillMaxWidth()
+                //                            .padding(16.dp)
+                //                    ) { credential ->
+                //                        viewModel.linkAccountWithGoogle(credential)
+                //                    }
+                //                }
             }
         }
     }

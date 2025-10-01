@@ -26,4 +26,8 @@
     <string name="update">Update</string>
     <string name="or">or</string>
     <string name="sign_up_with_google"></string>
+    <string name="link_google_account">Link Google account</string>
+    <string name="link_google_description">Link your Google account to enable seamless sign-in</string>
+    <string name="link_google_title">Link Google account?</string>
+    <string name="link_google">Link Account</string>
 </resources>
