@@ -8,12 +8,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.pixelfitquest.ui.theme.typography
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -22,15 +21,19 @@ fun TypewriterText(
     text: String,
     delayMs: Long = 100L,
     onComplete: () -> Unit = {}
-){
+) {
     var displayedText by remember { mutableStateOf("") }
-    val scope = rememberCoroutineScope()
+    var job by remember { mutableStateOf<Job?>(null) }
 
     LaunchedEffect(Unit) {
-        scope.launch {
+        job?.cancel() // Cancel any existing job
+        val stringBuilder = StringBuilder()
+        job = launch {
+            stringBuilder.clear()
             displayedText = ""
             text.forEach { char ->
-                displayedText = displayedText + char
+                stringBuilder.append(char)
+                displayedText = stringBuilder.toString()
                 delay(delayMs)
             }
             onComplete()
@@ -43,12 +46,10 @@ fun TypewriterText(
         style = typography.labelLarge,
         modifier = Modifier
             .fillMaxSize()
-            /*.background(Color.Black) add background color if needed */
             .clickable {
-            scope.cancel()
-            displayedText = text
-            onComplete()
-        }
-
+                job?.cancel() // Cancel only the typewriter job
+                displayedText = text
+                onComplete()
+            }
     )
 }
