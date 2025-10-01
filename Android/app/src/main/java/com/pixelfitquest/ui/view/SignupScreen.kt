@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.PixelFitQuest.Helpers.TypewriterText
 import com.pixelfitquest.Helpers.LOGIN_SCREEN
 import com.pixelfitquest.R
 import com.pixelfitquest.ext.AuthenticationButton

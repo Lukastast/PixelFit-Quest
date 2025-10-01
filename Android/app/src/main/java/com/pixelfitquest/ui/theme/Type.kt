@@ -17,8 +17,17 @@ val determination = FontFamily(
     Font(R.font.determination, FontWeight.Normal) // References the TTF file (rename to jacquard24_regular.ttf if needed)
 )
 val typography = Typography(
+
+    bodyMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.25.sp
+    ),
+
     bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default, // Keep default for body text
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
