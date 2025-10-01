@@ -1,6 +1,7 @@
 package com.PixelFitQuest.Helpers
 
-import android.media.MediaPlayer
+import android.media.AudioAttributes
+import android.media.SoundPool
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
@@ -8,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -22,25 +24,39 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.pixelfitquest.R
 
-
 @Composable
 fun TypewriterText(
     text: String,
     delayMs: Long = 100L,
     onComplete: () -> Unit = {},
-    modifier: Modifier,
-    style: TextStyle,
-    textAlign: TextAlign,
-    color: Color
+    modifier: Modifier = Modifier,
+    style: TextStyle = typography.labelLarge,
+    textAlign: TextAlign = TextAlign.Start,
+    color: Color = Color.White
 ) {
     var displayedText by remember { mutableStateOf("") }
     var job by remember { mutableStateOf<Job?>(null) }
     val context = LocalContext.current
-    val mediaPlayer = MediaPlayer.create(context, R.raw.typewriter_blip)
+
+    val soundPool = remember {
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_GAME)
+            .build()
+        SoundPool.Builder()
+            .setMaxStreams(5)
+            .setAudioAttributes(audioAttributes)
+            .build()
+    }
+
+    var soundId by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        soundId = soundPool.load(context, R.raw.typewriter_blip, 1)
+    }
 
     DisposableEffect(Unit) {
         onDispose {
-            mediaPlayer.release()
+            soundPool.release()
         }
     }
 
@@ -53,8 +69,9 @@ fun TypewriterText(
             text.forEach { char ->
                 stringBuilder.append(char)
                 displayedText = stringBuilder.toString()
-                mediaPlayer.seekTo(0)
-                mediaPlayer.start()
+                if (soundId != 0) {
+                    soundPool.play(soundId, 1f, 1f, 0, 0, 1f)
+                }
                 delay(delayMs)
             }
             onComplete()
@@ -63,10 +80,10 @@ fun TypewriterText(
 
     Text(
         text = displayedText,
-        color = Color.White,
-        style = typography.labelLarge,
-        modifier = Modifier
-            .fillMaxSize()
+        color = color,
+        style = style,
+        textAlign = textAlign,
+        modifier = modifier
             .clickable {
                 job?.cancel() // Cancel only the typewriter job
                 displayedText = text
