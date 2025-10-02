@@ -1,6 +1,7 @@
 package com.pixelfitquest.ui.view
 
-import com.pixelfitquest.ui.components.AutoSizeText
+
+import AutoSizeText
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent

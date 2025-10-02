@@ -1,4 +1,4 @@
-package com.PixelFitQuest.Helpers
+package com.pixelfitquest.Helpers
 
 import android.media.AudioAttributes
 import android.media.SoundPool

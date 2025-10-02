@@ -6,4 +6,7 @@ const val SETTINGS_SCREEN = "settings"
 const val CUSTOMIZATION_SCREEN = "customization"
 const val LOGIN_SCREEN = "login"
 const val SPLASH_SCREEN = "SplashScreen"
+
+const val INTRO_SCREEN = "intro"
+
 const val ACCOUNT_CENTER_SCREEN = "AccountCenterScreen"
