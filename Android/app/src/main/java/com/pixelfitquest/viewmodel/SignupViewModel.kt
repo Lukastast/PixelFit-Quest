@@ -3,17 +3,17 @@ package com.pixelfitquest.viewmodel
 import android.util.Log
 import androidx.credentials.Credential
 import androidx.credentials.CustomCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.pixelfitquest.Helpers.AuthErrorMapper
 import com.pixelfitquest.Helpers.ERROR_TAG
+import com.pixelfitquest.Helpers.INTRO_SCREEN
+import com.pixelfitquest.Helpers.SIGNUP_SCREEN
 import com.pixelfitquest.Helpers.UNEXPECTED_CREDENTIAL
 import com.pixelfitquest.ext.isValidEmail
 import com.pixelfitquest.ext.isValidPassword
 import com.pixelfitquest.model.service.AccountService
-import com.pixelfitquest.Helpers.HOME_SCREEN
-import com.pixelfitquest.Helpers.SIGNUP_SCREEN
 import com.pixelfitquest.model.service.AuthState
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -92,7 +92,7 @@ class SignupViewModel @Inject constructor(
 
             accountService.createAccountWithEmail(_email.value, _password.value)
             _authState.value = AuthState.Success
-            openAndPopUp(HOME_SCREEN, SIGNUP_SCREEN)
+            openAndPopUp(INTRO_SCREEN, SIGNUP_SCREEN)
         }
     }
 
@@ -108,7 +108,7 @@ class SignupViewModel @Inject constructor(
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
                 accountService.signInWithGoogle(googleIdTokenCredential.idToken)
                 _authState.value = AuthState.Success
-                openAndPopUp(HOME_SCREEN, SIGNUP_SCREEN)
+                openAndPopUp(INTRO_SCREEN, SIGNUP_SCREEN)
             } else {
                 Log.e(ERROR_TAG, UNEXPECTED_CREDENTIAL)
                 _authState.value = AuthState.Error("Unexpected credential type")
