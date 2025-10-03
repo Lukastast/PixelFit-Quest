@@ -1,6 +1,6 @@
 package com.pixelfitquest.ui.view
 
-import com.pixelfitquest.ui.components.AutoSizeText
+import AutoSizeText
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -29,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -156,32 +154,26 @@ fun WorkoutScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text("Reps: ${workoutState.reps}", style = MaterialTheme.typography.headlineSmall)
+                Text("Failed Reps: ${workoutState.failedReps}")
                 Text("Avg Rep Time: ${String.format("%.1f", workoutState.avgRepTime / 1000f)}s")
                 Text("Estimated ROM: ${String.format("%.1f", workoutState.estimatedROM)} cm")
-                // Vertical accel (downward negative; orientation-independent)
+                Text("Up ROM: ${String.format("%.1f", workoutState.upROM)} cm")
+                Text("Down ROM: ${String.format("%.1f", workoutState.downROM)} cm")
+                // Accels (net, motion-only)
+                Text("X Accel: ${String.format("%.2f", workoutState.xAccel)} m/s²")
+                Text("Y Accel: ${String.format("%.2f", workoutState.yAccel)} m/s²")
                 Text(
                     text = "Vertical Accel: ${String.format("%.2f", workoutState.verticalAccel)} m/s²",
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (workoutState.verticalAccel < -1f) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
-                // Optional tilt warning (based on gravity mag deviation)
-                // Use the actual gravity magnitude from the state, not verticalAccel + 9.81f
-                //if (abs(workoutState.gravityMag - 9.81f) > 2f) {
-                //                    Text(
-                //                        "Tilt detected: Hold steadier for accuracy",
-                //                    )
-                //                }
+                // NEW: Debug flags
+                //Text("Has Bottom: ${workoutState.hasBottom}")
+                //Text("Has Sig Accel: ${workoutState.hasSignificantAccel}")
                 if (workoutState.isTracking) {
-                    Text("Tracking Active", color = MaterialTheme.colorScheme.primary)
+                    Text("Tracking Active (Gravity-Aligned)", color = MaterialTheme.colorScheme.primary)
                 }
             }
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Navigation
-        Button(onClick = { openScreen("home") }) {
-            Text("Back to Home")
         }
     }
 }
