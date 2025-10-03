@@ -23,7 +23,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.pixelfitquest.ui.view.IntroScreen
 import com.pixelfitquest.Helpers.CUSTOMIZATION_SCREEN
 import com.pixelfitquest.Helpers.HOME_SCREEN
 import com.pixelfitquest.Helpers.INTRO_SCREEN
@@ -36,6 +35,7 @@ import com.pixelfitquest.R
 import com.pixelfitquest.ui.screens.LoginScreen
 import com.pixelfitquest.ui.view.CustomizationScreen
 import com.pixelfitquest.ui.view.HomeScreen
+import com.pixelfitquest.ui.view.IntroScreen
 import com.pixelfitquest.ui.view.SettingsScreen
 import com.pixelfitquest.ui.view.SignupScreen
 import com.pixelfitquest.ui.view.SplashScreen

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,7 +33,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pixelfitquest.Helpers.TypewriterText
 import com.pixelfitquest.R
-import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.IntroViewModel
 import kotlinx.coroutines.delay
 
@@ -75,9 +75,9 @@ fun IntroScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                Spacer(modifier = Modifier.height(300.dp))
+                Spacer(modifier = Modifier.height(150.dp))  // Space between image and text
 
-                // Centered smaller image
+
                 Image(
                     painter = painterResource(id = slides[currentSlide].imageRes),
                     contentDescription = slides[currentSlide].text,
@@ -86,7 +86,7 @@ fun IntroScreen(
                     contentScale = ContentScale.Fit
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))  // Space between image and text
 
                 // Typewriter text below image
                 TypewriterText(
@@ -100,7 +100,7 @@ fun IntroScreen(
                         .padding(16.dp),
                     textAlign = TextAlign.Center,
                     color = Color.White,
-                    style = typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
         }

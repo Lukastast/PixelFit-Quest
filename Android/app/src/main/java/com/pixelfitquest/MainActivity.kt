@@ -4,9 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.pixelfitquest.ui.navigation.AppScaffold
 import com.pixelfitquest.ui.theme.PixelFitQuestTheme
 import com.google.firebase.FirebaseApp
+import com.pixelfitquest.ui.navigation.AppScaffold
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
