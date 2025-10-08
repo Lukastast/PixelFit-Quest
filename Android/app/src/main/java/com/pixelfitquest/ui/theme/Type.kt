@@ -18,8 +18,10 @@ val determination = FontFamily(
 )
 val typography = Typography(
 
+
+
     bodyMedium = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = determination,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         lineHeight = 20.sp,
@@ -27,7 +29,7 @@ val typography = Typography(
     ),
 
     bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = determination,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
