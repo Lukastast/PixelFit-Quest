@@ -64,10 +64,6 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:1.7.0")
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
-    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
-    implementation("com.google.dagger:hilt-android:2.57.2")
-    implementation(libs.compose.material3)
-    kapt("com.google.dagger:hilt-compiler:2.57.2")
     implementation(libs.coil.compose)
 
     //firebase
@@ -79,6 +75,11 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+
+    //hilt
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
+    implementation("com.google.dagger:hilt-android:2.57.2")
+    kapt("com.google.dagger:hilt-compiler:2.57.2")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

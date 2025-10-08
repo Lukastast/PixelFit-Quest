@@ -1,7 +1,6 @@
 package com.pixelfitquest.ui.view
 
-
-import com.pixelfitquest.ui.components.AutoSizeText
+import AutoSizeText
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,10 +25,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,6 +44,9 @@ fun WorkoutScreen(
     val context = LocalContext.current
     val viewModel: WorkoutViewModel = hiltViewModel()
     val workoutState by viewModel.workoutState.collectAsState()
+
+    // NEW: Height input state
+    var heightInput by remember { mutableStateOf("") }
 
     // Check accelerometer availability only
     val sensorManager = remember { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
@@ -157,32 +158,19 @@ fun WorkoutScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text("Reps: ${workoutState.reps}", style = MaterialTheme.typography.headlineSmall)
+                Text("Failed Reps: ${workoutState.failedReps}")
                 Text("Avg Rep Time: ${String.format("%.1f", workoutState.avgRepTime / 1000f)}s")
                 Text("Estimated ROM: ${String.format("%.1f", workoutState.estimatedROM)} cm")
-                // Vertical accel (downward negative; orientation-independent)
+                //Text("ROM Score: ${String.format("%.0f", workoutState.romScore)}/100")
                 Text(
                     text = "Vertical Accel: ${String.format("%.2f", workoutState.verticalAccel)} m/s²",
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (workoutState.verticalAccel < -1f) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
-                // Optional tilt warning (based on gravity mag deviation)
-                // Use the actual gravity magnitude from the state, not verticalAccel + 9.81f
-                //if (abs(workoutState.gravityMag - 9.81f) > 2f) {
-                //                    Text(
-                //                        "Tilt detected: Hold steadier for accuracy",
-                //                    )
-                //                }
                 if (workoutState.isTracking) {
-                    Text("Tracking Active", color = MaterialTheme.colorScheme.primary)
+                    Text("Tracking Active (Gravity-Aligned)", color = MaterialTheme.colorScheme.primary)
                 }
             }
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Navigation
-        Button(onClick = { openScreen("home") }) {
-            Text("Back to Home")
         }
     }
 }
