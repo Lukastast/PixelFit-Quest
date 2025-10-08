@@ -25,6 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -43,6 +44,9 @@ fun WorkoutScreen(
     val context = LocalContext.current
     val viewModel: WorkoutViewModel = hiltViewModel()
     val workoutState by viewModel.workoutState.collectAsState()
+
+    // NEW: Height input state
+    var heightInput by remember { mutableStateOf("") }
 
     // Check accelerometer availability only
     val sensorManager = remember { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
@@ -157,19 +161,12 @@ fun WorkoutScreen(
                 Text("Failed Reps: ${workoutState.failedReps}")
                 Text("Avg Rep Time: ${String.format("%.1f", workoutState.avgRepTime / 1000f)}s")
                 Text("Estimated ROM: ${String.format("%.1f", workoutState.estimatedROM)} cm")
-                Text("Up ROM: ${String.format("%.1f", workoutState.upROM)} cm")
-                Text("Down ROM: ${String.format("%.1f", workoutState.downROM)} cm")
-                // Accels (net, motion-only)
-                Text("X Accel: ${String.format("%.2f", workoutState.xAccel)} m/s²")
-                Text("Y Accel: ${String.format("%.2f", workoutState.yAccel)} m/s²")
+                //Text("ROM Score: ${String.format("%.0f", workoutState.romScore)}/100")
                 Text(
                     text = "Vertical Accel: ${String.format("%.2f", workoutState.verticalAccel)} m/s²",
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (workoutState.verticalAccel < -1f) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
-                // NEW: Debug flags
-                //Text("Has Bottom: ${workoutState.hasBottom}")
-                //Text("Has Sig Accel: ${workoutState.hasSignificantAccel}")
                 if (workoutState.isTracking) {
                     Text("Tracking Active (Gravity-Aligned)", color = MaterialTheme.colorScheme.primary)
                 }
