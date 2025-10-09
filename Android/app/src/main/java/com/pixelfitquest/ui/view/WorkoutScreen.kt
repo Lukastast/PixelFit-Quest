@@ -25,7 +25,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -44,9 +43,6 @@ fun WorkoutScreen(
     val context = LocalContext.current
     val viewModel: WorkoutViewModel = hiltViewModel()
     val workoutState by viewModel.workoutState.collectAsState()
-
-    // NEW: Height input state
-    var heightInput by remember { mutableStateOf("") }
 
     // Check accelerometer availability only
     val sensorManager = remember { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
@@ -161,7 +157,8 @@ fun WorkoutScreen(
                 Text("Failed Reps: ${workoutState.failedReps}")
                 Text("Avg Rep Time: ${String.format("%.1f", workoutState.avgRepTime / 1000f)}s")
                 Text("Estimated ROM: ${String.format("%.1f", workoutState.estimatedROM)} cm")
-                //Text("ROM Score: ${String.format("%.0f", workoutState.romScore)}/100")
+                Text("ROM Score: ${String.format("%.1f", workoutState.romScore)}/100")
+                Text("Avg ROM Score: ${String.format("%.1f", workoutState.avgRomScore)}/100")
                 Text(
                     text = "Vertical Accel: ${String.format("%.2f", workoutState.verticalAccel)} m/s²",
                     style = MaterialTheme.typography.bodyMedium,

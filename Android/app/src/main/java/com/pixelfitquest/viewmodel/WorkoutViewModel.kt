@@ -1,22 +1,35 @@
 package com.pixelfitquest.viewmodel
 
+import androidx.lifecycle.viewModelScope
+import com.pixelfitquest.model.UserSettings
+import com.pixelfitquest.repository.UserSettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.util.ArrayDeque
 import java.util.Deque
 import javax.inject.Inject
+import kotlin.Float
 import kotlin.math.abs
 import kotlin.math.sqrt
 
 @HiltViewModel
-class WorkoutViewModel @Inject constructor() : PixelFitViewModel() {
+class WorkoutViewModel @Inject constructor(private val userSettingsRepository: UserSettingsRepository) : PixelFitViewModel() {
 
     private val _workoutState = MutableStateFlow(WorkoutState())
     val workoutState: StateFlow<WorkoutState> = _workoutState.asStateFlow()
+
+    private val _userSettings = MutableStateFlow<UserSettings?>(null)
+    //REMOVE usersettings
+    val userSettings: StateFlow<UserSettings?> = _userSettings.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
     private val repIntervalMs = 1000L  // For 2-3s rep cycles
-    private val lowPassAlpha = 0.9f   // FIXED: Lower to 0.9 for faster adaptation, reduces over-accumulation
+    private val lowPassAlpha =
+        0.9f   // FIXED: Lower to 0.9 for faster adaptation, reduces over-accumulation
     private val minPhaseDisp = 0.05f   // Min |disp| for bottom
     private val hysteresisWindow = 3    // Vel samples
     private val dtHistory: Deque<Float> = ArrayDeque<Float>(3)
@@ -35,7 +48,8 @@ class WorkoutViewModel @Inject constructor() : PixelFitViewModel() {
 
     // For hysteresis and smoothing
     private val velHistory: Deque<Float> = ArrayDeque<Float>(hysteresisWindow)
-    private val accelHistory: Deque<Float> = ArrayDeque<Float>(2)  // FIXED: Smaller window (2) for less lag in phase transitions
+    private val accelHistory: Deque<Float> =
+        ArrayDeque<Float>(2)  // FIXED: Smaller window (2) for less lag in phase transitions
 
     // For rep phases
     private var repStartPos = 0f
@@ -47,6 +61,22 @@ class WorkoutViewModel @Inject constructor() : PixelFitViewModel() {
     private var lastPeakTime = 0L
     private var stabilizationTimeMs = 3000L
     private var failedReps = 0
+
+    // ROM Score
+    enum class WorkoutType {
+        BENCH_PRESS,
+        SQUAT
+    }
+
+    private val repRomScores = mutableListOf<Float>()
+    private val BENCH_PRESS_ROM_FACTOR = 0.28f
+    private val SQUAT_ROM_FACTOR = 0.53f // Example — adjust as needed
+
+    init {
+        launchCatching {
+            loadUserData()
+        }
+    }
 
     fun onSensorDataUpdated(accelerometer: FloatArray?, timestamp: Long) {
         val currentState = _workoutState.value
@@ -75,28 +105,38 @@ class WorkoutViewModel @Inject constructor() : PixelFitViewModel() {
             gravityVector[2] = lowPassAlpha * gravityVector[2] + (1 - lowPassAlpha) * accel[2]
 
             // Normalize
-            val gravityMag = sqrt((gravityVector[0]*gravityVector[0] + gravityVector[1]*gravityVector[1] + gravityVector[2]*gravityVector[2]).toDouble()).toFloat()
+            val gravityMag =
+                sqrt((gravityVector[0] * gravityVector[0] + gravityVector[1] * gravityVector[1] + gravityVector[2] * gravityVector[2]).toDouble()).toFloat()
             val gravityUnit = if (gravityMag > 0) {
-                floatArrayOf(gravityVector[0] / gravityMag, gravityVector[1] / gravityMag, gravityVector[2] / gravityMag)
+                floatArrayOf(
+                    gravityVector[0] / gravityMag,
+                    gravityVector[1] / gravityMag,
+                    gravityVector[2] / gravityMag
+                )
             } else {
                 floatArrayOf(0f, 0f, 1f)
             }
 
             val upwardUnit = floatArrayOf(-gravityUnit[0], -gravityUnit[1], -gravityUnit[2])
 
-            val netAccel = floatArrayOf(accel[0] - gravityVector[0], accel[1] - gravityVector[1], accel[2] - gravityVector[2])
+            val netAccel = floatArrayOf(
+                accel[0] - gravityVector[0],
+                accel[1] - gravityVector[1],
+                accel[2] - gravityVector[2]
+            )
             val netAccelX = netAccel[0]
             val netAccelY = netAccel[1]
-            val netAccelZ = netAccel[2]
 
-            val verticalAccel = netAccel[0] * upwardUnit[0] + netAccel[1] * upwardUnit[1] + netAccel[2] * upwardUnit[2]
+            val verticalAccel =
+                netAccel[0] * upwardUnit[0] + netAccel[1] * upwardUnit[1] + netAccel[2] * upwardUnit[2]
 
             // Smooth accel
             accelHistory.addLast(verticalAccel)
             if (accelHistory.size > 2) {  // FIXED: Size 2 for less lag
                 accelHistory.removeFirst()
             }
-            val smoothedAccel = if (accelHistory.size < 2) verticalAccel else accelHistory.average().toFloat()
+            val smoothedAccel =
+                if (accelHistory.size < 2) verticalAccel else accelHistory.average().toFloat()
 
             // Integrate
             lastVerticalAccel = verticalAccel
@@ -111,11 +151,14 @@ class WorkoutViewModel @Inject constructor() : PixelFitViewModel() {
 
             // Detect top
             val timeSincePeak = currentTime - lastPeakTime
-            val lastVels = velHistory.toList().takeLast(hysteresisWindow.coerceAtMost(velHistory.size))
+            val lastVels =
+                velHistory.toList().takeLast(hysteresisWindow.coerceAtMost(velHistory.size))
             val positiveCount = lastVels.count { it >= 0f }
-            val positiveHysteresis = velHistory.size >= hysteresisWindow / 2 && positiveCount >= (lastVels.size * 0.6).toInt()
+            val positiveHysteresis =
+                velHistory.size >= hysteresisWindow / 2 && positiveCount >= (lastVels.size * 0.6).toInt()
             if (prevVelocity >= 0f && currentVelocity < 0f &&
-                positiveHysteresis && timeSincePeak > repIntervalMs) {
+                positiveHysteresis && timeSincePeak > repIntervalMs
+            ) {
                 lastPeakTime = currentTime
                 if (hasBottom) {
                     val repTime = currentTime - currentState.lastRepTime
@@ -124,10 +167,14 @@ class WorkoutViewModel @Inject constructor() : PixelFitViewModel() {
                     val downDelta = bottomPos - repStartPos
                     val upDelta = currentDisplacement - bottomPos
                     val downROM = downDelta * 100f
-                    val upROM = upDelta * 100f  // FIXED: upDelta
-                    val newEstROM = abs(downROM) + upROM  // No offset
+                    val upROM = upDelta * 100f
 
+                    val newEstROM = abs(downROM) + upROM
                     val newAvg = if (newReps > 0) (totalRepTime / newReps).toFloat() else 0f
+
+                    val lastRepScore = calculateRomScore(WorkoutType.BENCH_PRESS, newEstROM)
+                    val newTotalRom = currentState.totalRom + lastRepScore
+                    val avgRom = if (newReps > 0) (newTotalRom / newReps.toFloat()) else 0f
 
                     repStartPos = currentDisplacement
                     bottomPos = currentDisplacement
@@ -148,6 +195,9 @@ class WorkoutViewModel @Inject constructor() : PixelFitViewModel() {
                         verticalAccel = verticalAccel,
                         xAccel = netAccelX,
                         yAccel = netAccelY,
+                        romScore = lastRepScore,
+                        totalRom = newTotalRom,
+                        avgRomScore = avgRom,
                         failedReps = currentState.failedReps
                     )
                 } else {
@@ -171,11 +221,14 @@ class WorkoutViewModel @Inject constructor() : PixelFitViewModel() {
                 accelHistory.clear()  // FIXED: Clear at top to avoid carry-over lag
             } else {
                 // Detect bottom
-                val lastVels = velHistory.toList().takeLast(hysteresisWindow.coerceAtMost(velHistory.size))
+                val lastVels =
+                    velHistory.toList().takeLast(hysteresisWindow.coerceAtMost(velHistory.size))
                 val negativeCount = lastVels.count { it <= 0f }
-                val negativeHysteresis = velHistory.size >= hysteresisWindow / 2 && negativeCount >= (lastVels.size * 0.6).toInt()
+                val negativeHysteresis =
+                    velHistory.size >= hysteresisWindow / 2 && negativeCount >= (lastVels.size * 0.6).toInt()
                 if (prevVelocity <= 0f && currentVelocity > 0f &&
-                    negativeHysteresis && !hasBottom && abs(currentDisplacement - repStartPos) > minPhaseDisp) {
+                    negativeHysteresis && !hasBottom && abs(currentDisplacement - repStartPos) > minPhaseDisp
+                ) {
                     bottomPos = currentDisplacement
                     hasBottom = true
                     accelHistory.clear()  // FIXED: Clear at bottom to prevent negative lag into up
@@ -266,19 +319,66 @@ class WorkoutViewModel @Inject constructor() : PixelFitViewModel() {
         gravityVector = floatArrayOf(0f, 0f, 9.81f)
         _workoutState.value = WorkoutState()
     }
-}
 
-data class WorkoutState(
-    val isTracking: Boolean = false,
-    val reps: Int = 0,
-    val lastRepTime: Long = 0L,
-    val avgRepTime: Float = 0f,
-    val estimatedROM: Float = 0f,
-    val downROM: Float = 0f,
-    val upROM: Float = 0f,
-    val workoutStartTime: Long = 0L,
-    val verticalAccel: Float = 0f,
-    val xAccel: Float = 0f,
-    val yAccel: Float = 0f,
-    val failedReps: Int = 0
-)
+    private fun loadUserData() {
+        viewModelScope.launch {
+            try {
+                userSettingsRepository.getUserSettings().collect { data ->
+                    _userSettings.value = data
+                }
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to load user data"
+            }
+        }
+    }
+
+    fun calculateRomScore(workoutType: WorkoutType, estimatedRomCm: Float): Float {
+        val heightCm = 178f
+            //_userSettings.value?.height ?: return 0f
+        val romFactor = when (workoutType) {
+            WorkoutType.BENCH_PRESS -> BENCH_PRESS_ROM_FACTOR
+            WorkoutType.SQUAT -> SQUAT_ROM_FACTOR
+        }
+
+        val theoreticalMaxRom = heightCm * romFactor
+
+        val score = (estimatedRomCm / theoreticalMaxRom * 100f).coerceIn(0f, 100f)
+
+        // Save each rep score
+        repRomScores.add(score)
+        if (repRomScores.size > 50) repRomScores.removeAt(0)
+
+        //val averageScore = repRomScores.average().toFloat()
+
+        //_workoutState.value = _workoutState.value.copy(
+        //            userHeightCm = heightCm,
+        //            theoreticalMaxRomCm = theoreticalMaxRom,
+        //            romScore = averageScore,
+        //            perRepRomScores = repRomScores.toList()
+        //        )
+
+        return score
+    }
+
+
+    data class WorkoutState(
+        val isTracking: Boolean = false,
+        val userHeightCm: Float? = null,
+        val theoreticalMaxRomCm: Float? = null,
+        val romScore: Float = 0f,
+        val avgRomScore: Float = 0f,
+        val reps: Int = 0,
+        val lastRepTime: Long = 0L,
+        val avgRepTime: Float = 0f,
+        val estimatedROM: Float = 0f,
+        val totalRom: Float = 0f,
+        val downROM: Float = 0f,
+        val upROM: Float = 0f,
+        val workoutStartTime: Long = 0L,
+        val verticalAccel: Float = 0f,
+        val xAccel: Float = 0f,
+        val yAccel: Float = 0f,
+        val failedReps: Int = 0,
+        val perRepRomScores: List<Float> = emptyList()
+    )
+}

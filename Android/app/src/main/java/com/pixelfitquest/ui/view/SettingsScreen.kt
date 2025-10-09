@@ -1,32 +1,46 @@
 package com.pixelfitquest.ui.view
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.pixelfitquest.Helpers.DisplayNameCard
 import com.pixelfitquest.Helpers.ExitAppCard
-import com.pixelfitquest.Helpers.GoogleLinkCard
 import com.pixelfitquest.Helpers.RemoveAccountCard
 import com.pixelfitquest.Helpers.card
+import com.pixelfitquest.R
 import com.pixelfitquest.model.User
 import com.pixelfitquest.viewmodel.SettingsViewModel
 import java.util.Locale
-import com.pixelfitquest.R
-import com.pixelfitquest.ext.AuthenticationButton
 
 
 @Composable
@@ -35,7 +49,6 @@ fun SettingsScreen(restartApp: (String) -> Unit,
 
     val user by viewModel.user.collectAsState(initial = User())
     val provider = user.provider.replaceFirstChar { it.titlecase(Locale.getDefault()) }
-
 
     Column(
         modifier = Modifier
@@ -95,6 +108,12 @@ fun SettingsScreen(restartApp: (String) -> Unit,
                 //                }
             }
         }
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        )
+        SetHeight(viewModel)
     }
 }
 
@@ -111,4 +130,63 @@ fun ProfileImage(viewModel: SettingsViewModel) {
         placeholder = painterResource(R.drawable.pixelfiticon),  // Show default while loading
         error = painterResource(R.drawable.pixelfiticon)  // Fallback on error
     )
+}
+
+@Composable
+fun SetHeight(
+    viewModel: SettingsViewModel
+) {
+    val userSettings by viewModel.userSettings.collectAsState()
+    var heightInput by remember { mutableStateOf("") }
+
+    LaunchedEffect(userSettings?.height) {
+        heightInput = userSettings?.height?.toString() ?: ""
+    }
+
+    Card(modifier = Modifier.card()) {
+        Column(
+            modifier = Modifier
+                .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding( end = 8.dp)
+            ) {
+                Text("Current height:")
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                userSettings?.height?.let { currentHeight ->
+                    Text("$currentHeight cm")
+                }
+            }
+
+            OutlinedTextField(
+                value = heightInput,
+                onValueChange = { heightInput = it },
+                label = { Text("Enter height (e.g., 175)") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Button(
+                    modifier = Modifier.padding(8.dp),
+                    onClick = {
+                        val heightCm = heightInput.toIntOrNull()
+                        if (heightCm != null && heightCm in 1..272) {
+                            viewModel.setHeight(heightCm)
+                        }
+                    }
+                ) {
+                    Text("Set Height")
+                }
+            }
+        }
+    }
 }

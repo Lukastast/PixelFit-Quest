@@ -3,33 +3,42 @@ package com.pixelfitquest.viewmodel
 import android.util.Log
 import androidx.credentials.Credential
 import androidx.credentials.CustomCredential
+import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.pixelfitquest.Helpers.ERROR_TAG
-import com.pixelfitquest.Helpers.HOME_SCREEN
-import com.pixelfitquest.Helpers.LOGIN_SCREEN
-import com.pixelfitquest.model.User
-import com.pixelfitquest.model.service.AccountService
 import com.pixelfitquest.Helpers.SPLASH_SCREEN
 import com.pixelfitquest.Helpers.UNEXPECTED_CREDENTIAL
 import com.pixelfitquest.R
-import com.pixelfitquest.model.service.AuthState
+import com.pixelfitquest.model.User
+import com.pixelfitquest.model.UserSettings
+import com.pixelfitquest.model.service.AccountService
+import com.pixelfitquest.repository.UserSettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val accountService: AccountService) : PixelFitViewModel() {
+    private val accountService: AccountService,
+    private val userSettingsRepository: UserSettingsRepository
+) : PixelFitViewModel() {
 
     private val _user = MutableStateFlow(User())
+    private val _userSettings = MutableStateFlow<UserSettings?>(null)
+    val userSettings: StateFlow<UserSettings?> = _userSettings.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
     val user: StateFlow<User> = _user.asStateFlow()
 
     init {
         launchCatching {
             _user.value = accountService.getUserProfile()
+            loadUserData()
         }
     }
 
@@ -80,4 +89,28 @@ class SettingsViewModel @Inject constructor(
             url  // String: Remote URL
         }
     }
+    private fun loadUserData() {
+        viewModelScope.launch {
+            try {
+                userSettingsRepository.getUserSettings().collect { data ->
+                    _userSettings.value = data
+                }
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to load user data"
+            }
+        }
+    }
+    fun setHeight(height: Int) {
+        viewModelScope.launch {
+            try {
+                userSettingsRepository.updateUserSettings(
+                    mapOf("height" to height)
+                )
+                loadUserData()
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to update height"
+            }
+        }
+    }
+
 }
