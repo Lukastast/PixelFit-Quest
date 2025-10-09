@@ -20,16 +20,11 @@ class WorkoutViewModel @Inject constructor(private val userSettingsRepository: U
 
     private val _workoutState = MutableStateFlow(WorkoutState())
     val workoutState: StateFlow<WorkoutState> = _workoutState.asStateFlow()
-
     private val _userSettings = MutableStateFlow<UserSettings?>(null)
-    //REMOVE usersettings
-    val userSettings: StateFlow<UserSettings?> = _userSettings.asStateFlow()
-
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
     private val repIntervalMs = 1000L  // For 2-3s rep cycles
-    private val lowPassAlpha =
-        0.9f   // FIXED: Lower to 0.9 for faster adaptation, reduces over-accumulation
+    private val lowPassAlpha = 0.9f   // FIXED: Lower to 0.9 for faster adaptation, reduces over-accumulation
     private val minPhaseDisp = 0.05f   // Min |disp| for bottom
     private val hysteresisWindow = 3    // Vel samples
     private val dtHistory: Deque<Float> = ArrayDeque<Float>(3)
@@ -48,8 +43,7 @@ class WorkoutViewModel @Inject constructor(private val userSettingsRepository: U
 
     // For hysteresis and smoothing
     private val velHistory: Deque<Float> = ArrayDeque<Float>(hysteresisWindow)
-    private val accelHistory: Deque<Float> =
-        ArrayDeque<Float>(2)  // FIXED: Smaller window (2) for less lag in phase transitions
+    private val accelHistory: Deque<Float> = ArrayDeque<Float>(2)
 
     // For rep phases
     private var repStartPos = 0f
@@ -67,10 +61,8 @@ class WorkoutViewModel @Inject constructor(private val userSettingsRepository: U
         BENCH_PRESS,
         SQUAT
     }
-
-    private val repRomScores = mutableListOf<Float>()
     private val BENCH_PRESS_ROM_FACTOR = 0.28f
-    private val SQUAT_ROM_FACTOR = 0.53f // Example — adjust as needed
+    private val SQUAT_ROM_FACTOR = 0.53f
 
     init {
         launchCatching {
@@ -218,7 +210,7 @@ class WorkoutViewModel @Inject constructor(private val userSettingsRepository: U
                         failedReps = currentState.failedReps + 1
                     )
                 }
-                accelHistory.clear()  // FIXED: Clear at top to avoid carry-over lag
+                accelHistory.clear()
             } else {
                 // Detect bottom
                 val lastVels =
@@ -279,7 +271,7 @@ class WorkoutViewModel @Inject constructor(private val userSettingsRepository: U
         accelHistory.clear()
         dtHistory.clear()
         lastTimestamp = 0L
-        gravityVector = floatArrayOf(0f, 0f, 9.81f)
+        gravityVector = floatArrayOf(0f, 0f, 9.80665f)
         _workoutState.value = _workoutState.value.copy(
             isTracking = true,
             workoutStartTime = startTime,
@@ -333,29 +325,13 @@ class WorkoutViewModel @Inject constructor(private val userSettingsRepository: U
     }
 
     fun calculateRomScore(workoutType: WorkoutType, estimatedRomCm: Float): Float {
-        val heightCm = 178f
-            //_userSettings.value?.height ?: return 0f
+        val heightCm = _userSettings.value?.height ?: return 0f
         val romFactor = when (workoutType) {
             WorkoutType.BENCH_PRESS -> BENCH_PRESS_ROM_FACTOR
             WorkoutType.SQUAT -> SQUAT_ROM_FACTOR
         }
-
         val theoreticalMaxRom = heightCm * romFactor
-
         val score = (estimatedRomCm / theoreticalMaxRom * 100f).coerceIn(0f, 100f)
-
-        // Save each rep score
-        repRomScores.add(score)
-        if (repRomScores.size > 50) repRomScores.removeAt(0)
-
-        //val averageScore = repRomScores.average().toFloat()
-
-        //_workoutState.value = _workoutState.value.copy(
-        //            userHeightCm = heightCm,
-        //            theoreticalMaxRomCm = theoreticalMaxRom,
-        //            romScore = averageScore,
-        //            perRepRomScores = repRomScores.toList()
-        //        )
 
         return score
     }
