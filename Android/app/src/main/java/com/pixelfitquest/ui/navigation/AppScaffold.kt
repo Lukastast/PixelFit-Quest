@@ -30,9 +30,11 @@ import com.pixelfitquest.Helpers.LOGIN_SCREEN
 import com.pixelfitquest.Helpers.SETTINGS_SCREEN
 import com.pixelfitquest.Helpers.SIGNUP_SCREEN
 import com.pixelfitquest.Helpers.SPLASH_SCREEN
+import com.pixelfitquest.Helpers.WORKOUT_CUSTOMIZATION_SCREEN
 import com.pixelfitquest.Helpers.WORKOUT_SCREEN
 import com.pixelfitquest.R
 import com.pixelfitquest.ui.screens.LoginScreen
+import com.pixelfitquest.ui.screens.WorkoutCustomizationScreen
 import com.pixelfitquest.ui.view.CustomizationScreen
 import com.pixelfitquest.ui.view.HomeScreen
 import com.pixelfitquest.ui.view.IntroScreen
@@ -61,7 +63,8 @@ fun AppScaffold() {
                     HOME_SCREEN,
                     WORKOUT_SCREEN,
                     CUSTOMIZATION_SCREEN,
-                    SETTINGS_SCREEN
+                    SETTINGS_SCREEN,
+                    WORKOUT_CUSTOMIZATION_SCREEN
                 )) {
                 NavigationBar(
                     modifier = Modifier
@@ -75,7 +78,8 @@ fun AppScaffold() {
                         BottomNavItem.Home,
                         BottomNavItem.Settings,
                         BottomNavItem.Customization,
-                        BottomNavItem.Workout
+                        BottomNavItem.Workout,
+                        BottomNavItem.WorkoutCustomization
                     )
                     items.forEach { item ->
                         NavigationBarItem(
@@ -152,6 +156,11 @@ fun NavGraphBuilder.pixelFitGraph(appState: AppState) {
     composable(CUSTOMIZATION_SCREEN) {
         CustomizationScreen(
             openScreen = { route -> appState.navigate(route) }
+        )
+    }
+    composable(WORKOUT_CUSTOMIZATION_SCREEN) {
+        WorkoutCustomizationScreen(
+            onStartWorkout = { plan -> appState.navigateAndPopUp(WORKOUT_SCREEN, CUSTOMIZATION_SCREEN) }
         )
     }
     composable(SETTINGS_SCREEN) {

@@ -10,6 +10,7 @@ val FireOrange = Color(0xFFFF7F11)    // XP, progress, energy
 val RewardGold = Color(0xFFFFD700)    // Coins, rewards
 val LightGray = Color(0xFFD6D6D6)     // Text/icons over dark
 val QuestBlue = Color(0xFF4682B4)     // Steel Blue for accents
+val white = Color(0xFFFFFFFF)
 
 // Light theme colors
 val LightStone = Color(0xFFF5F5F5)    // Light neutral background

@@ -2,6 +2,7 @@ package com.pixelfitquest.viewmodel
 
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.model.UserSettings
+import com.pixelfitquest.model.WorkoutType
 import com.pixelfitquest.repository.UserSettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,14 +57,7 @@ class WorkoutViewModel @Inject constructor(private val userSettingsRepository: U
     private var stabilizationTimeMs = 3000L
     private var failedReps = 0
 
-    // ROM Score
-    enum class WorkoutType {
-        BENCH_PRESS,
-        SQUAT
-    }
-    private val BENCH_PRESS_ROM_FACTOR = 0.28f
-    private val SQUAT_ROM_FACTOR = 0.53f
-
+    // loading height & armlength for rom calculation
     init {
         launchCatching {
             loadUserData()
@@ -324,12 +318,9 @@ class WorkoutViewModel @Inject constructor(private val userSettingsRepository: U
         }
     }
 
-    fun calculateRomScore(workoutType: WorkoutType, estimatedRomCm: Float): Float {
+    fun calculateRomScore(workout: WorkoutType, estimatedRomCm: Float): Float {
         val heightCm = _userSettings.value?.height ?: return 0f
-        val romFactor = when (workoutType) {
-            WorkoutType.BENCH_PRESS -> BENCH_PRESS_ROM_FACTOR
-            WorkoutType.SQUAT -> SQUAT_ROM_FACTOR
-        }
+        val romFactor = workout.romFactor
         val theoreticalMaxRom = heightCm * romFactor
         val score = (estimatedRomCm / theoreticalMaxRom * 100f).coerceIn(0f, 100f)
 
