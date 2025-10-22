@@ -1,17 +1,54 @@
 package com.pixelfitquest.ui.screens
 
-import android.R
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import android.util.Log
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pixelfitquest.model.WorkoutPlan
@@ -22,7 +59,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutCustomizationScreen(
-    onStartWorkout: (WorkoutPlan) -> Unit,  // Callback to pass plan and navigate
+    onStartWorkout: (WorkoutPlan) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val viewModel: WorkoutCustomizationViewModel = hiltViewModel()
@@ -124,19 +161,41 @@ fun WorkoutCustomizationScreen(
             )
             LazyColumn(
                 modifier = Modifier
-                    .weight(2f)
+                    .weight(1.5f)
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(WorkoutType.entries.toTypedArray()) { exercise ->
-                    val isSelected by remember { derivedStateOf { uiState.selections.containsKey(exercise) } }
-                    val currentSets by remember { derivedStateOf { uiState.selections[exercise] ?: 1 } }
+                items(WorkoutType.entries) { exercise ->
+                    var isSelected by remember {
+                        mutableStateOf(
+                            uiState.selections.containsKey(
+                                exercise
+                            )
+                        )
+                    }
+                    var localSets by remember(exercise, uiState.selections) {
+                        mutableStateOf((uiState.selections[exercise] ?: 3).toString())
+                    }
+
+                    // Sync local state when uiState.selections changes (e.g., loadTemplate)
+                    LaunchedEffect(uiState.selections) {
+                        isSelected = uiState.selections.containsKey(exercise)
+                        localSets = (uiState.selections[exercise] ?: 3).toString()
+                    }
+
+                    val focusRequester =
+                        remember { FocusRequester() }  // FIXED: For explicit keyboard dismissal
 
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            viewModel.toggleExercise(exercise, currentSets)
-                        }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                onClick = {
+                                    isSelected = !isSelected
+                                    viewModel.toggleExercise(exercise, localSets.toIntOrNull() ?: 3)
+                                }
+                            )
                     ) {
                         Row(
                             modifier = Modifier
@@ -148,7 +207,8 @@ fun WorkoutCustomizationScreen(
                             Checkbox(
                                 checked = isSelected,
                                 onCheckedChange = {
-                                    viewModel.toggleExercise(exercise, currentSets)
+                                    isSelected = it
+                                    viewModel.toggleExercise(exercise, localSets.toIntOrNull() ?: 3)
                                 }
                             )
                             Text(
@@ -159,12 +219,32 @@ fun WorkoutCustomizationScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("Sets: ")
                                     OutlinedTextField(
-                                        value = currentSets.toString(),
-                                        onValueChange = { newValue ->
-                                            val newSets = newValue.toIntOrNull() ?: 3
-                                            viewModel.toggleExercise(exercise, newSets)  // Updates via VM
+                                        value = localSets,
+                                        onValueChange = { newValue: String ->
+                                            localSets =
+                                                newValue.filter { char -> char.isDigit() || char == '.' }
                                         },
-                                        modifier = Modifier.width(60.dp)
+                                        modifier = Modifier
+                                            .width(60.dp)
+                                            .focusRequester(focusRequester)  // FIXED: Attach requester
+                                            .onFocusChanged { focusState ->
+                                                if (!focusState.isFocused) {
+                                                    val finalSets = localSets.toIntOrNull() ?: 3
+                                                    viewModel.updateSets(exercise, finalSets)
+                                                }
+                                            },
+                                        singleLine = true,
+                                        keyboardOptions = KeyboardOptions(
+                                            keyboardType = KeyboardType.Number,
+                                            imeAction = ImeAction.Done
+                                        ),
+                                        keyboardActions = KeyboardActions(
+                                            onDone = {
+                                                focusRequester.freeFocus()  // FIXED: Explicitly dismiss keyboard
+                                                val finalSets = localSets.toIntOrNull() ?: 3
+                                                viewModel.updateSets(exercise, finalSets)
+                                            }
+                                        )
                                     )
                                 }
                             }
@@ -188,6 +268,10 @@ fun WorkoutCustomizationScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(templates, key = { it.id }) { template ->
+                        val totalSets =
+                            template.plan.items.sumOf { (it.sets.coerceAtLeast(1)) }
+                        Log.d("TemplateUI", "Template ${template.name}: total sets = $totalSets")
+
                         Card(
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -195,7 +279,7 @@ fun WorkoutCustomizationScreen(
                                 headlineContent = { Text(template.name) },
                                 supportingContent = {
                                     Text(
-                                        "Exercises: ${template.plan.items.size} | Sets: ${template.plan.items.sumOf { it.sets }}"
+                                        "Exercises: ${template.plan.items.size} | Sets: $totalSets"
                                     )
                                 },
                                 trailingContent = {
@@ -223,17 +307,15 @@ fun WorkoutCustomizationScreen(
                     }
                 }
             } else {
-                if (templates.isEmpty()) {
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(
-                        text = "No templates yet. Save one to get started!",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(16.dp)
-                    )
-                }
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = "No templates yet. Name & save one to get started!",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                )
             }
         }
     }

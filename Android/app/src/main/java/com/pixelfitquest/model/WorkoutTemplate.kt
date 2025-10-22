@@ -1,5 +1,6 @@
 package com.pixelfitquest.model
 
+import android.util.Log
 import java.time.Instant
 
 // Assuming WorkoutPlan and WorkoutPlanItem are defined here or imported
@@ -16,25 +17,31 @@ data class WorkoutTemplate(
     val id: String,
     val name: String,
     val plan: WorkoutPlan,
-    val createdAt: String? = Instant.now().toString()  // ISO for sorting
+    val createdAt: String? = Instant.now().toString()
 ) {
     companion object {
-        // Factory for deserialization (call as WorkoutTemplate.fromMap(map))
         fun fromMap(map: Map<String, Any?>): WorkoutTemplate {
             val id = map["id"] as? String ?: ""
             val name = map["name"] as? String ?: ""
             val createdAt = map["createdAt"] as? String
 
-            // Parse plan from nested list of maps
             val planItems = (map["plan"] as? List<Map<String, Any?>>)?.mapNotNull { itemMap ->
                 val exerciseStr = itemMap["exercise"] as? String ?: return@mapNotNull null
                 val workoutType = try {
                     val normalized = exerciseStr.uppercase().replace("-", "_")
                     WorkoutType.valueOf(normalized)
                 } catch (e: IllegalArgumentException) {
-                    null  // Skip invalid
+                    null
                 }
-                val sets = (itemMap["sets"] as? Int ?: 0).coerceAtLeast(1)
+                val rawSets = itemMap["sets"]
+                val sets = when (rawSets) {
+                    is Int -> rawSets
+                    is Double -> rawSets.toInt()
+                    is String -> rawSets.toIntOrNull() ?: 0
+                    is Number -> rawSets.toInt()
+                    else -> 0
+                }.coerceAtLeast(1)
+                Log.d("TemplateFromMap", "Item sets raw: $rawSets, parsed: $sets")  // Keep log for debug
                 workoutType?.let { WorkoutPlanItem(it, sets) }
             } ?: emptyList()
 
@@ -51,13 +58,12 @@ data class WorkoutTemplate(
         }
     }
 
-    // Instance method for serialization (call as template.toMap())
     fun toMap(): Map<String, Any?> = mapOf(
         "id" to id,
         "name" to name,
         "plan" to plan.items.map { item ->
             mapOf(
-                "exercise" to item.exercise,  // Uses type getter from WorkoutType/Workout
+                "exercise" to item.exercise.type,
                 "sets" to item.sets
             )
         },

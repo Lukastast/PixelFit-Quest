@@ -1,5 +1,6 @@
 package com.pixelfitquest.repository
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -23,6 +24,8 @@ class WorkoutTemplateRepository @Inject constructor(
 
     // Save a template (creates or overwrites by ID)
     suspend fun saveTemplate(template: WorkoutTemplate) {
+        val uid = currentUserId()  // Throws if no user
+        Log.d("TemplateRepo", "Saving for UID: $uid, ID: ${template.id}")
         try {
             templatesSubcollection.document(template.id).set(template.toMap()).await()
         } catch (e: Exception) {
@@ -30,7 +33,6 @@ class WorkoutTemplateRepository @Inject constructor(
         }
     }
 
-    // Real-time Flow for user's templates (sorted by createdAt desc)
     fun getTemplates(): Flow<List<WorkoutTemplate>> = callbackFlow {
         val listener = templatesSubcollection
             .orderBy("createdAt", Query.Direction.DESCENDING)

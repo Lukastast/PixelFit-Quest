@@ -34,7 +34,7 @@ class WorkoutCustomizationViewModel @Inject constructor(
         }
     }
 
-    fun toggleExercise(exercise: WorkoutType, sets: Int) {
+    fun toggleExercise(exercise: WorkoutType, sets: Int = 3) {
         val currentSelections = _uiState.value.selections
         val updated = if (currentSelections.containsKey(exercise)) {
             currentSelections - exercise
@@ -42,6 +42,15 @@ class WorkoutCustomizationViewModel @Inject constructor(
             currentSelections + (exercise to sets.coerceIn(1, 10))
         }
         _uiState.value = _uiState.value.copy(selections = updated)
+    }
+
+    fun updateSets(exercise: WorkoutType, sets: Int) {
+        if (sets < 1) return
+        val currentSelections = _uiState.value.selections
+        if (currentSelections.containsKey(exercise)) {
+            val updated = currentSelections + (exercise to sets.coerceIn(1, 10))
+            _uiState.value = _uiState.value.copy(selections = updated)
+        }
     }
 
     fun setTemplateName(name: String) {
@@ -62,7 +71,7 @@ class WorkoutCustomizationViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 templateRepository.saveTemplate(template)
-                // FIXED: No loadTemplates() call—real-time Flow handles refresh
+
                 _uiState.value = state.copy(isSaving = false, error = null)
             } catch (e: Exception) {
                 _uiState.value = state.copy(error = e.message)
