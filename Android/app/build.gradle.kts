@@ -81,6 +81,10 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.57.2")
     kapt("com.google.dagger:hilt-compiler:2.57.2")
 
+
+    //json passing
+    implementation(libs.gson)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

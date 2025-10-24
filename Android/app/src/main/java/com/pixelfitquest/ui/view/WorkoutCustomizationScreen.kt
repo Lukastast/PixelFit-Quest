@@ -51,8 +51,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.pixelfitquest.model.ExerciseType
 import com.pixelfitquest.model.WorkoutPlan
-import com.pixelfitquest.model.WorkoutType
 import com.pixelfitquest.viewmodel.WorkoutCustomizationViewModel
 import kotlinx.coroutines.launch
 
@@ -106,19 +106,15 @@ fun WorkoutCustomizationScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                     }
 
-                    // Start Workout Button (Only if selections not empty)
-                    if (uiState.selections.isNotEmpty()) {
-                        Spacer(modifier = Modifier.width(32.dp))
-                        Button(
-                            onClick = {
-                                viewModel.getWorkoutPlan()?.let { plan ->
-                                    onStartWorkout(plan)
-                                }
-                            },
-                            enabled = !uiState.isSaving
-                        ) {
-                            Text("Start Workout")
-                        }
+                    Button(
+                        onClick = {
+                            viewModel.getWorkoutPlan()?.let { plan ->
+                                onStartWorkout(plan)
+                            }
+                        },
+                        enabled = !uiState.isSaving
+                    ) {
+                        Text("Start Workout")
                     }
 
                     // Loading Indicator in Bottom Bar
@@ -165,7 +161,7 @@ fun WorkoutCustomizationScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(WorkoutType.entries) { exercise ->
+                items(ExerciseType.entries) { exercise ->
                     var isSelected by remember {
                         mutableStateOf(
                             uiState.selections.containsKey(

@@ -1,7 +1,7 @@
 package com.pixelfitquest.model
 
 // Enum at the top
-enum class WorkoutType {
+enum class ExerciseType {
     BENCH_PRESS,
     SQUAT,
     BICEP_CURL,
@@ -27,55 +27,102 @@ enum class WorkoutType {
 
 data class Workout(
     val id: String,
-    val workoutType: WorkoutType,  // Enum for type safety
-    val date: String,  // ISO format
-    val reps: Int,
-    val avgRepTime: Float,
-    val workoutScore: Float,
-    val romScore: Float,
-    val timingScore: Float,
-    val tiltScore: Float,
-    val weight: Double,
+    val date: String,  // ISO
+    val name: String,  // e.g., "Leg Day"
+    val totalExercises: Int = 0,
+    val totalSets: Int = 0,
+    val overallScore: Float = 0f,  // Aggregate from exercises
     val notes: String? = null
 ) {
-    // For Firestore serialization
     fun toMap(): Map<String, Any?> = mapOf(
         "id" to id,
-        "type" to workoutType.type,  // Uses enum's getter
         "date" to date,
-        "reps" to reps,
-        "avgRepTime" to avgRepTime,
-        "workoutScore" to workoutScore,
-        "romScore" to romScore,
-        "timingScore" to timingScore,
-        "tiltScore" to tiltScore,
+        "name" to name,
+        "totalExercises" to totalExercises,
+        "totalSets" to totalSets,
+        "overallScore" to overallScore,
+        "notes" to notes
+    )
+
+    companion object {
+        fun fromMap(map: Map<String, Any?>): Workout = Workout(
+            id = map["id"] as? String ?: "",
+            date = map["date"] as? String ?: "",
+            name = map["name"] as? String ?: "",
+            totalExercises = map["totalExercises"] as? Int ?: 0,
+            totalSets = map["totalSets"] as? Int ?: 0,
+            overallScore = map["overallScore"] as? Float ?: 0f,
+            notes = map["notes"] as? String
+        )
+    }
+}
+
+data class Exercise(
+    val id: String,
+    val workoutId: String,  // Parent reference
+    val type: ExerciseType,
+    val totalSets: Int,
+    val exerciseScore: Float = 0f,  // Aggregate from sets
+    val weight: Double = 0.0,  // Shared for exercise
+    val notes: String? = null
+) {
+    fun toMap(): Map<String, Any?> = mapOf(
+        "id" to id,
+        "workoutId" to workoutId,
+        "type" to type.type,
+        "totalSets" to totalSets,
+        "exerciseScore" to exerciseScore,
         "weight" to weight,
         "notes" to notes
     )
 
     companion object {
-        // Factory for deserialization (polymorphic via type string)
-        fun fromMap(map: Map<String, Any?>): Workout {
-            val typeStr = map["type"] as? String ?: throw IllegalArgumentException("Missing type")
-            val workoutType = try {
-                val normalized = typeStr.uppercase().replace("-", "_")
-                WorkoutType.valueOf(normalized)
-            } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("Unknown type: $typeStr")
-            }
-            return Workout(
-                id = map["id"] as? String ?: "",
-                workoutType = workoutType,
-                date = map["date"] as? String ?: "",
-                reps = (map["reps"] as? Int ?: 0),
-                avgRepTime = (map["avgRepTime"] as? Float ?: 0f),
-                workoutScore = (map["workoutScore"] as? Float ?: 0f),
-                romScore = (map["romScore"] as? Float ?: 0f),
-                timingScore = (map["timingScore"] as? Float ?: 0f),
-                tiltScore = (map["tiltScore"] as? Float ?: 0f),
-                weight = (map["weight"] as? Double ?: 0.0),
-                notes = map["notes"] as? String
-            )
-        }
+        fun fromMap(map: Map<String, Any?>): Exercise = Exercise(
+            id = map["id"] as? String ?: "",
+            workoutId = map["workoutId"] as? String ?: "",
+            type = ExerciseType.entries.find { it.type == (map["type"] as? String) } ?: ExerciseType.BENCH_PRESS,
+            totalSets = map["totalSets"] as? Int ?: 0,
+            exerciseScore = map["exerciseScore"] as? Float ?: 0f,
+            weight = map["weight"] as? Double ?: 0.0,
+            notes = map["notes"] as? String
+        )
+    }
+}
+
+data class WorkoutSet(
+    val id: String,
+    val exerciseId: String,  // Parent reference
+    val setNumber: Int,
+    val reps: Int,
+    val romScore: Float = 0f,
+    val avgRepTime: Float = 0f,
+    val verticalAccel: Float = 0f,  // Peak or avg
+    val weight: Double = 0.0,  // Per set if varies
+    val notes: String? = null
+) {
+    fun toMap(): Map<String, Any?> = mapOf(
+        "id" to id,
+        "exerciseId" to exerciseId,
+        "setNumber" to setNumber,
+        "reps" to reps,
+        "romScore" to romScore,
+        "avgRepTime" to avgRepTime,
+        "verticalAccel" to verticalAccel,
+        "weight" to weight,
+        "notes" to notes
+    )
+
+    companion object {
+        fun fromMap(map: Map<String, Any?>): WorkoutSet = WorkoutSet(
+            id = map["id"] as? String ?: "",
+            exerciseId = map["exerciseId"] as? String ?: "",
+            setNumber = map["setNumber"] as? Int ?: 0,
+            reps = map["reps"] as? Int ?: 0,
+            romScore = map["romScore"] as? Float ?: 0f,
+            avgRepTime = map["avgRepTime"] as? Float ?: 0f,
+            verticalAccel = map["verticalAccel"] as? Float ?: 0f,
+            weight = map["weight"] as? Double ?: 0.0,
+            notes = map["notes"] as? String
+        )
     }
 }

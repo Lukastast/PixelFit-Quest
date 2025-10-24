@@ -1,17 +1,24 @@
 package com.pixelfitquest.model
 
 import android.util.Log
+import com.google.gson.Gson
 import java.time.Instant
 
 // Assuming WorkoutPlan and WorkoutPlanItem are defined here or imported
 data class WorkoutPlanItem(
-    val exercise: WorkoutType,
+    val exercise: ExerciseType,
     val sets: Int
 )
 
 data class WorkoutPlan(
     val items: List<WorkoutPlanItem>
-)
+) {
+    fun toJson(): String = Gson().toJson(this)
+
+    companion object {
+        fun fromJson(json: String): WorkoutPlan = Gson().fromJson(json, WorkoutPlan::class.java)
+    }
+}
 
 data class WorkoutTemplate(
     val id: String,
@@ -29,7 +36,7 @@ data class WorkoutTemplate(
                 val exerciseStr = itemMap["exercise"] as? String ?: return@mapNotNull null
                 val workoutType = try {
                     val normalized = exerciseStr.uppercase().replace("-", "_")
-                    WorkoutType.valueOf(normalized)
+                    ExerciseType.valueOf(normalized)
                 } catch (e: IllegalArgumentException) {
                     null
                 }

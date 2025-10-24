@@ -4,7 +4,6 @@ import com.pixelfitquest.Helpers.CUSTOMIZATION_SCREEN
 import com.pixelfitquest.Helpers.HOME_SCREEN
 import com.pixelfitquest.Helpers.SETTINGS_SCREEN
 import com.pixelfitquest.Helpers.WORKOUT_CUSTOMIZATION_SCREEN
-import com.pixelfitquest.Helpers.WORKOUT_SCREEN
 import com.pixelfitquest.R
 
 sealed class BottomNavItem(
@@ -22,11 +21,11 @@ sealed class BottomNavItem(
         selectedIcon = R.drawable.settingsbuttonclicked,
         unSelectedIcon = R.drawable.settingsbuttonunclicked,
         label = "Settings")
-    object Workout : BottomNavItem(
-        route = WORKOUT_SCREEN,
-        selectedIcon = R.drawable.workoutbuttonclicked,
-        unSelectedIcon = R.drawable.workoutbuttonunclicked,
-        label = "Workout")
+   // object Workout : BottomNavItem(
+     //   route = WORKOUT_SCREEN,
+      //  selectedIcon = R.drawable.workoutbuttonclicked,
+     //   unSelectedIcon = R.drawable.workoutbuttonunclicked,
+     //   label = "Workout")
     object Customization : BottomNavItem(
         route = CUSTOMIZATION_SCREEN,
         selectedIcon = R.drawable.customizationbuttonclicked,
@@ -35,8 +34,8 @@ sealed class BottomNavItem(
 
     object WorkoutCustomization : BottomNavItem(
         route = WORKOUT_CUSTOMIZATION_SCREEN,
-        selectedIcon = R.drawable.customizationbuttonclicked,
-        unSelectedIcon = R.drawable.customizationbuttonunclicked,
+        selectedIcon = R.drawable.workoutbuttonclicked,
+        unSelectedIcon = R.drawable.workoutbuttonunclicked,
         label = "workout_customization")
 
 }

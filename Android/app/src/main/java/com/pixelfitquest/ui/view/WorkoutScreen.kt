@@ -1,6 +1,5 @@
 package com.pixelfitquest.ui.view
 
-import AutoSizeText
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -9,165 +8,121 @@ import android.hardware.SensorManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.pixelfitquest.ui.theme.typography
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.viewmodel.WorkoutViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutScreen(
-    openScreen: (String) -> Unit,
+    plan: WorkoutPlan,  // From nav arg
+    openScreen: (String) -> Unit,  // Navigation callback
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     val viewModel: WorkoutViewModel = hiltViewModel()
-    val workoutState by viewModel.workoutState.collectAsState()
+    val state by viewModel.workoutState.collectAsState()
+    val context = LocalContext.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val coroutineScope = rememberCoroutineScope()
 
-    // Check accelerometer availability only
-    val sensorManager = remember { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
-    val accelerometer = remember { sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) }
-
-    val accelerometerData = remember { mutableStateOf(FloatArray(3)) }
-
-    // Sensor listener (accelerometer only)
-    val sensorListener = remember {
-        object : SensorEventListener {
-            override fun onSensorChanged(event: SensorEvent?) {
-                event?.let {
-                    if (it.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-                        accelerometerData.value = it.values.clone()
-                        viewModel.onSensorDataUpdated(it.values.clone(), it.timestamp)  // Fixed: Pass timestamp
-                    }
-                }
-            }
-
-            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-                // Handle if needed
-            }
+    LaunchedEffect(Unit) {
+        if (plan.items.isEmpty()) {
+            viewModel.setError("No workout plan provided—cannot start tracking")
+            openScreen("workout_customization")  // Redirect back
+            return@LaunchedEffect
         }
+        viewModel.startWorkoutFromPlan(plan)
     }
 
-    // Register/unregister accelerometer only based on tracking state
-    LaunchedEffect(workoutState.isTracking) {
-        if (workoutState.isTracking) {
-            viewModel.startWorkout()
-            sensorManager.registerListener(
-                sensorListener,
-                accelerometer,
-                SensorManager.SENSOR_DELAY_GAME // ~20ms for real-time
-            )
-        } else {
-            sensorManager.unregisterListener(sensorListener)
-            viewModel.stopWorkout()
-        }
-    }
-
-    // Dispose on exit
-    DisposableEffect(Unit) {
-        onDispose {
-            sensorManager.unregisterListener(sensorListener)
-            viewModel.resetWorkout()
-        }
-    }
-
-    // UI
-    if (accelerometer == null) {
-        Box(
-            modifier = modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Accelerometer not available on this device.",
-                color = MaterialTheme.colorScheme.error
-            )
+    if (plan.items.isEmpty()) {
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Error: Invalid workout plan. Returning to customization...")
         }
         return
     }
 
+    // FIXED: Sensor listener setup
+    DisposableEffect(context, lifecycleOwner) {
+        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        if (accelerometer == null) {
+            // Handle no sensor (e.g., show error)
+            viewModel.setError("No accelerometer sensor found")
+
+            return@DisposableEffect onDispose {}
+        }
+
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                val accelData = floatArrayOf(event.values[0], event.values[1], event.values[2])
+                viewModel.onSensorDataUpdated(accelData, event.timestamp)  // FIXED: Call VM function
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+                // Ignore
+            }
+        }
+
+        coroutineScope.launch {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+            }
+        }
+
+        onDispose {
+            sensorManager.unregisterListener(listener)
+        }
+    }
+
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Header
-        AutoSizeText(
-            text = "Workout Tracker",
-            style = typography.titleLarge.copy(color = MaterialTheme.colorScheme.primary),
-            modifier = Modifier.padding(bottom = 8.dp),
-            maxFontSize = 50.sp,
-            minFontSize = 30.sp
-        )
+        val currentExercise = plan.items.getOrNull(state.currentExerciseIndex)?.exercise?.name ?: "Unknown"
+        val currentSets = plan.items.getOrNull(state.currentExerciseIndex)?.sets ?: 0
 
-        // Controls
-        Button(
-            onClick = { viewModel.startWorkout() },
-            enabled = !workoutState.isTracking
-        ) {
-            Text("Start Tracking")
-        }
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+        Text("Current Exercise: $currentExercise")
+        Text("Set: ${state.currentSetNumber} / $currentSets")
+        Text("Reps: ${state.reps}")
 
-            Button(
-                onClick = { viewModel.stopWorkout() },
-                enabled = workoutState.isTracking
-            ) {
-                Text("Stop")
+        // FIXED: Access accel/ROM in UI
+        Text("Vertical Accel: ${state.verticalAccel}")
+        Text("ROM Score: ${state.romScore} / 100")
+        Text("Avg ROM Score: ${state.avgRomScore} / 100")
+
+        // Buttons
+        if (state.isSetActive) {
+            Button(onClick = { viewModel.finishSet() }) {
+                Text("Finish Set")
             }
-            Button(
-                onClick = { viewModel.resetWorkout() }
-            ) {
-                Text("Reset")
+        } else {
+            Button(onClick = { viewModel.startSet() }) {
+                Text("Start Set")
             }
         }
+        if (currentSets == state.currentSetNumber - 1) {
+            Button(onClick = { viewModel.finishExercise() }) { Text("Finish Exercise") }
+        }
 
-        // Metrics Display
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text("Reps: ${workoutState.reps}", style = MaterialTheme.typography.headlineSmall)
-                Text("Failed Reps: ${workoutState.failedReps}")
-                Text("Avg Rep Time: ${String.format("%.1f", workoutState.avgRepTime / 1000f)}s")
-                Text("Estimated ROM: ${String.format("%.1f", workoutState.estimatedROM)} cm")
-                Text("ROM Score: ${String.format("%.1f", workoutState.romScore)}/100")
-                Text("Avg ROM Score: ${String.format("%.1f", workoutState.avgRomScore)}/100")
-                Text(
-                    text = "Vertical Accel: ${String.format("%.2f", workoutState.verticalAccel)} m/s²",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (workoutState.verticalAccel < -1f) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-                )
-                if (workoutState.isTracking) {
-                    Text("Tracking Active (Gravity-Aligned)", color = MaterialTheme.colorScheme.primary)
-                }
-            }
+        Button(onClick = { openScreen("workout_customization") }) {
+            Text("Back")
         }
     }
 }

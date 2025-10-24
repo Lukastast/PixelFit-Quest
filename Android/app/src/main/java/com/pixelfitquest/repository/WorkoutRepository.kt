@@ -3,7 +3,9 @@ package com.pixelfitquest.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.pixelfitquest.model.Exercise
 import com.pixelfitquest.model.Workout
+import com.pixelfitquest.model.WorkoutSet
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +24,6 @@ class WorkoutRepository @Inject constructor(
 
     private fun currentUserId(): String = auth.currentUser?.uid ?: throw IllegalStateException("No user logged in")
 
-    // Save a completed workout to subcollection
     suspend fun saveWorkout(workout: Workout) {
         try {
             workoutsSubcollection.document(workout.id).set(workout.toMap()).await()
@@ -31,6 +32,25 @@ class WorkoutRepository @Inject constructor(
         }
     }
 
+    suspend fun saveExercise(exercise: Exercise) {
+        usersCollection.document(currentUserId())
+            .collection("workouts").document(exercise.workoutId)
+            .collection("exercises").document(exercise.id).set(exercise.toMap()).await()
+    }
+
+    suspend fun saveSet(set: WorkoutSet) {
+        usersCollection.document(currentUserId())
+            .collection("workouts").document(set.exerciseId.substringBeforeLast("/").substringAfterLast("/"))
+            .collection("exercises").document(set.exerciseId.substringAfterLast("/"))
+            .collection("sets").document(set.id).set(set.toMap()).await()
+    }
+    suspend fun saveFullWorkout(workout: Workout, exercises: List<Exercise>, sets: Map<String, List<WorkoutSet>>) {
+        saveWorkout(workout)
+        exercises.forEach { saveExercise(it) }
+        sets.forEach { (exerciseId, setList) ->
+            setList.forEach { saveSet(it) }
+        }
+    }
     // Real-time Flow for user's workouts (all types, sorted by date desc)
     fun getWorkouts(): Flow<List<Workout>> = callbackFlow {
         val listener = workoutsSubcollection
@@ -43,7 +63,7 @@ class WorkoutRepository @Inject constructor(
                         try {
                             Workout.fromMap(doc.data ?: emptyMap())
                         } catch (ex: Exception) {
-                            null  // Skip corrupted docs
+                            null
                         }
                     } ?: emptyList()
                     trySend(workouts)

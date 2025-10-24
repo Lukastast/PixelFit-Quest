@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.model.WorkoutPlanItem
 import com.pixelfitquest.model.WorkoutTemplate
-import com.pixelfitquest.model.WorkoutType
+import com.pixelfitquest.model.ExerciseType
 import com.pixelfitquest.repository.WorkoutTemplateRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.collections.isNotEmpty
+import kotlin.collections.map
 
 @HiltViewModel
 class WorkoutCustomizationViewModel @Inject constructor(
@@ -34,7 +36,7 @@ class WorkoutCustomizationViewModel @Inject constructor(
         }
     }
 
-    fun toggleExercise(exercise: WorkoutType, sets: Int = 3) {
+    fun toggleExercise(exercise: ExerciseType, sets: Int = 3) {
         val currentSelections = _uiState.value.selections
         val updated = if (currentSelections.containsKey(exercise)) {
             currentSelections - exercise
@@ -44,7 +46,7 @@ class WorkoutCustomizationViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(selections = updated)
     }
 
-    fun updateSets(exercise: WorkoutType, sets: Int) {
+    fun updateSets(exercise: ExerciseType, sets: Int) {
         if (sets < 1) return
         val currentSelections = _uiState.value.selections
         if (currentSelections.containsKey(exercise)) {
@@ -105,7 +107,7 @@ class WorkoutCustomizationViewModel @Inject constructor(
     private fun generateId(): String = "template_${System.currentTimeMillis()}"
 
     data class CustomizationUiState(
-        val selections: Map<WorkoutType, Int> = emptyMap(),
+        val selections: Map<ExerciseType, Int> = emptyMap(),
         val templateName: String = "",
         val isSaving: Boolean = false,
         val error: String? = null,
