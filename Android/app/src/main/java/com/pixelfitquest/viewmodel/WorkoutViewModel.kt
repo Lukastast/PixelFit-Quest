@@ -424,9 +424,9 @@ class WorkoutViewModel @Inject constructor(
         // ROM calculation
         val downDelta = bottomPos - repStartPos
         val upDelta = currentDisplacement - bottomPos
-        val downROM = downDelta * 100f
-        val upROM = upDelta * 100f
-        val newEstROM = abs(downROM) + abs(upROM)
+        val downROM = abs(downDelta) * 100f
+        val upROM = abs(upDelta) * 100f
+        val newEstROM = downROM + upROM
 
         val newAvgRepTime = if (newReps > 0) (totalRepTime / newReps).toFloat() else 0f
 
