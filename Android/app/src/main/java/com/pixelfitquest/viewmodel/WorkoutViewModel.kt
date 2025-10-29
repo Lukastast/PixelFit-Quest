@@ -493,4 +493,3 @@ class WorkoutViewModel @Inject constructor(
         val notes: String? = null
     )
 }
-// TODO: move workoutState to model 
