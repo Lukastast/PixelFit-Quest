@@ -336,11 +336,12 @@ class WorkoutViewModel @Inject constructor(
             Log.d("WorkoutVM", "Saved exercise $exercise.id under workout $workoutId")
         }
         // Advance to next exercise
-        currentExerciseIndex++
         currentSetNumber = 1
-        if (currentExerciseIndex >= currentPlan!!.items.size) {
+        val nextExerciseIndex = currentExerciseIndex + 1
+        if (nextExerciseIndex >= currentPlan!!.items.size) {
             finishWorkout()
         } else {
+            currentExerciseIndex = nextExerciseIndex
             currentExerciseType = currentPlan!!.items[currentExerciseIndex].exercise
             _workoutState.value = _workoutState.value.copy(currentExerciseIndex = currentExerciseIndex)
         }
