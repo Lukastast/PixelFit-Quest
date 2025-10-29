@@ -404,7 +404,7 @@ class WorkoutViewModel @Inject constructor(
 
     fun calculateRomScore(estimatedRomCm: Float): Float {
         val currentType = currentExerciseType ?: ExerciseType.BENCH_PRESS
-        val heightCm = _userSettings.value?.height ?: return 178f
+        val heightCm = _userSettings.value?.height ?: return 0f
         val romFactor = currentType.romFactor
         val theoreticalMaxRom = heightCm * romFactor
         val score = (estimatedRomCm / theoreticalMaxRom * 100f).coerceIn(0f, 100f)
