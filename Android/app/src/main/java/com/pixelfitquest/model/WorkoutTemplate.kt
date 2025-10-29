@@ -13,10 +13,11 @@ data class WorkoutPlanItem(
 data class WorkoutPlan(
     val items: List<WorkoutPlanItem>
 ) {
-    fun toJson(): String = Gson().toJson(this)
+    fun toJson(): String = Companion.gson.toJson(this)
 
     companion object {
-        fun fromJson(json: String): WorkoutPlan = Gson().fromJson(json, WorkoutPlan::class.java)
+        private val gson = Gson()
+        fun fromJson(json: String): WorkoutPlan = gson.fromJson(json, WorkoutPlan::class.java)
     }
 }
 
