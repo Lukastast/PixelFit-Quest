@@ -323,13 +323,14 @@ class WorkoutViewModel @Inject constructor(
     fun finishExercise() {
         val currentPlan = currentPlan ?: return
         val currentItem = currentPlan.items.getOrNull(currentExerciseIndex) ?: return
+        val exerciseType = currentExerciseType ?: return
         
         val exerciseScore = _workoutState.value.romScore
-        val exerciseId = currentExerciseType!!.name.lowercase().replace("_", "-")
+        val exerciseId = exerciseType.name.lowercase().replace("_", "-")
         val exercise = Exercise(
             id = exerciseId,
             workoutId = workoutId,
-            type = currentExerciseType!!,
+            type = exerciseType,
             totalSets = currentItem.sets,
             exerciseScore = exerciseScore,
             weight = _workoutState.value.weight,
