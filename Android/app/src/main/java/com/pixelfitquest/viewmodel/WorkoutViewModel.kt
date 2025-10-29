@@ -304,13 +304,14 @@ class WorkoutViewModel @Inject constructor(
         val currentItem = currentPlan.items.getOrNull(currentExerciseIndex) ?: return
         currentSetNumber++
         if (currentSetNumber > currentItem.sets) {
-            currentExerciseIndex++
             currentSetNumber = 1
-            if (currentExerciseIndex >= currentPlan.items.size) {
+            val nextExerciseIndex = currentExerciseIndex + 1
+            if (nextExerciseIndex >= currentPlan.items.size) {
                 Log.d("WorkoutVM", "Workout complete!")
                 stopWorkout()
                 return
             }
+            currentExerciseIndex = nextExerciseIndex
             currentExerciseType = currentPlan.items[currentExerciseIndex].exercise
         }
         _workoutState.value = _workoutState.value.copy(
