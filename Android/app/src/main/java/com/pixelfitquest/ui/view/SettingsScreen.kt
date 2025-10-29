@@ -70,7 +70,7 @@ fun SettingsScreen(restartApp: (String) -> Unit,
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(8.dp)
         )
 
         DisplayNameCard(user.displayName) { viewModel.onUpdateDisplayNameClick(it) }
@@ -78,7 +78,7 @@ fun SettingsScreen(restartApp: (String) -> Unit,
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(8.dp)
         )
 
         Card(modifier = Modifier.card()) {
@@ -111,7 +111,7 @@ fun SettingsScreen(restartApp: (String) -> Unit,
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(8.dp)
         )
         SetHeight(viewModel)
     }

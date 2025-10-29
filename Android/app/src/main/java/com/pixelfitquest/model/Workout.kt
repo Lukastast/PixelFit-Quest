@@ -91,7 +91,8 @@ data class Exercise(
 
 data class WorkoutSet(
     val id: String,
-    val exerciseId: String,  // Parent reference
+    val exerciseId: String,
+    val workoutId: String,
     val setNumber: Int,
     val reps: Int,
     val romScore: Float = 0f,
@@ -103,6 +104,7 @@ data class WorkoutSet(
     fun toMap(): Map<String, Any?> = mapOf(
         "id" to id,
         "exerciseId" to exerciseId,
+        "workoutId" to workoutId,
         "setNumber" to setNumber,
         "reps" to reps,
         "romScore" to romScore,
@@ -116,6 +118,7 @@ data class WorkoutSet(
         fun fromMap(map: Map<String, Any?>): WorkoutSet = WorkoutSet(
             id = map["id"] as? String ?: "",
             exerciseId = map["exerciseId"] as? String ?: "",
+            workoutId = map["workoutId"] as? String ?: "",
             setNumber = map["setNumber"] as? Int ?: 0,
             reps = map["reps"] as? Int ?: 0,
             romScore = map["romScore"] as? Float ?: 0f,

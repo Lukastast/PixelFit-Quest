@@ -1,5 +1,6 @@
 package com.pixelfitquest.repository
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -35,14 +36,16 @@ class WorkoutRepository @Inject constructor(
     suspend fun saveExercise(exercise: Exercise) {
         usersCollection.document(currentUserId())
             .collection("workouts").document(exercise.workoutId)
-            .collection("exercises").document(exercise.id).set(exercise.toMap()).await()
+            .collection("exercises").document(exercise.id)
+            .set(exercise.toMap()).await()
     }
 
     suspend fun saveSet(set: WorkoutSet) {
         usersCollection.document(currentUserId())
-            .collection("workouts").document(set.exerciseId.substringBeforeLast("/").substringAfterLast("/"))
-            .collection("exercises").document(set.exerciseId.substringAfterLast("/"))
+            .collection("workouts").document(set.workoutId)
+            .collection("exercises").document(set.exerciseId)
             .collection("sets").document(set.id).set(set.toMap()).await()
+        Log.d("WorkoutRepo", "Saved set ${set.id} under workout ${set.workoutId}/exercise ${set.exerciseId}")
     }
     suspend fun saveFullWorkout(workout: Workout, exercises: List<Exercise>, sets: Map<String, List<WorkoutSet>>) {
         saveWorkout(workout)

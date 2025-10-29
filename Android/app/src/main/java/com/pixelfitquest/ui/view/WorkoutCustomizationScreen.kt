@@ -59,7 +59,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutCustomizationScreen(
-    onStartWorkout: (WorkoutPlan) -> Unit,
+    onStartWorkout: (WorkoutPlan, String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val viewModel: WorkoutCustomizationViewModel = hiltViewModel()
@@ -109,7 +109,8 @@ fun WorkoutCustomizationScreen(
                     Button(
                         onClick = {
                             viewModel.getWorkoutPlan()?.let { plan ->
-                                onStartWorkout(plan)
+                                val templateName = uiState.templateName.ifBlank { "Workout" }
+                                onStartWorkout(plan, templateName)
                             }
                         },
                         enabled = !uiState.isSaving

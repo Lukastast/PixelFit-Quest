@@ -156,16 +156,14 @@ fun NavGraphBuilder.pixelFitGraph(appState: AppState) {
     }
 
     composable(
-        route = "$WORKOUT_SCREEN/{planJson}",
+        route = "$WORKOUT_SCREEN/{planJson}/{templateName}",
         arguments = listOf(
-            navArgument("planJson") {
-                type = NavType.StringType
-                nullable = false  // FIXED: Non-nullable
-                defaultValue = ""  // Empty fallback, but screen validates
-            }
+            navArgument("planJson") { type = NavType.StringType; nullable = false; defaultValue = "" },
+            navArgument("templateName") { type = NavType.StringType; nullable = true; defaultValue = "workout" }
         )
     ) { backStackEntry ->
         val planJson = backStackEntry.arguments?.getString("planJson") ?: ""
+        val templateName = backStackEntry.arguments?.getString("templateName") ?: ""
         val gson = Gson()
         val plan = if (planJson.isNotBlank()) {
             val type = object : TypeToken<WorkoutPlan>() {}.type
@@ -174,7 +172,8 @@ fun NavGraphBuilder.pixelFitGraph(appState: AppState) {
             WorkoutPlan(emptyList())
         }
         WorkoutScreen(
-            plan = plan,  // FIXED: Pass validated plan
+            plan = plan,
+            templateName = templateName,
             openScreen = { route -> appState.navigate(route) }
         )
     }
@@ -186,10 +185,10 @@ fun NavGraphBuilder.pixelFitGraph(appState: AppState) {
     }
     composable(WORKOUT_CUSTOMIZATION_SCREEN) {
         WorkoutCustomizationScreen(
-            onStartWorkout = { plan ->
+            onStartWorkout = { plan, templateName ->
                 val gson = Gson()
                 val planJson = gson.toJson(plan)
-                appState.navigate("$WORKOUT_SCREEN/$planJson")
+                appState.navigate("$WORKOUT_SCREEN/$planJson/$templateName")
             }
         )
     }

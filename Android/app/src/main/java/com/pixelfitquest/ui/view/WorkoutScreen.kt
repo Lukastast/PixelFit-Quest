@@ -32,6 +32,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun WorkoutScreen(
     plan: WorkoutPlan,  // From nav arg
+    templateName: String = "workout",
     openScreen: (String) -> Unit,  // Navigation callback
     modifier: Modifier = Modifier
 ) {
@@ -47,7 +48,7 @@ fun WorkoutScreen(
             openScreen("workout_customization")  // Redirect back
             return@LaunchedEffect
         }
-        viewModel.startWorkoutFromPlan(plan)
+        viewModel.startWorkoutFromPlan(plan, templateName)
     }
 
     if (plan.items.isEmpty()) {

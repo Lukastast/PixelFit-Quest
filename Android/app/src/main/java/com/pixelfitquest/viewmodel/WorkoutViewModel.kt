@@ -245,14 +245,15 @@ class WorkoutViewModel @Inject constructor(
         }
     }
 
-    fun startWorkoutFromPlan(plan: WorkoutPlan) {
+    fun startWorkoutFromPlan(plan: WorkoutPlan, templateName: String? = null) {
+        val workoutName = templateName?.lowercase()?.replace(" ", "_") ?: "workout"
+        workoutId = "${workoutName}_${System.currentTimeMillis() % 10000}"
         currentPlan = plan
         currentExerciseIndex = 0
         currentSetNumber = 1
         isSetActive = false
         currentExerciseType = plan.items[0].exercise
         val startTime = System.currentTimeMillis()
-        workoutId = "workout_${System.currentTimeMillis()}_${UUID.randomUUID()}"
         totalRepTime = 0L
         lastPeakTime = startTime
         lastVerticalAccel = 0f
@@ -297,7 +298,7 @@ class WorkoutViewModel @Inject constructor(
         isSetActive = false
         _workoutState.value = _workoutState.value.copy(isSetActive = false)
 
-        saveCurrentSetAsWorkout()
+        saveCurrentSet()
 
         val currentPlan = currentPlan ?: return
         val currentItem = currentPlan.items.getOrNull(currentExerciseIndex) ?: return
@@ -320,8 +321,9 @@ class WorkoutViewModel @Inject constructor(
     }
     fun finishExercise() {
         val exerciseScore = _workoutState.value.romScore
+        val exerciseId = currentExerciseType!!.name.lowercase().replace("_", "-")
         val exercise = Exercise(
-            id = "exercise_${currentExerciseIndex}_${System.currentTimeMillis()}",
+            id = exerciseId,
             workoutId = workoutId,
             type = currentExerciseType!!,
             totalSets = currentPlan!!.items[currentExerciseIndex].sets,
@@ -331,6 +333,7 @@ class WorkoutViewModel @Inject constructor(
         )
         viewModelScope.launch {
             workoutRepository.saveExercise(exercise)
+            Log.d("WorkoutVM", "Saved exercise $exercise.id under workout $workoutId")
         }
         // Advance to next exercise
         currentExerciseIndex++
@@ -358,16 +361,16 @@ class WorkoutViewModel @Inject constructor(
             stopWorkout()
         }
     }
-    private fun saveCurrentSetAsWorkout() {
+    private fun saveCurrentSet() {
         val currentState = _workoutState.value
-        if (currentPlan == null) return
-        if (currentExerciseType == null) return
-        val exerciseId = "exercise_${currentExerciseIndex}_${System.currentTimeMillis()}"
-        val setId = "set_${currentSetNumber}_${System.currentTimeMillis()}"
+        if (currentPlan == null || currentExerciseType == null) return
+        val exerciseId = currentExerciseType!!.name.lowercase().replace("_", "")
+        val setId = "set_${currentSetNumber}"
 
         val set = WorkoutSet(
             id = setId,
             exerciseId = exerciseId,
+            workoutId = workoutId,
             setNumber = currentSetNumber,
             reps = currentState.reps,
             romScore = currentState.romScore,
