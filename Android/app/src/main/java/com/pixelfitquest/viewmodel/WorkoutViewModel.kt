@@ -304,13 +304,14 @@ class WorkoutViewModel @Inject constructor(
         val currentItem = currentPlan.items.getOrNull(currentExerciseIndex) ?: return
         currentSetNumber++
         if (currentSetNumber > currentItem.sets) {
-            currentExerciseIndex++
             currentSetNumber = 1
-            if (currentExerciseIndex >= currentPlan.items.size) {
+            val nextExerciseIndex = currentExerciseIndex + 1
+            if (nextExerciseIndex >= currentPlan.items.size) {
                 Log.d("WorkoutVM", "Workout complete!")
                 stopWorkout()
                 return
             }
+            currentExerciseIndex = nextExerciseIndex
             currentExerciseType = currentPlan.items[currentExerciseIndex].exercise
         }
         _workoutState.value = _workoutState.value.copy(
@@ -320,13 +321,17 @@ class WorkoutViewModel @Inject constructor(
         Log.d("WorkoutVM", "Finished set, advanced to $currentSetNumber")
     }
     fun finishExercise() {
+        val currentPlan = currentPlan ?: return
+        val currentItem = currentPlan.items.getOrNull(currentExerciseIndex) ?: return
+        val exerciseType = currentExerciseType ?: return
+        
         val exerciseScore = _workoutState.value.romScore
-        val exerciseId = currentExerciseType!!.name.lowercase().replace("_", "-")
+        val exerciseId = exerciseType.name.lowercase().replace("_", "-")
         val exercise = Exercise(
             id = exerciseId,
             workoutId = workoutId,
-            type = currentExerciseType!!,
-            totalSets = currentPlan!!.items[currentExerciseIndex].sets,
+            type = exerciseType,
+            totalSets = currentItem.sets,
             exerciseScore = exerciseScore,
             weight = _workoutState.value.weight,
             notes = _workoutState.value.notes
@@ -336,12 +341,13 @@ class WorkoutViewModel @Inject constructor(
             Log.d("WorkoutVM", "Saved exercise $exercise.id under workout $workoutId")
         }
         // Advance to next exercise
-        currentExerciseIndex++
         currentSetNumber = 1
-        if (currentExerciseIndex >= currentPlan!!.items.size) {
+        val nextExerciseIndex = currentExerciseIndex + 1
+        if (nextExerciseIndex >= currentPlan.items.size) {
             finishWorkout()
         } else {
-            currentExerciseType = currentPlan!!.items[currentExerciseIndex].exercise
+            currentExerciseIndex = nextExerciseIndex
+            currentExerciseType = currentPlan.items[currentExerciseIndex].exercise
             _workoutState.value = _workoutState.value.copy(currentExerciseIndex = currentExerciseIndex)
         }
     }
