@@ -40,13 +40,13 @@ import com.pixelfitquest.Helpers.WORKOUT_SCREEN
 import com.pixelfitquest.R
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.ui.screens.LoginScreen
-import com.pixelfitquest.ui.screens.WorkoutCustomizationScreen
 import com.pixelfitquest.ui.view.CustomizationScreen
 import com.pixelfitquest.ui.view.HomeScreen
 import com.pixelfitquest.ui.view.IntroScreen
 import com.pixelfitquest.ui.view.SettingsScreen
 import com.pixelfitquest.ui.view.SignupScreen
 import com.pixelfitquest.ui.view.SplashScreen
+import com.pixelfitquest.ui.view.WorkoutCustomizationScreen
 import com.pixelfitquest.ui.view.WorkoutScreen
 
 @Composable
