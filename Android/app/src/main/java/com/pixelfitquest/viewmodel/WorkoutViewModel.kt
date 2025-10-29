@@ -321,13 +321,16 @@ class WorkoutViewModel @Inject constructor(
         Log.d("WorkoutVM", "Finished set, advanced to $currentSetNumber")
     }
     fun finishExercise() {
+        val currentPlan = currentPlan ?: return
+        val currentItem = currentPlan.items.getOrNull(currentExerciseIndex) ?: return
+        
         val exerciseScore = _workoutState.value.romScore
         val exerciseId = currentExerciseType!!.name.lowercase().replace("_", "-")
         val exercise = Exercise(
             id = exerciseId,
             workoutId = workoutId,
             type = currentExerciseType!!,
-            totalSets = currentPlan!!.items[currentExerciseIndex].sets,
+            totalSets = currentItem.sets,
             exerciseScore = exerciseScore,
             weight = _workoutState.value.weight,
             notes = _workoutState.value.notes
@@ -339,11 +342,11 @@ class WorkoutViewModel @Inject constructor(
         // Advance to next exercise
         currentSetNumber = 1
         val nextExerciseIndex = currentExerciseIndex + 1
-        if (nextExerciseIndex >= currentPlan!!.items.size) {
+        if (nextExerciseIndex >= currentPlan.items.size) {
             finishWorkout()
         } else {
             currentExerciseIndex = nextExerciseIndex
-            currentExerciseType = currentPlan!!.items[currentExerciseIndex].exercise
+            currentExerciseType = currentPlan.items[currentExerciseIndex].exercise
             _workoutState.value = _workoutState.value.copy(currentExerciseIndex = currentExerciseIndex)
         }
     }
