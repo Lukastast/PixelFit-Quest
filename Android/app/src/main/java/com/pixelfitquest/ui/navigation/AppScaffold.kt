@@ -1,5 +1,6 @@
 package com.pixelfitquest.ui.navigation
 
+
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,9 +21,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.pixelfitquest.Helpers.CUSTOMIZATION_SCREEN
 import com.pixelfitquest.Helpers.HOME_SCREEN
 import com.pixelfitquest.Helpers.INTRO_SCREEN
@@ -30,9 +35,12 @@ import com.pixelfitquest.Helpers.LOGIN_SCREEN
 import com.pixelfitquest.Helpers.SETTINGS_SCREEN
 import com.pixelfitquest.Helpers.SIGNUP_SCREEN
 import com.pixelfitquest.Helpers.SPLASH_SCREEN
+import com.pixelfitquest.Helpers.WORKOUT_CUSTOMIZATION_SCREEN
 import com.pixelfitquest.Helpers.WORKOUT_SCREEN
 import com.pixelfitquest.R
+import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.ui.screens.LoginScreen
+import com.pixelfitquest.ui.screens.WorkoutCustomizationScreen
 import com.pixelfitquest.ui.view.CustomizationScreen
 import com.pixelfitquest.ui.view.HomeScreen
 import com.pixelfitquest.ui.view.IntroScreen
@@ -61,7 +69,8 @@ fun AppScaffold() {
                     HOME_SCREEN,
                     WORKOUT_SCREEN,
                     CUSTOMIZATION_SCREEN,
-                    SETTINGS_SCREEN
+                    SETTINGS_SCREEN,
+                    WORKOUT_CUSTOMIZATION_SCREEN
                 )) {
                 NavigationBar(
                     modifier = Modifier
@@ -75,7 +84,8 @@ fun AppScaffold() {
                         BottomNavItem.Home,
                         BottomNavItem.Settings,
                         BottomNavItem.Customization,
-                        BottomNavItem.Workout
+                        //BottomNavItem.Workout,
+                        BottomNavItem.WorkoutCustomization
                     )
                     items.forEach { item ->
                         NavigationBarItem(
@@ -144,14 +154,42 @@ fun NavGraphBuilder.pixelFitGraph(appState: AppState) {
             openScreen = { route -> appState.navigate(route) }
         )
     }
-    composable(WORKOUT_SCREEN) {
+
+    composable(
+        route = "$WORKOUT_SCREEN/{planJson}/{templateName}",
+        arguments = listOf(
+            navArgument("planJson") { type = NavType.StringType; nullable = false; defaultValue = "" },
+            navArgument("templateName") { type = NavType.StringType; nullable = true; defaultValue = "workout" }
+        )
+    ) { backStackEntry ->
+        val planJson = backStackEntry.arguments?.getString("planJson") ?: ""
+        val templateName = backStackEntry.arguments?.getString("templateName") ?: ""
+        val gson = Gson()
+        val plan = if (planJson.isNotBlank()) {
+            val type = object : TypeToken<WorkoutPlan>() {}.type
+            gson.fromJson(planJson, type) ?: WorkoutPlan(emptyList())
+        } else {
+            WorkoutPlan(emptyList())
+        }
         WorkoutScreen(
+            plan = plan,
+            templateName = templateName,
             openScreen = { route -> appState.navigate(route) }
         )
     }
+
     composable(CUSTOMIZATION_SCREEN) {
         CustomizationScreen(
             openScreen = { route -> appState.navigate(route) }
+        )
+    }
+    composable(WORKOUT_CUSTOMIZATION_SCREEN) {
+        WorkoutCustomizationScreen(
+            onStartWorkout = { plan, templateName ->
+                val gson = Gson()
+                val planJson = gson.toJson(plan)
+                appState.navigate("$WORKOUT_SCREEN/$planJson/$templateName")
+            }
         )
     }
     composable(SETTINGS_SCREEN) {

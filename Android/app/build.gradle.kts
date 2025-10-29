@@ -82,6 +82,10 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     kapt("com.google.dagger:hilt-compiler:2.57.2")
 
+
+    //json passing
+    implementation(libs.gson)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -15,10 +15,11 @@ private val DarkColorScheme = darkColorScheme(
     secondary = FireOrange,    // Energy / progress
     tertiary = RewardGold,     // Rewards / coins
     background = DarkStone,
-    surface = QuestBrown,
+    surface = VitalGreen,
     onPrimary = LightGray,
-    onSecondary = LightGray,
+    onSecondary = white,
     onTertiary = DarkStone
+
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -26,9 +27,9 @@ private val LightColorScheme = lightColorScheme(
     secondary = LightOrange,
     tertiary = SoftGold,
     background = LightStone,
-    surface = LightBrown,
+    surface = LightGreen,
     onPrimary = DarkText,
-    onSecondary = DarkText,
+    onSecondary = white,
     onTertiary = DarkText
 )
 

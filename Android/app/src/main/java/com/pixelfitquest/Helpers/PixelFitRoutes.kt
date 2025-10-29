@@ -7,6 +7,7 @@ const val CUSTOMIZATION_SCREEN = "customization"
 const val LOGIN_SCREEN = "login"
 const val SPLASH_SCREEN = "SplashScreen"
 const val INTRO_SCREEN = "intro"
+const val WORKOUT_CUSTOMIZATION_SCREEN = "workout_customization"
 
 const val HAS_SEEN_INTRO = "has_Seen_Intro"
 

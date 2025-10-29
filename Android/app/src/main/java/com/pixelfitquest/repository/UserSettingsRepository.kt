@@ -18,7 +18,6 @@ import javax.inject.Inject
     ) {
         private val usersCollection = firestore.collection("users")
 
-        // Real-time Flow for user data (unchanged)
         fun getUserSettings(): Flow<UserSettings?> = callbackFlow {
             val user = auth.currentUser ?: run {
                 close()  // Close channel if no user

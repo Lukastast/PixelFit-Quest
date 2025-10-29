@@ -31,7 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.pixelfitquest.Helpers.DisplayNameCard
 import com.pixelfitquest.Helpers.ExitAppCard
@@ -70,7 +70,7 @@ fun SettingsScreen(restartApp: (String) -> Unit,
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(8.dp)
         )
 
         DisplayNameCard(user.displayName) { viewModel.onUpdateDisplayNameClick(it) }
@@ -78,7 +78,7 @@ fun SettingsScreen(restartApp: (String) -> Unit,
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(8.dp)
         )
 
         Card(modifier = Modifier.card()) {
@@ -111,7 +111,7 @@ fun SettingsScreen(restartApp: (String) -> Unit,
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(8.dp)
         )
         SetHeight(viewModel)
     }
