@@ -1,4 +1,4 @@
-package com.pixelfitquest.ui.screens
+package com.pixelfitquest.ui.view
 
 import android.util.Log
 import androidx.compose.foundation.clickable
