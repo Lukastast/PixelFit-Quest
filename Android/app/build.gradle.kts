@@ -79,6 +79,7 @@ dependencies {
     //hilt
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation("com.google.dagger:hilt-android:2.57.2")
+    implementation(libs.androidx.room.ktx)
     kapt("com.google.dagger:hilt-compiler:2.57.2")
 
     testImplementation(libs.junit)
