@@ -219,7 +219,7 @@ fun WorkoutCustomizationScreen(
                                         value = localSets,
                                         onValueChange = { newValue: String ->
                                             localSets =
-                                                newValue.filter { char -> char.isDigit() || char == '.' }
+                                                newValue.filter { char -> char.isDigit() }
                                         },
                                         modifier = Modifier
                                             .width(60.dp)
