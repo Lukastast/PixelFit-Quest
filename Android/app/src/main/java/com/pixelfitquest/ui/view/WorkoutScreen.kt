@@ -104,8 +104,8 @@ fun WorkoutScreen(
 
         // FIXED: Access accel/ROM in UI
         Text("Vertical Accel: ${state.verticalAccel}")
-        Text("ROM Score: ${state.romScore} / 100")
-        Text("Avg ROM Score: ${state.avgRomScore} / 100")
+        Text("ROM Score: ${state.romScore.toInt()} / 100")
+        Text("Avg ROM Score: ${state.avgRomScore.toInt()} / 100")
 
         // Buttons
         if (state.isSetActive) {
