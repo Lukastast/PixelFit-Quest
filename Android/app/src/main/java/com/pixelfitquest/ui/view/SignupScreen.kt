@@ -48,6 +48,7 @@ import com.pixelfitquest.model.service.AuthState
 import com.pixelfitquest.ui.theme.PixelFitQuestTheme
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.SignupViewModel
+import com.pixelfitquest.ui.components.PixelArtButton
 
 @Composable
 fun SignupScreen(
@@ -117,7 +118,7 @@ fun SignupScreen(
             Box(
                 modifier = Modifier
                     .width(280.dp)
-                    .height(50.dp),
+                    .height(60.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -155,7 +156,7 @@ fun SignupScreen(
             Box(
                 modifier = Modifier
                     .width(280.dp)
-                    .height(50.dp),
+                    .height(60.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -194,7 +195,7 @@ fun SignupScreen(
             Box(
                 modifier = Modifier
                     .width(280.dp)
-                    .height(50.dp),
+                    .height(60.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -246,25 +247,20 @@ fun SignupScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Button(
+                PixelArtButton(
                     onClick = { viewModel.onSignUpClick(openAndPopUp) },
-                    modifier = Modifier.weight(1f),
-                    enabled = authState !is AuthState.Loading // Disable during loading
+                    imageRes = R.drawable.button_signup_unclicked,  // Your PNG
+                    pressedRes = R.drawable.button_signup_clicked,  // Optional pressed
+                    modifier = Modifier.weight(1f).height(60.dp)
                 ) {
-                    AutoSizeText(
-                        text = stringResource(R.string.sign_up),
-                        style = LocalTextStyle.current.copy(fontSize = 16.sp), // Or use typography.labelLarge if preferred
-                        maxFontSize = 16.sp,
-                        minFontSize = 10.sp,
-                        stepSize = 1.sp
-                    )
+                    Text("Sign Up")
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
                 AuthenticationButton(
                     buttonText = R.string.sign_up_with_google,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).height(59.dp)
                 ) { credential ->
                     viewModel.onSignUpWithGoogle(credential, openAndPopUp)
                 }
