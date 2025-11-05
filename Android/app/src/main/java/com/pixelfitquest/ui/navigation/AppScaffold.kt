@@ -1,24 +1,30 @@
 package com.pixelfitquest.ui.navigation
 
-
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
@@ -48,6 +54,7 @@ import com.pixelfitquest.ui.view.SignupScreen
 import com.pixelfitquest.ui.view.SplashScreen
 import com.pixelfitquest.ui.view.WorkoutCustomizationScreen
 import com.pixelfitquest.ui.view.WorkoutScreen
+import androidx.compose.foundation.layout.Row
 
 @Composable
 fun AppScaffold() {
@@ -87,9 +94,27 @@ fun AppScaffold() {
                         //BottomNavItem.Workout,
                         BottomNavItem.WorkoutCustomization
                     )
-                    items.forEach { item ->
-                        NavigationBarItem(
-                            icon = {
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp),  // Matches default NavigationBar height; adjust if needed
+                        horizontalArrangement = Arrangement.SpaceEvenly  // Evenly spaces items; tweak for your design
+                    ) {
+                        items.forEach { item ->
+                            val interactionSource = remember { MutableInteractionSource() }
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .height(80.dp)  // Ensures full tap area
+                                    .clickable(
+                                        interactionSource = interactionSource,
+                                        indication = null,  // Disables ripple/shadow effect
+                                        role = Role.Tab  // Provides semantics for accessibility
+                                    ) {
+                                        appState.navigate(item.route)
+                                    }
+                            ) {
                                 Icon(
                                     painter = painterResource(
                                         id = if (currentRoute == item.route) item.selectedIcon else item.unSelectedIcon
@@ -98,16 +123,9 @@ fun AppScaffold() {
                                     tint = Color.Unspecified,
                                     modifier = Modifier.size(72.dp),
                                 )
-                            },
-                            //label = { Text(item.label) },
-                            selected = currentRoute == item.route,
-                            colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = Color.Transparent
-                            ),
-                            onClick = {
-                                appState.navigate(item.route)
+                                // Uncomment and add label if needed: Text(item.label, style = ... )
                             }
-                        )
+                        }
                     }
                 }
             }
