@@ -62,27 +62,41 @@ fun WorkoutScreen(
     DisposableEffect(context, lifecycleOwner) {
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        if (accelerometer == null) {
+        val gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+        if (accelerometer == null ) {
             // Handle no sensor (e.g., show error)
-            viewModel.setError("No accelerometer sensor found")
+            viewModel.setError("No acclerometer sensor found")
+
+            return@DisposableEffect onDispose {}
+        }
+        else if (gyroscope == null) {
+            viewModel.setError("No gyroscope sensor found")
 
             return@DisposableEffect onDispose {}
         }
 
+
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                val accelData = floatArrayOf(event.values[0], event.values[1], event.values[2])
-                viewModel.onSensorDataUpdated(accelData, event.timestamp)  // FIXED: Call VM function
+                when (event.sensor.type) {
+                    Sensor.TYPE_ACCELEROMETER -> {
+                        val accelData = floatArrayOf(event.values[0], event.values[1], event.values[2])
+                        viewModel.onSensorDataUpdated(accelData, event.timestamp)  // Pass gyro as null
+                    }
+                    Sensor.TYPE_GYROSCOPE -> {
+                        val gyroData = floatArrayOf(event.values[0], event.values[1], event.values[2])
+                        //viewModel.onGyroDataUpdated(gyroData, event.timestamp)  // FIXED: Separate for gyro
+                    }
+                }
             }
 
-            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-                // Ignore
-            }
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
 
         coroutineScope.launch {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+                sensorManager.registerListener(listener, gyroscope, SensorManager.SENSOR_DELAY_NORMAL)
             }
         }
 
@@ -104,9 +118,13 @@ fun WorkoutScreen(
         Text("Reps: ${state.reps}")
 
         // FIXED: Access accel/ROM in UI
-        Text("Vertical Accel: ${state.verticalAccel}")
+        Text("Vertical Accel: %.2f".format(state.verticalAccel))
         Text("ROM Score: ${state.romScore.toInt()} / 100")
         Text("Avg ROM Score: ${state.avgRomScore.toInt()} / 100")
+        Text("X Tilt Score: -100 / ${state.tiltXScore.toInt()} / 100")
+        Text("Z Tilt Score: -100 / ${state.tiltZScore.toInt()} / 100")
+        Text("avg X Tilt Score: -100 / ${state.avgTiltXScore.toInt()} / 100")
+        Text(" avg Z Tilt Score: -100 / ${state.avgTiltZScore.toInt()} / 100")
 
         // Buttons
         if (state.isSetActive) {
