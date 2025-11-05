@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -39,6 +41,7 @@ import com.pixelfitquest.Helpers.RemoveAccountCard
 import com.pixelfitquest.Helpers.card
 import com.pixelfitquest.R
 import com.pixelfitquest.model.User
+import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.viewmodel.SettingsViewModel
 import java.util.Locale
 
@@ -175,15 +178,17 @@ fun SetHeight(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Button(
-                    modifier = Modifier.padding(8.dp),
+                PixelArtButton(
                     onClick = {
                         val heightCm = heightInput.toIntOrNull()
                         if (heightCm != null && heightCm in 1..272) {
                             viewModel.setHeight(heightCm)
                         }
-                    }
-                ) {
+                    },
+                    imageRes = R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier.width(180.dp).height(60.dp)
+                ){
                     Text("Set Height")
                 }
             }

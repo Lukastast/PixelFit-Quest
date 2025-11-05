@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -53,8 +54,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.model.ExerciseType
 import com.pixelfitquest.model.WorkoutPlan
+import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.viewmodel.WorkoutCustomizationViewModel
 import kotlinx.coroutines.launch
+import com.pixelfitquest.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,14 +109,16 @@ fun WorkoutCustomizationScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                     }
 
-                    Button(
+                    PixelArtButton(
                         onClick = {
                             viewModel.getWorkoutPlan()?.let { plan ->
                                 val templateName = uiState.templateName.ifBlank { "Workout" }
                                 onStartWorkout(plan, templateName)
                             }
                         },
-                        enabled = !uiState.isSaving
+                        imageRes = R.drawable.button_unclicked,  // Your normal PNG
+                        pressedRes = R.drawable.button_clicked,  // Your pressed PNG
+                        modifier = Modifier.width(250.dp).height(60.dp)  // Reduced width from 350.dp
                     ) {
                         Text("Start Workout")
                     }
