@@ -96,6 +96,8 @@ data class WorkoutSet(
     val setNumber: Int,
     val reps: Int,
     val romScore: Float = 0f,
+    val xTiltScore: Float = 0f,
+    val zTiltScore: Float = 0f,
     val avgRepTime: Float = 0f,
     val verticalAccel: Float = 0f,  // Peak or avg
     val weight: Double = 0.0,  // Per set if varies
@@ -108,6 +110,8 @@ data class WorkoutSet(
         "setNumber" to setNumber,
         "reps" to reps,
         "romScore" to romScore,
+        "xTiltScore" to xTiltScore,
+        "zTiltScore" to zTiltScore,
         "avgRepTime" to avgRepTime,
         "verticalAccel" to verticalAccel,
         "weight" to weight,
