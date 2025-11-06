@@ -1,9 +1,15 @@
 package com.pixelfitquest.Helpers
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -23,11 +29,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.pixelfitquest.R
 import com.pixelfitquest.model.User
+import com.pixelfitquest.ui.components.PixelArtButton
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +49,7 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
     val cardTitle = displayName.ifBlank { stringResource(R.string.profile_name) }
 
     AccountCenterCard(cardTitle, Icons.Filled.Edit, Modifier.card()) {
-        newDisplayName =  displayName
+        newDisplayName = displayName
         showDisplayNameDialog = true
     }
 
@@ -54,16 +65,32 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
                 }
             },
             dismissButton = {
-                Button(onClick = { showDisplayNameDialog = false }) {
-                    Text(text = stringResource(R.string.cancel))
+                PixelArtButton(
+                    onClick = { showDisplayNameDialog = false },
+                    imageRes = R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier.height(50.dp).width(130.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        color = Color.Black
+                    )
                 }
             },
             confirmButton = {
-                Button(onClick = {
-                    onUpdateDisplayNameClick(newDisplayName)
-                    showDisplayNameDialog = false
-                }) {
-                    Text(text = stringResource(R.string.update))
+                PixelArtButton(
+                    onClick = {
+                        onUpdateDisplayNameClick(newDisplayName)
+                        showDisplayNameDialog = false
+                    },
+                    imageRes = R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier.height(50.dp).width(130.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.update),
+                        color = Color.Black
+                    )
                 }
             },
             onDismissRequest = { showDisplayNameDialog = false }
@@ -108,72 +135,109 @@ fun ExitAppCard(onSignOutClick: () -> Unit) {
     }
 
     if (showExitAppDialog) {
-        AlertDialog(
-            title = { Text(stringResource(R.string.sign_out_title)) },
-            text = { Text(stringResource(R.string.sign_out_description)) },
-            dismissButton = {
-                Button(onClick = { showExitAppDialog = false }) {
-                    Text(text = stringResource(R.string.cancel))
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    onSignOutClick()
-                    showExitAppDialog = false
-                }) {
-                    Text(text = stringResource(R.string.sign_out))
-                }
-            },
+        Dialog(
             onDismissRequest = { showExitAppDialog = false }
-        )
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.questloginboard),
+                    contentDescription = "Dialog Background",
+                    modifier = Modifier.height(250.dp).width(500.dp),
+                    contentScale = ContentScale.FillBounds
+                )
+                Column(
+                    modifier = Modifier
+                        .padding(32.dp)
+                        .heightIn(max = 300.dp)  // Shorter (max 300dp)
+                ) {
+                    Text(stringResource(R.string.sign_out_title), color = Color.White)
+                    Text(stringResource(R.string.sign_out_description), color = Color.White)
+                    Row {
+                        PixelArtButton(
+                            onClick = { showExitAppDialog = false },
+                            imageRes = R.drawable.button_unclicked,
+                            pressedRes = R.drawable.button_clicked,
+                            modifier = Modifier.height(50.dp).width(130.dp)
+                        ) {
+                            Text(stringResource(R.string.cancel), color = Color.Black)
+                        }
+                        PixelArtButton(
+                            onClick = {
+                                onSignOutClick()
+                                showExitAppDialog = false
+                            },
+                            imageRes = R.drawable.button_unclicked,
+                            pressedRes = R.drawable.button_clicked,
+                            modifier = Modifier.height(50.dp).width(130.dp)
+                        ) {
+                            Text(stringResource(R.string.sign_out), color = Color.Black)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 @Composable
 fun GoogleLinkCard(
-    user: User?, // Assuming User is your user profile model with isLinkedWithGoogle: Boolean
+    user: User?,
     onLinkClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
-    //if (user == null || user.isLinkedWithGoogle) {
-      //  return
-   // }
-
     var showLinkDialog by remember { mutableStateOf(false) }
 
     AccountCenterCard(
-        stringResource(R.string.link_google_account), // Assume you have this string resource
-        Icons.Filled.Link, // Or appropriate icon, e.g., Icons.Filled.AccountCircle for Google
+        stringResource(R.string.link_google_account),
+        Icons.Filled.Link,
         modifier.card()
     ) {
         showLinkDialog = true
     }
 
     if (showLinkDialog) {
-        AlertDialog(
-            title = { Text(stringResource(R.string.link_google_title)) }, // e.g., "Link Google Account"
-            text = { Text(stringResource(R.string.link_google_description)) },
-            dismissButton = {
-                Button(onClick = { showLinkDialog = false }) {
-                    Text(text = stringResource(R.string.cancel))
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        onLinkClick() // This should trigger Google sign-in flow to get idToken, then call linkAccountWithGoogle
-                        showLinkDialog = false
-                    }
-                ) {
-                    Text(text = stringResource(R.string.link_google)) // e.g., "Link Account"
-                }
-            },
+        Dialog(
             onDismissRequest = { showLinkDialog = false }
-        )
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.questloginboard),
+                    contentDescription = "Dialog Background",
+                    modifier = Modifier.height(250.dp).width(500.dp),
+                    contentScale = ContentScale.FillBounds
+                )
+                Column(
+                    modifier = Modifier
+                        .padding(32.dp)
+                        .fillMaxWidth(0.95f)  // Wider
+                        .heightIn(max = 300.dp)  // Shorter
+                ) {
+                    Text(stringResource(R.string.link_google_title), color = Color.White)
+                    Text(stringResource(R.string.link_google_description), color = Color.White)
+                    Row {
+                        Button(onClick = { showLinkDialog = false }) {
+                            Text(stringResource(R.string.cancel))
+                        }
+                        Button(onClick = {
+                            onLinkClick()
+                            showLinkDialog = false
+                        }) {
+                            Text(stringResource(R.string.link_google))
+                        }
+                    }
+                }
+            }
+        }
     }
-    TODO("missing logic from credentials, aka authentication button / logic")
+    // TODO: Add Google linking logic
 }
+
 @Composable
 fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
     var showRemoveAccDialog by remember { mutableStateOf(false) }
@@ -183,23 +247,50 @@ fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
     }
 
     if (showRemoveAccDialog) {
-        AlertDialog(
-            title = { Text(stringResource(R.string.delete_account_title)) },
-            text = { Text(stringResource(R.string.delete_account_description)) },
-            dismissButton = {
-                Button(onClick = { showRemoveAccDialog = false }) {
-                    Text(text = stringResource(R.string.cancel))
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    onRemoveAccountClick()
-                    showRemoveAccDialog = false
-                }) {
-                    Text(text = stringResource(R.string.delete_account))
-                }
-            },
+        Dialog(
             onDismissRequest = { showRemoveAccDialog = false }
-        )
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.questloginboard),
+                    contentDescription = "Dialog Background",
+                    modifier = Modifier.height(250.dp).width(500.dp),
+                    contentScale = ContentScale.FillBounds
+                )
+                Column(
+                    modifier = Modifier
+                        .padding(32.dp)
+                        .fillMaxWidth(0.95f)  // Wider
+                        .heightIn(max = 300.dp)  // Shorter
+                ) {
+                    Text(stringResource(R.string.delete_account_title), color = Color.White)
+                    Text(stringResource(R.string.delete_account_description), color = Color.White)
+                    Row {
+                        PixelArtButton(
+                            onClick = { showRemoveAccDialog = false },
+                            imageRes = R.drawable.button_unclicked,
+                            pressedRes = R.drawable.button_clicked,
+                            modifier = Modifier.height(50.dp).width(130.dp)
+                        ) {
+                            Text(stringResource(R.string.cancel), color = Color.Black)
+                        }
+                        PixelArtButton(
+                            onClick = {
+                                onRemoveAccountClick()
+                                showRemoveAccDialog = false
+                            },
+                            imageRes = R.drawable.button_unclicked,
+                            pressedRes = R.drawable.button_clicked,
+                            modifier = Modifier.height(50.dp).width(130.dp)
+                        ) {
+                            Text(stringResource(R.string.delete_account), color = Color.Black)
+                        }
+                    }
+                }
+            }
+        }
     }
 }

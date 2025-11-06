@@ -17,7 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pixelfitquest.ui.components.IdleAnimation
+import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.viewmodel.CustomizationViewModel
+import com.pixelfitquest.R
 
 @Composable
 fun CustomizationScreen(
@@ -36,14 +38,22 @@ fun CustomizationScreen(
 
         // Gender Toggle Buttons
         Row {
-            Button(
+            PixelArtButton(
                 onClick = { viewModel.updateGender("male") },
-                enabled = characterData.gender != "male"
-            ) { Text("Male") }
-            Button(
+                imageRes = R.drawable.button_unclicked,  // Your normal PNG
+                pressedRes = R.drawable.button_clicked,  // Your pressed PNG
+                modifier = Modifier.size(80.dp, 40.dp)  // Compact size for toggles
+            ) {
+                Text("Male")
+            }
+            PixelArtButton(
                 onClick = { viewModel.updateGender("female") },
-                enabled = characterData.gender != "female"
-            ) { Text("Female") }
+                imageRes = R.drawable.button_unclicked,
+                pressedRes = R.drawable.button_clicked,
+                modifier = Modifier.size(80.dp, 40.dp)
+            ) {
+                Text("Female")
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -57,8 +67,13 @@ fun CustomizationScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = { openScreen("home") }  // Save and return
-        ) { Text("Save and Continue") }
+        PixelArtButton(
+            onClick = { openScreen("home") },  // Save and return
+            imageRes = R.drawable.button_unclicked,  // Your normal PNG
+            pressedRes = R.drawable.button_clicked,  // Your pressed PNG
+            modifier = Modifier.size(200.dp, 60.dp)  // Wider for emphasis
+        ) {
+            Text("Save and Continue")
+        }
     }
 }

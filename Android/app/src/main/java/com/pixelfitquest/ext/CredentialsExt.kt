@@ -2,6 +2,7 @@ package com.pixelfitquest.ext
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -9,6 +10,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -25,6 +27,7 @@ import com.pixelfitquest.Helpers.SnackbarManager
 import com.pixelfitquest.R
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.pixelfitquest.ui.components.PixelArtButton
 import kotlinx.coroutines.launch
 
 @Composable
@@ -36,23 +39,26 @@ fun AuthenticationButton(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    Button(
+    PixelArtButton(
         onClick = { coroutineScope.launch { launchCredManButtonUI(context, onRequestResult) } },
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp, 0.dp)
+        imageRes = R.drawable.button_signup_unclicked,  // Your normal pixel art PNG
+        pressedRes = R.drawable.button_clicked,  // Your pressed pixel art PNG
+        modifier = modifier  // Pass through for sizing/alignment
     ) {
-        Icon(
-            painter = painterResource(id = R.drawable.google_g),
-            modifier = Modifier.padding(horizontal = 8.dp),
-            contentDescription = "Google logo"
-        )
-
-        Text(
-            text = stringResource(buttonText),
-            fontSize = 16.sp,
-            modifier = Modifier.padding(0.dp, 0.dp)
-        )
+        // Icon and text overlay
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.google_g),
+                modifier = Modifier.padding(horizontal = 8.dp),
+                contentDescription = "Google logo"
+            )
+            Text(
+                text = stringResource(buttonText),
+                fontSize = 16.sp
+            )
+        }
     }
 }
 

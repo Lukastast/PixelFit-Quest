@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,12 +36,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.pixelfitquest.Helpers.SIGNUP_SCREEN
 import com.pixelfitquest.R
 import com.pixelfitquest.ext.AuthenticationButton
 import com.pixelfitquest.ext.launchCredManBottomSheet
 import com.pixelfitquest.model.service.AuthState
+import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.ui.theme.PixelFitQuestTheme
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.LoginViewModel
@@ -113,7 +113,7 @@ fun LoginScreen(
             Box(
                 modifier = Modifier
                     .width(280.dp)
-                    .height(50.dp),
+                    .height(60.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -151,7 +151,7 @@ fun LoginScreen(
             Box(
                 modifier = Modifier
                     .width(280.dp)
-                    .height(50.dp),
+                    .height(60.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -205,10 +205,11 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Button(
+                PixelArtButton(
                     onClick = { viewModel.onLogInClick(openAndPopUp) },
-                    modifier = Modifier.weight(1f),
-                    enabled = authState !is AuthState.Loading
+                    imageRes = R.drawable.button_unclicked,  // Your normal PNG
+                    pressedRes = R.drawable.button_clicked,  // Your pressed PNG
+                    modifier = Modifier.weight(1f).height(59.dp)  // Match SignupScreen height
                 ) {
                     Text(
                         text = stringResource(R.string.log_in),
@@ -220,7 +221,7 @@ fun LoginScreen(
 
                 AuthenticationButton(
                     buttonText = R.string.login_with_google,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).height(59.dp)  // Match height
                 ) { credential ->
                     viewModel.onLogInWithGoogle(credential, openAndPopUp)
                 }
