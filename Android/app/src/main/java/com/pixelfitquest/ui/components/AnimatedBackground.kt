@@ -1,4 +1,4 @@
-package com.pixelfitquest.ui.view
+package com.pixelfitquest.ui.components
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
