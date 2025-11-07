@@ -145,7 +145,7 @@ class UserRepository @Inject constructor(
                     newExp = newExp.coerceAtMost(getExpRequiredForLevel(MAX_LEVEL))
                     break
                 }
-                val expRequiredForNext = getExpRequiredForLevel(currentLevel)
+                val expRequiredForNext = getExpRequiredForLevel(currentLevel + 1)
                 if (newExp >= expRequiredForNext) {
                     // Level up
                     newExp -= expRequiredForNext
