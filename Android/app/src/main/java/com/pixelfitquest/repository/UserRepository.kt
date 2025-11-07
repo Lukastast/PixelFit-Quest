@@ -11,6 +11,11 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 @ViewModelScoped
@@ -21,7 +26,14 @@ class UserRepository @Inject constructor(
     private val usersCollection = firestore.collection("users")
     private val TAG = "UserRepository"
 
-    // Game Data (level, coins, exp)
+    companion object {
+        private const val DEFAULT_BASE_EXP = 100  // Fallback for offline/first-run
+        private const val MAX_LEVEL = 30  // Hard cap at level 30
+        private const val MILLIS_PER_DAY = 24 * 60 * 60 * 1000L  // Extracted constant for milliseconds in a day
+        private val cachedProgression = ConcurrentHashMap<Int, Int>()  // Thread-safe map for concurrent access
+    }
+
+    // Game Data (level, coins, exp, streak)
 
     fun getUserGameData(): Flow<UserGameData?> = callbackFlow {
         val user = auth.currentUser ?: run {
@@ -82,9 +94,137 @@ class UserRepository @Inject constructor(
         }
     }
 
+    // Load progression config (call from ViewModel init)
+    suspend fun loadProgressionConfig() {
+        try {
+            val configDoc = firestore.collection("configs").document("game_progression").get().await()
+            val progressionMap = configDoc.get("levels") as? Map<String, Long> ?: emptyMap()
+            cachedProgression.clear()  // Safe concurrent clear
+            progressionMap.forEach { (levelStr, expReq) ->
+                val level = levelStr.toIntOrNull()
+                if (level != null && level <= MAX_LEVEL) {
+                    cachedProgression[level] = expReq.toInt()  // Concurrent put
+                }
+            }
+            if (cachedProgression.isEmpty()) {
+                initializeDefaultProgression()
+            }
+            Log.d(TAG, "Loaded progression config")
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to load config, using defaults", e)
+            // Populate fallback as above if not already done
+            if (cachedProgression.isEmpty()) {
+                initializeDefaultProgression()
+            }
+        }
+    }
+
+    // Extracted fallback initialization to avoid duplication
+    private fun initializeDefaultProgression() {
+        repeat(MAX_LEVEL) { level ->
+            cachedProgression[level + 1] = DEFAULT_BASE_EXP * (level + 1)
+        }
+    }
+
+    // Getter for max level (exposed for use in ViewModel)
+    fun getMaxLevel(): Int = MAX_LEVEL
+
+    // Exp required for a specific level (non-suspend for quick access)
+    fun getExpRequiredForLevel(level: Int): Int {
+        return cachedProgression[level] ?: (DEFAULT_BASE_EXP * level)  // Concurrent get
+    }
+
+    // Exp-specific methods with progressive leveling and max level cap
+    suspend fun updateExp(amount: Int) {
+        if (amount <= 0) return  // Ignore non-positive amounts
+
+        val user = auth.currentUser ?: throw Exception("No user logged in")
+        val docRef = usersCollection.document(user.uid)
+        try {
+            val snapshot = docRef.get().await()
+            val currentData = snapshot.toObject<UserGameData>() ?: UserGameData()
+            var currentLevel = currentData.level.coerceAtMost(MAX_LEVEL)  // Cap on load
+            var currentExp = currentData.exp
+
+            var newExp = currentExp + amount
+            while (true) {
+                if (currentLevel >= MAX_LEVEL) {
+                    // Cap at max level: Don't level up further, but allow exp to accumulate (or cap exp too if desired)
+                    val maxLevelExp = getExpRequiredForLevel(MAX_LEVEL)
+                    newExp = newExp.coerceAtMost(maxLevelExp)
+                    break
+                }
+                val expRequiredForNext = getExpRequiredForLevel(currentLevel)
+                if (newExp >= expRequiredForNext) {
+                    // Level up: Subtract the exp needed for this step
+                    newExp -= expRequiredForNext
+                    currentLevel++
+                } else {
+                    break
+                }
+            }
+            currentLevel = currentLevel.coerceAtMost(MAX_LEVEL)  // Final cap
+
+            val updates = mapOf(
+                "level" to currentLevel,
+                "exp" to newExp
+            )
+            docRef.update(updates).await()
+            Log.d(TAG, "Updated exp: +$amount, new level: $currentLevel (capped at $MAX_LEVEL), new exp: $newExp")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update exp", e)
+            throw e
+        }
+    }
+
+    // Streak-specific methods (date-based logic, fixed for UTC timezone invariance)
+    suspend fun updateStreak(increment: Boolean = true, reset: Boolean = false) {
+        val user = auth.currentUser ?: throw Exception("No user logged in")
+        val docRef = usersCollection.document(user.uid)
+        try {
+            val snapshot = docRef.get().await()
+            val currentData = snapshot.toObject<UserGameData>() ?: UserGameData()
+            val currentStreak = currentData.streak
+            val lastActivityDate = snapshot.getString("last_activity_date") ?: ""
+
+            // Fixed: Use UTC timezone for consistent date comparisons (avoids local timezone shifts on travel/DST)
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)  // Locale.US for consistent formatting
+            dateFormat.timeZone = TimeZone.getTimeZone("UTC")  // UTC for global day boundaries
+            val today = dateFormat.format(Date())  // Current UTC date
+            val yesterday = dateFormat.format(Date(System.currentTimeMillis() - MILLIS_PER_DAY))  // Previous UTC day using constant
+
+            var newStreak = currentStreak
+            var newLastActivityDate = today
+
+            if (reset) {
+                newStreak = 0
+            } else if (increment) {
+                if (lastActivityDate.isEmpty() || lastActivityDate == today) {
+                    // Same UTC day or first time: no change (prevents multi-taps)
+                } else if (lastActivityDate == yesterday) {
+                    // Consecutive UTC day: increment
+                    newStreak++
+                } else {
+                    // Missed UTC day(s): start new streak at 1
+                    newStreak = 1
+                }
+                newLastActivityDate = today
+            }
+
+            val updates = mapOf(
+                "streak" to newStreak,
+                "last_activity_date" to newLastActivityDate
+            )
+            docRef.update(updates).await()
+            Log.d(TAG, "Updated streak to $newStreak for UTC date $today (last: $lastActivityDate)")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update streak", e)
+            throw e
+        }
+    }
+
     // Character Data (gender, variants)
 
-    // In UserRepository class (replace character methods)
     suspend fun saveCharacterData(data: CharacterData) {
         val user = auth.currentUser ?: throw Exception("No user logged in")
         try {
@@ -130,6 +270,7 @@ class UserRepository @Inject constructor(
     private fun UserGameData.toMutableMap(): MutableMap<String, Any> = mutableMapOf(
         "level" to level,
         "coins" to coins,
-        "exp" to exp
+        "exp" to exp,
+        "streak" to streak
     )
 }
