@@ -1,6 +1,7 @@
 package com.pixelfitquest.ui.view
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,13 +54,6 @@ fun HomeScreen(
     // Progress index for bar images (0-5, 20% steps)
     val progressIndex = if (maxExp > 0) {
         ((exp.toFloat() / maxExp) * 5f).toInt().coerceIn(0, 5)
-    } else {
-        0
-    }
-
-    // Exact % for overlay label (aligns bar visually with true progress)
-    val exactProgressPercent = if (maxExp > 0) {
-        ((exp.toFloat() / maxExp) * 100f).toInt()
     } else {
         0
     }
@@ -108,10 +105,10 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.primary
             )
 
-            // XP bar with % text overlaid
+            // XP bar
             Box(
                 modifier = Modifier.size(width = 80.dp, height = 16.dp),
-                contentAlignment = Alignment.Center  // Centers text over image
+                contentAlignment = Alignment.Center  // Centers the entire content (image + text)
             ) {
                 val xpPainter = when (progressIndex) {
                     0 -> painterResource(id = R.drawable.xp_0_percent)
@@ -125,7 +122,7 @@ fun HomeScreen(
                 Image(
                     painter = xpPainter,
                     contentDescription = "XP bar",
-                    modifier = Modifier.matchParentSize()  // Fills the Box
+                    modifier = Modifier.matchParentSize()  // Fills the Box completely
                 )
             }
         }
@@ -154,11 +151,32 @@ fun HomeScreen(
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
+            // Temporary test buttons for level up, reset, streak (remove after testing)
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Button(onClick = { viewModel.addExp(150) }) {  // Adjust amount to test level up (e.g., enough for 1-2 levels)
+                    Text("Test Level Up (+150 XP)")
+                }
+                Button(onClick = { viewModel.resetUserData() }) {
+                    Text("Reset to Level 1")
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = { viewModel.incrementStreak() }) {
+                        Text("Streak ++")
+                    }
+                    Button(onClick = { viewModel.resetStreak() }) {
+                        Text("Reset Streak")
+                    }
+                }
+            }
+
             if (error != null) {
                 Text(
                     text = "Error: $error",
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(top = 16.dp)
                 )
             }
         }

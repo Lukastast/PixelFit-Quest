@@ -22,13 +22,11 @@ class HomeViewModel @Inject constructor(
     private val _userGameData = MutableStateFlow<UserGameData?>(null)
     val userGameData: StateFlow<UserGameData?> = _userGameData.asStateFlow()
 
-    private val _currentMaxExp = MutableStateFlow(100)  // Default for level 1
+    private val _currentMaxExp = MutableStateFlow(100)  // Default for level 1 to 2
     val currentMaxExp: StateFlow<Int> = _currentMaxExp.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
-
-    // Removed MAX_LEVEL companion object; use userRepository.MAX_LEVEL instead if needed
 
     fun initialize(restartApp: (String) -> Unit) {
         // Auth subscription: Restart on logout
@@ -57,12 +55,19 @@ class HomeViewModel @Inject constructor(
             try {
                 userRepository.getUserGameData().collect { data ->
                     _userGameData.value = data
-                    // Update maxExp reactively for current level
+                    // Fixed: Update maxExp for progress toward NEXT level (level + 1)
                     if (data != null) {
-                        val max = userRepository.getExpRequiredForLevel(data.level)
+                        val nextLevel = data.level + 1
+                        val maxLevel = userRepository.getMaxLevel()
+                        val max = if (nextLevel > maxLevel) {
+                            // At max level: Use exp for max level (progress toward "staying max")
+                            userRepository.getExpRequiredForLevel(maxLevel)
+                        } else {
+                            userRepository.getExpRequiredForLevel(nextLevel)
+                        }
                         _currentMaxExp.value = max
                     } else {
-                        _currentMaxExp.value = 100  // Fallback
+                        _currentMaxExp.value = 100  // Fallback for level 1 to 2
                     }
                 }
             } catch (e: Exception) {

@@ -4,8 +4,8 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
-import com.pixelfitquest.model.CharacterData
 import com.pixelfitquest.model.UserGameData
+import com.pixelfitquest.model.CharacterData
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +14,8 @@ import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 @ViewModelScoped
@@ -27,7 +29,8 @@ class UserRepository @Inject constructor(
     companion object {
         private const val DEFAULT_BASE_EXP = 100  // Fallback for offline/first-run
         private const val MAX_LEVEL = 30  // Hard cap at level 30
-        private val cachedProgression = mutableMapOf<Int, Int>()  // Level -> exp required
+        private const val MILLIS_PER_DAY = 24 * 60 * 60 * 1000L  // Extracted constant for milliseconds in a day
+        private val cachedProgression = ConcurrentHashMap<Int, Int>()  // Thread-safe map for concurrent access
     }
 
     // Game Data (level, coins, exp, streak)
@@ -96,34 +99,39 @@ class UserRepository @Inject constructor(
         try {
             val configDoc = firestore.collection("configs").document("game_progression").get().await()
             val progressionMap = configDoc.get("levels") as? Map<String, Long> ?: emptyMap()
-            cachedProgression.clear()
+            cachedProgression.clear()  // Safe concurrent clear
             progressionMap.forEach { (levelStr, expReq) ->
                 val level = levelStr.toIntOrNull()
                 if (level != null && level <= MAX_LEVEL) {
-                    cachedProgression[level] = expReq.toInt()
+                    cachedProgression[level] = expReq.toInt()  // Concurrent put
                 }
             }
             if (cachedProgression.isEmpty()) {
-                // Fallback to linear progression up to max level
-                repeat(MAX_LEVEL) { level ->
-                    cachedProgression[level + 1] = DEFAULT_BASE_EXP * (level + 1)
-                }
+                initializeDefaultProgression()
             }
             Log.d(TAG, "Loaded progression config")
         } catch (e: Exception) {
             Log.w(TAG, "Failed to load config, using defaults", e)
             // Populate fallback as above if not already done
             if (cachedProgression.isEmpty()) {
-                repeat(MAX_LEVEL) { level ->
-                    cachedProgression[level + 1] = DEFAULT_BASE_EXP * (level + 1)
-                }
+                initializeDefaultProgression()
             }
         }
     }
 
+    // Extracted fallback initialization to avoid duplication
+    private fun initializeDefaultProgression() {
+        repeat(MAX_LEVEL) { level ->
+            cachedProgression[level + 1] = DEFAULT_BASE_EXP * (level + 1)
+        }
+    }
+
+    // Getter for max level (exposed for use in ViewModel)
+    fun getMaxLevel(): Int = MAX_LEVEL
+
     // Exp required for a specific level (non-suspend for quick access)
     fun getExpRequiredForLevel(level: Int): Int {
-        return cachedProgression[level] ?: (DEFAULT_BASE_EXP * level)
+        return cachedProgression[level] ?: (DEFAULT_BASE_EXP * level)  // Concurrent get
     }
 
     // Exp-specific methods with progressive leveling and max level cap
@@ -142,12 +150,14 @@ class UserRepository @Inject constructor(
             while (true) {
                 if (currentLevel >= MAX_LEVEL) {
                     // Cap at max level: Don't level up further, but allow exp to accumulate (or cap exp too if desired)
-                    newExp = newExp.coerceAtMost(getExpRequiredForLevel(MAX_LEVEL))
+                    val maxLevelExp = getExpRequiredForLevel(MAX_LEVEL)
+                    newExp = newExp.coerceAtMost(maxLevelExp)
                     break
                 }
-                val expRequiredForNext = getExpRequiredForLevel(currentLevel)
+                // Fixed: Use currentLevel + 1 for threshold to next level
+                val expRequiredForNext = getExpRequiredForLevel(currentLevel + 1)
                 if (newExp >= expRequiredForNext) {
-                    // Level up
+                    // Level up: Subtract the exp needed for this step
                     newExp -= expRequiredForNext
                     currentLevel++
                 } else {
@@ -168,7 +178,7 @@ class UserRepository @Inject constructor(
         }
     }
 
-    // Streak-specific methods
+    // Streak-specific methods (date-based logic, fixed for UTC timezone invariance)
     suspend fun updateStreak(increment: Boolean = true, reset: Boolean = false) {
         val user = auth.currentUser ?: throw Exception("No user logged in")
         val docRef = usersCollection.document(user.uid)
@@ -178,9 +188,11 @@ class UserRepository @Inject constructor(
             val currentStreak = currentData.streak
             val lastActivityDate = snapshot.getString("last_activity_date") ?: ""
 
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val today = dateFormat.format(Date())
-            val yesterday = dateFormat.format(Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000L))
+            // Fixed: Use UTC timezone for consistent date comparisons (avoids local timezone shifts on travel/DST)
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)  // Locale.US for consistent formatting
+            dateFormat.timeZone = TimeZone.getTimeZone("UTC")  // UTC for global day boundaries
+            val today = dateFormat.format(Date())  // Current UTC date
+            val yesterday = dateFormat.format(Date(System.currentTimeMillis() - MILLIS_PER_DAY))  // Previous UTC day using constant
 
             var newStreak = currentStreak
             var newLastActivityDate = today
@@ -188,16 +200,13 @@ class UserRepository @Inject constructor(
             if (reset) {
                 newStreak = 0
             } else if (increment) {
-                if (lastActivityDate.isEmpty()) {
-                    // First time: start streak at 1
-                    newStreak = 1
-                } else if (lastActivityDate == today) {
-                    // Same day: no change
+                if (lastActivityDate.isEmpty() || lastActivityDate == today) {
+                    // Same UTC day or first time: no change (prevents multi-taps)
                 } else if (lastActivityDate == yesterday) {
-                    // Consecutive day: increment
+                    // Consecutive UTC day: increment
                     newStreak++
                 } else {
-                    // Missed day: reset to 1 (start new streak)
+                    // Missed UTC day(s): start new streak at 1
                     newStreak = 1
                 }
                 newLastActivityDate = today
@@ -208,7 +217,7 @@ class UserRepository @Inject constructor(
                 "last_activity_date" to newLastActivityDate
             )
             docRef.update(updates).await()
-            Log.d(TAG, "Updated streak to $newStreak for date $today")
+            Log.d(TAG, "Updated streak to $newStreak for UTC date $today (last: $lastActivityDate)")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to update streak", e)
             throw e
