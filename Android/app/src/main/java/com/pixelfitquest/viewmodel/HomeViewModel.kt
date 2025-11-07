@@ -42,17 +42,16 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-        // Load progression config first (for XP calculations)
+        // Load progression config first (for XP calculations), then load user data
         viewModelScope.launch {
             try {
                 userRepository.loadProgressionConfig()
+                // Only load user data after config is loaded
+                loadUserData()
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to load progression config"
             }
         }
-
-        // Then load user data
-        loadUserData()
     }
 
     private fun loadUserData() {
