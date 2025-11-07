@@ -28,9 +28,7 @@ class HomeViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    companion object {
-        private const val MAX_LEVEL = 30  // Sync with repository
-    }
+    // Removed MAX_LEVEL companion object; use userRepository.MAX_LEVEL instead if needed
 
     fun initialize(restartApp: (String) -> Unit) {
         // Auth subscription: Restart on logout
