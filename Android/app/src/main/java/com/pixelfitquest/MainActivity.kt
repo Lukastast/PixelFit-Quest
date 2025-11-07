@@ -1,5 +1,6 @@
 package com.pixelfitquest
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,10 +18,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         FirebaseApp.initializeApp(this)
 
+        // Lock to portrait (vertical) orientation
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         setContent {
             PixelFitQuestTheme {
-                    AppScaffold()
+                AppScaffold()
             }
         }
-        }
     }
+}
