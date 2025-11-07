@@ -188,8 +188,11 @@ class UserRepository @Inject constructor(
             if (reset) {
                 newStreak = 0
             } else if (increment) {
-                if (lastActivityDate.isEmpty() || lastActivityDate == today) {
-                    // Same day or first time: no change
+                if (lastActivityDate.isEmpty()) {
+                    // First time: start streak at 1
+                    newStreak = 1
+                } else if (lastActivityDate == today) {
+                    // Same day: no change
                 } else if (lastActivityDate == yesterday) {
                     // Consecutive day: increment
                     newStreak++
