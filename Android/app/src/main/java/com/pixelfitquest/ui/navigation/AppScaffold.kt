@@ -43,7 +43,6 @@ import com.pixelfitquest.Helpers.SIGNUP_SCREEN
 import com.pixelfitquest.Helpers.SPLASH_SCREEN
 import com.pixelfitquest.Helpers.WORKOUT_CUSTOMIZATION_SCREEN
 import com.pixelfitquest.Helpers.WORKOUT_SCREEN
-import com.pixelfitquest.R
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.ui.screens.LoginScreen
 import com.pixelfitquest.ui.view.CustomizationScreen
@@ -54,6 +53,7 @@ import com.pixelfitquest.ui.view.SignupScreen
 import com.pixelfitquest.ui.view.SplashScreen
 import com.pixelfitquest.ui.view.WorkoutCustomizationScreen
 import com.pixelfitquest.ui.view.WorkoutScreen
+import com.pixelfitquest.R
 
 @Composable
 fun AppScaffold() {
@@ -65,7 +65,7 @@ fun AppScaffold() {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.background,  // Back to default for clean slate
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
             // Explicitly return nothing (empty composable) if on splash to avoid any layout space reservation
@@ -130,6 +130,7 @@ fun AppScaffold() {
             }
         }
     ) { innerPaddingModifier ->
+        // Simple NavHost—no extra wrappers or backgrounds
         NavHost(
             navController = appState.navController,
             startDestination = SPLASH_SCREEN,
