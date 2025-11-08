@@ -21,7 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +31,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.ui.theme.PixelFitQuestTheme
 import com.pixelfitquest.viewmodel.HomeViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun HomeScreen(
@@ -38,7 +39,12 @@ fun HomeScreen(
     openScreen: (String) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(Unit) { viewModel.initialize(restartApp) }
+    // NEW: Get Context for steps init
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.initialize(restartApp, context)  // UPDATED: Pass context
+    }
 
     val userGameData by viewModel.userGameData.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -48,6 +54,18 @@ fun HomeScreen(
     val exp = userGameData?.exp ?: 0
     val streak = userGameData?.streak ?: 0
     val maxExp by viewModel.currentMaxExp.collectAsState()
+
+    // NEW: Collect steps states
+    val todaySteps by viewModel.todaySteps.collectAsState()
+    val stepGoal by viewModel.stepGoal.collectAsState()
+
+    // NEW: Auto-refresh steps every 30 seconds (for live-ish updates; adjust as needed)
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(30000L)  // 30 seconds
+            viewModel.refreshSteps(context)
+        }
+    }
 
     val displayLevel = if (level >= 30) "Max" else level.toString()
 
@@ -59,7 +77,7 @@ fun HomeScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Top stats row
+        // Top stats row (UPDATED: Removed steps; now 4 items for better spacing)
         Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -127,7 +145,7 @@ fun HomeScreen(
             }
         }
 
-        // Main centered content
+        // Main centered content (UPDATED: Steps overlay positioned over title)
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -135,6 +153,33 @@ fun HomeScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // NEW: Steps display (positioned over title; use Box for overlay effect)
+            Box(
+                modifier = Modifier
+                    .padding(bottom = 8.dp)  // Space above title
+                    .size(160.dp, 60.dp)  // UPDATED: Larger size for bigger appearance
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "👟",
+                        fontSize = 20.sp,  // UPDATED: 2 sizes smaller (from 22.sp)
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(end = 6.dp)
+                    )
+                    Text(
+                        text = "${todaySteps} / $stepGoal",
+                        fontSize = 18.sp,  // UPDATED: 2 sizes smaller (from 20.sp)
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = MaterialTheme.typography.titleMedium.fontWeight
+                    )
+                }
+            }
+
             Text(
                 text = "PixelFit \n\nQuest",
                 style = MaterialTheme.typography.titleLarge,
@@ -169,6 +214,11 @@ fun HomeScreen(
                     Button(onClick = { viewModel.resetStreak() }) {
                         Text("Reset Streak")
                     }
+                }
+
+                // UPDATED: Refresh button now optional (auto-updates every 30s); keep for manual refresh
+                Button(onClick = { viewModel.refreshSteps(context) }) {
+                    Text("Refresh Steps Now")
                 }
             }
 

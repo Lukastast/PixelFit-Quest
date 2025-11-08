@@ -87,6 +87,9 @@ dependencies {
     //json passing
     implementation(libs.gson)
 
+    // Samsung Health SDK
+    implementation(files("libs/samsung-health.aar"))
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
