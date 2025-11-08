@@ -1,5 +1,6 @@
 package com.pixelfitquest.ui.view
 
+import androidx.activity.compose.LocalActivity  // NEW: For safe Activity access
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +22,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,11 +39,11 @@ fun HomeScreen(
     openScreen: (String) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    // NEW: Get Context for steps init
-    val context = LocalContext.current
+    // UPDATED: Use LocalActivity.current (fixes cast comment; safe and recommended)
+    val activity = LocalActivity.current
 
     LaunchedEffect(Unit) {
-        viewModel.initialize(restartApp, context)  // UPDATED: Pass context
+        viewModel.initialize(restartApp, activity)  // UPDATED: Pass Activity
     }
 
     val userGameData by viewModel.userGameData.collectAsState()
@@ -59,11 +59,11 @@ fun HomeScreen(
     val todaySteps by viewModel.todaySteps.collectAsState()
     val stepGoal by viewModel.stepGoal.collectAsState()
 
-    // NEW: Auto-refresh steps every 30 seconds (for live-ish updates; adjust as needed)
+    // UPDATED: Removed invalid 'infinite = true' (fixes LaunchedEffect signature / delay errors)
     LaunchedEffect(Unit) {
         while (true) {
             delay(30000L)  // 30 seconds
-            viewModel.refreshSteps(context)
+            viewModel.refreshSteps(activity)
         }
     }
 
@@ -217,7 +217,7 @@ fun HomeScreen(
                 }
 
                 // UPDATED: Refresh button now optional (auto-updates every 30s); keep for manual refresh
-                Button(onClick = { viewModel.refreshSteps(context) }) {
+                Button(onClick = { viewModel.refreshSteps(activity) }) {  // UPDATED: Pass Activity
                     Text("Refresh Steps Now")
                 }
             }

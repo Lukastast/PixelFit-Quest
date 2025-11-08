@@ -1,7 +1,6 @@
 package com.pixelfitquest.viewmodel
 
 import android.app.Activity
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.Helpers.SPLASH_SCREEN
@@ -25,8 +24,6 @@ import com.samsung.android.sdk.health.data.HealthDataService
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
-
-
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -59,7 +56,8 @@ class HomeViewModel @Inject constructor(
         Permission.of(DataTypes.STEPS_GOAL, AccessType.READ)
     )
 
-    fun initialize(restartApp: (String) -> Unit, context: Context) {
+    // UPDATED: Changed param to Activity (fixes unsafe cast / type mismatch)
+    fun initialize(restartApp: (String) -> Unit, activity: Activity?) {
         // Auth subscription: Restart on logout
         launchCatching {
             accountService.currentUser.collect { user ->
@@ -77,7 +75,7 @@ class HomeViewModel @Inject constructor(
                 loadUserData()
 
                 // NEW: Initialize Health connection and steps
-                initializeHealthConnection(context)
+                initializeHealthConnection(activity)
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to load progression config"
             }
@@ -169,26 +167,27 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // NEW: Connect (Throwable for onConnectionFailed in v1.0.0)
-    private fun initializeHealthConnection(context: Context) {
-        healthDataStore = HealthDataService.getStore(context)
+    // UPDATED: Changed param to Activity (fixes unsafe cast / type mismatch)
+    private fun initializeHealthConnection(activity: Activity?) {
+        healthDataStore = activity?.let { HealthDataService.getStore(it) }
         // No connection listener or connectService needed—store is ready
         viewModelScope.launch {
-            requestPermissionsAndFetchSteps(context as Activity)  // Cast to Activity for permissions
+            activity?.let { requestPermissionsAndFetchSteps(it) }
         }
     }
 
-    // NEW: Permissions and fetch (request returns int resultCode)
-    private suspend fun requestPermissionsAndFetchSteps(context: Context) {
+    // UPDATED: Changed param to Activity (fixes unsafe cast / type mismatch)
+    private suspend fun requestPermissionsAndFetchSteps(activity: Activity) {
         val store = healthDataStore ?: return
         try {
             // Check granted permissions (suspend call)
             val granted = store.getGrantedPermissions(stepPermissions)
+            Log.d("HomeVM", "Granted perms: $granted")  // NEW: Debug log
             val missing = stepPermissions - granted
 
             if (missing.isNotEmpty()) {
                 // Request missing permissions (suspend call; returns newly granted set)
-                val newlyGranted = store.requestPermissions(missing, context as Activity)
+                val newlyGranted = store.requestPermissions(missing, activity)
                 if (newlyGranted.size < missing.size) {
                     // Partial grant—log warning, but proceed (user may have denied some)
                     Log.w("HomeVM", "Partial permissions granted: ${missing.size - newlyGranted.size} denied")
@@ -208,6 +207,7 @@ class HomeViewModel @Inject constructor(
             val now = LocalDateTime.now(ZoneId.systemDefault())
             val startOfDay = now.withHour(0).withMinute(0).withSecond(0).withNano(0)
             val endOfDay = now
+            Log.d("HomeVM", "Fetching for range: $startOfDay to $endOfDay")  // NEW: Debug log
 
             // Steps: Total from today (StepsType.TOTAL)
             val stepFilter = LocalTimeFilter.of(startOfDay, endOfDay)
@@ -216,10 +216,9 @@ class HomeViewModel @Inject constructor(
                 .build()
 
             val stepResult = store.aggregateData(stepRequest)
-            var totalSteps = 0L
-            stepResult.dataList.forEach { data ->
-                totalSteps += data.value ?: 0L
-            }
+            Log.d("HomeVM", "Steps result size: ${stepResult.dataList.size}")  // NEW: Debug log
+            // UPDATED: Use sumOf for idiomatic accumulation (nitpick fix)
+            val totalSteps = stepResult.dataList.sumOf { it.value ?: 0L }
             _todaySteps.value = totalSteps
 
             // Goal: Latest today (StepsGoalType.LAST)
@@ -231,26 +230,25 @@ class HomeViewModel @Inject constructor(
                 .build()
 
             val goalResult = store.aggregateData(goalRequest)
-            var goal = 0
-            goalResult.dataList.forEach { data ->
-                data.value?.let { goal = it.toInt() }
-            }
+            Log.d("HomeVM", "Goal result size: ${goalResult.dataList.size}")  // NEW: Debug log
+            // UPDATED: Use firstOrNull for cleaner LAST processing
+            val goal = goalResult.dataList.firstOrNull()?.value?.toInt() ?: 0
             _stepGoal.value = goal
 
-            Log.d("HomeVM", "Steps: $totalSteps / Goal: $goal")
+            Log.d("HomeVM", "Fetched steps: $totalSteps / Goal: $goal")  // NEW: Success log
         } catch (e: HealthDataException) {
             Log.e("HomeVM", "Fetch failed", e)
             _error.value = "Steps fetch error: ${e.message}"
         }
     }
 
-    // NEW: Refresh
-    fun refreshSteps(context: Context) {
+    // UPDATED: Changed param to Activity (fixes unsafe cast / type mismatch)
+    fun refreshSteps(activity: Activity?) {
         val store = healthDataStore
         if (store != null) {
             viewModelScope.launch { fetchStepsData(store) }
         } else {
-            initializeHealthConnection(context)
+            initializeHealthConnection(activity)
         }
     }
 }
