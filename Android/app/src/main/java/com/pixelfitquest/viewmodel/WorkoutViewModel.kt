@@ -269,6 +269,7 @@ class WorkoutViewModel @Inject constructor(
         tiltYSum += relativeY
         tiltZSum += relativeZ
         tiltSampleCount++
+        //maybe add a sample count that keeps increasing tiltsum until corrected? and then have the treshholds
         //if (tiltSampleCount % 5 == 0)
         //Log.d("TiltAccumDebug", "New sample: X=$tiltXSum, Y=$tiltYSum; Z=$tiltZSum total samples: $tiltSampleCount")
     }
@@ -548,7 +549,7 @@ class WorkoutViewModel @Inject constructor(
         val timingScore: Float = 0f,
         val tiltXScore: Float = 0f,  // tilt (-100 left, +100 right, 0 centered)
         val tiltZScore: Float = 0f,
-        val weight: Double = 0.0,
+        val weight: Float = 0f,
         val notes: String? = null
     )
 }

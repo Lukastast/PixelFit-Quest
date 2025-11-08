@@ -112,10 +112,12 @@ fun WorkoutScreen(
     ) {
         val currentExercise = plan.items.getOrNull(state.currentExerciseIndex)?.exercise?.name ?: "Unknown"
         val currentSets = plan.items.getOrNull(state.currentExerciseIndex)?.sets ?: 0
+        val currentWeight = plan.items.getOrNull(state.currentExerciseIndex)?.weight ?: 0.0
 
         Text("Current Exercise: $currentExercise")
         Text("Set: ${state.currentSetNumber} / $currentSets")
         Text("Reps: ${state.reps}")
+        Text("Weight: $currentWeight Kg")
 
         // FIXED: Access accel/ROM in UI
         Text("Vertical Accel: %.2f".format(state.verticalAccel))

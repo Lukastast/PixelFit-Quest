@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,7 +19,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,12 +50,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.pixelfitquest.R
 import com.pixelfitquest.model.ExerciseType
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.viewmodel.WorkoutCustomizationViewModel
 import kotlinx.coroutines.launch
-import com.pixelfitquest.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,17 +94,20 @@ fun WorkoutCustomizationScreen(
                 ) {
                     // Save Template Button (Conditional)
                     if (uiState.selections.isNotEmpty() && uiState.templateName.isNotBlank()) {
-                        Button(
+                        PixelArtButton(
                             onClick = {
-                                viewModel.saveTemplate()
+                                if (!uiState.isSaving && uiState.templateName.isNotBlank()) {
+                                    viewModel.saveTemplate()
+                                }
                             },
-                            enabled = !uiState.isSaving && uiState.templateName.isNotBlank()
+                            imageRes = R.drawable.button_unclicked,
+                            pressedRes = R.drawable.button_clicked,
+                            modifier = Modifier.width(200.dp).height(60.dp)
                         ) {
                             Text(
                                 if (uiState.editMode) "Update Template" else "Save as Template"
                             )
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
                     }
 
                     PixelArtButton(
@@ -176,17 +177,26 @@ fun WorkoutCustomizationScreen(
                         )
                     }
                     var localSets by remember(exercise, uiState.selections) {
-                        mutableStateOf((uiState.selections[exercise] ?: 3).toString())
+                        mutableStateOf(uiState.selections[exercise]?.sets?.toString() ?: "3")
+                    }
+                    var localWeight by remember(exercise, uiState.selections) {
+                        mutableStateOf(uiState.selections[exercise]?.weight?.toString() ?: "3")
                     }
 
                     // Sync local state when uiState.selections changes (e.g., loadTemplate)
-                    LaunchedEffect(uiState.selections) {
+                    LaunchedEffect(uiState.selections[exercise]) {
+                        uiState.selections[exercise]?.let { item ->
+                            localSets = item.sets.toString()
+                            localWeight = item.weight.toString()
+                        } ?: run {
+                            localSets = "3"
+                            localWeight = "0"
+                        }
                         isSelected = uiState.selections.containsKey(exercise)
-                        localSets = (uiState.selections[exercise] ?: 3).toString()
                     }
 
-                    val focusRequester =
-                        remember { FocusRequester() }  // FIXED: For explicit keyboard dismissal
+                    val focusRequesterSets = remember { FocusRequester() }
+                    val focusRequesterWeight = remember { FocusRequester() }
 
                     Card(
                         modifier = Modifier
@@ -195,65 +205,120 @@ fun WorkoutCustomizationScreen(
                                 interactionSource = remember { MutableInteractionSource() },
                                 onClick = {
                                     isSelected = !isSelected
-                                    viewModel.toggleExercise(exercise, localSets.toIntOrNull() ?: 3)
+                                    viewModel.toggleExercise(
+                                        exercise,
+                                        localSets.toIntOrNull() ?: 3,
+                                        localWeight.toFloatOrNull() ?: 0f)
                                 }
                             )
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                        Column(
+                            modifier = Modifier.padding(8.dp)
                         ) {
-                            Checkbox(
-                                checked = isSelected,
-                                onCheckedChange = {
-                                    isSelected = it
-                                    viewModel.toggleExercise(exercise, localSets.toIntOrNull() ?: 3)
-                                }
-                            )
-                            Text(
-                                text = exercise.name.replace("_", " ").uppercase(),
-                                modifier = Modifier.weight(1f)
-                            )
-                            if (isSelected) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("Sets: ")
-                                    OutlinedTextField(
-                                        value = localSets,
-                                        onValueChange = { newValue: String ->
-                                            localSets =
-                                                newValue.filter { char -> char.isDigit() }
-                                        },
-                                        modifier = Modifier
-                                            .width(60.dp)
-                                            .focusRequester(focusRequester)  // FIXED: Attach requester
-                                            .onFocusChanged { focusState ->
-                                                if (!focusState.isFocused) {
-                                                    val finalSets = localSets.toIntOrNull() ?: 3
-                                                    viewModel.updateSets(exercise, finalSets)
-                                                }
-                                            },
-                                        singleLine = true,
-                                        keyboardOptions = KeyboardOptions(
-                                            keyboardType = KeyboardType.Number,
-                                            imeAction = ImeAction.Done
-                                        ),
-                                        keyboardActions = KeyboardActions(
-                                            onDone = {
-                                                focusRequester.freeFocus()  // FIXED: Explicitly dismiss keyboard
-                                                val finalSets = localSets.toIntOrNull() ?: 3
-                                                viewModel.updateSets(exercise, finalSets)
-                                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Checkbox(
+                                    checked = isSelected,
+                                    onCheckedChange = { isSelected = it
+                                        viewModel.toggleExercise(
+                                            exercise,
+                                            localSets.toIntOrNull() ?: 3,
+                                            localWeight.toFloatOrNull() ?: 0f
                                         )
-                                    )
+                                    }
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = exercise.name.replace("_", " ").uppercase(),
+                                    modifier = Modifier
+                                        .weight(1f),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                                if (isSelected) {
+                                        Row(verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceEvenly) {
+                                            Text("Sets: ")
+                                            OutlinedTextField(
+                                                value = localSets,
+                                                onValueChange = { newValue: String ->
+                                                    localSets =
+                                                        newValue.filter { char -> char.isDigit() }
+                                                },
+                                                modifier = Modifier
+                                                    .width(50.dp)
+                                                    .focusRequester(focusRequesterSets)
+                                                    .onFocusChanged { focusState ->
+                                                        if (!focusState.isFocused) {
+                                                            val finalSets = localSets.toIntOrNull() ?: 3
+                                                            viewModel.updateSets(exercise, finalSets)
+                                                        }
+                                                    },
+                                                singleLine = true,
+                                                keyboardOptions = KeyboardOptions(
+                                                    keyboardType = KeyboardType.Number,
+                                                    imeAction = ImeAction.Done
+                                                ),
+                                                keyboardActions = KeyboardActions(
+                                                    onDone = {
+                                                        focusRequesterSets.freeFocus()
+                                                        val finalSets = localSets.toIntOrNull() ?: 3
+                                                        viewModel.updateSets(exercise, finalSets)
+                                                    }
+                                                )
+                                            )
+
+                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                            Text("Weight:")
+                                            OutlinedTextField(
+                                                value = localWeight,
+                                                onValueChange = { newValue: String ->
+                                                    localWeight =
+                                                        newValue.filter { char -> char.isDigit() || char == '.' }
+                                                },
+                                                modifier = Modifier
+                                                    .width(65.dp)
+                                                    .focusRequester(focusRequesterWeight)
+                                                    .onFocusChanged { focusState ->
+                                                        if (!focusState.isFocused) {
+                                                            val finalWeight = localWeight.toFloatOrNull() ?: 0f
+                                                            viewModel.updateWeight(
+                                                                exercise,
+                                                                finalWeight
+                                                            )
+                                                        }
+                                                    },
+                                                singleLine = true,
+                                                keyboardOptions = KeyboardOptions(
+                                                    keyboardType = KeyboardType.Decimal,
+                                                    imeAction = ImeAction.Done
+                                                ),
+                                                keyboardActions = KeyboardActions(
+                                                    onDone = {
+                                                        focusRequesterWeight.freeFocus()
+                                                        val finalWeight = localWeight.toFloatOrNull() ?: 3f
+                                                        viewModel.updateWeight(
+                                                            exercise,
+                                                            finalWeight
+                                                        )
+                                                    }
+                                                )
+                                            )
+                                            Text("Kg")
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
+
 
             if (templates.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))

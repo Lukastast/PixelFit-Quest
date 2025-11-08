@@ -14,8 +14,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.collections.isNotEmpty
-import kotlin.collections.map
 
 @HiltViewModel
 class WorkoutCustomizationViewModel @Inject constructor(
@@ -36,12 +34,13 @@ class WorkoutCustomizationViewModel @Inject constructor(
         }
     }
 
-    fun toggleExercise(exercise: ExerciseType, sets: Int = 3) {
+    fun toggleExercise(exercise: ExerciseType, sets: Int = 3, weight: Float = 0f) {
         val currentSelections = _uiState.value.selections
         val updated = if (currentSelections.containsKey(exercise)) {
-            currentSelections - exercise
+        val item = WorkoutPlanItem(exercise, sets.coerceIn(1, 10), weight.coerceIn(0f, 500f))
+            currentSelections + (exercise to item)
         } else {
-            currentSelections + (exercise to sets.coerceIn(1, 10))
+            currentSelections - exercise
         }
         _uiState.value = _uiState.value.copy(selections = updated)
     }
@@ -50,7 +49,20 @@ class WorkoutCustomizationViewModel @Inject constructor(
         if (sets < 1) return
         val currentSelections = _uiState.value.selections
         if (currentSelections.containsKey(exercise)) {
-            val updated = currentSelections + (exercise to sets.coerceIn(1, 10))
+            val currentItem = currentSelections[exercise]!!
+            val updatedItem = currentItem.copy(sets = sets.coerceIn(1, 10))
+            val updated = currentSelections + (exercise to updatedItem)
+            _uiState.value = _uiState.value.copy(selections = updated)
+        }
+    }
+
+    fun updateWeight(exercise: ExerciseType, weight: Float) {
+        if (weight < 0) return
+        val currentSelections = _uiState.value.selections
+        if (currentSelections.containsKey(exercise)) {
+            val currentItem = currentSelections[exercise]!!
+            val updatedItem = currentItem.copy(weight = weight.coerceIn(0f, 500f))
+            val updated = currentSelections + (exercise to updatedItem)
             _uiState.value = _uiState.value.copy(selections = updated)
         }
     }
@@ -62,8 +74,7 @@ class WorkoutCustomizationViewModel @Inject constructor(
     fun saveTemplate() {
         val state = _uiState.value
         if (state.selections.isEmpty() || state.templateName.isBlank()) return
-
-        val plan = WorkoutPlan(state.selections.map { (exercise, sets) -> WorkoutPlanItem(exercise, sets) })
+        val plan = WorkoutPlan(state.selections.values.toList())  // Direct toList() of items
         val template = WorkoutTemplate(
             id = generateId(),
             name = state.templateName,
@@ -73,7 +84,6 @@ class WorkoutCustomizationViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 templateRepository.saveTemplate(template)
-
                 _uiState.value = state.copy(isSaving = false, error = null)
             } catch (e: Exception) {
                 _uiState.value = state.copy(error = e.message)
@@ -82,7 +92,7 @@ class WorkoutCustomizationViewModel @Inject constructor(
     }
 
     fun loadTemplate(template: WorkoutTemplate) {
-        val selections = template.plan.items.associate { it.exercise to it.sets }
+        val selections = template.plan.items.associateBy { it.exercise }  // Key by exercise, value is full item
         _uiState.value = _uiState.value.copy(
             selections = selections,
             templateName = template.name,
@@ -100,14 +110,14 @@ class WorkoutCustomizationViewModel @Inject constructor(
     fun getWorkoutPlan(): WorkoutPlan? {
         val state = _uiState.value
         return if (state.selections.isNotEmpty()) {
-            WorkoutPlan(state.selections.map { (exercise, sets) -> WorkoutPlanItem(exercise, sets) })
+            WorkoutPlan(state.selections.values.toList())
         } else null
     }
 
     private fun generateId(): String = "template_${System.currentTimeMillis()}"
 
     data class CustomizationUiState(
-        val selections: Map<ExerciseType, Int> = emptyMap(),
+        val selections: Map<ExerciseType, WorkoutPlanItem> = emptyMap(),
         val templateName: String = "",
         val isSaving: Boolean = false,
         val error: String? = null,

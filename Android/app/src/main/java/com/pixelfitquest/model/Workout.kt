@@ -63,7 +63,7 @@ data class Exercise(
     val type: ExerciseType,
     val totalSets: Int,
     val exerciseScore: Float = 0f,  // Aggregate from sets
-    val weight: Double = 0.0,  // Shared for exercise
+    val weight: Float,
     val notes: String? = null
 ) {
     fun toMap(): Map<String, Any?> = mapOf(
@@ -83,7 +83,7 @@ data class Exercise(
             type = ExerciseType.entries.find { it.type == (map["type"] as? String) } ?: ExerciseType.BENCH_PRESS,
             totalSets = map["totalSets"] as? Int ?: 0,
             exerciseScore = map["exerciseScore"] as? Float ?: 0f,
-            weight = map["weight"] as? Double ?: 0.0,
+            weight = map["weight"] as? Float ?: 0f,
             notes = map["notes"] as? String
         )
     }
@@ -100,7 +100,7 @@ data class WorkoutSet(
     val zTiltScore: Float = 0f,
     val avgRepTime: Float = 0f,
     val verticalAccel: Float = 0f,  // Peak or avg
-    val weight: Double = 0.0,  // Per set if varies
+    val weight: Float = 0f,  // Per set if varies
     val notes: String? = null
 ) {
     fun toMap(): Map<String, Any?> = mapOf(
@@ -128,7 +128,7 @@ data class WorkoutSet(
             romScore = map["romScore"] as? Float ?: 0f,
             avgRepTime = map["avgRepTime"] as? Float ?: 0f,
             verticalAccel = map["verticalAccel"] as? Float ?: 0f,
-            weight = map["weight"] as? Double ?: 0.0,
+            weight = map["weight"] as? Float ?: 0f,
             notes = map["notes"] as? String
         )
     }
