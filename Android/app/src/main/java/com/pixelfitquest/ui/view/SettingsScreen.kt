@@ -65,7 +65,7 @@ fun SettingsScreen(restartApp: (String) -> Unit,
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 8.dp)
         )
 
         ProfileImage(viewModel)

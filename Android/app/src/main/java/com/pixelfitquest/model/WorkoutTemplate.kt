@@ -4,10 +4,10 @@ import android.util.Log
 import com.google.gson.Gson
 import java.time.Instant
 
-// Assuming WorkoutPlan and WorkoutPlanItem are defined here or imported
 data class WorkoutPlanItem(
     val exercise: ExerciseType,
-    val sets: Int
+    val sets: Int,
+    val weight: Float = 0f
 )
 
 data class WorkoutPlan(
@@ -50,7 +50,19 @@ data class WorkoutTemplate(
                     else -> 0
                 }.coerceAtLeast(1)
                 Log.d("TemplateFromMap", "Item sets raw: $rawSets, parsed: $sets")  // Keep log for debug
-                workoutType?.let { WorkoutPlanItem(it, sets) }
+
+                val rawWeight = itemMap["weight"]
+                val weight = when (rawWeight) {
+                    is Float -> rawWeight
+                    is Double -> rawWeight.toFloat()
+                    is Int -> rawWeight.toFloat()
+                    is String -> rawWeight.toFloatOrNull() ?: 0f
+                    is Number -> rawWeight.toFloat()
+                    else -> 0f
+                }
+                Log.d("TemplateFromMap", "Item weight raw: $rawWeight, parsed: $weight")  // Add log for debug
+
+                workoutType?.let { WorkoutPlanItem(it, sets, weight) }
             } ?: emptyList()
 
             if (planItems.isEmpty()) {
@@ -72,7 +84,8 @@ data class WorkoutTemplate(
         "plan" to plan.items.map { item ->
             mapOf(
                 "exercise" to item.exercise.type,
-                "sets" to item.sets
+                "sets" to item.sets,
+                "weight" to item.weight
             )
         },
         "createdAt" to createdAt
