@@ -1,8 +1,10 @@
 package com.pixelfitquest.ui.navigation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -63,21 +65,20 @@ fun AppScaffold() {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val isUserLoggedIn = appState.currentUser != null
 
+    val hasBottomBar = isUserLoggedIn && currentRoute in listOf(
+        HOME_SCREEN,
+        WORKOUT_SCREEN,
+        CUSTOMIZATION_SCREEN,
+        SETTINGS_SCREEN,
+        WORKOUT_CUSTOMIZATION_SCREEN
+    )
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,  // Back to default for clean slate
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-            // Explicitly return nothing (empty composable) if on splash to avoid any layout space reservation
-            if (currentRoute == SPLASH_SCREEN || currentRoute == INTRO_SCREEN) {
-                // Empty - no bar
-            } else if (isUserLoggedIn && currentRoute in listOf(
-                    HOME_SCREEN,
-                    WORKOUT_SCREEN,
-                    CUSTOMIZATION_SCREEN,
-                    SETTINGS_SCREEN,
-                    WORKOUT_CUSTOMIZATION_SCREEN
-                )) {
+            if (hasBottomBar) {
                 NavigationBar(
                     modifier = Modifier
                         .paint(
@@ -130,13 +131,23 @@ fun AppScaffold() {
             }
         }
     ) { innerPaddingModifier ->
-        // Simple NavHost—no extra wrappers or backgrounds
-        NavHost(
-            navController = appState.navController,
-            startDestination = SPLASH_SCREEN,
-            modifier = Modifier.padding(innerPaddingModifier)
+        // Apply the background image to the entire content area
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .paint(
+                    painter = painterResource(id = R.drawable.logsigninbackground),
+                    contentScale = ContentScale.Crop
+                )
         ) {
-            pixelFitGraph(appState)
+            // Simple NavHost—no extra wrappers or backgrounds
+            NavHost(
+                navController = appState.navController,
+                startDestination = SPLASH_SCREEN,
+                modifier = if (hasBottomBar) Modifier.padding(innerPaddingModifier) else Modifier
+            ) {
+                pixelFitGraph(appState)
+            }
         }
     }
 }

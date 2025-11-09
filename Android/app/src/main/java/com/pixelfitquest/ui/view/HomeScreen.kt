@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +25,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -77,125 +82,137 @@ fun HomeScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Top stats row (UPDATED: Removed steps; now 4 items for better spacing)
-        Row(
+        // Top stats row with background image
+        Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                .height(60.dp)  // Fixed height to fit the background image and content
         ) {
-            // Coins with icon
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = R.drawable.coin),
-                    contentDescription = "Coin icon",
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.padding(horizontal = 4.dp))
-                Text(
-                    text = "Coins: $coins",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            // Streak with icon
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = R.drawable.streak),
-                    contentDescription = "Streak icon",
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.padding(horizontal = 2.dp))  // Reduced space
-                Text(
-                    text = "$streak",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            // Level
-            Text(
-                text = "Level: $displayLevel",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.primary
+            // Background image behind the stats
+            Image(
+                painter = painterResource(id = R.drawable.info_background),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.Fit
             )
 
-            // XP bar
-            Box(
-                modifier = Modifier.size(width = 80.dp, height = 16.dp),
-                contentAlignment = Alignment.Center  // Centers the entire content (image + text)
+            // Stats row on top of the image
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.Center),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                val xpPainter = when (progressIndex) {
-                    0 -> painterResource(id = R.drawable.xp_0_percent)
-                    1 -> painterResource(id = R.drawable.xp_20_percent)
-                    2 -> painterResource(id = R.drawable.xp_40_percent)
-                    3 -> painterResource(id = R.drawable.xp_60_percent)
-                    4 -> painterResource(id = R.drawable.xp_80_percent)
-                    5 -> painterResource(id = R.drawable.xp_100_percent)
-                    else -> painterResource(id = R.drawable.xp_0_percent)
+                // Coins with icon
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(id = R.drawable.coin),
+                        contentDescription = "Coin icon",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+                    Text(
+                        text = "Coins: $coins",
+                        fontSize = 14.sp,
+                        color = Color.White
+                    )
                 }
-                Image(
-                    painter = xpPainter,
-                    contentDescription = "XP bar",
-                    modifier = Modifier.matchParentSize()  // Fills the Box completely
+
+                // Streak with icon
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(id = R.drawable.streak),
+                        contentDescription = "Streak icon",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.padding(horizontal = 2.dp))  // Reduced space
+                    Text(
+                        text = "$streak",
+                        fontSize = 14.sp,
+                        color = Color.White
+                    )
+                }
+
+                // Level
+                Text(
+                    text = "Level: $displayLevel",
+                    fontSize = 14.sp,
+                    color = Color.White
+                )
+
+                // XP bar
+                Box(
+                    modifier = Modifier.size(width = 80.dp, height = 16.dp),
+                    contentAlignment = Alignment.Center  // Centers the entire content (image + text)
+                ) {
+                    val xpPainter = when (progressIndex) {
+                        0 -> painterResource(id = R.drawable.xp_0_percent)
+                        1 -> painterResource(id = R.drawable.xp_20_percent)
+                        2 -> painterResource(id = R.drawable.xp_40_percent)
+                        3 -> painterResource(id = R.drawable.xp_60_percent)
+                        4 -> painterResource(id = R.drawable.xp_80_percent)
+                        5 -> painterResource(id = R.drawable.xp_100_percent)
+                        else -> painterResource(id = R.drawable.xp_0_percent)
+                    }
+                    Image(
+                        painter = xpPainter,
+                        contentDescription = "XP bar",
+                        modifier = Modifier.matchParentSize()  // Fills the Box completely
+                    )
+                }
+            }
+        }
+
+        // Steps display positioned right under the stats box with small space
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(top = 84.dp, start = 16.dp, end = 16.dp)  // 16 + 60 + 8 = 84.dp for small 8.dp space
+                .height(80.dp)
+        ) {
+            // Background image for step counter
+            Image(
+                painter = painterResource(id = R.drawable.info_background_higher),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
+
+            // Steps text on top of the image (centered)
+            Row(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "👟",
+                    fontSize = 20.sp,
+                    color = Color.White,
+                    modifier = Modifier.padding(end = 6.dp)
+                )
+                Text(
+                    text = "${todaySteps} / $stepGoal",
+                    fontSize = 18.sp,
+                    color = Color.White,
+                    fontWeight = MaterialTheme.typography.titleMedium.fontWeight
                 )
             }
         }
 
-        // Main centered content (UPDATED: Steps overlay positioned over title)
+        // Main centered content (buttons only)
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(top = 180.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),  // 84 + 80 + 16 = 180.dp for space to buttons
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // NEW: Steps display (positioned over title; use Box for overlay effect)
-            Box(
-                modifier = Modifier
-                    .padding(bottom = 8.dp)  // Space above title
-                    .size(160.dp, 60.dp)  // UPDATED: Larger size for bigger appearance
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "👟",
-                        fontSize = 20.sp,  // UPDATED: 2 sizes smaller (from 22.sp)
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(end = 6.dp)
-                    )
-                    Text(
-                        text = "${todaySteps} / $stepGoal",
-                        fontSize = 18.sp,  // UPDATED: 2 sizes smaller (from 20.sp)
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontWeight = MaterialTheme.typography.titleMedium.fontWeight
-                    )
-                }
-            }
-
-            Text(
-                text = "PixelFit \n\nQuest",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            Text(
-                text = "PixelFit Quest is a fitness game that lets you \"level up\" in real life by tracking workouts, reps, and technique using smartphone sensors or smartwatches. Earn coins and XP to unlock retro 8/16-bit avatar outfits and cosmetics. With plans for daily challenges, clan competitions, and global leaderboards, it blends fitness, fun, and social interaction like no other app.",
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Justify,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
-
             // Temporary test buttons for level up, reset, streak (remove after testing)
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
