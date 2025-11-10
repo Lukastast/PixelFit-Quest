@@ -1,6 +1,7 @@
 package com.pixelfitquest.Helpers
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,53 +49,101 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
 
     val cardTitle = displayName.ifBlank { stringResource(R.string.profile_name) }
 
-    AccountCenterCard(cardTitle, Icons.Filled.Edit, Modifier.card()) {
-        newDisplayName = displayName
-        showDisplayNameDialog = true
+    // Custom card with background image for display name
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .padding(32.dp, 0.dp, 32.dp, 8.dp)
+            .clickable {
+                newDisplayName = displayName
+                showDisplayNameDialog = true
+            }
+    ) {
+        // Background image
+        Image(
+            painter = painterResource(id = R.drawable.info_background_higher),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Fit
+        )
+
+        // Content on top
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = cardTitle,
+                    color = Color.White
+                )
+            }
+            Icon(
+                Icons.Filled.Edit,
+                contentDescription = "Edit",
+                tint = Color.White
+            )
+        }
     }
 
     if (showDisplayNameDialog) {
-        AlertDialog(
-            title = { Text(stringResource(R.string.profile_name)) },
-            text = {
-                Column {
+        Dialog(
+            onDismissRequest = { showDisplayNameDialog = false }
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.questloginboard),
+                    contentDescription = "Dialog Background",
+                    modifier = Modifier.height(250.dp).width(500.dp),
+                    contentScale = ContentScale.FillBounds
+                )
+                Column(
+                    modifier = Modifier
+                        .padding(32.dp)
+                        .fillMaxWidth(0.95f)
+                        .heightIn(max = 300.dp)
+                ) {
+                    Text(stringResource(R.string.profile_name), color = Color.White)
                     TextField(
                         value = newDisplayName,
                         onValueChange = { newDisplayName = it }
                     )
+                    Row {
+                        PixelArtButton(
+                            onClick = { showDisplayNameDialog = false },
+                            imageRes = R.drawable.button_unclicked,
+                            pressedRes = R.drawable.button_clicked,
+                            modifier = Modifier.height(50.dp).width(130.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.cancel),
+                                color = Color.Black
+                            )
+                        }
+                        PixelArtButton(
+                            onClick = {
+                                onUpdateDisplayNameClick(newDisplayName)
+                                showDisplayNameDialog = false
+                            },
+                            imageRes = R.drawable.button_unclicked,
+                            pressedRes = R.drawable.button_clicked,
+                            modifier = Modifier.height(50.dp).width(130.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.update),
+                                color = Color.Black
+                            )
+                        }
+                    }
                 }
-            },
-            dismissButton = {
-                PixelArtButton(
-                    onClick = { showDisplayNameDialog = false },
-                    imageRes = R.drawable.button_unclicked,
-                    pressedRes = R.drawable.button_clicked,
-                    modifier = Modifier.height(50.dp).width(130.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.cancel),
-                        color = Color.Black
-                    )
-                }
-            },
-            confirmButton = {
-                PixelArtButton(
-                    onClick = {
-                        onUpdateDisplayNameClick(newDisplayName)
-                        showDisplayNameDialog = false
-                    },
-                    imageRes = R.drawable.button_unclicked,
-                    pressedRes = R.drawable.button_clicked,
-                    modifier = Modifier.height(50.dp).width(130.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.update),
-                        color = Color.Black
-                    )
-                }
-            },
-            onDismissRequest = { showDisplayNameDialog = false }
-        )
+            }
+        }
     }
 }
 
@@ -130,8 +179,45 @@ fun Modifier.card(): Modifier {
 fun ExitAppCard(onSignOutClick: () -> Unit) {
     var showExitAppDialog by remember { mutableStateOf(false) }
 
-    AccountCenterCard(stringResource(R.string.sign_out), Icons.Filled.ExitToApp, Modifier.card()) {
-        showExitAppDialog = true
+    val cardTitle = stringResource(R.string.sign_out)
+
+    // Custom card with background image for exit app
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .padding(32.dp, 0.dp, 32.dp, 8.dp)
+            .clickable {
+                showExitAppDialog = true
+            }
+    ) {
+        // Background image
+        Image(
+            painter = painterResource(id = R.drawable.info_background_higher),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Fit
+        )
+
+        // Content on top
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = cardTitle,
+                    color = Color.White
+                )
+            }
+            Icon(
+                Icons.Filled.ExitToApp,
+                contentDescription = "Sign Out",
+                tint = Color.White
+            )
+        }
     }
 
     if (showExitAppDialog) {
@@ -242,8 +328,45 @@ fun GoogleLinkCard(
 fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
     var showRemoveAccDialog by remember { mutableStateOf(false) }
 
-    AccountCenterCard(stringResource(R.string.delete_account), Icons.Filled.Delete, Modifier.card()) {
-        showRemoveAccDialog = true
+    val cardTitle = stringResource(R.string.delete_account)
+
+    // Custom card with background image for remove account
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .padding(32.dp, 0.dp, 32.dp, 8.dp)
+            .clickable {
+                showRemoveAccDialog = true
+            }
+    ) {
+        // Background image
+        Image(
+            painter = painterResource(id = R.drawable.info_background_higher),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Fit
+        )
+
+        // Content on top
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = cardTitle,
+                    color = Color.White
+                )
+            }
+            Icon(
+                Icons.Filled.Delete,
+                contentDescription = "Delete",
+                tint = Color.White
+            )
+        }
     }
 
     if (showRemoveAccDialog) {
