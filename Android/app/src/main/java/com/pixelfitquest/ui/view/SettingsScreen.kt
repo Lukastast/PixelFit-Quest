@@ -1,6 +1,8 @@
 package com.pixelfitquest.ui.view
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,8 +30,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -84,39 +90,66 @@ fun SettingsScreen(restartApp: (String) -> Unit,
                 .padding(8.dp)
         )
 
-        Card(modifier = Modifier.card()) {
+        // Email section with background image
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(80.dp)
+                .padding(16.dp, 0.dp, 16.dp, 8.dp)
+        ) {
+            // Background image
+            Image(
+                painter = painterResource(id = R.drawable.info_background_higher),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
+
+            // Email text on top
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = String.format(stringResource(R.string.profile_email), user.email),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
+                    color = Color.White,
+                    textAlign = TextAlign.Center
                 )
-                ExitAppCard { viewModel.onSignOutClick(restartApp) }
-                RemoveAccountCard { viewModel.onDeleteAccountClick(restartApp) }
-                //if (!user.isLinkedWithGoogle) {
-                //                    //needs to be changed with link button
-                //                    AuthenticationButton(
-                //                        buttonText = R.string.link_google_account,
-                //                        modifier = Modifier
-                //                            .fillMaxWidth()
-                //                            .padding(16.dp)
-                //                    ) { credential ->
-                //                        viewModel.linkAccountWithGoogle(credential)
-                //                    }
-                //                }
             }
         }
+
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
         )
-        SetHeight(viewModel)
+
+        // ExitAppCard as standalone
+        ExitAppCard { viewModel.onSignOutClick(restartApp) }
+
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        )
+
+        // RemoveAccountCard as standalone
+        RemoveAccountCard { viewModel.onDeleteAccountClick(restartApp) }
+
+        //if (!user.isLinkedWithGoogle) {
+        //                    //needs to be changed with link button
+        //                    AuthenticationButton(
+        //                        buttonText = R.string.link_google_account,
+        //                        modifier = Modifier
+        //                            .fillMaxWidth()
+        //                            .padding(16.dp)
+        //                    ) { credential ->
+        //                        viewModel.linkAccountWithGoogle(credential)
+        //                    }
+        //                }
     }
 }
 
@@ -133,65 +166,4 @@ fun ProfileImage(viewModel: SettingsViewModel) {
         placeholder = painterResource(R.drawable.pixelfiticon),  // Show default while loading
         error = painterResource(R.drawable.pixelfiticon)  // Fallback on error
     )
-}
-
-@Composable
-fun SetHeight(
-    viewModel: SettingsViewModel
-) {
-    val userSettings by viewModel.userSettings.collectAsState()
-    var heightInput by remember { mutableStateOf("") }
-
-    LaunchedEffect(userSettings?.height) {
-        heightInput = userSettings?.height?.toString() ?: ""
-    }
-
-    Card(modifier = Modifier.card()) {
-        Column(
-            modifier = Modifier
-                .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding( end = 8.dp)
-            ) {
-                Text("Current height:")
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                userSettings?.height?.let { currentHeight ->
-                    Text("$currentHeight cm")
-                }
-            }
-
-            OutlinedTextField(
-                value = heightInput,
-                onValueChange = { heightInput = it },
-                label = { Text("Enter height (e.g., 175)") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                PixelArtButton(
-                    onClick = {
-                        val heightCm = heightInput.toIntOrNull()
-                        if (heightCm != null && heightCm in 1..272) {
-                            viewModel.setHeight(heightCm)
-                        }
-                    },
-                    imageRes = R.drawable.button_unclicked,
-                    pressedRes = R.drawable.button_clicked,
-                    modifier = Modifier.width(180.dp).height(60.dp)
-                ){
-                    Text("Set Height")
-                }
-            }
-        }
-    }
 }

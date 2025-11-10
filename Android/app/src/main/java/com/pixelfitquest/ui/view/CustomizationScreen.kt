@@ -1,25 +1,47 @@
 package com.pixelfitquest.ui.view
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.isSpecified
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.pixelfitquest.R
 import com.pixelfitquest.ui.components.IdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.viewmodel.CustomizationViewModel
-import com.pixelfitquest.R
+import com.pixelfitquest.viewmodel.SettingsViewModel
+
 
 @Composable
 fun CustomizationScreen(
@@ -27,53 +49,227 @@ fun CustomizationScreen(
     viewModel: CustomizationViewModel = hiltViewModel()
 ) {
     val characterData by viewModel.characterData.collectAsState()
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
+
+    val painter = painterResource(id = R.drawable.info_background_even_even_higher)
+    val intrinsicSize = painter.intrinsicSize
+    val aspectRatio = if (intrinsicSize.isSpecified) {
+        intrinsicSize.height / intrinsicSize.width
+    } else {
+        280f / 400f // fallback aspect ratio, adjust based on your image if needed
+    }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Customize Your Character")
+        // Custom card with background image for the entire customization screen
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(aspectRatio)
+        ) {
+            // Background image
+            Image(
+                painter = painter,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            // Content on top
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Customize Your Character")
 
-        // Gender Toggle Buttons
-        Row {
-            PixelArtButton(
-                onClick = { viewModel.updateGender("male") },
-                imageRes = R.drawable.button_unclicked,  // Your normal PNG
-                pressedRes = R.drawable.button_clicked,  // Your pressed PNG
-                modifier = Modifier.size(80.dp, 40.dp)  // Compact size for toggles
-            ) {
-                Text("Male")
-            }
-            PixelArtButton(
-                onClick = { viewModel.updateGender("female") },
-                imageRes = R.drawable.button_unclicked,
-                pressedRes = R.drawable.button_clicked,
-                modifier = Modifier.size(80.dp, 40.dp)
-            ) {
-                Text("Female")
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Gender Toggle Buttons
+                Row {
+                    PixelArtButton(
+                        onClick = { viewModel.updateGender("male") },
+                        imageRes = R.drawable.button_unclicked,  // Your normal PNG
+                        pressedRes = R.drawable.button_clicked,  // Your pressed PNG
+                        modifier = Modifier.size(80.dp, 40.dp)  // Compact size for toggles
+                    ) {
+                        Text("Male")
+                    }
+                    PixelArtButton(
+                        onClick = { viewModel.updateGender("female") },
+                        imageRes = R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_clicked,
+                        modifier = Modifier.size(80.dp, 40.dp)
+                    ) {
+                        Text("Female")
+                    }
+                }
+
+
+                // Animated Character Preview
+                IdleAnimation(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .offset(x = (-15.dp)),
+                    gender = characterData.gender,
+                    isAnimating = true
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                PixelArtButton(
+                    onClick = { openScreen("home") },  // Save and return
+                    imageRes = R.drawable.button_unclicked,  // Your normal PNG
+                    pressedRes = R.drawable.button_clicked,  // Your pressed PNG
+                    modifier = Modifier.size(200.dp, 60.dp)  // Wider for emphasis
+                ) {
+                    Text("Save and Continue")
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        // Animated Character Preview
-        IdleAnimation(
-            modifier = Modifier.size(200.dp),
-            gender = characterData.gender,
-            isAnimating = true
+        SetHeight(settingsViewModel)
+    }
+}
+
+
+
+@Composable
+fun SetHeight(
+    viewModel: SettingsViewModel
+) {
+    val userSettings by viewModel.userSettings.collectAsState()
+    var heightInput by remember { mutableStateOf("") }
+
+    LaunchedEffect(userSettings?.height) {
+        heightInput = userSettings?.height?.toString() ?: ""
+    }
+
+    val painter = painterResource(id = R.drawable.info_background_even_even_higher)
+    val intrinsicSize = painter.intrinsicSize
+    val aspectRatio = if (intrinsicSize.isSpecified) {
+        intrinsicSize.height / intrinsicSize.width
+    } else {
+        280f / 400f // fallback aspect ratio, adjust based on your image if needed
+    }
+
+    // Custom card with background image for set height
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(aspectRatio)
+    ) {
+        // Background image
+        Image(
+            painter = painter,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Fit
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        PixelArtButton(
-            onClick = { openScreen("home") },  // Save and return
-            imageRes = R.drawable.button_unclicked,  // Your normal PNG
-            pressedRes = R.drawable.button_clicked,  // Your pressed PNG
-            modifier = Modifier.size(200.dp, 60.dp)  // Wider for emphasis
+        // Content on top
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Save and Continue")
+            // Centered row for current height text
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Current height:",
+                        color = Color.White,
+                        fontSize = 18.sp
+                    )
+
+                    userSettings?.height?.let { currentHeight ->
+                        Text(
+                            text = " $currentHeight cm",
+                            color = Color.White,
+                            fontSize = 18.sp
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Label for input field
+            Text(
+                text = "Enter height (e.g., 175)",
+                color = Color.White,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            // Custom input field with background image
+            Box(
+                modifier = Modifier
+                    .width(200.dp)
+                    .height(60.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.inputfield),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+                TextField(
+                    singleLine = true,
+                    value = heightInput,
+                    onValueChange = { heightInput = it },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.96f),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        errorIndicatorColor = Color.Transparent,
+                        unfocusedTextColor = Color.Black,
+                        focusedTextColor = Color.Black
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                PixelArtButton(
+                    onClick = {
+                        val heightCm = heightInput.toIntOrNull()
+                        if (heightCm != null && heightCm in 1..272) {
+                            viewModel.setHeight(heightCm)
+                        }
+                    },
+                    imageRes = R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier.width(220.dp).height(60.dp)
+                ){
+                    Text("Set Height", fontSize = 14.sp)
+                }
+            }
         }
     }
 }
