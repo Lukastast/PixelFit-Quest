@@ -61,14 +61,14 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.compose.foundation:foundation:1.7.0")
+    implementation("androidx.compose.foundation:foundation:1.9.4")
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.coil.compose)
 
     //firebase
     implementation(libs.firebase.auth)
-    implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
     implementation("com.google.firebase:firebase-firestore")
 
     //google
@@ -83,7 +83,10 @@ dependencies {
     implementation(libs.play.services.tagmanager.v4.impl)
     kapt("com.google.dagger:hilt-compiler:2.57.2")
 
-
+    //libGDX
+    implementation("com.badlogicgames.gdx:gdx:1.14.0")
+    implementation("com.badlogicgames.gdx:gdx-backend-android:1.14.0")
+    implementation("com.badlogicgames.gdx:gdx-tools:1.14.0")
     //json passing
     implementation(libs.gson)
 
