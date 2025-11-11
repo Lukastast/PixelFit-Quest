@@ -10,17 +10,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -412,6 +415,78 @@ fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
                             Text(stringResource(R.string.delete_account), color = Color.Black)
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+// NEW: VolumeCard composable (matches style of other cards: Box with background, 32.dp padding, white text, +/- icons)
+@Composable
+fun VolumeCard(
+    musicVolume: Int,
+    onVolumeChange: (Int) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .padding(32.dp, 0.dp, 32.dp, 8.dp)
+    ) {
+        // Background image
+        Image(
+            painter = painterResource(id = R.drawable.info_background_higher),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Fit
+        )
+
+        // Content on top (title, percentage, +/- buttons)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Volume",
+                    color = Color.White
+                )
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+            ) {
+                IconButton(
+                    onClick = {
+                        val newVolume = (musicVolume - 10).coerceAtLeast(0)
+                        onVolumeChange(newVolume)
+                    },
+                    modifier = Modifier.size(24.dp)  // Smaller icons to fit Row
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Remove,
+                        contentDescription = "Decrease Volume",
+                        tint = Color.White
+                    )
+                }
+                Text(
+                    text = "${musicVolume}%",
+                    color = Color.White
+                )
+                IconButton(
+                    onClick = {
+                        val newVolume = (musicVolume + 10).coerceAtMost(100)
+                        onVolumeChange(newVolume)
+                    },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Increase Volume",
+                        tint = Color.White
+                    )
                 }
             }
         }
