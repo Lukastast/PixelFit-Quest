@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -113,10 +115,40 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
                         .heightIn(max = 300.dp)
                 ) {
                     Text(stringResource(R.string.profile_name), color = Color.White)
-                    TextField(
-                        value = newDisplayName,
-                        onValueChange = { newDisplayName = it }
-                    )
+
+                    // Updated TextField with inputfield drawable background (like LoginScreen)
+                    Box(
+                        modifier = Modifier
+                            .width(280.dp)
+                            .height(60.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.inputfield),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.FillBounds
+                        )
+                        TextField(
+                            singleLine = true,
+                            value = newDisplayName,
+                            onValueChange = { newDisplayName = it },
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(0.96f),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                                errorContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
+                                errorIndicatorColor = Color.Transparent
+                            )
+                        )
+                    }
+
                     Row {
                         PixelArtButton(
                             onClick = { showDisplayNameDialog = false },
@@ -149,7 +181,6 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
         }
     }
 }
-
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun AccountCenterCard(
