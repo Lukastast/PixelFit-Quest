@@ -37,10 +37,12 @@ class WorkoutCustomizationViewModel @Inject constructor(
     fun toggleExercise(exercise: ExerciseType, sets: Int = 3, weight: Float = 0f) {
         val currentSelections = _uiState.value.selections
         val updated = if (currentSelections.containsKey(exercise)) {
-        val item = WorkoutPlanItem(exercise, sets.coerceIn(1, 10), weight.coerceIn(0f, 500f))
-            currentSelections + (exercise to item)
-        } else {
+            // Toggle off: Remove the exercise
             currentSelections - exercise
+        } else {
+            // Toggle on: Add the exercise with defaults
+            val item = WorkoutPlanItem(exercise, sets.coerceIn(1, 10), weight.coerceIn(0f, 500f))
+            currentSelections + (exercise to item)
         }
         _uiState.value = _uiState.value.copy(selections = updated)
     }

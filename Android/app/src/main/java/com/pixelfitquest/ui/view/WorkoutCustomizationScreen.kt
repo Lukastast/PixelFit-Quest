@@ -1,12 +1,16 @@
 package com.pixelfitquest.ui.view
 
 import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,8 +35,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -46,6 +51,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -54,6 +62,7 @@ import com.pixelfitquest.R
 import com.pixelfitquest.model.ExerciseType
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.ui.components.PixelArtButton
+import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.WorkoutCustomizationViewModel
 import kotlinx.coroutines.launch
 
@@ -84,54 +93,52 @@ fun WorkoutCustomizationScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },  // Positions Snackbar at bottom
         bottomBar = {
             // Fixed Bottom Bar with Buttons
-            Surface(
-                color = MaterialTheme.colorScheme.background,
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(Color.Transparent),  // Make bottom bar transparent
+                horizontalArrangement = Arrangement.Center
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    // Save Template Button (Conditional)
-                    if (uiState.selections.isNotEmpty() && uiState.templateName.isNotBlank()) {
-                        PixelArtButton(
-                            onClick = {
-                                if (!uiState.isSaving && uiState.templateName.isNotBlank()) {
-                                    viewModel.saveTemplate()
-                                }
-                            },
-                            imageRes = R.drawable.button_unclicked,
-                            pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier.width(200.dp).height(60.dp)
-                        ) {
-                            Text(
-                                if (uiState.editMode) "Update Template" else "Save as Template"
-                            )
-                        }
-                    }
-
+                // Save Template Button (Conditional)
+                if (uiState.selections.isNotEmpty() && uiState.templateName.isNotBlank()) {
                     PixelArtButton(
                         onClick = {
-                            viewModel.getWorkoutPlan()?.let { plan ->
-                                val templateName = uiState.templateName.ifBlank { "Workout" }
-                                onStartWorkout(plan, templateName)
+                            if (!uiState.isSaving && uiState.templateName.isNotBlank()) {
+                                viewModel.saveTemplate()
                             }
                         },
-                        imageRes = R.drawable.button_unclicked,  // Your normal PNG
-                        pressedRes = R.drawable.button_clicked,  // Your pressed PNG
-                        modifier = Modifier.width(250.dp).height(60.dp)  // Reduced width from 350.dp
+                        imageRes = R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_clicked,
+                        modifier = Modifier.width(200.dp).height(60.dp)
                     ) {
-                        Text("Start Workout")
+                        Text(
+                            if (uiState.editMode) "Update Template" else "Save as Template"
+                        )
                     }
+                }
 
-                    // Loading Indicator in Bottom Bar
-                    if (uiState.isSaving) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    }
+                PixelArtButton(
+                    onClick = {
+                        viewModel.getWorkoutPlan()?.let { plan ->
+                            val templateName = uiState.templateName.ifBlank { "Workout" }
+                            onStartWorkout(plan, templateName)
+                        }
+                    },
+                    imageRes = R.drawable.button_unclicked,  // Your normal PNG
+                    pressedRes = R.drawable.button_clicked,  // Your pressed PNG
+                    modifier = Modifier.width(250.dp).height(60.dp)  // Reduced width from 350.dp
+                ) {
+                    Text("Start Workout")
+                }
+
+                // Loading Indicator in Bottom Bar
+                if (uiState.isSaving) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
             }
         },
+        containerColor = Color.Transparent,  // Make Scaffold transparent
         modifier = modifier.fillMaxSize()
     ) { paddingValues ->
         Column(
@@ -142,26 +149,95 @@ fun WorkoutCustomizationScreen(
             // Top Padding
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
+            // Exercises Section: Separate Scrollable View
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)  // Adjust height for image
+                    .padding(horizontal = 16.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.info_background),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+                Text(
+                    text = "Customize Workout",
+                    style = MaterialTheme.typography.titleMedium,  // Smaller font
+                    color = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                )
+            }
+
             // Template Name Input (if editing or saving)
             if (uiState.editMode || uiState.selections.isNotEmpty()) {
-                OutlinedTextField(
-                    value = uiState.templateName,
-                    onValueChange = viewModel::setTemplateName,
-                    label = { Text(if (uiState.editMode) "Edit Template Name" else "Template Name (Optional)") },
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                )
+                        .height(100.dp)  // Adjust height for background image + field
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.info_background_higher),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.FillBounds
+                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = if (uiState.editMode) "Edit Template Name" else "Template Name (Optional)",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = Color.White
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .width(280.dp)
+                                .height(60.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.inputfield),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.FillBounds
+                            )
+                            TextField(
+                                singleLine = true,
+                                value = uiState.templateName,
+                                onValueChange = viewModel::setTemplateName,
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .fillMaxWidth(0.96f),
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Transparent,
+                                    errorContainerColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    disabledIndicatorColor = Color.Transparent,
+                                    errorIndicatorColor = Color.Transparent
+                                )
+                            )
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Exercises Section: Separate Scrollable View
-            Text(
-                text = "Select Exercises",
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-            )
+            Spacer(modifier = Modifier.height(16.dp))
+
             LazyColumn(
                 modifier = Modifier
                     .weight(1.5f)
@@ -208,7 +284,8 @@ fun WorkoutCustomizationScreen(
                                     viewModel.toggleExercise(
                                         exercise,
                                         localSets.toIntOrNull() ?: 3,
-                                        localWeight.toFloatOrNull() ?: 0f)
+                                        localWeight.toFloatOrNull() ?: 0f
+                                    )
                                 }
                             )
                     ) {
@@ -240,91 +317,92 @@ fun WorkoutCustomizationScreen(
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                             }
-                                if (isSelected) {
-                                        Row(verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceEvenly) {
-                                            Text("Sets: ")
-                                            OutlinedTextField(
-                                                value = localSets,
-                                                onValueChange = { newValue: String ->
-                                                    localSets =
-                                                        newValue.filter { char -> char.isDigit() }
-                                                },
-                                                modifier = Modifier
-                                                    .width(50.dp)
-                                                    .focusRequester(focusRequesterSets)
-                                                    .onFocusChanged { focusState ->
-                                                        if (!focusState.isFocused) {
-                                                            val finalSets = localSets.toIntOrNull() ?: 3
-                                                            viewModel.updateSets(exercise, finalSets)
-                                                        }
-                                                    },
-                                                singleLine = true,
-                                                keyboardOptions = KeyboardOptions(
-                                                    keyboardType = KeyboardType.Number,
-                                                    imeAction = ImeAction.Done
-                                                ),
-                                                keyboardActions = KeyboardActions(
-                                                    onDone = {
-                                                        focusRequesterSets.freeFocus()
-                                                        val finalSets = localSets.toIntOrNull() ?: 3
-                                                        viewModel.updateSets(exercise, finalSets)
-                                                    }
-                                                )
-                                            )
+                            if (isSelected) {
+                                Row(verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly) {
+                                    Text("Sets: ")
+                                    OutlinedTextField(
+                                        value = localSets,
+                                        onValueChange = { newValue: String ->
+                                            localSets =
+                                                newValue.filter { char -> char.isDigit() }
+                                        },
+                                        modifier = Modifier
+                                            .width(50.dp)
+                                            .focusRequester(focusRequesterSets)
+                                            .onFocusChanged { focusState ->
+                                                if (!focusState.isFocused) {
+                                                    val finalSets = localSets.toIntOrNull() ?: 3
+                                                    viewModel.updateSets(exercise, finalSets)
+                                                }
+                                            },
+                                        singleLine = true,
+                                        keyboardOptions = KeyboardOptions(
+                                            keyboardType = KeyboardType.Number,
+                                            imeAction = ImeAction.Done
+                                        ),
+                                        keyboardActions = KeyboardActions(
+                                            onDone = {
+                                                focusRequesterSets.freeFocus()
+                                                val finalSets = localSets.toIntOrNull() ?: 3
+                                                viewModel.updateSets(exercise, finalSets)
+                                            }
+                                        )
+                                    )
 
-                                            Spacer(modifier = Modifier.width(8.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
 
-                                            Text("Weight:")
-                                            OutlinedTextField(
-                                                value = localWeight,
-                                                onValueChange = { newValue: String ->
-                                                    localWeight =
-                                                        newValue.filter { char -> char.isDigit() || char == '.' }
-                                                },
-                                                modifier = Modifier
-                                                    .width(65.dp)
-                                                    .focusRequester(focusRequesterWeight)
-                                                    .onFocusChanged { focusState ->
-                                                        if (!focusState.isFocused) {
-                                                            val finalWeight = localWeight.toFloatOrNull() ?: 0f
-                                                            viewModel.updateWeight(
-                                                                exercise,
-                                                                finalWeight
-                                                            )
-                                                        }
-                                                    },
-                                                singleLine = true,
-                                                keyboardOptions = KeyboardOptions(
-                                                    keyboardType = KeyboardType.Decimal,
-                                                    imeAction = ImeAction.Done
-                                                ),
-                                                keyboardActions = KeyboardActions(
-                                                    onDone = {
-                                                        focusRequesterWeight.freeFocus()
-                                                        val finalWeight = localWeight.toFloatOrNull() ?: 3f
-                                                        viewModel.updateWeight(
-                                                            exercise,
-                                                            finalWeight
-                                                        )
-                                                    }
+                                    Text("Weight:")
+                                    OutlinedTextField(
+                                        value = localWeight,
+                                        onValueChange = { newValue: String ->
+                                            localWeight =
+                                                newValue.filter { char -> char.isDigit() || char == '.' }
+                                        },
+                                        modifier = Modifier
+                                            .width(65.dp)
+                                            .focusRequester(focusRequesterWeight)
+                                            .onFocusChanged { focusState ->
+                                                if (!focusState.isFocused) {
+                                                    val finalWeight = localWeight.toFloatOrNull() ?: 0f
+                                                    viewModel.updateWeight(
+                                                        exercise,
+                                                        finalWeight
+                                                    )
+                                                }
+                                            },
+                                        singleLine = true,
+                                        keyboardOptions = KeyboardOptions(
+                                            keyboardType = KeyboardType.Decimal,
+                                            imeAction = ImeAction.Done
+                                        ),
+                                        keyboardActions = KeyboardActions(
+                                            onDone = {
+                                                focusRequesterWeight.freeFocus()
+                                                val finalWeight = localWeight.toFloatOrNull() ?: 3f
+                                                viewModel.updateWeight(
+                                                    exercise,
+                                                    finalWeight
                                                 )
-                                            )
-                                            Text("Kg")
-                                    }
+                                            }
+                                        )
+                                    )
+                                    Text("Kg")
                                 }
                             }
                         }
                     }
                 }
+            }
 
 
             if (templates.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Your Templates",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = typography.bodyMedium,
+                    color = Color.White,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
                 LazyColumn(
