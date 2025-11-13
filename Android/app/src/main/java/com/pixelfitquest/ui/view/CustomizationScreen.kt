@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -82,9 +83,14 @@ fun CustomizationScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Customize Your Character")
+                horizontalAlignment = Alignment.CenterHorizontally,
+
+                ) {
+                Text(
+                    text = "Customize Your Character",
+                    style = MaterialTheme.typography.bodyMedium,  // Same font as PixelArtButton
+                    color = Color.White  // White color
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 

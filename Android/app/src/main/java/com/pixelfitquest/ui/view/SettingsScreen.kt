@@ -35,6 +35,7 @@ import com.pixelfitquest.Helpers.RemoveAccountCard
 import com.pixelfitquest.Helpers.VolumeCard
 import com.pixelfitquest.R
 import com.pixelfitquest.model.User
+import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.SettingsViewModel
 import java.util.Locale
 
@@ -56,12 +57,32 @@ fun SettingsScreen(restartApp: (String) -> Unit,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Text(
-            text = "Settings",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 8.dp)
+        // Updated title with background image at top
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)  // Adjust height for image
+                .padding(horizontal = 16.dp)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.info_background),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+            Text(
+                text = "Settings",
+                style = typography.bodyMedium,
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.Center)
+            )
+        }
+
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
         )
 
         ProfileImage(viewModel)
