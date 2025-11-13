@@ -1,5 +1,6 @@
 package com.pixelfitquest.ui.navigation
 
+import android.media.MediaPlayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,15 +20,24 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -56,6 +66,7 @@ import com.pixelfitquest.ui.view.SplashScreen
 import com.pixelfitquest.ui.view.WorkoutCustomizationScreen
 import com.pixelfitquest.ui.view.WorkoutScreen
 import com.pixelfitquest.R
+import com.pixelfitquest.viewmodel.GlobalSettingsViewModel
 
 @Composable
 fun AppScaffold() {
@@ -65,6 +76,10 @@ fun AppScaffold() {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val isUserLoggedIn = appState.currentUser != null
 
+    // NEW: Observe user settings for music volume (inject repo via Hilt)
+    val globalSettingsViewModel: GlobalSettingsViewModel = hiltViewModel()
+    val userSettings by globalSettingsViewModel.userSettingsRepository.getUserSettings().collectAsState(initial = null)
+
     val hasBottomBar = isUserLoggedIn && currentRoute in listOf(
         HOME_SCREEN,
         WORKOUT_SCREEN,
@@ -72,6 +87,14 @@ fun AppScaffold() {
         SETTINGS_SCREEN,
         WORKOUT_CUSTOMIZATION_SCREEN
     )
+
+    // UPDATED: Track if settings are loaded to delay player start
+    var settingsLoaded by remember { mutableStateOf(false) }
+    LaunchedEffect(userSettings) {
+        if (userSettings != null && !settingsLoaded) {
+            settingsLoaded = true
+        }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -140,6 +163,36 @@ fun AppScaffold() {
                     contentScale = ContentScale.Crop
                 )
         ) {
+            // UPDATED: Background music player (create/start only after settings loaded)
+            val context = LocalContext.current
+            val musicVolume = remember { derivedStateOf { (userSettings?.musicVolume ?: 50) / 100f } } // 0.0f to 1.0f
+
+            // Create and start player only when settings are loaded
+            DisposableEffect(settingsLoaded) {
+                if (settingsLoaded && appState.mediaPlayer == null) {
+                    val mediaPlayerLocal = MediaPlayer.create(context, R.raw.cavern_quest)?.apply {
+                        isLooping = true
+                        // Set initial volume from loaded settings (0% will be silent)
+                        setVolume(musicVolume.value, musicVolume.value)
+                        start()
+                    }
+                    appState.mediaPlayer = mediaPlayerLocal
+                }
+                onDispose {
+                    appState.mediaPlayer?.release()
+                    appState.mediaPlayer = null
+                }
+            }
+
+            // UPDATED: Reactively update volume when settings change (no restart)
+            LaunchedEffect(musicVolume.value) {
+                if (settingsLoaded) {
+                    appState.mediaPlayer?.let { player ->
+                        player.setVolume(musicVolume.value, musicVolume.value)
+                    }
+                }
+            }
+
             // Simple NavHost—no extra wrappers or backgrounds
             NavHost(
                 navController = appState.navController,

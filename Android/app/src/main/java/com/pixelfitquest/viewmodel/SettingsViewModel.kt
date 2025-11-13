@@ -113,4 +113,17 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setMusicVolume(volume: Int) {
+        viewModelScope.launch {
+            try {
+                userSettingsRepository.updateUserSettings(
+                    mapOf("musicVolume" to volume)
+                )
+                loadUserData()
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to update music volume"
+            }
+        }
+    }
+
 }
