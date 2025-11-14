@@ -38,6 +38,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -189,7 +192,38 @@ fun AppScaffold() {
                 if (settingsLoaded) {
                     appState.mediaPlayer?.let { player ->
                         player.setVolume(musicVolume.value, musicVolume.value)
+                        // OPTIONAL: Pause if volume is 0 to save resources (uncomment if desired)
+                        // if (musicVolume.value == 0f) {
+                        //     player.pause()
+                        // } else if (player.isPlaying.not()) {
+                        //     player.start()
+                        // }
                     }
+                }
+            }
+
+            // UPDATED: Observe activity lifecycle for faster pause/resume on background/foreground
+            // (LocalLifecycleOwner provides tighter timing than ProcessLifecycleOwner for single-activity apps)
+            val lifecycleOwner = LocalLifecycleOwner.current
+            DisposableEffect(lifecycleOwner) {
+                val observer = LifecycleEventObserver { _, event ->
+                    when (event) {
+                        Lifecycle.Event.ON_PAUSE -> {
+                            // App/activity pausing (backgrounding): Pause music immediately
+                            appState.mediaPlayer?.pause()
+                        }
+                        Lifecycle.Event.ON_RESUME -> {
+                            // App/activity resuming (foregrounding): Resume music if settings loaded
+                            if (settingsLoaded && appState.mediaPlayer != null) {
+                                appState.mediaPlayer?.start()
+                            }
+                        }
+                        else -> {}
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose {
+                    lifecycleOwner.lifecycle.removeObserver(observer)
                 }
             }
 

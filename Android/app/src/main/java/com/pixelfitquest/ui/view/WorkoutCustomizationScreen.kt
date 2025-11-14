@@ -114,6 +114,9 @@ fun WorkoutCustomizationScreen(
     val uiState by viewModel.uiState.collectAsState()
     val templates by viewModel.templates.collectAsState()
 
+    // NEW: Track the currently selected template ID for visual indication
+    var selectedTemplateId by remember { mutableStateOf<String?>(null) }
+
     // Snackbar Host State for bottom positioning
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -233,7 +236,7 @@ fun WorkoutCustomizationScreen(
                         Text(
                             text = if (uiState.editMode) "Edit Template Name" else "Template Name (Optional)",
                             style = typography.bodyMedium,
-                            color = Color.Black
+                            color = Color.White
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -265,7 +268,12 @@ fun WorkoutCustomizationScreen(
                                     focusedIndicatorColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,
                                     disabledIndicatorColor = Color.Transparent,
-                                    errorIndicatorColor = Color.Transparent
+                                    errorIndicatorColor = Color.Transparent,
+                                    focusedTextColor = Color.Black,
+                                    unfocusedTextColor = Color.Black,
+                                    disabledTextColor = Color.Black,
+                                    errorTextColor = Color.Black,
+                                    cursorColor = Color.Black
                                 )
                             )
                         }
@@ -529,6 +537,9 @@ fun WorkoutCustomizationScreen(
                             template.plan.items.sumOf { (it.sets.coerceAtLeast(1)) }
                         Log.d("TemplateUI", "Template ${template.name}: total sets = $totalSets")
 
+                        // NEW: Check if this template is currently selected
+                        val isSelected = template.id == selectedTemplateId
+
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -540,17 +551,29 @@ fun WorkoutCustomizationScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.FillBounds
                             )
+                            // NEW: Dark overlay for selected template (50% opacity)
+                            if (isSelected) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.Black.copy(alpha = 0.5f))
+                                )
+                            }
                             ListItem(
                                 headlineContent = { Text(template.name, color = Color.Black) },
                                 supportingContent = {
                                     Text(
                                         "Exercises: ${template.plan.items.size} | Sets: $totalSets",
-                                        color = Color.Black                                    )
+                                        color = Color.Black
+                                    )
                                 },
                                 trailingContent = {
                                     Row {
                                         IconButton(
-                                            onClick = { viewModel.loadTemplate(template) }
+                                            onClick = {
+                                                selectedTemplateId = template.id
+                                                viewModel.loadTemplate(template)
+                                            }
                                         ) {
                                             Icon(
                                                 Icons.Default.Edit,
@@ -569,7 +592,16 @@ fun WorkoutCustomizationScreen(
                                         }
                                     }
                                 },
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = {
+                                            selectedTemplateId = template.id
+                                            viewModel.loadTemplate(template)
+                                        }
+                                    ),
                                 colors = ListItemDefaults.colors(
                                     containerColor = Color.Transparent
                                 )
@@ -582,7 +614,7 @@ fun WorkoutCustomizationScreen(
                 Text(
                     text = "No templates yet. Name & save one to get started!",
                     style = typography.bodyMedium,
-                    color = Color.Black,
+                    color = Color.White,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(16.dp)
