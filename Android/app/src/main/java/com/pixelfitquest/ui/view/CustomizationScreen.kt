@@ -43,6 +43,7 @@ import com.pixelfitquest.ui.components.IdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.viewmodel.CustomizationViewModel
 import com.pixelfitquest.viewmodel.SettingsViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 
 @Composable
@@ -64,29 +65,30 @@ fun CustomizationScreen(
 
     var currentVariantIndex by remember { mutableIntStateOf(0) }
 
-    // Gender-specific fitness variant
+    // Gender-specific fitness and premium variants
     val fitnessVariant = if (characterData.gender == "female") "female_fitness" else "male_fitness"
-    val variants = listOf("basic", fitnessVariant)
+    val premiumVariant = if (characterData.gender == "female") "female_premium" else "male_premium"
+    val variants = listOf("basic", fitnessVariant, premiumVariant)
     val currentVariant = variants[currentVariantIndex]
     val isUnlocked = characterData.unlockedVariants.contains(currentVariant)
+    val isPremium = currentVariant == premiumVariant
 
     // Set initial index based on saved variant
     LaunchedEffect(characterData.variant, characterData.gender) {
-        if (characterData.variant == fitnessVariant) {
-            currentVariantIndex = 1
-        } else {
-            currentVariantIndex = 0
+        val savedVariant = characterData.variant
+        when (savedVariant) {
+            fitnessVariant -> currentVariantIndex = 1
+            premiumVariant -> currentVariantIndex = 2
+            else -> currentVariantIndex = 0
         }
-    }
-
-    // Reset to basic when gender changes (but restore if fitness was selected for new gender)
-    LaunchedEffect(characterData.gender) {
-        // The above LaunchedEffect will handle restoration based on saved variant
     }
 
     // Compute display gender for IdleAnimation
     val displayGender = if (currentVariant == "basic") {
         characterData.gender
+    } else if (isPremium) {
+        // For premium, always show locked
+        if (characterData.gender == "female") "locked_woman" else "locked_male"
     } else {
         val baseGender = if (characterData.gender == "female") "woman" else "male"
         "fitness_character_${baseGender}_idle"
@@ -167,23 +169,13 @@ fun CustomizationScreen(
                     Spacer(modifier = Modifier.width(16.dp))
 
                     // Animated Character Preview
-                    if (isUnlocked) {
-                        IdleAnimation(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .offset(x = (offset).dp),
-                            gender = displayGender,
-                            isAnimating = true
-                        )
-                    } else {
-                        IdleAnimation(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .offset(x = (offset).dp),
-                            gender = if (characterData.gender == "female") "locked_woman" else "locked_male",
-                            isAnimating = true
-                        )
-                    }
+                    IdleAnimation(
+                        modifier = Modifier
+                            .size(120.dp)
+                            .offset(x = (offset).dp),
+                        gender = if (isUnlocked && !isPremium) displayGender else if (characterData.gender == "female") "locked_woman" else "locked_male",
+                        isAnimating = true
+                    )
 
                     Spacer(modifier = Modifier.width(16.dp))
 
@@ -199,8 +191,18 @@ fun CustomizationScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Fitness character option
-                if (isUnlocked) {
+                // Variant option button
+                if (isPremium) {
+                    // Coming Soon button - not clickable
+                    PixelArtButton(
+                        onClick = { },
+                        imageRes = R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_unclicked,  // No press effect
+                        modifier = Modifier.size(200.dp, 60.dp)
+                    ) {
+                        Text("Coming Soon")
+                    }
+                } else if (isUnlocked) {
                     PixelArtButton(
                         onClick = {
                             viewModel.updateVariant(currentVariant)
@@ -229,6 +231,7 @@ fun CustomizationScreen(
                                 contentDescription = "Coin icon",
                                 modifier = Modifier.size(16.dp)
                             )
+                            Text(" coins")
                         }
                     }
                 }
