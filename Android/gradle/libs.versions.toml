@@ -24,6 +24,7 @@ uiTextGoogleFonts = "1.9.2"
 composeMaterial3 = "1.5.2"
 roomKtx = "2.8.1"
 playServicesTagmanagerV4Impl = "18.1.1"
+ui = "1.9.4"
 
 [libraries]
 androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
@@ -57,6 +58,7 @@ kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-cor
 compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "composeMaterial3" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 play-services-tagmanager-v4-impl = { group = "com.google.android.gms", name = "play-services-tagmanager-v4-impl", version.ref = "playServicesTagmanagerV4Impl" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 
 
 [plugins]

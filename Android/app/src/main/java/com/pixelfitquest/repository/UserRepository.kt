@@ -228,7 +228,13 @@ class UserRepository @Inject constructor(
     suspend fun saveCharacterData(data: CharacterData) {
         val user = auth.currentUser ?: throw Exception("No user logged in")
         try {
-            usersCollection.document(user.uid).update("character", data).await()
+            usersCollection.document(user.uid).update(
+                "character", mapOf(
+                    "gender" to data.gender,
+                    "variant" to data.variant,
+                    "unlockedVariants" to data.unlockedVariants
+                )
+            ).await()
         } catch (e: Exception) {
             throw e
         }
@@ -244,8 +250,10 @@ class UserRepository @Inject constructor(
                 trySend(null)
             } else {
                 val charData = snapshot?.get("character") as? Map<String, Any?>
-                val gender = charData?.get("gender") as? String ?: "female"
-                trySend(CharacterData(gender = gender))
+                val gender = charData?.get("gender") as? String ?: "male"
+                val variant = charData?.get("variant") as? String ?: "basic"
+                val unlockedVariants = charData?.get("unlockedVariants") as? List<String> ?: listOf("basic")
+                trySend(CharacterData(gender, variant, unlockedVariants))
             }
         }
         awaitClose { listener.remove() }
@@ -259,6 +267,8 @@ class UserRepository @Inject constructor(
             charData?.let { map ->
                 CharacterData(
                     gender = map["gender"] as? String ?: "male",
+                    variant = map["variant"] as? String ?: "basic",
+                    unlockedVariants = map["unlockedVariants"] as? List<String> ?: listOf("basic")
                 )
             }
         } catch (e: Exception) {

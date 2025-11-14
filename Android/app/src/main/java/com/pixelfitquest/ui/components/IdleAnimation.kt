@@ -24,9 +24,14 @@ fun IdleAnimation(
     gender: String = "female",
     isAnimating: Boolean = false
 ) {
-    val spriteSheet = ImageBitmap.imageResource(
-        if (gender == "male") R.drawable.character_male_idle else R.drawable.character_woman_idle
-    )
+    val spriteSheetId = when (gender) {
+        "male" -> R.drawable.character_male_idle
+        "locked_male" -> R.drawable.locked_male_character_idle
+        "locked_woman" -> R.drawable.locked_woman_character_idle
+        else -> R.drawable.character_woman_idle  // Default to female
+    }
+
+    val spriteSheet = ImageBitmap.imageResource(spriteSheetId)
     var currentFrame by remember { mutableStateOf(0) }
     val frameCount = 13  // Adjust to your number of frames
     val frameWidth = 6240f / frameCount  // Auto-calculate width based on new sheet width (6240 / frames)

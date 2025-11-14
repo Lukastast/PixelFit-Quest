@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,7 +37,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.ui.components.IdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
@@ -51,7 +52,7 @@ fun CustomizationScreen(
 ) {
     val characterData by viewModel.characterData.collectAsState()
     val settingsViewModel: SettingsViewModel = hiltViewModel()
-
+    val offset = -18
     val painter = painterResource(id = R.drawable.info_background_even_even_higher)
     val intrinsicSize = painter.intrinsicSize
     val aspectRatio = if (intrinsicSize.isSpecified) {
@@ -59,6 +60,12 @@ fun CustomizationScreen(
     } else {
         280f / 400f // fallback aspect ratio, adjust based on your image if needed
     }
+
+    var currentVariantIndex by remember { mutableIntStateOf(0) }
+    val variants = listOf("basic", "premium") // Add more variants as needed
+    val currentVariant = variants[currentVariantIndex]
+    val isUnlocked = characterData.unlockedVariants.contains(currentVariant)
+    val isLocked = !isUnlocked
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -87,7 +94,7 @@ fun CustomizationScreen(
 
                 ) {
                 Text(
-                    text = "Customize Your Character",
+                    text = "Choose Your Character",
                     style = MaterialTheme.typography.bodyMedium,  // Same font as PixelArtButton
                     color = Color.White  // White color
                 )
@@ -115,24 +122,77 @@ fun CustomizationScreen(
                 }
 
 
-                // Animated Character Preview
-                IdleAnimation(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .offset(x = (-15.dp)),
-                    gender = characterData.gender,
-                    isAnimating = true
-                )
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                PixelArtButton(
-                    onClick = { openScreen("home") },  // Save and return
-                    imageRes = R.drawable.button_unclicked,  // Your normal PNG
-                    pressedRes = R.drawable.button_clicked,  // Your pressed PNG
-                    modifier = Modifier.size(200.dp, 60.dp)  // Wider for emphasis
+                // Left and Right Navigation Buttons
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Save and Continue")
+                    PixelArtButton(
+                        onClick = {
+                            currentVariantIndex = (currentVariantIndex - 1 + variants.size) % variants.size
+                        },
+                        imageRes = R.drawable.unclicked_customization_button_left,
+                        pressedRes = R.drawable.clicked_customization_button_left,
+                        modifier = Modifier.size(40.dp)
+                    ) {}
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // Animated Character Preview
+                    if (isLocked) {
+                        IdleAnimation(
+                            modifier = Modifier
+                                .size(120.dp)
+                                .offset(x = (offset).dp),
+                            gender = if (characterData.gender == "female") "locked_woman" else "locked_male",
+                            isAnimating = true
+                        )
+                    } else {
+                        IdleAnimation(
+                            modifier = Modifier
+                                .size(120.dp)
+                                .offset(x = (offset).dp),
+                            gender = characterData.gender,
+                            isAnimating = true
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    PixelArtButton(
+                        onClick = {
+                            currentVariantIndex = (currentVariantIndex + 1) % variants.size
+                        },
+                        imageRes = R.drawable.unclicked_customization_button_right,
+                        pressedRes = R.drawable.clicked_customization_button_right,
+                        modifier = Modifier.size(40.dp)
+                    ) {}
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Premium character option
+                if (isUnlocked) {
+                    PixelArtButton(
+                        onClick = { viewModel.updateVariant(currentVariant) },
+                        imageRes = R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_clicked,
+                        modifier = Modifier.size(200.dp, 60.dp)
+                    ) {
+                        Text("Select")
+                    }
+                } else {
+                    PixelArtButton(
+                        onClick = { viewModel.buyVariant(currentVariant, 100) },
+                        imageRes = R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_clicked,
+                        modifier = Modifier.size(200.dp, 60.dp)
+                    ) {
+                        Text("Buy for 100 coins")
+                    }
                 }
             }
         }

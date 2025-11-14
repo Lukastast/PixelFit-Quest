@@ -35,6 +35,28 @@ class CustomizationViewModel @Inject constructor(
         saveData()
     }
 
+    fun updateVariant(variant: String) {
+        _characterData.value = _characterData.value.copy(variant = variant)
+        saveData()
+    }
+
+    private fun unlockVariant(variant: String) {
+        val newUnlocked = _characterData.value.unlockedVariants + variant
+        _characterData.value = _characterData.value.copy(unlockedVariants = newUnlocked)
+        saveData()
+    }
+
+    fun buyVariant(variant: String, price: Int) {
+        viewModelScope.launch {
+            val gameData = userRepository.fetchUserGameDataOnce()
+            if (gameData != null && gameData.coins >= price && !_characterData.value.unlockedVariants.contains(variant)) {
+                userRepository.updateUserGameData(mapOf("coins" to (gameData.coins - price)))
+                unlockVariant(variant)
+                updateVariant(variant)
+            }
+        }
+    }
+
     private fun saveData() {
         viewModelScope.launch {
             userRepository.saveCharacterData(_characterData.value)
