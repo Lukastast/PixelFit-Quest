@@ -6,25 +6,25 @@ import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.Helpers.SPLASH_SCREEN
 import com.pixelfitquest.model.UserGameData
 import com.pixelfitquest.model.service.AccountService
+import com.pixelfitquest.model.CharacterData
 import com.pixelfitquest.repository.UserRepository
-import com.samsung.android.sdk.health.data.HealthDataService
-import com.samsung.android.sdk.health.data.HealthDataStore
-import com.samsung.android.sdk.health.data.error.HealthDataException
-import com.samsung.android.sdk.health.data.permission.AccessType
-import com.samsung.android.sdk.health.data.permission.Permission
-import com.samsung.android.sdk.health.data.request.DataType
-import com.samsung.android.sdk.health.data.request.DataTypes
-import com.samsung.android.sdk.health.data.request.LocalDateFilter
-import com.samsung.android.sdk.health.data.request.LocalTimeFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import com.samsung.android.sdk.health.data.*
+import com.samsung.android.sdk.health.data.permission.*
+import com.samsung.android.sdk.health.data.error.HealthDataException
+import com.samsung.android.sdk.health.data.request.DataType
+import com.samsung.android.sdk.health.data.request.DataTypes
+import com.samsung.android.sdk.health.data.request.LocalDateFilter
+import com.samsung.android.sdk.health.data.request.LocalTimeFilter
+import com.samsung.android.sdk.health.data.HealthDataService
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
-import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -113,8 +113,12 @@ class HomeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
+                val charData = userRepository.fetchCharacterDataOnce() ?: return@launch
+                val variant = charData.variant
+                val isFitness = variant.contains("fitness")
+                val bonusAmount = if (isFitness) amount + 2 else amount
                 val current = _userGameData.value ?: return@launch
-                userRepository.updateUserGameData(mapOf("coins" to current.coins + amount))
+                userRepository.updateUserGameData(mapOf("coins" to current.coins + bonusAmount))
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to update coins"
             }
@@ -125,7 +129,11 @@ class HomeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
-                userRepository.updateExp(amount)
+                val charData = userRepository.fetchCharacterDataOnce() ?: return@launch
+                val variant = charData.variant
+                val isFitness = variant.contains("fitness")
+                val bonusAmount = if (isFitness) amount + 2 else amount
+                userRepository.updateExp(bonusAmount)
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to update exp"
             }
