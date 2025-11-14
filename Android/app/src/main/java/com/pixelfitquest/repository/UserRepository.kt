@@ -277,6 +277,18 @@ class UserRepository @Inject constructor(
         }
     }
 
+    suspend fun resetUnlockedVariants() {
+        val user = auth.currentUser ?: return
+        try {
+            usersCollection.document(user.uid).update(
+                "character.unlockedVariants", listOf("basic")
+            ).await()
+            Log.d(TAG, "Reset unlocked variants to basic")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to reset unlocked variants", e)
+        }
+    }
+
     private fun UserGameData.toMutableMap(): MutableMap<String, Any> = mutableMapOf(
         "level" to level,
         "coins" to coins,

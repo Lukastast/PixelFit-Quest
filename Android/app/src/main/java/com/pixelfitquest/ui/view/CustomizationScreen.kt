@@ -43,6 +43,7 @@ import com.pixelfitquest.ui.components.IdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.viewmodel.CustomizationViewModel
 import com.pixelfitquest.viewmodel.SettingsViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 
 @Composable
@@ -62,10 +63,25 @@ fun CustomizationScreen(
     }
 
     var currentVariantIndex by remember { mutableIntStateOf(0) }
-    val variants = listOf("basic", "premium") // Add more variants as needed
+
+    // Gender-specific fitness variant
+    val fitnessVariant = if (characterData.gender == "female") "female_fitness" else "male_fitness"
+    val variants = listOf("basic", fitnessVariant)
     val currentVariant = variants[currentVariantIndex]
     val isUnlocked = characterData.unlockedVariants.contains(currentVariant)
-    val isLocked = !isUnlocked
+
+    // Reset to basic when gender changes
+    LaunchedEffect(characterData.gender) {
+        currentVariantIndex = 0
+    }
+
+    // Compute display gender for IdleAnimation
+    val displayGender = if (currentVariant == "basic") {
+        characterData.gender
+    } else {
+        val baseGender = if (characterData.gender == "female") "woman" else "male"
+        "fitness_character_${baseGender}_idle"
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -142,12 +158,12 @@ fun CustomizationScreen(
                     Spacer(modifier = Modifier.width(16.dp))
 
                     // Animated Character Preview
-                    if (isLocked) {
+                    if (isUnlocked) {
                         IdleAnimation(
                             modifier = Modifier
                                 .size(120.dp)
                                 .offset(x = (offset).dp),
-                            gender = if (characterData.gender == "female") "locked_woman" else "locked_male",
+                            gender = displayGender,
                             isAnimating = true
                         )
                     } else {
@@ -155,7 +171,7 @@ fun CustomizationScreen(
                             modifier = Modifier
                                 .size(120.dp)
                                 .offset(x = (offset).dp),
-                            gender = characterData.gender,
+                            gender = if (characterData.gender == "female") "locked_woman" else "locked_male",
                             isAnimating = true
                         )
                     }
@@ -174,7 +190,7 @@ fun CustomizationScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Premium character option
+                // Fitness character option
                 if (isUnlocked) {
                     PixelArtButton(
                         onClick = { viewModel.updateVariant(currentVariant) },

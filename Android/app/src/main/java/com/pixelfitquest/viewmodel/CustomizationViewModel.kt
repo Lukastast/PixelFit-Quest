@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,7 +25,7 @@ class CustomizationViewModel @Inject constructor(
 
     private fun loadCharacterData() {
         viewModelScope.launch {
-            userRepository.getCharacterData().collect { data ->
+            userRepository.getCharacterData().collectLatest { data ->
                 _characterData.value = data ?: CharacterData()
             }
         }

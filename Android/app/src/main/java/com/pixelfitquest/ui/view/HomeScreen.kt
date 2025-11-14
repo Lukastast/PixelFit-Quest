@@ -221,8 +221,14 @@ fun HomeScreen(
                 Button(onClick = { viewModel.addExp(150) }) {  // Adjust amount to test level up (e.g., enough for 1-2 levels)
                     Text("Test Level Up (+150 XP)")
                 }
+                Button(onClick = { viewModel.addCoins(100) }) {
+                    Text("Add 100 Coins")
+                }
                 Button(onClick = { viewModel.resetUserData() }) {
                     Text("Reset to Level 1")
+                }
+                Button(onClick = { viewModel.resetUnlockedVariants() }) {
+                    Text("Reset Unlocked Variants")
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = { viewModel.incrementStreak() }) {

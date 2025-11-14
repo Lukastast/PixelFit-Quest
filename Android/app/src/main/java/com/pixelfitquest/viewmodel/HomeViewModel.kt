@@ -167,6 +167,16 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun resetUnlockedVariants() {
+        viewModelScope.launch {
+            try {
+                userRepository.resetUnlockedVariants()
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to reset unlocked variants"
+            }
+        }
+    }
+
     // UPDATED: Changed param to Activity (fixes unsafe cast / type mismatch)
     private fun initializeHealthConnection(activity: Activity?) {
         healthDataStore = activity?.let { HealthDataService.getStore(it) }
