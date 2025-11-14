@@ -234,7 +234,7 @@ fun WorkoutCustomizationScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = if (uiState.editMode) "Edit Template Name" else "Template Name (Optional)",
+                            text = if (uiState.editMode) "Edit Template Name" else "Template Name",
                             style = typography.bodyMedium,
                             color = Color.White
                         )
