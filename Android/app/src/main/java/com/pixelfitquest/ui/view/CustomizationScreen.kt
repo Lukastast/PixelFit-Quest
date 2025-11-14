@@ -43,7 +43,6 @@ import com.pixelfitquest.ui.components.IdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.viewmodel.CustomizationViewModel
 import com.pixelfitquest.viewmodel.SettingsViewModel
-import kotlinx.coroutines.flow.collectLatest
 
 
 @Composable
@@ -54,6 +53,7 @@ fun CustomizationScreen(
     val characterData by viewModel.characterData.collectAsState()
     val settingsViewModel: SettingsViewModel = hiltViewModel()
     val offset = -18
+    val price = 100
     val painter = painterResource(id = R.drawable.info_background_even_even_higher)
     val intrinsicSize = painter.intrinsicSize
     val aspectRatio = if (intrinsicSize.isSpecified) {
@@ -214,12 +214,22 @@ fun CustomizationScreen(
                     }
                 } else {
                     PixelArtButton(
-                        onClick = { viewModel.buyVariant(currentVariant, 100) },
+                        onClick = { viewModel.buyVariant(currentVariant, price) },
                         imageRes = R.drawable.button_unclicked,
                         pressedRes = R.drawable.button_clicked,
                         modifier = Modifier.size(200.dp, 60.dp)
                     ) {
-                        Text("Buy for 100 coins")
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text("$price ")
+                            Image(
+                                painter = painterResource(R.drawable.coin),
+                                contentDescription = "Coin icon",
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
                 }
             }
