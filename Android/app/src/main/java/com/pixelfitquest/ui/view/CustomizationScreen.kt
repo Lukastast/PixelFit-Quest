@@ -41,6 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.ui.components.IdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
+import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.CustomizationViewModel
 import com.pixelfitquest.viewmodel.SettingsViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -72,6 +73,7 @@ fun CustomizationScreen(
     val currentVariant = variants[currentVariantIndex]
     val isUnlocked = characterData.unlockedVariants.contains(currentVariant)
     val isPremium = currentVariant == premiumVariant
+    val isFitness = currentVariant == fitnessVariant
 
     // Set initial index based on saved variant
     LaunchedEffect(characterData.variant, characterData.gender) {
@@ -148,8 +150,15 @@ fun CustomizationScreen(
                     }
                 }
 
-
-                Spacer(modifier = Modifier.height(16.dp))
+                // NEW: Bonus info for unlocked fitness variant, positioned under gender buttons and over IdleAnimation
+                if (isUnlocked && isFitness) {
+                    Text(
+                        text = "+2 coins & +2 exp per reward",
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        style = typography.bodyMedium
+                    )
+                }
 
                 // Left and Right Navigation Buttons
                 Row(
@@ -235,6 +244,8 @@ fun CustomizationScreen(
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
 
