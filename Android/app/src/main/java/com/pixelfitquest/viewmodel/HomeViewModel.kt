@@ -22,9 +22,13 @@ import com.samsung.android.sdk.health.data.request.DataTypes
 import com.samsung.android.sdk.health.data.request.LocalDateFilter
 import com.samsung.android.sdk.health.data.request.LocalTimeFilter
 import com.samsung.android.sdk.health.data.HealthDataService
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -220,6 +224,21 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    // NEW: Check and award steps goal reward (once per UTC day)
+    private suspend fun checkAndAwardStepsReward() {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val today = dateFormat.format(Date())
+
+        val lastRewardDate = userRepository.getUserField("last_steps_reward_date") as? String ?: ""
+        if (_todaySteps.value >= _stepGoal.value.toLong() && lastRewardDate != today) {
+            addExp(50)
+            addCoins(10)
+            userRepository.updateUserGameData(mapOf("last_steps_reward_date" to today))
+            Log.d("HomeVM", "Awarded +50 EXP and +10 coins for steps goal on $today")
+        }
+    }
+
     // NEW: Fetch data (v1.0.0 aggregation via aggregateData)
     private suspend fun fetchStepsData(store: HealthDataStore) {
         try {
@@ -255,6 +274,9 @@ class HomeViewModel @Inject constructor(
             _stepGoal.value = goal
 
             Log.d("HomeVM", "Fetched steps: $totalSteps / Goal: $goal")  // NEW: Success log
+
+            // NEW: Check for steps goal reward after fetching
+            checkAndAwardStepsReward()
         } catch (e: HealthDataException) {
             Log.e("HomeVM", "Fetch failed", e)
             _error.value = "Steps fetch error: ${e.message}"

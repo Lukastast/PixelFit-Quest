@@ -94,6 +94,18 @@ class UserRepository @Inject constructor(
         }
     }
 
+    // NEW: Get a single user field value (for fields not in UserGameData model)
+    suspend fun getUserField(field: String): Any? {
+        val user = auth.currentUser ?: return null
+        return try {
+            val doc = usersCollection.document(user.uid).get().await()
+            doc.get(field)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get field $field", e)
+            null
+        }
+    }
+
     // Load progression config (call from ViewModel init)
     suspend fun loadProgressionConfig() {
         try {

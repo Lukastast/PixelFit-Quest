@@ -180,22 +180,27 @@ fun HomeScreen(
             )
 
             // Steps text on top of the image (centered)
-            Row(
+            Column(
                 modifier = Modifier.align(Alignment.Center),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "👟",
-                    fontSize = 20.sp,
+                    text = "Steps",
+                    fontSize = 16.sp,
                     color = Color.White,
-                    modifier = Modifier.padding(end = 6.dp)
+                    fontWeight = MaterialTheme.typography.titleMedium.fontWeight
                 )
                 Text(
                     text = "${todaySteps} / $stepGoal",
                     fontSize = 18.sp,
                     color = Color.White,
                     fontWeight = MaterialTheme.typography.titleMedium.fontWeight
+                )
+                Text(
+                    text = "+50 EXP, +10 Coins",
+                    fontSize = 12.sp,
+                    color = Color.White
                 )
             }
         }
