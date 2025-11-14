@@ -70,9 +70,18 @@ fun CustomizationScreen(
     val currentVariant = variants[currentVariantIndex]
     val isUnlocked = characterData.unlockedVariants.contains(currentVariant)
 
-    // Reset to basic when gender changes
+    // Set initial index based on saved variant
+    LaunchedEffect(characterData.variant, characterData.gender) {
+        if (characterData.variant == fitnessVariant) {
+            currentVariantIndex = 1
+        } else {
+            currentVariantIndex = 0
+        }
+    }
+
+    // Reset to basic when gender changes (but restore if fitness was selected for new gender)
     LaunchedEffect(characterData.gender) {
-        currentVariantIndex = 0
+        // The above LaunchedEffect will handle restoration based on saved variant
     }
 
     // Compute display gender for IdleAnimation
@@ -193,7 +202,10 @@ fun CustomizationScreen(
                 // Fitness character option
                 if (isUnlocked) {
                     PixelArtButton(
-                        onClick = { viewModel.updateVariant(currentVariant) },
+                        onClick = {
+                            viewModel.updateVariant(currentVariant)
+                            // Optionally update index to reflect selection, but LaunchedEffect handles it
+                        },
                         imageRes = R.drawable.button_unclicked,
                         pressedRes = R.drawable.button_clicked,
                         modifier = Modifier.size(200.dp, 60.dp)
