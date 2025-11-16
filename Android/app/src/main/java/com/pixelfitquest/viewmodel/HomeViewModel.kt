@@ -12,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.samsung.android.sdk.health.data.*
@@ -52,6 +53,13 @@ class HomeViewModel @Inject constructor(
     private val _stepGoal = MutableStateFlow(0)
     val stepGoal: StateFlow<Int> = _stepGoal.asStateFlow()
 
+    // NEW: Leaderboard states
+    private val _rank = MutableStateFlow(0)
+    val rank: StateFlow<Int> = _rank.asStateFlow()
+
+    private val _totalUsers = MutableStateFlow(0)
+    val totalUsers: StateFlow<Int> = _totalUsers.asStateFlow()
+
     // NEW: HealthDataStore
     private var healthDataStore: HealthDataStore? = null
 
@@ -78,6 +86,9 @@ class HomeViewModel @Inject constructor(
                 userRepository.loadProgressionConfig()
                 // Only load user data after config is loaded
                 loadUserData()
+
+                // NEW: Fetch leaderboard after user data
+                fetchLeaderboard()
 
                 // NEW: Initialize Health connection and steps
                 initializeHealthConnection(activity)
@@ -187,6 +198,21 @@ class HomeViewModel @Inject constructor(
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to reset unlocked variants"
             }
+        }
+    }
+
+    // NEW: Fetch and compute leaderboard rank
+    private suspend fun fetchLeaderboard() {
+        try {
+            val leaderboard = userRepository.getLeaderboard()
+            val uid = accountService.currentUser.first()?.id ?: return
+            val position = leaderboard.indexOfFirst { it.first == uid } + 1
+            if (position > 0) {
+                _rank.value = position
+                _totalUsers.value = leaderboard.size
+            }
+        } catch (e: Exception) {
+            _error.value = e.message ?: "Failed to fetch leaderboard"
         }
     }
 
