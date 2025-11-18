@@ -76,9 +76,19 @@ class WorkoutCustomizationViewModel @Inject constructor(
     fun saveTemplate() {
         val state = _uiState.value
         if (state.selections.isEmpty() || state.templateName.isBlank()) return
+
+        _uiState.value = state.copy(isSaving = true)  // Set saving to true before async operation
+
         val plan = WorkoutPlan(state.selections.values.toList())  // Direct toList() of items
+
+        val id = if (state.editMode && state.editingTemplateId != null) {
+            state.editingTemplateId
+        } else {
+            generateId()
+        }
+
         val template = WorkoutTemplate(
-            id = generateId(),
+            id = id,
             name = state.templateName,
             plan = plan
         )
@@ -86,9 +96,17 @@ class WorkoutCustomizationViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 templateRepository.saveTemplate(template)
-                _uiState.value = state.copy(isSaving = false, error = null)
+                _uiState.value = state.copy(
+                    isSaving = false,
+                    error = null,
+                    editMode = false,
+                    editingTemplateId = null
+                )
             } catch (e: Exception) {
-                _uiState.value = state.copy(error = e.message)
+                _uiState.value = state.copy(
+                    isSaving = false,
+                    error = e.message
+                )
             }
         }
     }
@@ -100,6 +118,15 @@ class WorkoutCustomizationViewModel @Inject constructor(
             templateName = template.name,
             editMode = true,
             editingTemplateId = template.id
+        )
+    }
+
+    fun clearTemplate() {
+        _uiState.value = _uiState.value.copy(
+            selections = emptyMap(),
+            templateName = "",
+            editMode = false,
+            editingTemplateId = null
         )
     }
 

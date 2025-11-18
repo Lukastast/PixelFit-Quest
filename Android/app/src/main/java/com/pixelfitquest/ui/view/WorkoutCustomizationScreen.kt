@@ -571,8 +571,13 @@ fun WorkoutCustomizationScreen(
                                     Row {
                                         IconButton(
                                             onClick = {
-                                                selectedTemplateId = template.id
-                                                viewModel.loadTemplate(template)
+                                                if (selectedTemplateId == template.id) {
+                                                    selectedTemplateId = null
+                                                    viewModel.clearTemplate()
+                                                } else {
+                                                    selectedTemplateId = template.id
+                                                    viewModel.loadTemplate(template)
+                                                }
                                             }
                                         ) {
                                             Icon(
@@ -598,8 +603,13 @@ fun WorkoutCustomizationScreen(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = null,
                                         onClick = {
-                                            selectedTemplateId = template.id
-                                            viewModel.loadTemplate(template)
+                                            if (selectedTemplateId == template.id) {
+                                                selectedTemplateId = null
+                                                viewModel.clearTemplate()
+                                            } else {
+                                                selectedTemplateId = template.id
+                                                viewModel.loadTemplate(template)
+                                            }
                                         }
                                     ),
                                 colors = ListItemDefaults.colors(
