@@ -7,12 +7,14 @@ import com.pixelfitquest.Helpers.SPLASH_SCREEN
 import com.pixelfitquest.model.UserGameData
 import com.pixelfitquest.model.Workout
 import com.pixelfitquest.model.service.AccountService
+import com.pixelfitquest.model.CharacterData
 import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.WorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.samsung.android.sdk.health.data.*
@@ -23,11 +25,15 @@ import com.samsung.android.sdk.health.data.request.DataTypes
 import com.samsung.android.sdk.health.data.request.LocalDateFilter
 import com.samsung.android.sdk.health.data.request.LocalTimeFilter
 import com.samsung.android.sdk.health.data.HealthDataService
+import java.text.SimpleDateFormat
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import kotlin.collections.emptyList
 
 @HiltViewModel
@@ -56,6 +62,13 @@ class HomeViewModel @Inject constructor(
     private val _stepGoal = MutableStateFlow(0)
     val stepGoal: StateFlow<Int> = _stepGoal.asStateFlow()
 
+    // NEW: Leaderboard states
+    private val _rank = MutableStateFlow(0)
+    val rank: StateFlow<Int> = _rank.asStateFlow()
+
+    private val _totalUsers = MutableStateFlow(0)
+    val totalUsers: StateFlow<Int> = _totalUsers.asStateFlow()
+
     // NEW: HealthDataStore
     private var healthDataStore: HealthDataStore? = null
 
@@ -73,7 +86,6 @@ class HomeViewModel @Inject constructor(
                 if (user == null) {
                     restartApp(SPLASH_SCREEN)
                 }
-
             }
         }
 
@@ -84,6 +96,9 @@ class HomeViewModel @Inject constructor(
                 // Only load user data after config is loaded
                 loadUserData()
                 fetchCompletedWorkouts()
+
+                // NEW: Fetch leaderboard after user data
+                fetchLeaderboard()
 
                 // NEW: Initialize Health connection and steps
                 initializeHealthConnection(activity)
@@ -123,8 +138,12 @@ class HomeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
+                val charData = userRepository.fetchCharacterDataOnce() ?: return@launch
+                val variant = charData.variant
+                val isFitness = variant.contains("fitness")
+                val bonusAmount = if (isFitness) amount + 2 else amount
                 val current = _userGameData.value ?: return@launch
-                userRepository.updateUserGameData(mapOf("coins" to current.coins + amount))
+                userRepository.updateUserGameData(mapOf("coins" to current.coins + bonusAmount))
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to update coins"
             }
@@ -135,7 +154,11 @@ class HomeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
-                userRepository.updateExp(amount)
+                val charData = userRepository.fetchCharacterDataOnce() ?: return@launch
+                val variant = charData.variant
+                val isFitness = variant.contains("fitness")
+                val bonusAmount = if (isFitness) amount + 2 else amount
+                userRepository.updateExp(bonusAmount)
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to update exp"
             }
@@ -178,6 +201,31 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun resetUnlockedVariants() {
+        viewModelScope.launch {
+            try {
+                userRepository.resetUnlockedVariants()
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to reset unlocked variants"
+            }
+        }
+    }
+
+    // NEW: Fetch and compute leaderboard rank
+    private suspend fun fetchLeaderboard() {
+        try {
+            val leaderboard = userRepository.getLeaderboard()
+            val uid = accountService.currentUser.first()?.id ?: return
+            val position = leaderboard.indexOfFirst { it.first == uid } + 1
+            if (position > 0) {
+                _rank.value = position
+                _totalUsers.value = leaderboard.size
+            }
+        } catch (e: Exception) {
+            _error.value = e.message ?: "Failed to fetch leaderboard"
+        }
+    }
+
     // UPDATED: Changed param to Activity (fixes unsafe cast / type mismatch)
     private fun initializeHealthConnection(activity: Activity?) {
         healthDataStore = activity?.let { HealthDataService.getStore(it) }
@@ -209,6 +257,21 @@ class HomeViewModel @Inject constructor(
         } catch (e: HealthDataException) {
             Log.e("HomeVM", "Permission request failed", e)
             _error.value = "Permission error: ${e.message}"
+        }
+    }
+
+    // NEW: Check and award steps goal reward (once per UTC day)
+    private suspend fun checkAndAwardStepsReward() {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val today = dateFormat.format(Date())
+
+        val lastRewardDate = userRepository.getUserField("last_steps_reward_date") as? String ?: ""
+        if (_todaySteps.value >= _stepGoal.value.toLong() && lastRewardDate != today) {
+            addExp(50)
+            addCoins(10)
+            userRepository.updateUserGameData(mapOf("last_steps_reward_date" to today))
+            Log.d("HomeVM", "Awarded +50 EXP and +10 coins for steps goal on $today")
         }
     }
 
@@ -247,6 +310,9 @@ class HomeViewModel @Inject constructor(
             _stepGoal.value = goal
 
             Log.d("HomeVM", "Fetched steps: $totalSteps / Goal: $goal")  // NEW: Success log
+
+            // NEW: Check for steps goal reward after fetching
+            checkAndAwardStepsReward()
         } catch (e: HealthDataException) {
             Log.e("HomeVM", "Fetch failed", e)
             _error.value = "Steps fetch error: ${e.message}"

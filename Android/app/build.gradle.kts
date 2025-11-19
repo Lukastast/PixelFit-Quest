@@ -49,9 +49,6 @@ android {
     }
     buildToolsVersion = "36.0.0"
 
-    kapt {
-        correctErrorTypes = true
-    }
 }
 
 dependencies {
@@ -85,6 +82,9 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.play.services.tagmanager.v4.impl)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.lifecycle.process)
+    implementation(libs.androidx.compose.ui.text)
     kapt("com.google.dagger:hilt-compiler:2.57.2")
     kapt("com.google.dagger:hilt-android-compiler:2.57.2")
 

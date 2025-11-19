@@ -94,6 +94,18 @@ class UserRepository @Inject constructor(
         }
     }
 
+    // NEW: Get a single user field value (for fields not in UserGameData model)
+    suspend fun getUserField(field: String): Any? {
+        val user = auth.currentUser ?: return null
+        return try {
+            val doc = usersCollection.document(user.uid).get().await()
+            doc.get(field)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get field $field", e)
+            null
+        }
+    }
+
     // Load progression config (call from ViewModel init)
     suspend fun loadProgressionConfig() {
         try {
@@ -228,7 +240,13 @@ class UserRepository @Inject constructor(
     suspend fun saveCharacterData(data: CharacterData) {
         val user = auth.currentUser ?: throw Exception("No user logged in")
         try {
-            usersCollection.document(user.uid).update("character", data).await()
+            usersCollection.document(user.uid).update(
+                "character", mapOf(
+                    "gender" to data.gender,
+                    "variant" to data.variant,
+                    "unlockedVariants" to data.unlockedVariants
+                )
+            ).await()
         } catch (e: Exception) {
             throw e
         }
@@ -244,8 +262,10 @@ class UserRepository @Inject constructor(
                 trySend(null)
             } else {
                 val charData = snapshot?.get("character") as? Map<String, Any?>
-                val gender = charData?.get("gender") as? String ?: "female"
-                trySend(CharacterData(gender = gender))
+                val gender = charData?.get("gender") as? String ?: "male"
+                val variant = charData?.get("variant") as? String ?: "basic"
+                val unlockedVariants = charData?.get("unlockedVariants") as? List<String> ?: listOf("basic")
+                trySend(CharacterData(gender, variant, unlockedVariants))
             }
         }
         awaitClose { listener.remove() }
@@ -259,11 +279,25 @@ class UserRepository @Inject constructor(
             charData?.let { map ->
                 CharacterData(
                     gender = map["gender"] as? String ?: "male",
+                    variant = map["variant"] as? String ?: "basic",
+                    unlockedVariants = map["unlockedVariants"] as? List<String> ?: listOf("basic")
                 )
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to fetch character data", e)
             null
+        }
+    }
+
+    suspend fun resetUnlockedVariants() {
+        val user = auth.currentUser ?: return
+        try {
+            usersCollection.document(user.uid).update(
+                "character.unlockedVariants", listOf("basic")
+            ).await()
+            Log.d(TAG, "Reset unlocked variants to basic")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to reset unlocked variants", e)
         }
     }
 
@@ -273,4 +307,18 @@ class UserRepository @Inject constructor(
         "exp" to exp,
         "streak" to streak
     )
+
+    // NEW: Fetch leaderboard data (all users sorted by level desc, then exp desc)
+    suspend fun getLeaderboard(): List<Pair<String, UserGameData>> {
+        return try {
+            val snapshot = usersCollection.get().await()
+            snapshot.documents.mapNotNull { doc ->
+                val data = doc.toObject<UserGameData>() ?: return@mapNotNull null
+                Pair(doc.id, data)
+            }.sortedWith(compareByDescending<Pair<String, UserGameData>> { it.second.level }.thenByDescending { it.second.exp })
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to fetch leaderboard", e)
+            emptyList()
+        }
+    }
 }

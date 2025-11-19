@@ -37,10 +37,12 @@ class WorkoutCustomizationViewModel @Inject constructor(
     fun toggleExercise(exercise: ExerciseType, sets: Int = 3, weight: Float = 0f) {
         val currentSelections = _uiState.value.selections
         val updated = if (currentSelections.containsKey(exercise)) {
-        val item = WorkoutPlanItem(exercise, sets.coerceIn(1, 10), weight.coerceIn(0f, 500f))
-            currentSelections + (exercise to item)
-        } else {
+            // Toggle off: Remove the exercise
             currentSelections - exercise
+        } else {
+            // Toggle on: Add the exercise with defaults
+            val item = WorkoutPlanItem(exercise, sets.coerceIn(1, 10), weight.coerceIn(0f, 500f))
+            currentSelections + (exercise to item)
         }
         _uiState.value = _uiState.value.copy(selections = updated)
     }
@@ -74,19 +76,50 @@ class WorkoutCustomizationViewModel @Inject constructor(
     fun saveTemplate() {
         val state = _uiState.value
         if (state.selections.isEmpty() || state.templateName.isBlank()) return
-        val plan = WorkoutPlan(state.selections.values.toList())  // Direct toList() of items
-        val template = WorkoutTemplate(
-            id = generateId(),
-            name = state.templateName,
-            plan = plan
-        )
 
         viewModelScope.launch {
+            // Clear error and set saving true at the start of each save attempt
+            _uiState.value = state.copy(isSaving = true, error = null)
+
+            // Check for duplicate name
+            val existing = templateRepository.fetchTemplateByName(state.templateName)
+            if (existing != null && existing.id != state.editingTemplateId) {
+                _uiState.value = state.copy(
+                    isSaving = false,
+                    error = "A template with this name already exists"
+                )
+                return@launch
+            }
+
+            val plan = WorkoutPlan(state.selections.values.toList())  // Direct toList() of items
+
+            val id = if (state.editMode && state.editingTemplateId != null) {
+                state.editingTemplateId
+            } else {
+                generateId()
+            }!!
+
+            val template = WorkoutTemplate(
+                id = id,
+                name = state.templateName,
+                plan = plan
+            )
+
             try {
                 templateRepository.saveTemplate(template)
-                _uiState.value = state.copy(isSaving = false, error = null)
+                _uiState.value = state.copy(
+                    isSaving = false,
+                    error = null,
+                    editMode = false,
+                    editingTemplateId = null,
+                    selections = emptyMap(),
+                    templateName = ""
+                )
             } catch (e: Exception) {
-                _uiState.value = state.copy(error = e.message)
+                _uiState.value = state.copy(
+                    isSaving = false,
+                    error = e.message
+                )
             }
         }
     }
@@ -98,6 +131,15 @@ class WorkoutCustomizationViewModel @Inject constructor(
             templateName = template.name,
             editMode = true,
             editingTemplateId = template.id
+        )
+    }
+
+    fun clearTemplate() {
+        _uiState.value = _uiState.value.copy(
+            selections = emptyMap(),
+            templateName = "",
+            editMode = false,
+            editingTemplateId = null
         )
     }
 

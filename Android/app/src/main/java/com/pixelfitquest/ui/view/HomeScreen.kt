@@ -76,6 +76,10 @@ fun HomeScreen(
     val todaySteps by viewModel.todaySteps.collectAsState()
     val stepGoal by viewModel.stepGoal.collectAsState()
 
+    // NEW: Collect leaderboard states
+    val rank by viewModel.rank.collectAsState()
+    val totalUsers by viewModel.totalUsers.collectAsState()
+
     // UPDATED: Removed invalid 'infinite = true' (fixes LaunchedEffect signature / delay errors)
     LaunchedEffect(Unit) {
         while (true) {
@@ -197,20 +201,67 @@ fun HomeScreen(
             )
 
             // Steps text on top of the image (centered)
-            Row(
+            Column(
                 modifier = Modifier.align(Alignment.Center),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "👟",
-                    fontSize = 20.sp,
+                    text = "Steps",
+                    fontSize = 16.sp,
                     color = Color.White,
-                    modifier = Modifier.padding(end = 6.dp)
+                    fontWeight = MaterialTheme.typography.titleMedium.fontWeight
                 )
                 Text(
                     text = "$todaySteps / $stepGoal",
                     fontSize = 18.sp,
+                    color = Color.White,
+                    fontWeight = MaterialTheme.typography.titleMedium.fontWeight
+                )
+                Text(
+                    text = "+50 EXP, +10 Coins",
+                    fontSize = 12.sp,
+                    color = Color.White
+                )
+            }
+        }
+
+        // NEW: Leaderboard display positioned under the steps box
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(top = 172.dp, start = 16.dp, end = 16.dp)  // 84 + 80 + 8 = 172.dp for small 8.dp space
+                .height(100.dp)
+        ) {
+            // Background image based on rank (assume you have these drawables: first_place, second_place, etc.)
+            val rankBackground = when (rank) {
+                1 -> R.drawable.first_place
+                2 -> R.drawable.second_place
+                3 -> R.drawable.third_place
+                else -> R.drawable.fourth_and_more
+            }
+            Image(
+                painter = painterResource(id = rankBackground),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
+
+            // Placement text on top (centered)
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = ordinal(rank),
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = MaterialTheme.typography.titleMedium.fontWeight
+                )
+                Text(
+                    text = "/ $totalUsers users",
+                    fontSize = 16.sp,
                     color = Color.White,
                     fontWeight = MaterialTheme.typography.titleMedium.fontWeight
                 )
@@ -250,7 +301,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 280.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),  // Adjust for workout row
+                .padding(top = 288.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),  // 172 + 100 + 16 = 288.dp for space to buttons
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -262,8 +313,14 @@ fun HomeScreen(
                 Button(onClick = { viewModel.addExp(150) }) {  // Adjust amount to test level up (e.g., enough for 1-2 levels)
                     Text("Test Level Up (+150 XP)")
                 }
+                Button(onClick = { viewModel.addCoins(100) }) {
+                    Text("Add 100 Coins")
+                }
                 Button(onClick = { viewModel.resetUserData() }) {
                     Text("Reset to Level 1")
+                }
+                Button(onClick = { viewModel.resetUnlockedVariants() }) {
+                    Text("Reset Unlocked Variants")
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = { viewModel.incrementStreak() }) {
@@ -289,6 +346,18 @@ fun HomeScreen(
             }
         }
     }
+}
+
+// NEW: Helper function for ordinal suffixes (1st, 2nd, etc.)
+fun ordinal(i: Int): String {
+    val suffix = when {
+        i % 100 in 11..13 -> "th"
+        i % 10 == 1 -> "st"
+        i % 10 == 2 -> "nd"
+        i % 10 == 3 -> "rd"
+        else -> "th"
+    }
+    return "$i$suffix"
 }
 
 @Composable
