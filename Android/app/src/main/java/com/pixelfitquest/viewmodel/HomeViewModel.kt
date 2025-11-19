@@ -5,8 +5,10 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.Helpers.SPLASH_SCREEN
 import com.pixelfitquest.model.UserGameData
+import com.pixelfitquest.model.Workout
 import com.pixelfitquest.model.service.AccountService
 import com.pixelfitquest.repository.UserRepository
+import com.pixelfitquest.repository.WorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,14 +23,18 @@ import com.samsung.android.sdk.health.data.request.DataTypes
 import com.samsung.android.sdk.health.data.request.LocalDateFilter
 import com.samsung.android.sdk.health.data.request.LocalTimeFilter
 import com.samsung.android.sdk.health.data.HealthDataService
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import kotlin.collections.emptyList
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val accountService: AccountService,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val workoutRepository: WorkoutRepository
 ) : PixelFitViewModel() {
 
     private val _userGameData = MutableStateFlow<UserGameData?>(null)
@@ -39,6 +45,9 @@ class HomeViewModel @Inject constructor(
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
+
+    private val _workouts = MutableStateFlow<List<Workout>>(emptyList())
+    val workouts: StateFlow<List<Workout>> = _workouts.asStateFlow()
 
     // NEW: Steps states
     private val _todaySteps = MutableStateFlow(0L)
@@ -64,6 +73,7 @@ class HomeViewModel @Inject constructor(
                 if (user == null) {
                     restartApp(SPLASH_SCREEN)
                 }
+
             }
         }
 
@@ -73,6 +83,7 @@ class HomeViewModel @Inject constructor(
                 userRepository.loadProgressionConfig()
                 // Only load user data after config is loaded
                 loadUserData()
+                fetchCompletedWorkouts()
 
                 // NEW: Initialize Health connection and steps
                 initializeHealthConnection(activity)
@@ -239,6 +250,18 @@ class HomeViewModel @Inject constructor(
         } catch (e: HealthDataException) {
             Log.e("HomeVM", "Fetch failed", e)
             _error.value = "Steps fetch error: ${e.message}"
+        }
+    }
+
+    private fun fetchCompletedWorkouts() {
+        viewModelScope.launch {
+            try {
+                val list = workoutRepository.getAllCompletedWorkouts()  // ← You'll add this method
+                _workouts.value = list.sortedByDescending { it.date }  // Latest first
+            } catch (e: Exception) {
+                _error.value = "Failed to load workout history"
+                Log.e("HomeVM", "Error loading workouts", e)
+            }
         }
     }
 

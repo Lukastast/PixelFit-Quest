@@ -49,6 +49,9 @@ android {
     }
     buildToolsVersion = "36.0.0"
 
+    kapt {
+        correctErrorTypes = true
+    }
 }
 
 dependencies {
@@ -81,12 +84,10 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.57.2")
     implementation(libs.androidx.room.ktx)
     implementation(libs.play.services.tagmanager.v4.impl)
+    implementation(libs.androidx.material3)
     kapt("com.google.dagger:hilt-compiler:2.57.2")
+    kapt("com.google.dagger:hilt-android-compiler:2.57.2")
 
-    //libGDX
-    implementation("com.badlogicgames.gdx:gdx:1.14.0")
-    implementation("com.badlogicgames.gdx:gdx-backend-android:1.14.0")
-    implementation("com.badlogicgames.gdx:gdx-tools:1.14.0")
     //json passing
     implementation(libs.gson)
 

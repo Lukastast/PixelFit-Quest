@@ -21,6 +21,7 @@ data class WorkoutPlan(
     }
 }
 
+
 data class WorkoutTemplate(
     val id: String,
     val name: String,
@@ -49,7 +50,6 @@ data class WorkoutTemplate(
                     is Number -> rawSets.toInt()
                     else -> 0
                 }.coerceAtLeast(1)
-                Log.d("TemplateFromMap", "Item sets raw: $rawSets, parsed: $sets")  // Keep log for debug
 
                 val rawWeight = itemMap["weight"]
                 val weight = when (rawWeight) {
@@ -60,7 +60,6 @@ data class WorkoutTemplate(
                     is Number -> rawWeight.toFloat()
                     else -> 0f
                 }
-                Log.d("TemplateFromMap", "Item weight raw: $rawWeight, parsed: $weight")  // Add log for debug
 
                 workoutType?.let { WorkoutPlanItem(it, sets, weight) }
             } ?: emptyList()

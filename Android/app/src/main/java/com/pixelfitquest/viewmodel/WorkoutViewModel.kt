@@ -2,17 +2,24 @@ package com.pixelfitquest.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.pixelfitquest.Helpers.WORKOUT_RESUME_SCREEN
+import com.pixelfitquest.model.CharacterData
 import com.pixelfitquest.model.Exercise
 import com.pixelfitquest.model.ExerciseType
 import com.pixelfitquest.model.UserSettings
 import com.pixelfitquest.model.Workout
+import com.pixelfitquest.model.WorkoutFeedback
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.model.WorkoutSet
+import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.UserSettingsRepository
 import com.pixelfitquest.repository.WorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -26,7 +33,8 @@ import kotlin.math.sqrt
 @HiltViewModel
 class WorkoutViewModel @Inject constructor(
     private val userSettingsRepository: UserSettingsRepository,
-    private val workoutRepository: WorkoutRepository
+    private val workoutRepository: WorkoutRepository,
+    private val userRepository: UserRepository
 ) : PixelFitViewModel() {
 
     private val _workoutState = MutableStateFlow(WorkoutState())
@@ -38,8 +46,10 @@ class WorkoutViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private lateinit var workoutName: String
+
     private val repIntervalMs = 1000L  // For 2-3s rep cycles
-    private val lowPassAlpha = 0.9f
+    private val lowPassAlpha = 0.7f
     private val minPhaseDisp = 0.05f
     private val hysteresisWindow = 3
     private val dtHistory: Deque<Float> = ArrayDeque<Float>(3)
@@ -66,7 +76,7 @@ class WorkoutViewModel @Inject constructor(
     // For averaging and failed reps
     private var totalRepTime: Long = 0L
     private var lastPeakTime = 0L
-    private var stabilizationTimeMs = 3000L
+    private var stabilizationTimeMs = 1000L
 
     // Plan-based tracking
     private var currentPlan: WorkoutPlan? = null
@@ -87,9 +97,19 @@ class WorkoutViewModel @Inject constructor(
 
     private val maxTiltAccel = 4.0f  // FIXED: Threshold for max tilt (tune via testing)
 
+    //animation
+    private val _characterData = MutableStateFlow(CharacterData())
+    val characterData: StateFlow<CharacterData> = _characterData.asStateFlow()
+
+    //navigation
+    private val _navigationEvent = MutableSharedFlow<String>(replay = 1)
+    val navigationEvent: SharedFlow<String> = _navigationEvent.asSharedFlow()
+
+
     init {
         launchCatching {
             loadUserData()
+            loadCharacterData()
         }
     }
 
@@ -108,7 +128,8 @@ class WorkoutViewModel @Inject constructor(
 
             val upwardUnit = normalizeGravity()
             val (netAccelX, netAccelY, netAccelZ ) = calculateNetAccel(accel)
-            val verticalAccel = calculateVerticalAccel(accel,upwardUnit)
+            val netAccel = floatArrayOf(netAccelX, netAccelY, netAccelZ)
+            val verticalAccel = calculateVerticalAccel(netAccel, upwardUnit)
 
             val smoothedAccel = smoothAccel(verticalAccel)
             accumulateTilt(netAccelX, netAccelZ, netAccelY)
@@ -274,8 +295,11 @@ class WorkoutViewModel @Inject constructor(
         //Log.d("TiltAccumDebug", "New sample: X=$tiltXSum, Y=$tiltYSum; Z=$tiltZSum total samples: $tiltSampleCount")
     }
     fun startWorkoutFromPlan(plan: WorkoutPlan, templateName: String? = null) {
-        val workoutName = templateName?.lowercase()?.replace(" ", "_") ?: "workout"
-        workoutId = "${workoutName}_${LocalDate.now()}_${ System.currentTimeMillis() % 1000000}"
+        workoutName = templateName?.takeIf { it.isNotBlank() }
+            ?.lowercase()
+            ?.replace(" ", "_")
+            ?: "workout"
+        workoutId = "${workoutName}_${LocalDate.now()}_${System.currentTimeMillis() % 1_000_000}"
         currentPlan = plan
         currentExerciseIndex = 0
         currentSetNumber = 1
@@ -329,51 +353,51 @@ class WorkoutViewModel @Inject constructor(
         isSetActive = false
         _workoutState.value = _workoutState.value.copy(isSetActive = false)
 
-        saveCurrentSet()
+        saveCurrentSet()  // Assumes this adds to completedSets and saves
 
         val currentPlan = currentPlan ?: return
         val currentItem = currentPlan.items.getOrNull(currentExerciseIndex) ?: return
+
+        // NEW: Check if this was the last set *before* increment
+        val wasLastSet = currentSetNumber == currentItem.sets
         currentSetNumber++
-        if (currentSetNumber > currentItem.sets) {
+
+        if (currentSetNumber > currentItem.sets) {  // Now advances after last set
+            // NEW: Call finishExercise() here if it was the last set (saves aggregate before advancing)
+            if (wasLastSet) {
+                finishExercise()  // Save-only now—no double increment
+            }
+
             currentExerciseIndex++
             currentSetNumber = 1
             if (currentExerciseIndex >= currentPlan.items.size) {
                 Log.d("WorkoutVM", "Workout complete!")
-                stopWorkout()
+                finishWorkout()
                 return
             }
             currentExerciseType = currentPlan.items[currentExerciseIndex].exercise
         }
+
         _workoutState.value = _workoutState.value.copy(
             currentSetNumber = currentSetNumber,
             currentExerciseIndex = currentExerciseIndex
         )
-        Log.d("WorkoutVM", "Finished set, advanced to $currentSetNumber")
+        Log.d("WorkoutVM", "Finished set $ (currentSetNumber - 1), advanced to set $currentSetNumber of exercise $currentExerciseIndex")
     }
     fun finishExercise() {
-        val exerciseScore = _workoutState.value.romScore
+
         val exerciseId = currentExerciseType!!.name.lowercase().replace("_", "-")
         val exercise = Exercise(
             id = exerciseId,
             workoutId = workoutId,
             type = currentExerciseType!!,
             totalSets = currentPlan!!.items[currentExerciseIndex].sets,
-            exerciseScore = exerciseScore,
             weight = _workoutState.value.weight,
             notes = _workoutState.value.notes
         )
         viewModelScope.launch {
             workoutRepository.saveExercise(exercise)
-            Log.d("WorkoutVM", "Saved exercise $exercise.id under workout $workoutId")
-        }
-        // Advance to next exercise
-        currentExerciseIndex++
-        currentSetNumber = 1
-        if (currentExerciseIndex >= currentPlan!!.items.size) {
-            finishWorkout()
-        } else {
-            currentExerciseType = currentPlan!!.items[currentExerciseIndex].exercise
-            _workoutState.value = _workoutState.value.copy(currentExerciseIndex = currentExerciseIndex)
+            Log.d("WorkoutVM", "finish exercise() Saved exercise $exercise.id under workout $workoutId")
         }
     }
 
@@ -381,21 +405,23 @@ class WorkoutViewModel @Inject constructor(
         val workout = Workout(
             id = workoutId,
             date = Instant.now().toString(),
-            name = "Workout Session",  // From UI or plan
+            name = workoutName,
             totalExercises = currentPlan!!.items.size,
             totalSets = currentPlan!!.items.sumOf { it.sets },
             overallScore = _workoutState.value.avgRomScore,
             notes = null
         )
-        viewModelScope.launch {
+        launchCatching {
             workoutRepository.saveWorkout(workout)
             stopWorkout()
+            Log.d("WorkoutVM", "Saved workout, should navigate to resume $workoutId")
+            _navigationEvent.emit(workoutId)
         }
     }
     private fun saveCurrentSet() {
         val currentState = _workoutState.value
         if (currentPlan == null || currentExerciseType == null) return
-        val exerciseId = currentExerciseType!!.name.lowercase().replace("_", "")
+        val exerciseId = currentExerciseType!!.name.lowercase().replace("_", "-")
         val setId = "set_${currentSetNumber}"
 
         val set = WorkoutSet(
@@ -405,6 +431,7 @@ class WorkoutViewModel @Inject constructor(
             setNumber = currentSetNumber,
             reps = currentState.reps,
             romScore = currentState.romScore,
+            workoutScore = (currentState.romScore + (100-abs(currentState.avgTiltXScore)) + (100-abs(currentState.avgTiltZScore))) / 3f,
             xTiltScore = currentState.avgTiltXScore,
             zTiltScore = currentState.avgTiltZScore,
             avgRepTime = currentState.avgRepTime,
@@ -445,6 +472,26 @@ class WorkoutViewModel @Inject constructor(
         return score
     }
 
+    private fun loadCharacterData() {
+        viewModelScope.launch {
+            userRepository.getCharacterData().collect { data ->
+                _characterData.value = data ?: CharacterData()
+            }
+        }
+    }
+
+    private fun updateFeedback(score: Float) {
+        val feedback = when {
+            score >= 90 -> WorkoutFeedback.PERFECT
+            score >= 70 -> WorkoutFeedback.GREAT
+            score >= 50 -> WorkoutFeedback.GOOD
+            else -> WorkoutFeedback.MISS
+        }
+        _workoutState.value = _workoutState.value.copy(feedback = feedback, showFeedback = true)
+    }
+    fun hideFeedback() {
+        _workoutState.value = _workoutState.value.copy(showFeedback = false, feedback = null)
+    }
     fun setError(message: String?) {
         _error.value = message
     }
@@ -480,6 +527,8 @@ class WorkoutViewModel @Inject constructor(
         val avgTiltXScore = if (newReps > 0) (newTotalTiltX / newReps.toFloat()).coerceIn(-100f, 100f) else 0f
         val avgTiltZScore = if (newReps > 0) (newTotalTiltZ / newReps.toFloat()).coerceIn(-100f, 100f) else 0f
 
+        val workoutScore = (avgRomScore + (100-abs(avgTiltXScore)) + (100-abs(100-avgTiltZScore))) / 3f
+        updateFeedback(workoutScore)
         Log.d("TiltDebug", "Rep avg X: $avgTiltX, Y: $avgTiltZ | Score X: $tiltXScore, Z: $tiltZScore")
 
         tiltXSum = 0f
@@ -514,7 +563,8 @@ class WorkoutViewModel @Inject constructor(
             avgTiltXScore = avgTiltXScore,
             avgTiltZScore = avgTiltZScore,
             tiltXScore = tiltXScore,
-            tiltZScore = tiltZScore
+            tiltZScore = tiltZScore,
+            workoutScore = workoutScore
         )
 
         Log.d("WorkoutVM", "Rep completed: $newReps reps, ROM: $newEstROM cm")
@@ -550,6 +600,8 @@ class WorkoutViewModel @Inject constructor(
         val tiltXScore: Float = 0f,  // tilt (-100 left, +100 right, 0 centered)
         val tiltZScore: Float = 0f,
         val weight: Float = 0f,
-        val notes: String? = null
+        val notes: String? = null,
+        val feedback: WorkoutFeedback? = null,
+        val showFeedback: Boolean = false
     )
 }

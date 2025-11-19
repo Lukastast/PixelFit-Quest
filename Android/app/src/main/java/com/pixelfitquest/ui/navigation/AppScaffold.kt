@@ -1,6 +1,6 @@
 package com.pixelfitquest.ui.navigation
 
-import androidx.compose.foundation.background
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +28,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -45,6 +46,7 @@ import com.pixelfitquest.Helpers.SIGNUP_SCREEN
 import com.pixelfitquest.Helpers.SPLASH_SCREEN
 import com.pixelfitquest.Helpers.WORKOUT_CUSTOMIZATION_SCREEN
 import com.pixelfitquest.Helpers.WORKOUT_SCREEN
+import com.pixelfitquest.R
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.ui.screens.LoginScreen
 import com.pixelfitquest.ui.view.CustomizationScreen
@@ -54,8 +56,9 @@ import com.pixelfitquest.ui.view.SettingsScreen
 import com.pixelfitquest.ui.view.SignupScreen
 import com.pixelfitquest.ui.view.SplashScreen
 import com.pixelfitquest.ui.view.WorkoutCustomizationScreen
+import com.pixelfitquest.ui.view.WorkoutResumeScreen
 import com.pixelfitquest.ui.view.WorkoutScreen
-import com.pixelfitquest.R
+import com.pixelfitquest.viewmodel.WorkoutResumeViewModel
 
 @Composable
 fun AppScaffold() {
@@ -91,7 +94,6 @@ fun AppScaffold() {
                         BottomNavItem.Home,
                         BottomNavItem.Settings,
                         BottomNavItem.Customization,
-                        //BottomNavItem.Workout,
                         BottomNavItem.WorkoutCustomization
                     )
 
@@ -165,6 +167,7 @@ fun NavGraphBuilder.pixelFitGraph(appState: AppState) {
         )
     }
 
+
     composable(SIGNUP_SCREEN) {
         SignupScreen(
             openScreen = { route -> appState.navigate(route) },
@@ -180,7 +183,24 @@ fun NavGraphBuilder.pixelFitGraph(appState: AppState) {
     composable(HOME_SCREEN) {
         HomeScreen(
             restartApp = { route -> appState.clearAndNavigate(route) },
-            openScreen = { route -> appState.navigate(route) }
+            openScreen = { route -> appState.navigate(route) },
+            navController = appState.navController
+        )
+    }
+
+    composable(
+        route = "workout_resume/{workoutId}",
+        arguments = listOf(navArgument("workoutId") { type = NavType.StringType })
+    ) { backStackEntry ->
+
+        val workoutId = backStackEntry.arguments?.getString("workoutId") ?: ""
+
+        val viewModel: WorkoutResumeViewModel =
+            hiltViewModel(viewModelStoreOwner = backStackEntry)
+
+        WorkoutResumeScreen(
+            openScreen = { route -> appState.navigate(route) },
+            viewModel = viewModel,
         )
     }
 
@@ -203,7 +223,8 @@ fun NavGraphBuilder.pixelFitGraph(appState: AppState) {
         WorkoutScreen(
             plan = plan,
             templateName = templateName,
-            openScreen = { route -> appState.navigate(route) }
+            openScreen = { route -> appState.navigate(route) },
+            navController = appState.navController
         )
     }
 
