@@ -7,10 +7,11 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.rememberNavController
-import com.pixelfitquest.Helpers.SnackbarManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.pixelfitquest.Helpers.SnackbarManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
@@ -46,6 +47,10 @@ class AppState(
         navController.navigate(route) { launchSingleTop = true }
     }
 
+    fun navigate(route: String, builder: NavOptions.Builder.() -> Unit = {}) {
+        val options = NavOptions.Builder().apply(builder).build()
+        navController.navigate(route, options)
+    }
     fun navigateAndPopUp(route: String, popUp: String) {
         navController.navigate(route) {
             launchSingleTop = true
