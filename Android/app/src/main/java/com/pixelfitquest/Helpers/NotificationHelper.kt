@@ -95,4 +95,20 @@ object NotificationHelper {
             // Handle permission denial
         }
     }
+
+    fun showMissionCompletedNotification(context: Context, mission: String, reward: String) {
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.pixelfiticon)
+            .setContentTitle("Mission Completed!")
+            .setContentText("You completed: $mission. Reward: +$reward")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+        try {
+            with(NotificationManagerCompat.from(context)) {
+                notify(5, builder.build())  // Unique ID for mission notifications
+            }
+        } catch (e: SecurityException) {
+            // Handle permission denial
+        }
+    }
 }
