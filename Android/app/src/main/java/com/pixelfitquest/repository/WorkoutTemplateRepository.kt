@@ -42,7 +42,8 @@ class WorkoutTemplateRepository @Inject constructor(
                 } else {
                     val templates = snapshot?.documents?.mapNotNull { doc ->
                         try {
-                            WorkoutTemplate.fromMap(doc.data ?: emptyMap())  // Now resolves
+                            val data = doc.data ?: emptyMap()
+                            WorkoutTemplate.fromMap(data).copy(id = doc.id)
                         } catch (ex: Exception) {
                             null
                         }
@@ -63,7 +64,8 @@ class WorkoutTemplateRepository @Inject constructor(
                 .await()
             snapshot.documents.mapNotNull { doc ->
                 try {
-                    WorkoutTemplate.fromMap(doc.data ?: emptyMap())
+                    val data = doc.data ?: emptyMap()
+                    WorkoutTemplate.fromMap(data).copy(id = doc.id)
                 } catch (ex: Exception) {
                     null
                 }
@@ -92,7 +94,8 @@ class WorkoutTemplateRepository @Inject constructor(
                 .await()
             snapshot.documents.firstOrNull()?.let { doc ->
                 try {
-                    WorkoutTemplate.fromMap(doc.data ?: emptyMap())
+                    val data = doc.data ?: emptyMap()
+                    WorkoutTemplate.fromMap(data).copy(id = doc.id)
                 } catch (ex: Exception) {
                     null
                 }

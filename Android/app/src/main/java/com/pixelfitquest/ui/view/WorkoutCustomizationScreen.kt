@@ -130,6 +130,13 @@ fun WorkoutCustomizationScreen(
         }
     }
 
+    // NEW: Clear selection after successful save
+    LaunchedEffect(uiState.isSaving, uiState.editMode, uiState.error) {
+        if (!uiState.isSaving && !uiState.editMode && uiState.error == null) {
+            selectedTemplateId = null
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },  // Positions Snackbar at bottom
         bottomBar = {

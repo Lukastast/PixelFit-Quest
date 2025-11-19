@@ -83,6 +83,7 @@ dependencies {
     implementation(libs.play.services.tagmanager.v4.impl)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.lifecycle.process)
+    implementation(libs.androidx.compose.ui.text)
     kapt("com.google.dagger:hilt-compiler:2.57.2")
 
     //libGDX
