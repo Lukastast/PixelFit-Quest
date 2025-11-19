@@ -27,7 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.ui.theme.PixelFitQuestTheme
 import com.pixelfitquest.viewmodel.HomeViewModel
@@ -58,6 +58,10 @@ fun HomeScreen(
     // NEW: Collect steps states
     val todaySteps by viewModel.todaySteps.collectAsState()
     val stepGoal by viewModel.stepGoal.collectAsState()
+
+    // NEW: Collect leaderboard states
+    val rank by viewModel.rank.collectAsState()
+    val totalUsers by viewModel.totalUsers.collectAsState()
 
     // UPDATED: Removed invalid 'infinite = true' (fixes LaunchedEffect signature / delay errors)
     LaunchedEffect(Unit) {
@@ -205,11 +209,53 @@ fun HomeScreen(
             }
         }
 
+        // NEW: Leaderboard display positioned under the steps box
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(top = 172.dp, start = 16.dp, end = 16.dp)  // 84 + 80 + 8 = 172.dp for small 8.dp space
+                .height(100.dp)
+        ) {
+            // Background image based on rank (assume you have these drawables: first_place, second_place, etc.)
+            val rankBackground = when (rank) {
+                1 -> R.drawable.first_place
+                2 -> R.drawable.second_place
+                3 -> R.drawable.third_place
+                else -> R.drawable.fourth_and_more
+            }
+            Image(
+                painter = painterResource(id = rankBackground),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
+
+            // Placement text on top (centered)
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = ordinal(rank),
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = MaterialTheme.typography.titleMedium.fontWeight
+                )
+                Text(
+                    text = "/ $totalUsers users",
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = MaterialTheme.typography.titleMedium.fontWeight
+                )
+            }
+        }
+
         // Main centered content (buttons only)
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 180.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),  // 84 + 80 + 16 = 180.dp for space to buttons
+                .padding(top = 288.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),  // 172 + 100 + 16 = 288.dp for space to buttons
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -254,6 +300,18 @@ fun HomeScreen(
             }
         }
     }
+}
+
+// NEW: Helper function for ordinal suffixes (1st, 2nd, etc.)
+fun ordinal(i: Int): String {
+    val suffix = when {
+        i % 100 in 11..13 -> "th"
+        i % 10 == 1 -> "st"
+        i % 10 == 2 -> "nd"
+        i % 10 == 3 -> "rd"
+        else -> "th"
+    }
+    return "$i$suffix"
 }
 
 @Preview(showBackground = true)

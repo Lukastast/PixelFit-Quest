@@ -130,6 +130,13 @@ fun WorkoutCustomizationScreen(
         }
     }
 
+    // NEW: Clear selection after successful save
+    LaunchedEffect(uiState.isSaving, uiState.editMode, uiState.error) {
+        if (!uiState.isSaving && !uiState.editMode && uiState.error == null) {
+            selectedTemplateId = null
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },  // Positions Snackbar at bottom
         bottomBar = {
@@ -234,7 +241,7 @@ fun WorkoutCustomizationScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = if (uiState.editMode) "Edit Template Name" else "Template Name (Optional)",
+                            text = if (uiState.editMode) "Edit Template Name" else "Template Name",
                             style = typography.bodyMedium,
                             color = Color.White
                         )
@@ -571,8 +578,13 @@ fun WorkoutCustomizationScreen(
                                     Row {
                                         IconButton(
                                             onClick = {
-                                                selectedTemplateId = template.id
-                                                viewModel.loadTemplate(template)
+                                                if (selectedTemplateId == template.id) {
+                                                    selectedTemplateId = null
+                                                    viewModel.clearTemplate()
+                                                } else {
+                                                    selectedTemplateId = template.id
+                                                    viewModel.loadTemplate(template)
+                                                }
                                             }
                                         ) {
                                             Icon(
@@ -598,8 +610,13 @@ fun WorkoutCustomizationScreen(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = null,
                                         onClick = {
-                                            selectedTemplateId = template.id
-                                            viewModel.loadTemplate(template)
+                                            if (selectedTemplateId == template.id) {
+                                                selectedTemplateId = null
+                                                viewModel.clearTemplate()
+                                            } else {
+                                                selectedTemplateId = template.id
+                                                viewModel.loadTemplate(template)
+                                            }
                                         }
                                     ),
                                 colors = ListItemDefaults.colors(

@@ -307,4 +307,18 @@ class UserRepository @Inject constructor(
         "exp" to exp,
         "streak" to streak
     )
+
+    // NEW: Fetch leaderboard data (all users sorted by level desc, then exp desc)
+    suspend fun getLeaderboard(): List<Pair<String, UserGameData>> {
+        return try {
+            val snapshot = usersCollection.get().await()
+            snapshot.documents.mapNotNull { doc ->
+                val data = doc.toObject<UserGameData>() ?: return@mapNotNull null
+                Pair(doc.id, data)
+            }.sortedWith(compareByDescending<Pair<String, UserGameData>> { it.second.level }.thenByDescending { it.second.exp })
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to fetch leaderboard", e)
+            emptyList()
+        }
+    }
 }
