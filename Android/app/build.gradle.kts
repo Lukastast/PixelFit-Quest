@@ -71,6 +71,9 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
     implementation("com.google.firebase:firebase-firestore")
 
+    //notifications
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+
     //google
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
@@ -85,6 +88,7 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.compose.ui.text)
+    implementation(libs.androidx.hilt.common)
     kapt("com.google.dagger:hilt-compiler:2.57.2")
     kapt("com.google.dagger:hilt-android-compiler:2.57.2")
 

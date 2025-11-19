@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -37,7 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pixelfitquest.R
 import com.pixelfitquest.model.Workout
@@ -56,6 +57,8 @@ fun HomeScreen(
 ) {
     // UPDATED: Use LocalActivity.current (fixes cast comment; safe and recommended)
     val activity = LocalActivity.current
+
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.initialize(restartApp, activity)  // UPDATED: Pass Activity
@@ -306,28 +309,66 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Temporary test buttons for level up, reset, streak (remove after testing)
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row() {
-
-                    Button(onClick = { viewModel.addExp(150) }) {  // Adjust amount to test level up (e.g., enough for 1-2 levels)
+                item {
+                    Button(onClick = { viewModel.addExp(150) }) {
                         Text("Test Level Up (+150 XP)")
                     }
+                }
+                item {
                     Button(onClick = { viewModel.addCoins(100) }) {
                         Text("Add 100 Coins")
                     }
                 }
-                Row() {
+                item {
                     Button(onClick = { viewModel.resetUserData() }) {
                         Text("Reset to Level 1")
                     }
+                }
+                item {
                     Button(onClick = { viewModel.resetUnlockedVariants() }) {
                         Text("Reset Unlocked Variants")
                     }
                 }
-            }
+                item {
+                    Button(onClick = { viewModel.incrementStreak() }) {
+                        Text("Streak ++")
+                    }
+                }
+                item {
+                    Button(onClick = { viewModel.resetStreak() }) {
+                        Text("Reset Streak")
+                    }
+                }
+                item {
+                    Button(onClick = { viewModel.refreshSteps(activity) }) {  // UPDATED: Pass Activity
+                        Text("Refresh Steps Now")
+                    }
+                }
+                // NEW: Test buttons for notifications
+                item {
+                    Button(onClick = { NotificationHelper.showStepGoalCompletedNotification(context) }) {
+                        Text("Test Step Goal Completed")
+                    }
+                }
+                item {
+                    Button(onClick = { NotificationHelper.showStepGoalReminderNotification(context) }) {
+                        Text("Test Step Goal Reminder")
+                    }
+                }
+                item {
+                    Button(onClick = { NotificationHelper.showWorkoutCompletedNotification(context) }) {
+                        Text("Test Workout Completed")
+                    }
+                }
+                item {
+                    Button(onClick = { NotificationHelper.showWorkoutReminderNotification(context) }) {
+                        Text("Test Workout Reminder")
+                    }
+                }
             }
 
             if (error != null) {
@@ -339,6 +380,7 @@ fun HomeScreen(
             }
         }
     }
+}
 
 // NEW: Helper function for ordinal suffixes (1st, 2nd, etc.)
 fun ordinal(i: Int): String {
@@ -442,8 +484,8 @@ fun String.formatDate(): String {
 @Composable
 fun HomeScreenPreview() {
     //PixelFitQuestTheme {
-     //   HomeScreen(
+    //   HomeScreen(
     //        restartApp = {},
-     //       openScreen = {},
-  //  }
+    //       openScreen = {},
+    //  }
 }
