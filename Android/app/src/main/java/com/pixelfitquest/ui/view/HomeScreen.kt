@@ -42,11 +42,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pixelfitquest.R
 import com.pixelfitquest.model.Workout
+import com.pixelfitquest.utils.NotificationHelper
 import com.pixelfitquest.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 fun HomeScreen(
@@ -83,6 +88,10 @@ fun HomeScreen(
     val rank by viewModel.rank.collectAsState()
     val totalUsers by viewModel.totalUsers.collectAsState()
 
+    // NEW: Collect daily missions and completed
+    val dailyMissions by viewModel.dailyMissions.collectAsState()
+    val completedMissions by viewModel.completedMissions.collectAsState()
+
     // UPDATED: Removed invalid 'infinite = true' (fixes LaunchedEffect signature / delay errors)
     LaunchedEffect(Unit) {
         while (true) {
@@ -99,6 +108,12 @@ fun HomeScreen(
     } else {
         0
     }
+
+    // NEW: Calculate today's workouts count for mission progress
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+    val today = dateFormat.format(Date())
+    val todaysWorkouts = workouts.count { it.date == today }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Top stats row with background image
@@ -275,9 +290,10 @@ fun HomeScreen(
             modifier = Modifier
                 .align(Alignment.Center)
                 .fillMaxWidth()
-                .padding(top = 65.dp, start = 4.dp, end = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(top = 280.dp, start = 16.dp, end = 16.dp),  // Moved below leaderboard (172 + 100 + 8 = 280.dp)
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
+
         ) {
             if (workouts.isEmpty()) {
                 item {
@@ -285,6 +301,7 @@ fun HomeScreen(
                         text = "No completed workouts yet",
                         color = Color.White.copy(alpha = 0.7f),
                         modifier = Modifier.padding(16.dp)
+
                     )
                 }
             } else {
@@ -300,12 +317,80 @@ fun HomeScreen(
             }
         }
 
+        // NEW: Daily missions box
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(top = 400.dp, start = 16.dp, end = 16.dp)  // Adjust position below workouts (280 + 100 + 20 = 400.dp; adjust based on LazyRow height)
+                .height(250.dp)  // Increased height for bigger image
+        ) {
+            // Background image
+            Image(
+                painter = painterResource(id = R.drawable.questloginboard_wider),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+
+            // Missions content
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Daily Missions",
+                    fontSize = 18.sp,  // Smaller font size
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                dailyMissions.forEach { (mission, reward) ->
+                    val isCompleted = completedMissions.contains(mission)
+                    val progress = if (isCompleted) "Completed" else {
+                        if (mission.startsWith("Walk")) {
+                            val target = mission.split(" ")[1].toLongOrNull() ?: 0
+                            "$todaySteps / $target"
+                        } else if (mission.startsWith("Complete")) {
+                            val target = mission.split(" ")[1].toIntOrNull() ?: 0
+                            "$todaysWorkouts / $target"
+                        } else ""
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = mission,
+                            color = Color.White,
+                            fontSize = 14.sp  // Smaller font size
+                        )
+                        Text(
+                            text = progress,
+                            color = if (isCompleted) Color.Green else Color.White,
+                            fontSize = 14.sp  // Smaller font size
+                        )
+                        Text(
+                            text = "+$reward",
+                            color = Color.White,
+                            fontSize = 14.sp  // Smaller font size
+                        )
+                    }
+                }
+            }
+        }
+
         // Main centered content (buttons only)
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.Bottom,
+                .padding(top = 660.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),  // Adjust top padding to below missions (400 + 250 + 10 = 660.dp)
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Temporary test buttons for level up, reset, streak (remove after testing)

@@ -3,7 +3,11 @@ package com.pixelfitquest.viewmodel
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.viewModelScope
+import com.PixelFitQuest.model.missionsPool
+import com.PixelFitQuest.model.rewardsPool
 import com.pixelfitquest.Helpers.SPLASH_SCREEN
 import com.pixelfitquest.model.UserGameData
 import com.pixelfitquest.model.Workout
@@ -37,6 +41,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.collections.emptyList
+import kotlin.random.Random
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -72,6 +77,13 @@ class HomeViewModel @Inject constructor(
     private val _totalUsers = MutableStateFlow(0)
     val totalUsers: StateFlow<Int> = _totalUsers.asStateFlow()
 
+    // NEW: Daily missions states
+    private val _dailyMissions = MutableStateFlow(listOf<Pair<String, String>>())
+    val dailyMissions: StateFlow<List<Pair<String, String>>> = _dailyMissions.asStateFlow()
+
+    private val _completedMissions = MutableStateFlow(setOf<String>())
+    val completedMissions: StateFlow<Set<String>> = _completedMissions.asStateFlow()
+
     // NEW: HealthDataStore
     private var healthDataStore: HealthDataStore? = null
 
@@ -105,6 +117,9 @@ class HomeViewModel @Inject constructor(
 
                 // NEW: Initialize Health connection and steps
                 initializeHealthConnection(activity)
+
+                // NEW: Generate daily missions
+                generateDailyMissions()
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to load progression config"
             }
@@ -141,12 +156,8 @@ class HomeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
-                val charData = userRepository.fetchCharacterDataOnce() ?: return@launch
-                val variant = charData.variant
-                val isFitness = variant.contains("fitness")
-                val bonusAmount = if (isFitness) amount + 2 else amount
                 val current = _userGameData.value ?: return@launch
-                userRepository.updateUserGameData(mapOf("coins" to current.coins + bonusAmount))
+                userRepository.updateUserGameData(mapOf("coins" to current.coins + amount))
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to update coins"
             }
@@ -157,11 +168,7 @@ class HomeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
-                val charData = userRepository.fetchCharacterDataOnce() ?: return@launch
-                val variant = charData.variant
-                val isFitness = variant.contains("fitness")
-                val bonusAmount = if (isFitness) amount + 2 else amount
-                userRepository.updateExp(bonusAmount)
+                userRepository.updateExp(amount)
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to update exp"
             }
@@ -324,6 +331,9 @@ class HomeViewModel @Inject constructor(
             // If goal met but not rewarded (though checkAndAwardStepsReward already handles reward + notification)
             checkAndAwardStepsReward()
 
+            // NEW: Check mission completion after updating steps
+            checkMissionsCompletion()
+
             Log.d("HomeVM", "Fetched steps: $totalSteps / Goal: $goal")  // NEW: Success log
 
         } catch (e: HealthDataException) {
@@ -337,6 +347,9 @@ class HomeViewModel @Inject constructor(
             try {
                 val list = workoutRepository.getAllCompletedWorkouts()  // ← You'll add this method
                 _workouts.value = list.sortedByDescending { it.date }  // Latest first
+
+                // NEW: Check mission completion after updating workouts
+                checkMissionsCompletion()
             } catch (e: Exception) {
                 _error.value = "Failed to load workout history"
                 Log.e("HomeVM", "Error loading workouts", e)
@@ -389,19 +402,58 @@ class HomeViewModel @Inject constructor(
         return lastWorkoutDateStr != today  // Return true if reminder needed
     }
 
-    fun testStepGoalCompletedNotification() {
-        NotificationHelper.showStepGoalCompletedNotification(context)
+    // NEW: Generate daily missions
+    private fun generateDailyMissions() {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val today = dateFormat.format(Date())
+        val seed = today.hashCode().toLong()
+        val random = Random(seed)
+
+        val selectedMissions = missionsPool.shuffled(random).take(3)
+        val selectedRewards = rewardsPool.shuffled(random).take(3)
+        _dailyMissions.value = selectedMissions.zip(selectedRewards)
     }
 
-    fun testWorkoutCompletedNotification() {
-        NotificationHelper.showWorkoutCompletedNotification(context)
-    }
+    // NEW: Check mission completion and award rewards
+    private fun checkMissionsCompletion() {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val today = dateFormat.format(Date())
 
-    fun testWorkoutReminderNotification() {
-        NotificationHelper.showWorkoutReminderNotification(context)
-    }
+        val currentCompleted = mutableSetOf<String>()
 
-    fun testStepGoalReminderNotification() {
-        NotificationHelper.showStepGoalReminderNotification(context)
+        // Count today's workouts
+        val todaysWorkouts = _workouts.value.count { it.date == today }
+
+        for ((mission, reward) in _dailyMissions.value) {
+            if (mission.startsWith("Walk")) {
+                val target = mission.split(" ")[1].toLongOrNull() ?: continue
+                if (_todaySteps.value >= target) {
+                    currentCompleted.add(mission)
+                }
+            } else if (mission.startsWith("Complete")) {
+                val target = mission.split(" ")[1].toIntOrNull() ?: continue
+                if (todaysWorkouts >= target) {
+                    currentCompleted.add(mission)
+                }
+            }
+        }
+
+        // Award rewards for newly completed missions
+        val newCompleted = currentCompleted - _completedMissions.value
+        for (mission in newCompleted) {
+            val reward = _dailyMissions.value.firstOrNull { it.first == mission }?.second ?: continue
+            val (type, valueStr) = reward.split(":")
+            val amount = valueStr.toIntOrNull() ?: continue
+            if (type == "EXP") {
+                addExp(amount)
+            } else if (type == "Coins") {
+                addCoins(amount)
+            }
+            // Optional: Show notification for mission completion
+            NotificationHelper.showMissionCompletedNotification(context, mission, reward)
+        }
+
+        _completedMissions.value = currentCompleted
     }
 }
