@@ -1,8 +1,7 @@
 package com.pixelfitquest.ui.view
 
-import androidx.activity.compose.LocalActivity  // NEW: For safe Activity access
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,9 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -185,22 +180,27 @@ fun HomeScreen(
             )
 
             // Steps text on top of the image (centered)
-            Row(
+            Column(
                 modifier = Modifier.align(Alignment.Center),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "👟",
-                    fontSize = 20.sp,
+                    text = "Steps",
+                    fontSize = 16.sp,
                     color = Color.White,
-                    modifier = Modifier.padding(end = 6.dp)
+                    fontWeight = MaterialTheme.typography.titleMedium.fontWeight
                 )
                 Text(
                     text = "${todaySteps} / $stepGoal",
                     fontSize = 18.sp,
                     color = Color.White,
                     fontWeight = MaterialTheme.typography.titleMedium.fontWeight
+                )
+                Text(
+                    text = "+50 EXP, +10 Coins",
+                    fontSize = 12.sp,
+                    color = Color.White
                 )
             }
         }
@@ -221,8 +221,14 @@ fun HomeScreen(
                 Button(onClick = { viewModel.addExp(150) }) {  // Adjust amount to test level up (e.g., enough for 1-2 levels)
                     Text("Test Level Up (+150 XP)")
                 }
+                Button(onClick = { viewModel.addCoins(100) }) {
+                    Text("Add 100 Coins")
+                }
                 Button(onClick = { viewModel.resetUserData() }) {
                     Text("Reset to Level 1")
+                }
+                Button(onClick = { viewModel.resetUnlockedVariants() }) {
+                    Text("Reset Unlocked Variants")
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = { viewModel.incrementStreak() }) {
