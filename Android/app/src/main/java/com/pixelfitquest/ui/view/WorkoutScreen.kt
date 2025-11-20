@@ -55,8 +55,8 @@ import com.pixelfitquest.Helpers.HOME_SCREEN
 import com.pixelfitquest.R
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.ui.components.CharacterIdleAnimation
-import com.pixelfitquest.ui.components.IdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
+import com.pixelfitquest.ui.theme.determination
 import com.pixelfitquest.viewmodel.WorkoutViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -261,7 +261,7 @@ fun WorkoutScreen(
                 enter = scaleIn(initialScale = 0f) + fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
                 exit = scaleOut(targetScale = 0f) + fadeOut() + slideOutVertically(targetOffsetY = { it / 2 }),
                 modifier = Modifier
-                    .align(Alignment.Center)  // Center on screen
+                    .align(Alignment.Center)
                     .padding(16.dp)
             ) {
                 if (state.feedback != null) {
@@ -272,6 +272,7 @@ fun WorkoutScreen(
                         fontSize = 48.sp,  // Large pop-up text
                         fontWeight = FontWeight.Bold,
                         color = feedback.color,
+                        fontFamily = determination,
                         modifier = Modifier
                             .scale(feedback.scale)  // Score-based scale (e.g., Perfect bigger)
                             .background(
@@ -289,8 +290,8 @@ fun WorkoutScreen(
         ) {
             Card(
                 modifier = Modifier
-                    .padding(end = 16.dp)  // Right padding to avoid edge
-                    .widthIn(max = 200.dp),
+                    .padding(end = 8.dp)  // Right padding to avoid edge
+                    .widthIn(max = 150.dp),
                         colors = CardDefaults.cardColors(
                         containerColor = Color.Black.copy(alpha = 0.6f)  // 60% opacity black (adjust 0.0f-1.0f)
                         ),
@@ -303,10 +304,9 @@ fun WorkoutScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     // FIXED: Access accel/ROM in UI
-                    Text("ROM Score: \n${state.romScore.toInt()} / 100, avg = ${state.avgRomScore.toInt()}")
+                    Text("ROM Score: \n${state.romScore.toInt()} / 100 \navg = ${state.avgRomScore.toInt()}")
                     Text("X Tilt Score: \n-100 / ${state.tiltXScore.toInt()} / 100 \navg = ${state.avgTiltXScore.toInt()}")
                     Text("Z Tilt Score: \n-100 / ${state.tiltZScore.toInt()} / 100 \navg = ${state.avgTiltZScore.toInt()}")
-                    Text("Vertical Accel: %.2f".format(state.verticalAccel))
                 }
             }
         }

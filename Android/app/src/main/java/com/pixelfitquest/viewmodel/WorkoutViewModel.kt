@@ -2,7 +2,6 @@ package com.pixelfitquest.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.pixelfitquest.Helpers.WORKOUT_RESUME_SCREEN
 import com.pixelfitquest.model.CharacterData
 import com.pixelfitquest.model.Exercise
 import com.pixelfitquest.model.ExerciseType
@@ -483,6 +482,7 @@ class WorkoutViewModel @Inject constructor(
     private fun updateFeedback(score: Float) {
         val feedback = when {
             score >= 90 -> WorkoutFeedback.PERFECT
+            score >= 80 -> WorkoutFeedback.EXCELLENT
             score >= 70 -> WorkoutFeedback.GREAT
             score >= 50 -> WorkoutFeedback.GOOD
             else -> WorkoutFeedback.MISS
@@ -528,7 +528,8 @@ class WorkoutViewModel @Inject constructor(
         val avgTiltZScore = if (newReps > 0) (newTotalTiltZ / newReps.toFloat()).coerceIn(-100f, 100f) else 0f
 
         val workoutScore = (avgRomScore + (100-abs(avgTiltXScore)) + (100-abs(100-avgTiltZScore))) / 3f
-        updateFeedback(workoutScore)
+        val feedbackScore = (lastRepScore + (100-abs(tiltXScore)) + (100-abs(tiltZScore))) / 3f
+
         Log.d("TiltDebug", "Rep avg X: $avgTiltX, Y: $avgTiltZ | Score X: $tiltXScore, Z: $tiltZScore")
 
         tiltXSum = 0f
@@ -566,7 +567,7 @@ class WorkoutViewModel @Inject constructor(
             tiltZScore = tiltZScore,
             workoutScore = workoutScore
         )
-
+        updateFeedback(feedbackScore)
         Log.d("WorkoutVM", "Rep completed: $newReps reps, ROM: $newEstROM cm")
     }
 

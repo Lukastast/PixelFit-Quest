@@ -185,7 +185,7 @@ fun WorkoutResumeScreen(
                                                 fontWeight = FontWeight.Medium
                                             )
                                             Text(
-                                                text = "${set.workoutScore}/100",
+                                                text = "${set.workoutScore.toInt()}/100",
                                                 fontSize = 16.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = when {
