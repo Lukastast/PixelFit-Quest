@@ -255,7 +255,7 @@ fun HomeScreen(
                 // Leaderboard part on the left
                 Box(
                     modifier = Modifier
-                        .width(100.dp)
+                        .width(150.dp)
                         .fillMaxHeight()
                 ) {
                     val rankBackground = when (rank) {
@@ -304,7 +304,7 @@ fun HomeScreen(
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
                 .padding(top = 280.dp, start = 16.dp, end = 16.dp), // Moved below leaderboard (172 + 100 + 8 = 280.dp)
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (workouts.isEmpty()) {
@@ -560,49 +560,22 @@ fun WorkoutCard(
     workout: Workout,
     onClick: () -> Unit
 ) {
-    Box( // Use Box instead of Card so we can remove rounded corners completely
-        modifier = Modifier
-            .width(140.dp)
-            .height(180.dp)
-            .clickable(onClick = onClick)
+    Box(
+        modifier = Modifier.clickable(onClick = onClick)
     ) {
-        // Full background image (gray stone texture)
         Image(
-            painter = painterResource(id = R.drawable.info_background_even_even_higher),
+            painter = painterResource(id = R.drawable.fourth_and_more),
             contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-        // Dark semi-transparent overlay for text readability
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.size(120.dp, 140.dp),
+            contentScale = ContentScale.Fit
         )
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .matchParentSize()
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Initial letter circle
-            Box(
-                modifier = Modifier
-                    .size(70.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF6200EE).copy(alpha = 0.95f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = workout.name.take(1).uppercase(),
-                    color = Color.White,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            // Workout name
             Text(
                 text = workout.name,
                 color = Color.White,
@@ -613,13 +586,11 @@ fun WorkoutCard(
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(4.dp))
-            // Date
             Text(
                 text = workout.date.formatDate(),
                 color = Color.White.copy(alpha = 0.9f),
                 fontSize = 12.sp
             )
-            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
