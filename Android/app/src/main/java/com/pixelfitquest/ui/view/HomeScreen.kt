@@ -270,9 +270,9 @@ fun HomeScreen(
 
         LazyRow(
             modifier = Modifier
-                .align(Alignment.TopCenter)
+                .align(Alignment.Center)
                 .fillMaxWidth()
-                .padding(top = 180.dp, start = 16.dp, end = 16.dp),
+                .padding(top = 65.dp, start = 4.dp, end = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -301,8 +301,8 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 288.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),  // 172 + 100 + 16 = 288.dp for space to buttons
-            verticalArrangement = Arrangement.Center,
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Temporary test buttons for level up, reset, streak (remove after testing)
@@ -310,31 +310,24 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Button(onClick = { viewModel.addExp(150) }) {  // Adjust amount to test level up (e.g., enough for 1-2 levels)
-                    Text("Test Level Up (+150 XP)")
-                }
-                Button(onClick = { viewModel.addCoins(100) }) {
-                    Text("Add 100 Coins")
-                }
-                Button(onClick = { viewModel.resetUserData() }) {
-                    Text("Reset to Level 1")
-                }
-                Button(onClick = { viewModel.resetUnlockedVariants() }) {
-                    Text("Reset Unlocked Variants")
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { viewModel.incrementStreak() }) {
-                        Text("Streak ++")
-                    }
-                    Button(onClick = { viewModel.resetStreak() }) {
-                        Text("Reset Streak")
-                    }
-                }
+                Row() {
 
-                // UPDATED: Refresh button now optional (auto-updates every 30s); keep for manual refresh
-                Button(onClick = { viewModel.refreshSteps(activity) }) {  // UPDATED: Pass Activity
-                    Text("Refresh Steps Now")
+                    Button(onClick = { viewModel.addExp(150) }) {  // Adjust amount to test level up (e.g., enough for 1-2 levels)
+                        Text("Test Level Up (+150 XP)")
+                    }
+                    Button(onClick = { viewModel.addCoins(100) }) {
+                        Text("Add 100 Coins")
+                    }
                 }
+                Row() {
+                    Button(onClick = { viewModel.resetUserData() }) {
+                        Text("Reset to Level 1")
+                    }
+                    Button(onClick = { viewModel.resetUnlockedVariants() }) {
+                        Text("Reset Unlocked Variants")
+                    }
+                }
+            }
             }
 
             if (error != null) {
@@ -346,7 +339,6 @@ fun HomeScreen(
             }
         }
     }
-}
 
 // NEW: Helper function for ordinal suffixes (1st, 2nd, etc.)
 fun ordinal(i: Int): String {
