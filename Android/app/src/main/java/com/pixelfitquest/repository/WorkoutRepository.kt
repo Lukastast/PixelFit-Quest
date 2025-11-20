@@ -220,7 +220,7 @@ class WorkoutRepository @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-           null
+            null
         }
     }
 
