@@ -274,9 +274,9 @@ fun HomeScreen(
 
         LazyRow(
             modifier = Modifier
-                .align(Alignment.TopCenter)
+                .align(Alignment.Center)
                 .fillMaxWidth()
-                .padding(top = 180.dp, start = 16.dp, end = 16.dp),
+                .padding(top = 65.dp, start = 4.dp, end = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -305,8 +305,8 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 288.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),  // 172 + 100 + 16 = 288.dp for space to buttons
-            verticalArrangement = Arrangement.Center,
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Temporary test buttons for level up, reset, streak (remove after testing)
@@ -371,6 +371,7 @@ fun HomeScreen(
                     }
                 }
             }
+            }
 
             if (error != null) {
                 Text(
@@ -381,7 +382,6 @@ fun HomeScreen(
             }
         }
     }
-}
 
 // NEW: Helper function for ordinal suffixes (1st, 2nd, etc.)
 fun ordinal(i: Int): String {

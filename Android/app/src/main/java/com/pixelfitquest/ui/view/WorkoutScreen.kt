@@ -54,6 +54,7 @@ import androidx.navigation.NavController
 import com.pixelfitquest.Helpers.HOME_SCREEN
 import com.pixelfitquest.R
 import com.pixelfitquest.model.WorkoutPlan
+import com.pixelfitquest.ui.components.CharacterIdleAnimation
 import com.pixelfitquest.ui.components.IdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.viewmodel.WorkoutViewModel
@@ -242,10 +243,12 @@ fun WorkoutScreen(
                 .padding(32.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
-            IdleAnimation(
+
+            CharacterIdleAnimation(
                 modifier = Modifier
                     .size(120.dp),
                 gender = characterData.gender,
+                variant = characterData.variant,
                 isAnimating = true
             )
         }
