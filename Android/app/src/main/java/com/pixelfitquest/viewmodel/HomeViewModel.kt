@@ -1,16 +1,18 @@
 package com.pixelfitquest.viewmodel
 
 import android.app.Activity
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.Helpers.SPLASH_SCREEN
 import com.pixelfitquest.model.UserGameData
 import com.pixelfitquest.model.Workout
 import com.pixelfitquest.model.service.AccountService
-import com.pixelfitquest.model.CharacterData
 import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.WorkoutRepository
+import com.pixelfitquest.utils.NotificationHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,7 +42,8 @@ import kotlin.collections.emptyList
 class HomeViewModel @Inject constructor(
     private val accountService: AccountService,
     private val userRepository: UserRepository,
-    private val workoutRepository: WorkoutRepository
+    private val workoutRepository: WorkoutRepository,
+    @ApplicationContext private val context: Context  // NEW: Injected app context
 ) : PixelFitViewModel() {
 
     private val _userGameData = MutableStateFlow<UserGameData?>(null)
@@ -272,6 +275,9 @@ class HomeViewModel @Inject constructor(
             addCoins(10)
             userRepository.updateUserGameData(mapOf("last_steps_reward_date" to today))
             Log.d("HomeVM", "Awarded +50 EXP and +10 coins for steps goal on $today")
+
+            // NEW: Show notification
+            NotificationHelper.showStepGoalCompletedNotification(context)
         }
     }
 
@@ -309,10 +315,17 @@ class HomeViewModel @Inject constructor(
             val goal = goalResult.dataList.firstOrNull()?.value?.toInt() ?: 0
             _stepGoal.value = goal
 
+            // NEW: Progress check and reminder
+            val progressPercent = if (_stepGoal.value > 0) ((_todaySteps.value * 100) / _stepGoal.value).toInt() else 0
+            // Nudge if progress is low (e.g., <80%—adjust threshold/time of day as needed)
+            if (progressPercent < 80 && progressPercent > 0) {
+                NotificationHelper.showStepGoalReminderNotification(context)
+            }
+            // If goal met but not rewarded (though checkAndAwardStepsReward already handles reward + notification)
+            checkAndAwardStepsReward()
+
             Log.d("HomeVM", "Fetched steps: $totalSteps / Goal: $goal")  // NEW: Success log
 
-            // NEW: Check for steps goal reward after fetching
-            checkAndAwardStepsReward()
         } catch (e: HealthDataException) {
             Log.e("HomeVM", "Fetch failed", e)
             _error.value = "Steps fetch error: ${e.message}"
@@ -339,5 +352,56 @@ class HomeViewModel @Inject constructor(
         } else {
             initializeHealthConnection(activity)
         }
+    }
+
+    // NEW: Call this when a workout is completed (e.g., from your workout UI/ViewModel)
+    fun completeWorkout(workout: Workout) {  // Pass the Workout object or ID as needed
+        viewModelScope.launch {
+            try {
+                // Save or update as completed (adapt to your model; assume Workout has a 'completed' field)
+                workoutRepository.saveWorkout(workout.apply { /* Set completed = true if needed */ })
+                // Or: workoutRepository.updateWorkout(workout.id, mapOf("completed" to true))
+
+                // Award rewards
+                addExp(100)  // Example amount
+                addCoins(20)
+                incrementStreak()
+
+                // Show notification
+                NotificationHelper.showWorkoutCompletedNotification(context)
+
+                // Refresh workouts list
+                fetchCompletedWorkouts()
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to complete workout"
+            }
+        }
+    }
+
+    // NEW: Check for no workout today (used in worker or on app start)
+    suspend fun checkWorkoutReminder(): Boolean {
+        val latestWorkouts = workoutRepository.fetchWorkoutsOnce(1)
+        val lastWorkoutDateStr = latestWorkouts.firstOrNull()?.date ?: return true  // No workouts ever: Remind
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val today = dateFormat.format(Date())
+
+        return lastWorkoutDateStr != today  // Return true if reminder needed
+    }
+
+    fun testStepGoalCompletedNotification() {
+        NotificationHelper.showStepGoalCompletedNotification(context)
+    }
+
+    fun testWorkoutCompletedNotification() {
+        NotificationHelper.showWorkoutCompletedNotification(context)
+    }
+
+    fun testWorkoutReminderNotification() {
+        NotificationHelper.showWorkoutReminderNotification(context)
+    }
+
+    fun testStepGoalReminderNotification() {
+        NotificationHelper.showStepGoalReminderNotification(context)
     }
 }
