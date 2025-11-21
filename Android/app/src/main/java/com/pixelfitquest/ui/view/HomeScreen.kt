@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -33,7 +32,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -47,17 +45,17 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.pixelfitquest.Helpers.TypewriterText
 import com.pixelfitquest.R
 import com.pixelfitquest.model.Workout
-import com.pixelfitquest.model.Achievement
 import com.pixelfitquest.utils.NotificationHelper
 import com.pixelfitquest.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -304,7 +302,7 @@ fun HomeScreen(
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
                 .padding(top = 280.dp, start = 16.dp, end = 16.dp), // Moved below leaderboard (172 + 100 + 8 = 280.dp)
-            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (workouts.isEmpty()) {
@@ -542,6 +540,29 @@ fun HomeScreen(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
+        // NEW: Tutorial overlay for first time
+        val prefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
+        var showTutorial by remember { mutableStateOf(prefs.getBoolean("first_time_home", true)) }
+        if (showTutorial) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                TypewriterText(
+                    text = "Welcome to the Home Screen! Here you can view your level, coins, experience, and streak at the top. Track your daily steps for rewards. Check your rank on the leaderboard and check you unlocked achievements by pressing the achievements trophy. See your completed workouts and resume them. And dont forget to complete daily missions for extra rewards.",
+                    onComplete = {
+                        prefs.edit().putBoolean("first_time_home", false).apply()
+                        showTutorial = false
+                    },
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 // NEW: Helper function for ordinal suffixes (1st, 2nd, etc.)
