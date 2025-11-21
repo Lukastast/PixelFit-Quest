@@ -114,7 +114,15 @@ fun HomeScreen(
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     dateFormat.timeZone = TimeZone.getTimeZone("UTC")
     val today = dateFormat.format(Date())
-    val todaysWorkouts = workouts.count { it.date == today }
+    val todaysWorkouts = workouts.count { workout ->
+        try {
+            val instant = Instant.parse(workout.date)
+            val workoutDate = instant.atZone(ZoneId.of("UTC")).toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            workoutDate == today
+        } catch (e: Exception) {
+            false
+        }
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         // Top stats row with background image
         Box(
@@ -299,7 +307,7 @@ fun HomeScreen(
         }
         LazyRow(
             modifier = Modifier
-                .align(Alignment.Center)
+                .align(Alignment.TopCenter)
                 .fillMaxWidth()
                 .padding(top = 280.dp, start = 16.dp, end = 16.dp), // Moved below leaderboard (172 + 100 + 8 = 280.dp)
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -332,7 +340,7 @@ fun HomeScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = 400.dp, start = 16.dp, end = 16.dp) // Adjust position below workouts (280 + 100 + 20 = 400.dp; adjust based on LazyRow height)
+                .padding(top = 428.dp, start = 16.dp, end = 16.dp) // Adjust position below workouts (280 + 140 + 8 = 428.dp; based on WorkoutCard height of 140.dp)
                 .height(250.dp) // Increased height for bigger image
         ) {
             // Background image
@@ -359,7 +367,18 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 dailyMissions.forEach { (mission, reward) ->
                     val isCompleted = completedMissions.contains(mission)
-                    val progress = if (isCompleted) "Completed" else {
+                    val effectiveCompleted = isCompleted || (when {
+                        mission.startsWith("Walk") -> {
+                            val target = mission.split(" ")[1].toLongOrNull() ?: 0
+                            todaySteps >= target
+                        }
+                        mission.startsWith("Complete") -> {
+                            val target = mission.split(" ")[1].toIntOrNull() ?: 0
+                            todaysWorkouts >= target
+                        }
+                        else -> false
+                    })
+                    val progress = if (effectiveCompleted) "Completed" else {
                         if (mission.startsWith("Walk")) {
                             val target = mission.split(" ")[1].toLongOrNull() ?: 0
                             "$todaySteps / $target"
@@ -381,7 +400,7 @@ fun HomeScreen(
                         )
                         Text(
                             text = progress,
-                            color = if (isCompleted) Color.Green else Color.White,
+                            color = if (effectiveCompleted) Color.Green else Color.White,
                             fontSize = 14.sp // Smaller font size
                         )
                         Text(
@@ -397,7 +416,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 660.dp, start = 16.dp, end = 16.dp, bottom = 16.dp), // Adjust top padding to below missions (400 + 250 + 10 = 660.dp)
+                .padding(top = 686.dp, start = 16.dp, end = 16.dp, bottom = 16.dp), // Adjust top padding to below missions (428 + 250 + 8 = 686.dp)
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
