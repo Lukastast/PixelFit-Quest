@@ -203,8 +203,7 @@ fun WorkoutCustomizationScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                // Top Padding
-                Spacer(modifier = Modifier.padding(top = 8.dp))
+
 
                 // Exercises Section: Separate Scrollable View
                 Box(
@@ -228,7 +227,9 @@ fun WorkoutCustomizationScreen(
                     )
                 }
 
-                // Template Name Input (if editing or saving)
+                // Top Padding
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+
                 if (uiState.editMode || uiState.selections.isNotEmpty()) {
                     Box(
                         modifier = Modifier
@@ -508,8 +509,6 @@ fun WorkoutCustomizationScreen(
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.padding(top = 8.dp))
 
                 if (templates.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
