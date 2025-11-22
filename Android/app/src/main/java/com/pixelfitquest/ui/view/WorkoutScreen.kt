@@ -6,15 +6,10 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.util.Log
 import androidx.activity.compose.LocalActivity
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,11 +31,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -53,6 +51,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.pixelfitquest.Helpers.HOME_SCREEN
 import com.pixelfitquest.R
+import com.pixelfitquest.model.WorkoutFeedback
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.ui.components.CharacterIdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
@@ -78,28 +77,41 @@ fun WorkoutScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val characterData by viewModel.characterData.collectAsState()
+    var currentFeedback by remember { mutableStateOf<WorkoutFeedback?>(null) }
+    val animState = remember { Animatable(0f) }
 
     val currentExercise = plan.items.getOrNull(state.currentExerciseIndex)?.exercise?.name ?: "Unknown"
     val currentSets = plan.items.getOrNull(state.currentExerciseIndex)?.sets ?: 0
     val currentWeight = plan.items.getOrNull(state.currentExerciseIndex)?.weight ?: 0.0
 
-    LaunchedEffect(state.showFeedback) {
-        if (state.showFeedback) {
-            delay(1500L)  // Show for 1.5s
-            viewModel.hideFeedback()  // Add method to set showFeedback = false
+    LaunchedEffect(Unit) {
+        viewModel.feedbackEvent.collect { feedback ->
+            // If an animation is already running → instantly finish the old one
+            if (animState.isRunning) {
+                animState.snapTo(1f)      // Force complete instantly
+                animState.animateTo(0f)   // Quick fade out
+            }
+
+            currentFeedback = feedback
+            animState.snapTo(0f)
+            animState.animateTo(
+                targetValue = 1f,
+                animationSpec = spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = 500f)
+            )
+            delay(1200L)
+            animState.animateTo(0f)
+            currentFeedback = null
         }
     }
 
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { workoutId ->
-            if (workoutId != null) {
                 navController.navigate("workout_resume/$workoutId") {  // FIXED: Direct navController with options
                     popUpTo(HOME_SCREEN) {  // Clear stack up to Home
                         inclusive = false  // Keep Home
                     }
                     launchSingleTop = true  // Avoid duplicates
                 }
-            }
         }
     }
 
@@ -184,7 +196,21 @@ fun WorkoutScreen(
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillBounds
         )
-        Row( modifier = Modifier.align(Alignment.TopCenter)) {
+
+        Row( modifier = Modifier
+            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+            .align(Alignment.TopCenter)
+        ) {
+            Text(text ="Set: ${state.currentSetNumber} / $currentSets, Reps: ${state.reps}, Weight: $currentWeight Kg",
+                modifier.background(
+                    color = Color.Black.copy(alpha = 0.7f),
+                    shape = RoundedCornerShape(8.dp)
+                ))
+        }
+
+        Row( modifier = Modifier
+            .align(Alignment.TopCenter)
+            .padding(top = 32.dp)) {
             // Buttons
             if (state.isSetActive) {
                 PixelArtButton(
@@ -204,7 +230,7 @@ fun WorkoutScreen(
 
             Box(
                 modifier = Modifier
-                    .padding(top = 32.dp, start = 16.dp, end = 16.dp)
+                    .padding(top = 24.dp, start = 16.dp, end = 16.dp)
             ) {
                 Text(
                     text = currentExercise.replace("_", " "),
@@ -227,17 +253,6 @@ fun WorkoutScreen(
 
             )
         }
-        Row( modifier = Modifier
-            .padding(top = 70.dp, start = 16.dp, end = 16.dp)
-            .align(Alignment.TopCenter)
-        ) {
-            Text(text ="Set: ${state.currentSetNumber} / $currentSets, Reps: ${state.reps}, Weight: $currentWeight Kg",
-                modifier.background(
-                    color = Color.Black.copy(alpha = 0.7f),
-            shape = RoundedCornerShape(8.dp)
-            ))
-        }
-
         Box(
             modifier = Modifier.fillMaxSize()
                 .padding(32.dp),
@@ -253,35 +268,22 @@ fun WorkoutScreen(
             )
         }
 
-        Box(modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center ) {
-
-            AnimatedVisibility(
-                visible = state.showFeedback,
-                enter = scaleIn(initialScale = 0f) + fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
-                exit = scaleOut(targetScale = 0f) + fadeOut() + slideOutVertically(targetOffsetY = { it / 2 }),
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(16.dp)
-            ) {
-                if (state.feedback != null) {
-                    val feedback = state.feedback!!
-                    Log.d("Feedback", "Showing feedback: ${feedback.text}")
-                    Text(
-                        text = feedback.text,
-                        fontSize = 48.sp,  // Large pop-up text
-                        fontWeight = FontWeight.Bold,
-                        color = feedback.color,
-                        fontFamily = determination,
-                        modifier = Modifier
-                            .scale(feedback.scale)  // Score-based scale (e.g., Perfect bigger)
-                            .background(
-                                color = feedback.color.copy(alpha = 0.2f),  // Light glow background
-                                shape = RoundedCornerShape(16.dp)
-                            )
-                            .padding(16.dp)
-                    )
-                }
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            currentFeedback?.let { feedback ->
+                Text(
+                    text = feedback.text,
+                    fontFamily = determination,
+                    fontSize = 48.sp,
+                    color = feedback.color,
+                    modifier = Modifier
+                        .graphicsLayer {
+                            scaleX = animState.value * feedback.scale
+                            scaleY = animState.value * feedback.scale
+                            alpha = animState.value
+                        }
+                        .background(feedback.color.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
+                        .padding(8.dp)
+                )
             }
         }
         Box(

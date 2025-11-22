@@ -1,17 +1,23 @@
 package com.pixelfitquest.ui.view
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,10 +33,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.paint
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
@@ -38,7 +49,6 @@ import com.pixelfitquest.model.Exercise
 import com.pixelfitquest.model.WorkoutSet
 import com.pixelfitquest.viewmodel.WorkoutResumeViewModel
 
-// Wrapper data class for grouping (add this to your model package or here)
 data class ExerciseWithSets(
     val exercise: Exercise,
     val sets: List<WorkoutSet>,
@@ -53,7 +63,7 @@ fun WorkoutResumeScreen(
     modifier: Modifier = Modifier
 ) {
     val summary by viewModel.summary.collectAsState()
-    val exercisesWithSets by viewModel.exercisesWithSets.collectAsState()  // NEW: Use this from VM instead of raw sets
+    val exercisesWithSets by viewModel.exercisesWithSets.collectAsState()
 
     Scaffold(
         topBar = {
@@ -68,7 +78,7 @@ fun WorkoutResumeScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = androidx.compose.material3.MaterialTheme.colorScheme.background
+                    containerColor = Color(0xFF6C7A88)
                 )
             )
         },
@@ -77,6 +87,10 @@ fun WorkoutResumeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .paint(
+                    painter = painterResource(id = R.drawable.logsigninbackground),
+                    contentScale = ContentScale.Crop
+                )
                 .padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(16.dp)
@@ -85,21 +99,25 @@ fun WorkoutResumeScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF8A9AA8))
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Session Complete!",
+                            text = "Workout Complete!",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.size(8.dp))
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(32.dp),
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(start = 8.dp, end = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             // XP Value (uncomment icon if available)
@@ -115,7 +133,8 @@ fun WorkoutResumeScreen(
                                 Icon(
                                     painter = painterResource(id = R.drawable.coin),
                                     contentDescription = "Coins Earned",
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(20.dp),
+                                    tint = Color.Unspecified
                                 )
                                 Spacer(modifier = Modifier.size(4.dp))
                                 Text(
@@ -138,7 +157,9 @@ fun WorkoutResumeScreen(
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF8A9AA8))
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp)
@@ -148,79 +169,52 @@ fun WorkoutResumeScreen(
                             text = exercise.type.name.replace("_", " "),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 8.dp)
                         )
                         Text(
                             text = "${sets.size} sets completed",
                             fontSize = 14.sp,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(bottom = 12.dp)
+                            color = Color.DarkGray,
+                            modifier = Modifier.padding(bottom = 8.dp)
                         )
 
-                        // FIXED: Sub-List of Sets for this Exercise (Column instead of nested LazyColumn)
                         Column(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             sets.forEach { set ->
-                                Card(  // Sub-card for each set
+                                Card(
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(8.dp),
                                     colors = CardDefaults.cardColors(
-                                        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceVariant
+                                        containerColor = Color(0xFF566474)
                                     )
                                 ) {
-                                    Column(
-                                        modifier = Modifier.padding(12.dp)
-                                    ) {
-                                        // Set Header
+                                    Column() {
+
                                         Row(
-                                            modifier = Modifier.fillMaxWidth(),
+                                            modifier = Modifier.fillMaxWidth()
+                                                .padding(16.dp),
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
+
                                         ) {
                                             Text(
                                                 text = "Set ${set.setNumber}",
                                                 fontSize = 16.sp,
                                                 fontWeight = FontWeight.Medium
                                             )
-                                            Text(
-                                                text = "${set.workoutScore.toInt()}/100",
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = when {
-                                                    set.workoutScore >= 90 -> Color.Green
-                                                    set.workoutScore >= 70 -> Color.Yellow
-                                                    set.workoutScore >= 50 -> Color(0xFFFFA500)  // Orange
-                                                    else -> Color.Red
-                                                }
-                                            )
+
                                         }
 
                                         Spacer(modifier = Modifier.size(4.dp))
 
-                                        // Details Row(s)
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceEvenly
+                                        Row(modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            // Reps & KG
-                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                Text("Reps", fontSize = 12.sp, color = Color.Gray)
-                                                Text("${set.reps}", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                                            }
-                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                Text("KG", fontSize = 12.sp, color = Color.Gray)
-                                                Text("${set.weight.toInt()}", fontSize = 14.sp, fontWeight = FontWeight.Medium)  // weight: Float from WorkoutSet
-                                            }
-                                        }
-
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceEvenly
-                                        ) {
-                                            // ROM Score
-                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Column(
+                                                modifier = Modifier.weight(1f),
+                                                horizontalAlignment = Alignment.CenterHorizontally
+                                            ) {
                                                 Text("ROM Score", fontSize = 12.sp, color = Color.Gray)
                                                 Text(
                                                     "${set.romScore.toInt()}/100",
@@ -233,18 +227,79 @@ fun WorkoutResumeScreen(
                                                     }
                                                 )
                                             }
-                                            // Tilt Score (using xTiltScore as primary; adjust if combining x/z)
+                                            Column(
+                                                modifier = Modifier.weight(1f),
+                                                horizontalAlignment = Alignment.CenterHorizontally
+                                            ) {
+                                                Text("Set Score", fontSize = 12.sp, color = Color.Gray)
+                                                Text(
+                                                    text = "${set.workoutScore.toInt()}/100",
+                                                    fontSize = 16.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = when {
+                                                        set.workoutScore >= 90 -> Color.Green
+                                                        set.workoutScore >= 70 -> Color.Yellow
+                                                        set.workoutScore >= 50 -> Color(0xFFFFA500)  // Orange
+                                                        else -> Color.Red
+                                                    }
+                                                )
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.size(4.dp))
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+
+                                            Column(
+                                                modifier = Modifier.weight(1f),
+                                                horizontalAlignment = Alignment.CenterHorizontally
+                                            ) {
+                                                Text("Reps", fontSize = 12.sp, color = Color.Gray)
+                                                Text("${set.reps}", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                            }
+
+                                            Column(
+                                                modifier = Modifier.weight(1f),
+                                                horizontalAlignment = Alignment.CenterHorizontally
+                                            ) {
+                                                Text("KG", fontSize = 12.sp, color = Color.Gray)
+                                                Text("${set.weight.toInt()}", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                            }
+                                        }
+
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth()
+                                                    .padding(start = 16.dp, end = 16.dp),
+                                            horizontalArrangement = Arrangement.SpaceEvenly
+                                        ) {
+
                                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                Text("Tilt Score", fontSize = 12.sp, color = Color.Gray)
+
+                                                Text("X Tilt Score", fontSize = 12.sp, color = Color.Gray)
+
+                                                Spacer(modifier = Modifier.height(6.dp))
+
+                                                TiltScoreBar(set.xTiltScore)
                                                 Text(
                                                     "${set.xTiltScore.toInt()}/100",
                                                     fontSize = 14.sp,
                                                     fontWeight = FontWeight.Medium,
-                                                    color = when {
-                                                        set.xTiltScore >= 90 -> Color.Green
-                                                        set.xTiltScore >= 70 -> Color.Yellow
-                                                        else -> Color(0xFFFFA500)
-                                                    }
+                                                    color = Color.White
+                                                )
+                                                Text("Z Tilt Score", fontSize = 12.sp, color = Color.Gray)
+
+                                                Spacer(modifier = Modifier.height(6.dp))
+
+                                                TiltScoreBar(set.zTiltScore)
+                                                Text(
+                                                    "${set.zTiltScore.toInt()}/100",
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = Color.White
                                                 )
                                             }
                                         }
@@ -273,5 +328,52 @@ fun WorkoutResumeScreen(
                 }
             }
         }
+
     }
 }
+
+@Composable
+fun TiltScoreBar(
+    tilt: Float,
+    modifier: Modifier = Modifier
+        .fillMaxWidth()
+        .height(14.dp)
+) {
+    val clamped = tilt.coerceIn(-100f, 100f)
+    val positionFraction = (clamped + 100f) / 200f
+
+    BoxWithConstraints(
+        modifier = modifier
+            .clip(RoundedCornerShape(7.dp))
+    ) {
+        // Full gradient background bar
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            Color.Red,     // -100
+                            Color.Green,   // 0
+                            Color.Red      // +100
+                        )
+                    )
+                )
+        )
+
+        // Calculate marker X position
+        val markerX = (constraints.maxWidth * positionFraction).toInt()
+
+        // Marker
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(markerX - 6, 0) } // center the dot
+                .size(12.dp)
+                .clip(CircleShape)
+                .background(Color.White) // marker color (white stands out)
+                .border(2.dp, Color.Black.copy(alpha = 0.6f), CircleShape)
+        )
+    }
+}
+
+

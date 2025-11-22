@@ -27,7 +27,7 @@ class WorkoutResumeViewModel @Inject constructor(
     val userGameData: StateFlow<UserGameData?> = _userGameData.asStateFlow()
     private val workoutId: String = savedStateHandle.get<String>("workoutId") ?: ""
 
-    private val _summary = MutableStateFlow(WorkoutSummary(0, 0))
+    private val _summary = MutableStateFlow(WorkoutSummary(0, 0, 0f))
     val summary: StateFlow<WorkoutSummary> = _summary.asStateFlow()
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -90,13 +90,13 @@ class WorkoutResumeViewModel @Inject constructor(
                         } else null
                     }
 
-                // 5. Update UI state
+
                 _exercisesWithSets.value = exercisesWithSetsList
 
-                // 6. Calculate rewards only the FIRST time (check flag)
-                if (!workout.rewardsAwarded == false) {
-                    calculateAndAwardRewards(exercisesWithSetsList)
-                    // Mark as awarded
+                _summary.value = calculateSummary(exercisesWithSetsList)
+
+                if (!workout.rewardsAwarded) {
+                    awardRewards(_summary.value)
                     workoutRepository.updateWorkout(workoutId, mapOf("rewardsAwarded" to true))
                 }
 
@@ -107,7 +107,7 @@ class WorkoutResumeViewModel @Inject constructor(
         }
     }
 
-    private fun calculateAndAwardRewards(exercisesWithSets: List<ExerciseWithSets>) {
+    private fun calculateSummary(exercisesWithSets: List<ExerciseWithSets>): WorkoutSummary {
         val allSets = exercisesWithSets.flatMap { it.sets }
 
         var totalXp = 0
@@ -116,28 +116,31 @@ class WorkoutResumeViewModel @Inject constructor(
         allSets.forEach { set ->
             val reps = set.reps.coerceAtLeast(0)
             val score = set.workoutScore.coerceIn(0f, 100f)
+
             totalReps += reps
 
             val multiplier = when {
-                score >= 90 -> 2.0   // Perfect → double XP
-                score >= 80 -> 1.5   // Great → 1.5× XP
-                else -> 1.0          // Good/Miss → normal XP
+                score >= 90 -> 2.0
+                score >= 80 -> 1.5
+                else -> 1.0
             }
 
             totalXp += (reps * multiplier).toInt()
         }
 
-        val totalCoins = totalReps / 10
+        val totalCoins = totalReps / 5
+        val avgScore = allSets.map { it.workoutScore }.average().toFloat()
 
-        _summary.value = WorkoutSummary(
+        return WorkoutSummary(
             totalXp = totalXp,
             totalCoins = totalCoins,
-            avgScore = allSets.map { it.workoutScore }.average().toFloat()
+            avgScore = avgScore
         )
+    }
 
-        // Award once
-        addXp(totalXp)
-        addCoins(totalCoins)
+    private fun awardRewards(summary: WorkoutSummary) {
+        addXp(summary.totalXp)
+        addCoins(summary.totalCoins)
     }
 
     private fun addXp(amount: Int) {

@@ -272,7 +272,7 @@ fun HomeScreen(
             modifier = Modifier
                 .align(Alignment.Center)
                 .fillMaxWidth()
-                .padding(top = 65.dp, start = 4.dp, end = 4.dp),
+                .padding(top = 65.dp, start = 4.dp, end = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -361,7 +361,9 @@ fun WorkoutCard(
         modifier = Modifier
             .width(140.dp)
             .height(180.dp)
+            .padding(4.dp)
             .clickable(onClick = onClick)
+
     ) {
         // Full background image (gray stone texture)
         Image(
