@@ -1,5 +1,6 @@
 package com.pixelfitquest.ui.view
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -61,12 +62,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.pixelfitquest.Helpers.TypewriterText
 import com.pixelfitquest.R
 import com.pixelfitquest.model.ExerciseType
 import com.pixelfitquest.model.WorkoutPlan
@@ -137,375 +141,75 @@ fun WorkoutCustomizationScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },  // Positions Snackbar at bottom
-        bottomBar = {
-            // Fixed Bottom Bar with Buttons
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.Transparent),  // Make bottom bar transparent
-                horizontalArrangement = Arrangement.Center
-            ) {
-                // Save Template Button (Conditional)
-                if (uiState.selections.isNotEmpty() && uiState.templateName.isNotBlank()) {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
+    var showTutorial by remember { mutableStateOf(prefs.getBoolean("first_time_customization", true)) }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },  // Positions Snackbar at bottom
+            bottomBar = {
+                // Fixed Bottom Bar with Buttons
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Transparent),  // Make bottom bar transparent
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    // Save Template Button (Conditional)
+                    if (uiState.selections.isNotEmpty() && uiState.templateName.isNotBlank()) {
+                        PixelArtButton(
+                            onClick = {
+                                if (!uiState.isSaving && uiState.templateName.isNotBlank()) {
+                                    viewModel.saveTemplate()
+                                }
+                            },
+                            imageRes = R.drawable.button_unclicked,
+                            pressedRes = R.drawable.button_clicked,
+                            modifier = Modifier.width(200.dp).height(60.dp)
+                        ) {
+                            Text(
+                                if (uiState.editMode) "Update Template" else "Save as Template"
+                            )
+                        }
+                    }
+
                     PixelArtButton(
                         onClick = {
-                            if (!uiState.isSaving && uiState.templateName.isNotBlank()) {
-                                viewModel.saveTemplate()
+                            viewModel.getWorkoutPlan()?.let { plan ->
+                                val templateName = uiState.templateName.ifBlank { "Workout" }
+                                onStartWorkout(plan, templateName)
                             }
                         },
-                        imageRes = R.drawable.button_unclicked,
-                        pressedRes = R.drawable.button_clicked,
-                        modifier = Modifier.width(200.dp).height(60.dp)
+                        imageRes = R.drawable.button_unclicked,  // Your normal PNG
+                        pressedRes = R.drawable.button_clicked,  // Your pressed PNG
+                        modifier = Modifier.width(250.dp).height(60.dp)  // Reduced width from 350.dp
                     ) {
-                        Text(
-                            if (uiState.editMode) "Update Template" else "Save as Template"
-                        )
+                        Text("Start Workout")
                     }
-                }
 
-                PixelArtButton(
-                    onClick = {
-                        viewModel.getWorkoutPlan()?.let { plan ->
-                            val templateName = uiState.templateName.ifBlank { "Workout" }
-                            onStartWorkout(plan, templateName)
-                        }
-                    },
-                    imageRes = R.drawable.button_unclicked,  // Your normal PNG
-                    pressedRes = R.drawable.button_clicked,  // Your pressed PNG
-                    modifier = Modifier.width(250.dp).height(60.dp)  // Reduced width from 350.dp
-                ) {
-                    Text("Start Workout")
-                }
-
-                // Loading Indicator in Bottom Bar
-                if (uiState.isSaving) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                }
-            }
-        },
-        containerColor = Color.Transparent,  // Make Scaffold transparent
-        modifier = modifier.fillMaxSize()
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            // Exercises Section: Separate Scrollable View
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)  // Adjust height for image
-                    .padding(horizontal = 16.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.info_background),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.FillBounds
-                )
-                Text(
-                    text = "Customize Workout",
-                    style = typography.bodyMedium,  // Smaller font
-                    color = Color.White,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                )
-            }
-
-            // Top Padding
-            Spacer(modifier = Modifier.padding(top = 4.dp))
-
-            // Template Name Input (if editing or saving)
-            if (uiState.editMode || uiState.selections.isNotEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)  // Adjust height for background image + field
-                        .padding(horizontal = 16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.info_background_higher),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.FillBounds
-                    )
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = if (uiState.editMode) "Edit Template Name" else "Template Name",
-                            style = typography.bodyMedium,
-                            color = Color.White
-                        )
-
+                    // Loading Indicator in Bottom Bar
+                    if (uiState.isSaving) {
                         Spacer(modifier = Modifier.height(8.dp))
-
-                        Box(
-                            modifier = Modifier
-                                .width(280.dp)
-                                .height(60.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.inputfield),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.FillBounds
-                            )
-                            TextField(
-                                singleLine = true,
-                                value = uiState.templateName,
-                                onValueChange = viewModel::setTemplateName,
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .fillMaxWidth(0.96f),
-                                colors = TextFieldDefaults.colors(
-                                    focusedContainerColor = Color.Transparent,
-                                    unfocusedContainerColor = Color.Transparent,
-                                    disabledContainerColor = Color.Transparent,
-                                    errorContainerColor = Color.Transparent,
-                                    focusedIndicatorColor = Color.Transparent,
-                                    unfocusedIndicatorColor = Color.Transparent,
-                                    disabledIndicatorColor = Color.Transparent,
-                                    errorIndicatorColor = Color.Transparent,
-                                    focusedTextColor = Color.Black,
-                                    unfocusedTextColor = Color.Black,
-                                    disabledTextColor = Color.Black,
-                                    errorTextColor = Color.Black,
-                                    cursorColor = Color.Black
-                                )
-                            )
-                        }
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            val exercisesListState = rememberLazyListState()
-
-            LazyColumn(
-                state = exercisesListState,
+            },
+            containerColor = Color.Transparent,  // Make Scaffold transparent
+            modifier = Modifier.fillMaxSize()
+        ) { paddingValues ->
+            Column(
                 modifier = Modifier
-                    .weight(1.5f)
-                    .padding(horizontal = 16.dp)
-                    .padding(end = 16.dp)
-                    .simpleVerticalScrollbar(exercisesListState),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .fillMaxSize()
+                    .padding(paddingValues)
             ) {
-                items(ExerciseType.entries) { exercise ->
-                    var isSelected by remember {
-                        mutableStateOf(
-                            uiState.selections.containsKey(
-                                exercise
-                            )
-                        )
-                    }
-                    var localSets by remember(exercise, uiState.selections) {
-                        mutableStateOf(uiState.selections[exercise]?.sets?.toString() ?: "3")
-                    }
-                    var localWeight by remember(exercise, uiState.selections) {
-                        mutableStateOf(uiState.selections[exercise]?.weight?.toString() ?: "3")
-                    }
 
-                    // Sync local state when uiState.selections changes (e.g., loadTemplate)
-                    LaunchedEffect(uiState.selections[exercise]) {
-                        uiState.selections[exercise]?.let { item ->
-                            localSets = item.sets.toString()
-                            localWeight = item.weight.toString()
-                        } ?: run {
-                            localSets = "3"
-                            localWeight = "0"
-                        }
-                        isSelected = uiState.selections.containsKey(exercise)
-                    }
 
-                    val focusRequesterSets = remember { FocusRequester() }
-                    val focusRequesterWeight = remember { FocusRequester() }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(if (isSelected) 140.dp else 80.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.info_background_wider_workout),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillBounds
-                        )
-                        Card(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    onClick = {
-                                        isSelected = !isSelected
-                                        viewModel.toggleExercise(
-                                            exercise,
-                                            localSets.toIntOrNull() ?: 3,
-                                            localWeight.toFloatOrNull() ?: 0f
-                                        )
-                                    }
-                                ),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color.Transparent
-                            )
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(8.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Checkbox(
-                                        checked = isSelected,
-                                        onCheckedChange = { isSelected = it
-                                            viewModel.toggleExercise(
-                                                exercise,
-                                                localSets.toIntOrNull() ?: 3,
-                                                localWeight.toFloatOrNull() ?: 0f
-                                            )
-                                        },
-                                        colors = CheckboxDefaults.colors(
-                                            checkedColor = Color.Black,
-                                            uncheckedColor = Color.Black
-                                        )
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = exercise.name.replace("_", " ").uppercase(),
-                                        modifier = Modifier
-                                            .weight(1f),
-                                        style = typography.bodyMedium,
-                                        color = Color.Black
-                                    )
-                                }
-                                if (isSelected) {
-                                    Row(verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceEvenly) {
-                                        Text("Sets: ", style = typography.bodyMedium, color = Color.Black)
-                                        OutlinedTextField(
-                                            value = localSets,
-                                            onValueChange = { newValue: String ->
-                                                localSets =
-                                                    newValue.filter { char -> char.isDigit() }
-                                            },
-                                            modifier = Modifier
-                                                .width(60.dp)
-                                                .height(50.dp)
-                                                .focusRequester(focusRequesterSets)
-                                                .onFocusChanged { focusState ->
-                                                    if (!focusState.isFocused) {
-                                                        val finalSets = localSets.toIntOrNull() ?: 3
-                                                        viewModel.updateSets(exercise, finalSets)
-                                                    }
-                                                },
-                                            textStyle = MaterialTheme.typography.bodyMedium,
-                                            singleLine = true,
-                                            keyboardOptions = KeyboardOptions(
-                                                keyboardType = KeyboardType.Number,
-                                                imeAction = ImeAction.Done
-                                            ),
-                                            keyboardActions = KeyboardActions(
-                                                onDone = {
-                                                    focusRequesterSets.freeFocus()
-                                                    val finalSets = localSets.toIntOrNull() ?: 3
-                                                    viewModel.updateSets(exercise, finalSets)
-                                                }
-                                            ),
-                                            colors = OutlinedTextFieldDefaults.colors(
-                                                focusedTextColor = Color.Black,
-                                                unfocusedTextColor = Color.Black,
-                                                disabledTextColor = Color.Black,
-                                                errorTextColor = Color.Black,
-                                                cursorColor = Color.Black,
-                                                focusedBorderColor = Color.Black,
-                                                unfocusedBorderColor = Color.Black,
-                                                disabledBorderColor = Color.Black,
-                                                errorBorderColor = Color.Black
-                                            )
-                                        )
-
-                                        Spacer(modifier = Modifier.width(4.dp))
-
-                                        Text("Weight:", style = typography.bodyMedium, color = Color.Black)
-                                        OutlinedTextField(
-                                            value = localWeight,
-                                            onValueChange = { newValue: String ->
-                                                localWeight =
-                                                    newValue.filter { char -> char.isDigit() || char == '.' }
-                                            },
-                                            modifier = Modifier
-                                                .width(75.dp)
-                                                .height(50.dp)
-                                                .focusRequester(focusRequesterWeight)
-                                                .onFocusChanged { focusState ->
-                                                    if (!focusState.isFocused) {
-                                                        val finalWeight = localWeight.toFloatOrNull() ?: 0f
-                                                        viewModel.updateWeight(
-                                                            exercise,
-                                                            finalWeight
-                                                        )
-                                                    }
-                                                },
-                                            textStyle = typography.bodyMedium,
-                                            singleLine = true,
-                                            keyboardOptions = KeyboardOptions(
-                                                keyboardType = KeyboardType.Decimal,
-                                                imeAction = ImeAction.Done
-                                            ),
-                                            keyboardActions = KeyboardActions(
-                                                onDone = {
-                                                    focusRequesterWeight.freeFocus()
-                                                    val finalWeight = localWeight.toFloatOrNull() ?: 3f
-                                                    viewModel.updateWeight(
-                                                        exercise,
-                                                        finalWeight
-                                                    )
-                                                }
-                                            ),
-                                            colors = OutlinedTextFieldDefaults.colors(
-                                                focusedTextColor = Color.Black,
-                                                unfocusedTextColor = Color.Black,
-                                                disabledTextColor = Color.Black,
-                                                errorTextColor = Color.Black,
-                                                cursorColor = Color.Black,
-                                                focusedBorderColor = Color.Black,
-                                                unfocusedBorderColor = Color.Black,
-                                                disabledBorderColor = Color.Black,
-                                                errorBorderColor = Color.Black
-                                            )
-                                        )
-                                        Text("Kg", style = typography.bodyMedium, color = Color.Black)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (templates.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(16.dp))
+                // Exercises Section: Separate Scrollable View
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
+                        .height(50.dp)  // Adjust height for image
                         .padding(horizontal = 16.dp)
                 ) {
                     Image(
@@ -515,40 +219,133 @@ fun WorkoutCustomizationScreen(
                         contentScale = ContentScale.FillBounds
                     )
                     Text(
-                        text = "Your Templates",
-                        style = typography.bodyMedium,
+                        text = "Customize Workout",
+                        style = typography.bodyMedium,  // Smaller font
                         color = Color.White,
                         modifier = Modifier
                             .align(Alignment.Center)
                     )
                 }
 
+                // Top Padding
                 Spacer(modifier = Modifier.padding(top = 8.dp))
 
-                val templatesListState = rememberLazyListState()
+                if (uiState.editMode || uiState.selections.isNotEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)  // Adjust height for background image + field
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.info_background_higher),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.FillBounds
+                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = if (uiState.editMode) "Edit Template Name" else "Template Name",
+                                style = typography.bodyMedium,
+                                color = Color.White
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Box(
+                                modifier = Modifier
+                                    .width(280.dp)
+                                    .height(60.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.inputfield),
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.FillBounds
+                                )
+                                TextField(
+                                    singleLine = true,
+                                    value = uiState.templateName,
+                                    onValueChange = viewModel::setTemplateName,
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .fillMaxWidth(0.96f),
+                                    colors = TextFieldDefaults.colors(
+                                        focusedContainerColor = Color.Transparent,
+                                        unfocusedContainerColor = Color.Transparent,
+                                        disabledContainerColor = Color.Transparent,
+                                        errorContainerColor = Color.Transparent,
+                                        focusedIndicatorColor = Color.Transparent,
+                                        unfocusedIndicatorColor = Color.Transparent,
+                                        disabledIndicatorColor = Color.Transparent,
+                                        errorIndicatorColor = Color.Transparent,
+                                        focusedTextColor = Color.Black,
+                                        unfocusedTextColor = Color.Black,
+                                        disabledTextColor = Color.Black,
+                                        errorTextColor = Color.Black,
+                                        cursorColor = Color.Black
+                                    )
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                val exercisesListState = rememberLazyListState()
 
                 LazyColumn(
-                    state = templatesListState,
+                    state = exercisesListState,
                     modifier = Modifier
-                        .weight(1f)
+                        .weight(1.5f)
                         .padding(horizontal = 16.dp)
                         .padding(end = 16.dp)
-                        .padding(bottom = 16.dp)
-                        .simpleVerticalScrollbar(templatesListState),
+                        .simpleVerticalScrollbar(exercisesListState),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(templates, key = { it.id }) { template ->
-                        val totalSets =
-                            template.plan.items.sumOf { (it.sets.coerceAtLeast(1)) }
-                        Log.d("TemplateUI", "Template ${template.name}: total sets = $totalSets")
+                    items(ExerciseType.entries) { exercise ->
+                        var isSelected by remember {
+                            mutableStateOf(
+                                uiState.selections.containsKey(
+                                    exercise
+                                )
+                            )
+                        }
+                        var localSets by remember(exercise, uiState.selections) {
+                            mutableStateOf(uiState.selections[exercise]?.sets?.toString() ?: "3")
+                        }
+                        var localWeight by remember(exercise, uiState.selections) {
+                            mutableStateOf(uiState.selections[exercise]?.weight?.toString() ?: "3")
+                        }
 
-                        // NEW: Check if this template is currently selected
-                        val isSelected = template.id == selectedTemplateId
+                        // Sync local state when uiState.selections changes (e.g., loadTemplate)
+                        LaunchedEffect(uiState.selections[exercise]) {
+                            uiState.selections[exercise]?.let { item ->
+                                localSets = item.sets.toString()
+                                localWeight = item.weight.toString()
+                            } ?: run {
+                                localSets = "3"
+                                localWeight = "0"
+                            }
+                            isSelected = uiState.selections.containsKey(exercise)
+                        }
+
+                        val focusRequesterSets = remember { FocusRequester() }
+                        val focusRequesterWeight = remember { FocusRequester() }
 
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(72.dp)
+                                .height(if (isSelected) 140.dp else 80.dp)
                         ) {
                             Image(
                                 painter = painterResource(id = R.drawable.info_background_wider_workout),
@@ -556,25 +353,270 @@ fun WorkoutCustomizationScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.FillBounds
                             )
-                            // NEW: Dark overlay for selected template (50% opacity)
-                            if (isSelected) {
-                                Box(
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        onClick = {
+                                            isSelected = !isSelected
+                                            viewModel.toggleExercise(
+                                                exercise,
+                                                localSets.toIntOrNull() ?: 3,
+                                                localWeight.toFloatOrNull() ?: 0f
+                                            )
+                                        }
+                                    ),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color.Transparent
+                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        Checkbox(
+                                            checked = isSelected,
+                                            onCheckedChange = { isSelected = it
+                                                viewModel.toggleExercise(
+                                                    exercise,
+                                                    localSets.toIntOrNull() ?: 3,
+                                                    localWeight.toFloatOrNull() ?: 0f
+                                                )
+                                            },
+                                            colors = CheckboxDefaults.colors(
+                                                checkedColor = Color.Black,
+                                                uncheckedColor = Color.Black
+                                            )
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = exercise.name.replace("_", " ").uppercase(),
+                                            modifier = Modifier
+                                                .weight(1f),
+                                            style = typography.bodyMedium,
+                                            color = Color.Black
+                                        )
+                                    }
+                                    if (isSelected) {
+                                        Row(verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceEvenly) {
+                                            Text("Sets: ", style = typography.bodyMedium, color = Color.Black)
+                                            OutlinedTextField(
+                                                value = localSets,
+                                                onValueChange = { newValue: String ->
+                                                    localSets =
+                                                        newValue.filter { char -> char.isDigit() }
+                                                },
+                                                modifier = Modifier
+                                                    .width(60.dp)
+                                                    .height(50.dp)
+                                                    .focusRequester(focusRequesterSets)
+                                                    .onFocusChanged { focusState ->
+                                                        if (!focusState.isFocused) {
+                                                            val finalSets = localSets.toIntOrNull() ?: 3
+                                                            viewModel.updateSets(exercise, finalSets)
+                                                        }
+                                                    },
+                                                textStyle = MaterialTheme.typography.bodyMedium,
+                                                singleLine = true,
+                                                keyboardOptions = KeyboardOptions(
+                                                    keyboardType = KeyboardType.Number,
+                                                    imeAction = ImeAction.Done
+                                                ),
+                                                keyboardActions = KeyboardActions(
+                                                    onDone = {
+                                                        focusRequesterSets.freeFocus()
+                                                        val finalSets = localSets.toIntOrNull() ?: 3
+                                                        viewModel.updateSets(exercise, finalSets)
+                                                    }
+                                                ),
+                                                colors = OutlinedTextFieldDefaults.colors(
+                                                    focusedTextColor = Color.Black,
+                                                    unfocusedTextColor = Color.Black,
+                                                    disabledTextColor = Color.Black,
+                                                    errorTextColor = Color.Black,
+                                                    cursorColor = Color.Black,
+                                                    focusedBorderColor = Color.Black,
+                                                    unfocusedBorderColor = Color.Black,
+                                                    disabledBorderColor = Color.Black,
+                                                    errorBorderColor = Color.Black
+                                                )
+                                            )
+
+                                            Spacer(modifier = Modifier.width(4.dp))
+
+                                            Text("Weight:", style = typography.bodyMedium, color = Color.Black)
+                                            OutlinedTextField(
+                                                value = localWeight,
+                                                onValueChange = { newValue: String ->
+                                                    localWeight =
+                                                        newValue.filter { char -> char.isDigit() || char == '.' }
+                                                },
+                                                modifier = Modifier
+                                                    .width(75.dp)
+                                                    .height(50.dp)
+                                                    .focusRequester(focusRequesterWeight)
+                                                    .onFocusChanged { focusState ->
+                                                        if (!focusState.isFocused) {
+                                                            val finalWeight = localWeight.toFloatOrNull() ?: 0f
+                                                            viewModel.updateWeight(
+                                                                exercise,
+                                                                finalWeight
+                                                            )
+                                                        }
+                                                    },
+                                                textStyle = typography.bodyMedium,
+                                                singleLine = true,
+                                                keyboardOptions = KeyboardOptions(
+                                                    keyboardType = KeyboardType.Decimal,
+                                                    imeAction = ImeAction.Done
+                                                ),
+                                                keyboardActions = KeyboardActions(
+                                                    onDone = {
+                                                        focusRequesterWeight.freeFocus()
+                                                        val finalWeight = localWeight.toFloatOrNull() ?: 3f
+                                                        viewModel.updateWeight(
+                                                            exercise,
+                                                            finalWeight
+                                                        )
+                                                    }
+                                                ),
+                                                colors = OutlinedTextFieldDefaults.colors(
+                                                    focusedTextColor = Color.Black,
+                                                    unfocusedTextColor = Color.Black,
+                                                    disabledTextColor = Color.Black,
+                                                    errorTextColor = Color.Black,
+                                                    cursorColor = Color.Black,
+                                                    focusedBorderColor = Color.Black,
+                                                    unfocusedBorderColor = Color.Black,
+                                                    disabledBorderColor = Color.Black,
+                                                    errorBorderColor = Color.Black
+                                                )
+                                            )
+                                            Text("Kg", style = typography.bodyMedium, color = Color.Black)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (templates.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.info_background),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.FillBounds
+                        )
+                        Text(
+                            text = "Your Templates",
+                            style = typography.bodyMedium,
+                            color = Color.White,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.padding(top = 8.dp))
+
+                    val templatesListState = rememberLazyListState()
+
+                    LazyColumn(
+                        state = templatesListState,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 16.dp)
+                            .padding(end = 16.dp)
+                            .padding(bottom = 16.dp)
+                            .simpleVerticalScrollbar(templatesListState),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(templates, key = { it.id }) { template ->
+                            val totalSets =
+                                template.plan.items.sumOf { (it.sets.coerceAtLeast(1)) }
+                            Log.d("TemplateUI", "Template ${template.name}: total sets = $totalSets")
+
+                            // NEW: Check if this template is currently selected
+                            val isSelected = template.id == selectedTemplateId
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(72.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.info_background_wider_workout),
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.FillBounds
+                                )
+                                // NEW: Dark overlay for selected template (50% opacity)
+                                if (isSelected) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color.Black.copy(alpha = 0.5f))
+                                    )
+                                }
+                                ListItem(
+                                    headlineContent = { Text(template.name, color = Color.Black) },
+                                    supportingContent = {
+                                        Text(
+                                            "Exercises: ${template.plan.items.size} | Sets: $totalSets",
+                                            color = Color.Black
+                                        )
+                                    },
+                                    trailingContent = {
+                                        Row {
+                                            IconButton(
+                                                onClick = {
+                                                    if (selectedTemplateId == template.id) {
+                                                        selectedTemplateId = null
+                                                        viewModel.clearTemplate()
+                                                    } else {
+                                                        selectedTemplateId = template.id
+                                                        viewModel.loadTemplate(template)
+                                                    }
+                                                }
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.Edit,
+                                                    contentDescription = "Edit Template",
+                                                    tint = Color.Black
+                                                )
+                                            }
+                                            IconButton(
+                                                onClick = { viewModel.deleteTemplate(template.id) }
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.Delete,
+                                                    contentDescription = "Delete Template",
+                                                    tint = Color.Black
+                                                )
+                                            }
+                                        }
+                                    },
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .background(Color.Black.copy(alpha = 0.5f))
-                                )
-                            }
-                            ListItem(
-                                headlineContent = { Text(template.name, color = Color.Black) },
-                                supportingContent = {
-                                    Text(
-                                        "Exercises: ${template.plan.items.size} | Sets: $totalSets",
-                                        color = Color.Black
-                                    )
-                                },
-                                trailingContent = {
-                                    Row {
-                                        IconButton(
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null,
                                             onClick = {
                                                 if (selectedTemplateId == template.id) {
                                                     selectedTemplateId = null
@@ -584,55 +626,45 @@ fun WorkoutCustomizationScreen(
                                                     viewModel.loadTemplate(template)
                                                 }
                                             }
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Edit,
-                                                contentDescription = "Edit Template",
-                                                tint = Color.Black
-                                            )
-                                        }
-                                        IconButton(
-                                            onClick = { viewModel.deleteTemplate(template.id) }
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Delete,
-                                                contentDescription = "Delete Template",
-                                                tint = Color.Black
-                                            )
-                                        }
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null,
-                                        onClick = {
-                                            if (selectedTemplateId == template.id) {
-                                                selectedTemplateId = null
-                                                viewModel.clearTemplate()
-                                            } else {
-                                                selectedTemplateId = template.id
-                                                viewModel.loadTemplate(template)
-                                            }
-                                        }
-                                    ),
-                                colors = ListItemDefaults.colors(
-                                    containerColor = Color.Transparent
+                                        ),
+                                    colors = ListItemDefaults.colors(
+                                        containerColor = Color.Transparent
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = "No templates yet. Name & save one to get started!",
+                        style = typography.bodyMedium,
+                        color = Color.White,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(16.dp)
+                    )
                 }
-            } else {
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = "No templates yet. Name & save one to get started!",
-                    style = typography.bodyMedium,
+
+            }
+        }
+        if (showTutorial) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                TypewriterText(
+                    text = "Welcome to Workout Customization! Select exercises by checking them, adjust sets and weights. Enter a name to save as template. Use 'Start Workout' to begin your adventure of acquiring coins and exp .",
+                    onComplete = {
+                        prefs.edit().putBoolean("first_time_customization", false).apply()
+                        showTutorial = false
+                    },
+                    modifier = Modifier.padding(16.dp),
+                    style = typography.bodyLarge,
                     color = Color.White,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(16.dp)
+                    textAlign = TextAlign.Center
                 )
             }
         }
