@@ -1,4 +1,5 @@
-package com.pixelfitquest.utils
+package com.pixelfitquest.helpers
+
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker

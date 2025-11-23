@@ -3,6 +3,7 @@ import android.app.Activity
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.pixelfitquest.helpers.NotificationHelper
 import com.pixelfitquest.helpers.SPLASH_SCREEN
 import com.pixelfitquest.model.UserGameData
 import com.pixelfitquest.model.Workout
@@ -13,7 +14,6 @@ import com.pixelfitquest.model.rewardsPool
 import com.pixelfitquest.model.service.AccountService
 import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.WorkoutRepository
-import com.pixelfitquest.utils.NotificationHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow

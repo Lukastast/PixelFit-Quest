@@ -47,8 +47,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
+import com.pixelfitquest.helpers.NotificationHelper
 import com.pixelfitquest.model.Workout
-import com.pixelfitquest.utils.NotificationHelper
 import com.pixelfitquest.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

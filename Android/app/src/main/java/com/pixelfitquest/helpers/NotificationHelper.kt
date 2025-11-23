@@ -1,4 +1,4 @@
-package com.pixelfitquest.utils
+package com.pixelfitquest.helpers
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

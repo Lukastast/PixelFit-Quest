@@ -1,6 +1,5 @@
 package com.pixelfitquest.ui.view
 
-import AutoSizeText
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.ext.AuthenticationButton
 import com.pixelfitquest.ext.launchCredManBottomSheet
+import com.pixelfitquest.helpers.AutoSizeText
 import com.pixelfitquest.helpers.LOGIN_SCREEN
 import com.pixelfitquest.model.service.AuthState
 import com.pixelfitquest.ui.components.PixelArtButton

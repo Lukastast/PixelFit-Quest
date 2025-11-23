@@ -94,6 +94,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.hilt.common)
+    implementation(libs.androidx.compose.ui.text.google.fonts)
+    implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.androidx.ui.test.junit4)
     kapt("com.google.dagger:hilt-compiler:2.57.2")
     kapt("com.google.dagger:hilt-android-compiler:2.57.2")
 
@@ -108,19 +111,16 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     testImplementation(kotlin("test"))
-    testImplementation("org.robolectric:robolectric:4.11.1")
+    testImplementation("org.robolectric:robolectric:4.14")  // Updated to latest for better SDK support
     testImplementation("app.cash.turbine:turbine:1.1.0")
 
-    // Android Instrumented Tests (Device/Emulator)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    // Android Instrumented Tests (Device/Emulator) - Aligned to Compose requirements
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 
     // Debug dependencies
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-
-    implementation(libs.androidx.compose.ui.text.google.fonts)
-    implementation(libs.kotlinx.coroutines.play.services)
 }
