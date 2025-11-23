@@ -1,6 +1,5 @@
 package com.pixelfitquest.helpers
 
-
 import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
@@ -17,29 +16,26 @@ import java.util.TimeZone
 class FitnessReminderWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val workoutRepository: WorkoutRepository  // Injected via Hilt
+    private val workoutRepository: WorkoutRepository
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
         try {
-            // Check for workout reminder (using existing repo method)
             val latestWorkouts = workoutRepository.fetchWorkoutsOnce(1)
             val lastWorkoutDateStr = latestWorkouts.firstOrNull()?.date ?: ""
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-            dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
             val today = dateFormat.format(Date())
             val needsWorkoutReminder = lastWorkoutDateStr != today
 
             if (needsWorkoutReminder) {
                 NotificationHelper.showWorkoutReminderNotification(applicationContext)
-                NotificationHelper.showWorkoutReminderNotification(applicationContext)
             }
-
-            // Future: Add other checks here (e.g., if you add a way to check steps or other goals in background)
 
             return Result.success()
         } catch (e: Exception) {
-            return Result.retry()  // Retry on failure
+            return Result.retry()
         }
     }
 }

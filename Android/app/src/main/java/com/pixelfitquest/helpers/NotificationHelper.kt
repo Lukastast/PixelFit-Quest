@@ -3,8 +3,8 @@ package com.pixelfitquest.helpers
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.pixelfitquest.R
@@ -13,6 +13,7 @@ object NotificationHelper {
     private const val CHANNEL_ID = "pixel_fit_quest_channel"
     private const val CHANNEL_NAME = "Pixel Fit Quest Notifications"
     private const val CHANNEL_DESC = "Notifications for fitness goals and reminders"
+    private const val TAG = "NotificationHelper"
 
     fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -42,7 +43,7 @@ object NotificationHelper {
                 notify(1, builder.build())
             }
         } catch (e: SecurityException) {
-            // Handle permission denial
+            Log.e(TAG, "Failed to show step goal notification: missing permission", e)
         }
     }
 
@@ -59,7 +60,7 @@ object NotificationHelper {
                 notify(2, builder.build())
             }
         } catch (e: SecurityException) {
-            // Handle permission denial
+            Log.e(TAG, "Failed to show workout completed notification: missing permission", e)
         }
     }
 
@@ -76,7 +77,7 @@ object NotificationHelper {
                 notify(3, builder.build())
             }
         } catch (e: SecurityException) {
-            // Handle permission denial
+            Log.e(TAG, "Failed to show workout reminder notification: missing permission", e)
         }
     }
 
@@ -92,7 +93,7 @@ object NotificationHelper {
                 notify(4, builder.build())
             }
         } catch (e: SecurityException) {
-            // Handle permission denial
+            Log.e(TAG, "Failed to show step goal reminder notification: missing permission", e)
         }
     }
 
@@ -108,7 +109,7 @@ object NotificationHelper {
                 notify(5, builder.build())  // Unique ID for mission notifications
             }
         } catch (e: SecurityException) {
-            // Handle permission denial
+            Log.e(TAG, "Failed to show mission completed notification: missing permission", e)
         }
     }
 }
