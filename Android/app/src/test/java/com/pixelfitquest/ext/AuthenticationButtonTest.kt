@@ -23,7 +23,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33])
+@Config(sdk = [31])
 class AuthenticationButtonTest {
 
     private lateinit var mockContext: Context

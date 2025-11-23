@@ -34,7 +34,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33], manifest = Config.NONE)
+@Config(sdk = [31], manifest = Config.NONE)
 class AccountServiceImplTest {
 
     private lateinit var accountService: AccountServiceImpl
