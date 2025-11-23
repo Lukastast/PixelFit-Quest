@@ -20,7 +20,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "com.pixelfitquest.HiltTestRunner"  // Custom test runner for Hilt
+        testInstrumentationRunner = "com.pixelfitquest.HiltTestRunner"
         proguardFiles("proguard-rules.pro")
     }
 
@@ -32,7 +32,11 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            enableUnitTestCoverage = true
+        }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -52,6 +56,25 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+
+            // Fix JaCoCo + Robolectric conflict
+            all {
+                it.extensions.configure(JacocoTaskExtension::class.java) {
+                    isIncludeNoLocationClasses = true
+                    excludes = listOf("jdk.internal.*")
+                }
+
+                // Add JVM args to handle the conflict
+                it.jvmArgs(
+                    "-noverify",
+                    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                    "--add-opens=java.base/java.util=ALL-UNNAMED"
+                )
+
+                // Set max heap size if needed
+                it.maxHeapSize = "2048m"
+            }
         }
     }
 }

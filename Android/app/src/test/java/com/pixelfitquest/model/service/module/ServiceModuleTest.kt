@@ -17,7 +17,7 @@ import kotlin.test.assertNotNull
 
 @HiltAndroidTest
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [31], application = HiltTestApplication::class)
+@Config(sdk = [33], application = HiltTestApplication::class)
 class ServiceModuleTest {
 
     @get:Rule
