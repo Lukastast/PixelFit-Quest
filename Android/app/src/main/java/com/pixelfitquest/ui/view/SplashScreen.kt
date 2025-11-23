@@ -16,7 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.pixelfitquest.Helpers.SPLASH_SCREEN
+import com.pixelfitquest.helpers.SPLASH_SCREEN
 import com.pixelfitquest.R
 import com.pixelfitquest.viewmodel.SplashViewModel
 import kotlinx.coroutines.delay

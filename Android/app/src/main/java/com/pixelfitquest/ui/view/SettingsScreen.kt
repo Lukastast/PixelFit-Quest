@@ -29,10 +29,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.pixelfitquest.Helpers.ExitAppCard
-import com.pixelfitquest.Helpers.RemoveAccountCard
-import com.pixelfitquest.Helpers.TypewriterText
-import com.pixelfitquest.Helpers.VolumeCard
+import com.pixelfitquest.helpers.ExitAppCard
+import com.pixelfitquest.helpers.RemoveAccountCard
+import com.pixelfitquest.helpers.TypewriterText
+import com.pixelfitquest.helpers.VolumeCard
 import com.pixelfitquest.R
 import com.pixelfitquest.model.User
 import com.pixelfitquest.ui.theme.typography

@@ -2,7 +2,6 @@ package com.pixelfitquest.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.pixelfitquest.Helpers.WORKOUT_RESUME_SCREEN
 import com.pixelfitquest.model.CharacterData
 import com.pixelfitquest.model.Exercise
 import com.pixelfitquest.model.ExerciseType

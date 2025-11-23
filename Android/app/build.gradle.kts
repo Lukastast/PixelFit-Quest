@@ -34,13 +34,13 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlin {
         compilerOptions {
-            compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
@@ -49,7 +49,6 @@ android {
     }
     buildToolsVersion = "36.0.0"
 
-    // Added: Optional test options for better unit test support (e.g., if testing Android resources locally)
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
@@ -104,19 +103,24 @@ dependencies {
     // Samsung Health SDK
     implementation(files("libs/samsung-health.aar"))
 
+    // Unit Tests (JVM)
     testImplementation(libs.junit)
+    testImplementation("io.mockk:mockk:1.13.12")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation(kotlin("test"))
+    testImplementation("org.robolectric:robolectric:4.11.1")
+    testImplementation("app.cash.turbine:turbine:1.1.0")
+
+    // Android Instrumented Tests (Device/Emulator)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+
+    // Debug dependencies
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.kotlinx.coroutines.play.services)
-
-    // Added: For testing coroutines in unit tests (optional but recommended if using coroutines)
-    testImplementation("io.mockk:mockk:1.13.12")
-    testImplementation("app.cash.turbine:turbine:1.1.0")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
-    testImplementation(kotlin("test"))
 }

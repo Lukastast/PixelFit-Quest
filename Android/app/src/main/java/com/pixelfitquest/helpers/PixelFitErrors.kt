@@ -1,4 +1,4 @@
-package com.pixelfitquest.Helpers
+package com.pixelfitquest.helpers
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuthException

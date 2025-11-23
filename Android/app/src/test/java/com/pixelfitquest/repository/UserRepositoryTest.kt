@@ -228,7 +228,7 @@ class UserRepositoryTest {
     fun `updateStreak increments when yesterday was last activity`() = runTest {
         val snapshot = mockk<DocumentSnapshot>()
         every { snapshot.toObject(UserGameData::class.java) } returns UserGameData(streak = 5)
-        every { snapshot.getString("last_activity_date") } returns "2025-11-20" // yesterday in UTC
+        every { snapshot.getString("last_activity_date") } returns "2025-11-22" // yesterday in UTC
         every { snapshot.exists() } returns true
 
         coEvery { userDocRef.get() } returns Tasks.forResult(snapshot)
@@ -239,7 +239,7 @@ class UserRepositoryTest {
         coVerify {
             userDocRef.update(mapOf(
                 "streak" to 6,
-                "last_activity_date" to "2025-11-21" // today
+                "last_activity_date" to "2025-11-23" // today
             ))
         }
     }
@@ -248,7 +248,7 @@ class UserRepositoryTest {
     fun `updateStreak resets to 1 when more than one day missed`() = runTest {
         val snapshot = mockk<DocumentSnapshot>()
         every { snapshot.toObject(UserGameData::class.java) } returns UserGameData(streak = 10)
-        every { snapshot.getString("last_activity_date") } returns "2025-11-18"
+        every { snapshot.getString("last_activity_date") } returns "2025-11-21"
         every { snapshot.exists() } returns true
 
         coEvery { userDocRef.get() } returns Tasks.forResult(snapshot)
@@ -256,7 +256,7 @@ class UserRepositoryTest {
 
         repository.updateStreak(increment = true)
 
-        coVerify { userDocRef.update(match { it["streak"] == 1 && it["last_activity_date"] == "2025-11-21" }) }
+        coVerify { userDocRef.update(match { it["streak"] == 1 && it["last_activity_date"] == "2025-11-23" }) }
     }
 
     // ╔══════════════════════════════════════════════════════════╗

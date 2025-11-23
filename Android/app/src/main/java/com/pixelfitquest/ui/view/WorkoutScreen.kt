@@ -51,11 +51,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
-import com.pixelfitquest.Helpers.HOME_SCREEN
+import com.pixelfitquest.helpers.HOME_SCREEN
 import com.pixelfitquest.R
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.ui.components.CharacterIdleAnimation
-import com.pixelfitquest.ui.components.IdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.viewmodel.WorkoutViewModel
 import kotlinx.coroutines.delay

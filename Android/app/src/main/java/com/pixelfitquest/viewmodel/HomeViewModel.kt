@@ -3,13 +3,13 @@ import android.app.Activity
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.PixelFitQuest.model.missionsPool
-import com.PixelFitQuest.model.rewardsPool
-import com.pixelfitquest.Helpers.SPLASH_SCREEN
+import com.pixelfitquest.helpers.SPLASH_SCREEN
 import com.pixelfitquest.model.UserGameData
 import com.pixelfitquest.model.Workout
 import com.pixelfitquest.model.Achievement
 import com.pixelfitquest.model.achievementsList
+import com.pixelfitquest.model.missionsPool
+import com.pixelfitquest.model.rewardsPool
 import com.pixelfitquest.model.service.AccountService
 import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.WorkoutRepository
@@ -31,8 +31,6 @@ import com.samsung.android.sdk.health.data.request.LocalDateFilter
 import com.samsung.android.sdk.health.data.request.LocalTimeFilter
 import com.samsung.android.sdk.health.data.HealthDataService
 import java.text.SimpleDateFormat
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId

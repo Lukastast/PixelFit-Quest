@@ -3,7 +3,7 @@ package com.pixelfitquest.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pixelfitquest.Helpers.ERROR_TAG
+import com.pixelfitquest.helpers.ERROR_TAG
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

@@ -5,11 +5,11 @@ import androidx.credentials.Credential
 import androidx.credentials.CustomCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-import com.pixelfitquest.Helpers.AuthErrorMapper
-import com.pixelfitquest.Helpers.ERROR_TAG
-import com.pixelfitquest.Helpers.INTRO_SCREEN
-import com.pixelfitquest.Helpers.SIGNUP_SCREEN
-import com.pixelfitquest.Helpers.UNEXPECTED_CREDENTIAL
+import com.pixelfitquest.helpers.AuthErrorMapper
+import com.pixelfitquest.helpers.ERROR_TAG
+import com.pixelfitquest.helpers.INTRO_SCREEN
+import com.pixelfitquest.helpers.SIGNUP_SCREEN
+import com.pixelfitquest.helpers.UNEXPECTED_CREDENTIAL
 import com.pixelfitquest.ext.isValidEmail
 import com.pixelfitquest.ext.isValidPassword
 import com.pixelfitquest.model.service.AccountService
