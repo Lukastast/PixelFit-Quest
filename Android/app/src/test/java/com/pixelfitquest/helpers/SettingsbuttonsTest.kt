@@ -18,10 +18,11 @@ import io.mockk.verify
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
-@Config(sdk = [35])
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [33])
 class SettingsbuttonsTest {
 
     @get:Rule

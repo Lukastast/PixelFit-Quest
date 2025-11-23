@@ -20,7 +20,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.pixelfitquest.HiltTestRunner"  // Custom test runner for Hilt
         proguardFiles("proguard-rules.pro")
     }
 
@@ -111,14 +111,22 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     testImplementation(kotlin("test"))
-    testImplementation("org.robolectric:robolectric:4.14")  // Updated to latest for better SDK support
+    testImplementation("org.robolectric:robolectric:4.14")
     testImplementation("app.cash.turbine:turbine:1.1.0")
 
-    // Android Instrumented Tests (Device/Emulator) - Aligned to Compose requirements
+    // Hilt testing for unit tests
+    testImplementation("com.google.dagger:hilt-android-testing:2.57.2")
+    kaptTest("com.google.dagger:hilt-android-compiler:2.57.2")
+
+    // Android Instrumented Tests (Device/Emulator)
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+
+    // Hilt testing for instrumented tests
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
+    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.57.2")
 
     // Debug dependencies
     debugImplementation(libs.androidx.compose.ui.tooling)
