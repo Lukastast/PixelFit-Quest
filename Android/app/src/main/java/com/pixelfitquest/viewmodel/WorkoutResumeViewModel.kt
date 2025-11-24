@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,7 +21,7 @@ import javax.inject.Inject
 class WorkoutResumeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val workoutRepository: WorkoutRepository,
-    private val userRepository: UserRepository  // For rewards if needed
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _userGameData = MutableStateFlow<UserGameData?>(null)
@@ -36,78 +37,73 @@ class WorkoutResumeViewModel @Inject constructor(
 
     init {
         if (workoutId.isNotBlank()) {
-            loadWorkoutData()
-        }
-    }
-
-    private fun loadUserData() {
-        viewModelScope.launch {
-            try {
-                userRepository.getUserGameData().collect { data ->
-                    _userGameData.value = data
-
-                }
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to load user data"
-            }
-        }
-    }
-    private fun loadWorkoutData() {
-        viewModelScope.launch {
-            val workout = workoutRepository.getWorkout(workoutId) ?: return@launch
-            loadExercisesAndSets(workout)
-        }
-    }
-
-    private fun loadExercisesAndSets(workout: Workout) {
-        viewModelScope.launch {
-            try {
-                // 1. Load all exercises for this workout
-                val exercises = workoutRepository.getExercisesByWorkoutId(workoutId)
-
-                // 2. Load ALL sets for this workout (no exercise filter yet)
-                val allSets = workoutRepository.getSetsByWorkoutId(workoutId)
-
-                // 3. Group sets by exerciseId
-                val groupedSets = allSets.groupBy { it.exerciseId }
-
-                // 4. Combine exercise + its sets + calculate average score
-                val exercisesWithSetsList = exercises
-                    .mapNotNull { exercise ->
-                        val exerciseSets = groupedSets[exercise.id] ?: emptyList()
-                        if (exerciseSets.isNotEmpty()) {
-                            val avgScore = exerciseSets
-                                .map { it.workoutScore }
-                                .average()
-                                .toInt()
-                                .coerceIn(0, 100)
-
-                            ExerciseWithSets(
-                                exercise = exercise,
-                                sets = exerciseSets,
-                                avgWorkoutScore = avgScore
-                            )
-                        } else null
-                    }
-
-                // 5. Update UI state
-                _exercisesWithSets.value = exercisesWithSetsList
-
-                // 6. Calculate rewards only the FIRST time (check flag)
-                if (!workout.rewardsAwarded == false) {
-                    calculateAndAwardRewards(exercisesWithSetsList)
-                    // Mark as awarded
-                    workoutRepository.updateWorkout(workoutId, mapOf("rewardsAwarded" to true))
-                }
-
-            } catch (e: Exception) {
-                Log.e("WorkoutResumeVM", "Failed to load exercises/sets", e)
-                _exercisesWithSets.value = emptyList()
+            viewModelScope.launch {
+                loadUserData()
+                loadWorkoutData()
             }
         }
     }
 
-    private fun calculateAndAwardRewards(exercisesWithSets: List<ExerciseWithSets>) {
+    private suspend fun loadUserData() {
+        try {
+            _userGameData.value = userRepository.getUserGameData().first()
+        } catch (e: Exception) {
+            _error.value = e.message ?: "Failed to load user data"
+        }
+    }
+
+    private suspend fun loadWorkoutData() {
+        val workout = workoutRepository.getWorkout(workoutId) ?: return
+        loadExercisesAndSets(workout)
+    }
+
+    private suspend fun loadExercisesAndSets(workout: Workout) {
+        try {
+            // 1. Load all exercises for this workout
+            val exercises = workoutRepository.getExercisesByWorkoutId(workoutId)
+
+            // 2. Load ALL sets for this workout
+            val allSets = workoutRepository.getSetsByWorkoutId(workoutId)
+
+            // 3. Group sets by exerciseId
+            val groupedSets = allSets.groupBy { it.exerciseId }
+
+            // 4. Combine exercise + its sets + calculate average score
+            val exercisesWithSetsList = exercises
+                .mapNotNull { exercise ->
+                    val exerciseSets = groupedSets[exercise.id] ?: emptyList()
+                    if (exerciseSets.isNotEmpty()) {
+                        val avgScore = exerciseSets
+                            .map { it.workoutScore }
+                            .average()
+                            .toInt()
+                            .coerceIn(0, 100)
+
+                        ExerciseWithSets(
+                            exercise = exercise,
+                            sets = exerciseSets,
+                            avgWorkoutScore = avgScore
+                        )
+                    } else null
+                }
+
+            // 5. Update UI state
+            _exercisesWithSets.value = exercisesWithSetsList
+
+            // 6. Calculate rewards only the FIRST time (check flag)
+            if (!workout.rewardsAwarded) {
+                calculateAndAwardRewards(exercisesWithSetsList)
+                // Mark as awarded
+                workoutRepository.updateWorkout(workoutId, mapOf("rewardsAwarded" to true))
+            }
+
+        } catch (e: Exception) {
+            Log.e("WorkoutResumeVM", "Failed to load exercises/sets", e)
+            _exercisesWithSets.value = emptyList()
+        }
+    }
+
+    private suspend fun calculateAndAwardRewards(exercisesWithSets: List<ExerciseWithSets>) {
         val allSets = exercisesWithSets.flatMap { it.sets }
 
         var totalXp = 0
@@ -119,9 +115,9 @@ class WorkoutResumeViewModel @Inject constructor(
             totalReps += reps
 
             val multiplier = when {
-                score >= 90 -> 2.0   // Perfect → double XP
-                score >= 80 -> 1.5   // Great → 1.5× XP
-                else -> 1.0          // Good/Miss → normal XP
+                score >= 90 -> 2.0
+                score >= 80 -> 1.5
+                else -> 1.0
             }
 
             totalXp += (reps * multiplier).toInt()
@@ -135,40 +131,34 @@ class WorkoutResumeViewModel @Inject constructor(
             avgScore = allSets.map { it.workoutScore }.average().toFloat()
         )
 
-        // Award once
         addXp(totalXp)
         addCoins(totalCoins)
     }
 
-    private fun addXp(amount: Int) {
+    private suspend fun addXp(amount: Int) {
         if (amount <= 0) return
-        viewModelScope.launch {
-            try {
-                userRepository.updateExp(amount)
-                Log.d("ResumeVM", "Added $amount XP")
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to update XP"
-            }
+        try {
+            userRepository.updateExp(amount)
+            Log.d("ResumeVM", "Added $amount XP")
+        } catch (e: Exception) {
+            _error.value = e.message ?: "Failed to update XP"
         }
     }
 
-    // NEW: Add Coins (inspired by HomeViewModel.addCoins)
-    private fun addCoins(amount: Int) {
+    private suspend fun addCoins(amount: Int) {
         if (amount <= 0) return
-        viewModelScope.launch {
-            try {
-                val current = _userGameData.value ?: return@launch
-                userRepository.updateUserGameData(mapOf("coins" to current.coins + amount))
-                Log.d("ResumeVM", "Added $amount Coins")
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to update coins"
-            }
+        try {
+            val current = _userGameData.value ?: return
+            userRepository.updateUserGameData(mapOf("coins" to current.coins + amount))
+            Log.d("ResumeVM", "Added $amount Coins")
+        } catch (e: Exception) {
+            _error.value = e.message ?: "Failed to update coins"
         }
     }
 
     data class WorkoutSummary(
         val totalXp: Int,
         val totalCoins: Int,
-        val avgScore: Float = 0f  // NEW: For UI display
+        val avgScore: Float = 0f
     )
 }

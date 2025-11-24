@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+
 import kotlin.test.assertEquals
 
 class FitnessReminderWorkerTest {
@@ -64,10 +65,13 @@ class FitnessReminderWorkerTest {
 
     @Test
     fun `doWork does not show reminder when not needed`() = runTest {
-        // Create a workout with today's date (in UTC format YYYY-MM-DD)
+        // Dynamically get today's date in YYYY-MM-DD format
+        val today = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+
+        // Create a workout with today's date
         val todayWorkout = Workout(
             id = "workout2",
-            date = "2025-11-23",  // Today's date in UTC
+            date = today,
             name = "Today's Workout",
             totalExercises = 2,
             totalSets = 5,
@@ -82,7 +86,6 @@ class FitnessReminderWorkerTest {
         assertEquals(Result.success(), result)
         verify(exactly = 0) { NotificationHelper.showWorkoutReminderNotification(any()) }
     }
-
     @Test
     fun `doWork shows reminder when no workouts exist`() = runTest {
         coEvery { workoutRepository.fetchWorkoutsOnce(1) } returns emptyList()

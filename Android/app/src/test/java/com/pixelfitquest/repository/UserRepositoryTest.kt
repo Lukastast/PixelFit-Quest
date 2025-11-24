@@ -226,9 +226,12 @@ class UserRepositoryTest {
 
     @Test
     fun `updateStreak increments when yesterday was last activity`() = runTest {
+        val today = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+        val yesterday = java.time.LocalDate.now().minusDays(1).format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+
         val snapshot = mockk<DocumentSnapshot>()
         every { snapshot.toObject(UserGameData::class.java) } returns UserGameData(streak = 5)
-        every { snapshot.getString("last_activity_date") } returns "2025-11-22" // yesterday in UTC
+        every { snapshot.getString("last_activity_date") } returns yesterday // yesterday in UTC
         every { snapshot.exists() } returns true
 
         coEvery { userDocRef.get() } returns Tasks.forResult(snapshot)
@@ -239,16 +242,19 @@ class UserRepositoryTest {
         coVerify {
             userDocRef.update(mapOf(
                 "streak" to 6,
-                "last_activity_date" to "2025-11-23" // today
+                "last_activity_date" to today // today
             ))
         }
     }
 
     @Test
     fun `updateStreak resets to 1 when more than one day missed`() = runTest {
+        val today = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+        val threeDaysAgo = java.time.LocalDate.now().minusDays(3).format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+
         val snapshot = mockk<DocumentSnapshot>()
         every { snapshot.toObject(UserGameData::class.java) } returns UserGameData(streak = 10)
-        every { snapshot.getString("last_activity_date") } returns "2025-11-21"
+        every { snapshot.getString("last_activity_date") } returns threeDaysAgo
         every { snapshot.exists() } returns true
 
         coEvery { userDocRef.get() } returns Tasks.forResult(snapshot)
@@ -256,7 +262,7 @@ class UserRepositoryTest {
 
         repository.updateStreak(increment = true)
 
-        coVerify { userDocRef.update(match { it["streak"] == 1 && it["last_activity_date"] == "2025-11-23" }) }
+        coVerify { userDocRef.update(match { it["streak"] == 1 && it["last_activity_date"] == today }) }
     }
 
     // ╔══════════════════════════════════════════════════════════╗

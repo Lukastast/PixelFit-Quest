@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -39,7 +38,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -47,7 +45,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
-import com.pixelfitquest.helpers.NotificationHelper
 import com.pixelfitquest.model.Workout
 import com.pixelfitquest.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
@@ -63,54 +60,48 @@ import java.util.TimeZone
 @Composable
 fun HomeScreen(
     restartApp: (String) -> Unit,
-    openScreen: (String) -> Unit, // Updated: Accept optional arg for workout ID
+    openScreen: (String) -> Unit,
     navController: NavController,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    // UPDATED: Use LocalActivity.current (fixes cast comment; safe and recommended)
     val activity = LocalActivity.current
     val context = LocalContext.current
     LaunchedEffect(Unit) {
-        viewModel.initialize(restartApp, activity) // UPDATED: Pass Activity
+        viewModel.initialize(restartApp, activity)
     }
     val userGameData by viewModel.userGameData.collectAsState()
     val error by viewModel.error.collectAsState()
-    val workouts by viewModel.workouts.collectAsState() // NEW: Collect workouts from ViewModel using getWorkouts()
+    val workouts by viewModel.workouts.collectAsState()
     val level = userGameData?.level ?: 0
     val coins = userGameData?.coins ?: 0
     val exp = userGameData?.exp ?: 0
     val streak = userGameData?.streak ?: 0
     val maxExp by viewModel.currentMaxExp.collectAsState()
-    // NEW: Collect steps states
     val todaySteps by viewModel.todaySteps.collectAsState()
     val stepGoal by viewModel.stepGoal.collectAsState()
-    // NEW: Collect leaderboard states
     val rank by viewModel.rank.collectAsState()
     val totalUsers by viewModel.totalUsers.collectAsState()
-    // NEW: Collect daily missions and completed
     val dailyMissions by viewModel.dailyMissions.collectAsState()
     val completedMissions by viewModel.completedMissions.collectAsState()
-    // NEW: Collect achievements with status
     val achievements by viewModel.achievements.collectAsState()
-    // NEW: Snackbar setup for achievement messages
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     var showAchievements by remember { mutableStateOf(false) }
-    // UPDATED: Removed invalid 'infinite = true' (fixes LaunchedEffect signature / delay errors)
+
     LaunchedEffect(Unit) {
         while (true) {
             delay(30000L) // 30 seconds
             viewModel.refreshSteps(activity)
         }
     }
+
     val displayLevel = if (level >= 30) "Max" else level.toString()
-    // Progress index for bar images (0-5, 20% steps)
     val progressIndex = if (maxExp > 0) {
         ((exp.toFloat() / maxExp) * 5f).toInt().coerceIn(0, 5)
     } else {
         0
     }
-    // NEW: Calculate today's workouts count for mission progress
+
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     dateFormat.timeZone = TimeZone.getTimeZone("UTC")
     val today = dateFormat.format(Date())
@@ -123,6 +114,7 @@ fun HomeScreen(
             false
         }
     }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Top stats row with background image
         Box(
@@ -130,17 +122,14 @@ fun HomeScreen(
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
                 .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                .height(60.dp) // Fixed height to fit the background image and content
+                .height(60.dp)
         ) {
-            // Background image behind the stats
             Image(
                 painter = painterResource(id = R.drawable.info_background),
                 contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit
             )
-            // Stats row on top of the image
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -148,7 +137,6 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Coins with icon
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
                         painter = painterResource(id = R.drawable.coin),
@@ -162,30 +150,27 @@ fun HomeScreen(
                         color = Color.White
                     )
                 }
-                // Streak with icon
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
                         painter = painterResource(id = R.drawable.streak),
                         contentDescription = "Streak icon",
                         modifier = Modifier.size(20.dp)
                     )
-                    Spacer(modifier = Modifier.padding(horizontal = 2.dp)) // Reduced space
+                    Spacer(modifier = Modifier.padding(horizontal = 2.dp))
                     Text(
                         text = "$streak",
                         fontSize = 14.sp,
                         color = Color.White
                     )
                 }
-                // Level
                 Text(
                     text = "Level: $displayLevel",
                     fontSize = 14.sp,
                     color = Color.White
                 )
-                // XP bar
                 Box(
                     modifier = Modifier.size(width = 80.dp, height = 16.dp),
-                    contentAlignment = Alignment.Center // Centers the entire content (image + text)
+                    contentAlignment = Alignment.Center
                 ) {
                     val xpPainter = when (progressIndex) {
                         0 -> painterResource(id = R.drawable.xp_0_percent)
@@ -199,28 +184,26 @@ fun HomeScreen(
                     Image(
                         painter = xpPainter,
                         contentDescription = "XP bar",
-                        modifier = Modifier.matchParentSize() // Fills the Box completely
+                        modifier = Modifier.matchParentSize()
                     )
                 }
             }
         }
-        // Steps display positioned right under the stats box with small space
+
+        // Steps display
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = 84.dp, start = 16.dp, end = 16.dp) // 16 + 60 + 8 = 84.dp for small 8.dp space
+                .padding(top = 84.dp, start = 16.dp, end = 16.dp)
                 .height(80.dp)
         ) {
-            // Background image for step counter
             Image(
                 painter = painterResource(id = R.drawable.info_background_higher),
                 contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit
             )
-            // Steps text on top of the image (centered)
             Column(
                 modifier = Modifier.align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -245,12 +228,13 @@ fun HomeScreen(
                 )
             }
         }
-        // NEW: Leaderboard and achievement button row
+
+        // Leaderboard and achievement button row
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = 172.dp, start = 16.dp, end = 16.dp) // 84 + 80 + 8 = 172.dp for small 8.dp space
+                .padding(top = 172.dp, start = 16.dp, end = 16.dp)
                 .height(100.dp)
         ) {
             Row(
@@ -258,7 +242,6 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                // Leaderboard part on the left
                 Box(
                     modifier = Modifier
                         .width(150.dp)
@@ -295,7 +278,6 @@ fun HomeScreen(
                     }
                 }
                 Spacer(modifier = Modifier.width(16.dp))
-                // Achievement button on the right
                 Image(
                     painter = painterResource(id = R.drawable.achievement_button),
                     contentDescription = "Achievements",
@@ -305,11 +287,13 @@ fun HomeScreen(
                 )
             }
         }
+
+        // Workouts LazyRow
         LazyRow(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = 280.dp, start = 16.dp, end = 16.dp), // Moved below leaderboard (172 + 100 + 8 = 280.dp)
+                .padding(top = 280.dp, start = 16.dp, end = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -328,29 +312,27 @@ fun HomeScreen(
                     WorkoutCard(
                         workout = workout,
                         onClick = {
-                            // FIXED: Navigate to resume screen with workout ID
                             navController.navigate("workout_resume/${workout.id}")
                         }
                     )
                 }
             }
         }
-        // NEW: Daily missions box
+
+        // Daily missions box
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = 428.dp, start = 16.dp, end = 16.dp) // Adjust position below workouts (280 + 140 + 8 = 428.dp; based on WorkoutCard height of 140.dp)
-                .height(250.dp) // Increased height for bigger image
+                .padding(top = 428.dp, start = 16.dp, end = 16.dp)
+                .height(250.dp)
         ) {
-            // Background image
             Image(
                 painter = painterResource(id = R.drawable.questloginboard_wider),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.FillBounds
             )
-            // Missions content
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -360,7 +342,7 @@ fun HomeScreen(
             ) {
                 Text(
                     text = "Daily Missions",
-                    fontSize = 18.sp, // Smaller font size
+                    fontSize = 18.sp,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
@@ -396,101 +378,42 @@ fun HomeScreen(
                         Text(
                             text = mission,
                             color = Color.White,
-                            fontSize = 14.sp // Smaller font size
+                            fontSize = 14.sp
                         )
                         Text(
                             text = progress,
                             color = if (effectiveCompleted) Color.Green else Color.White,
-                            fontSize = 14.sp // Smaller font size
+                            fontSize = 14.sp
                         )
                         Text(
                             text = "+$reward",
                             color = Color.White,
-                            fontSize = 14.sp // Smaller font size
+                            fontSize = 14.sp
                         )
                     }
                 }
             }
         }
-        // Main centered content (buttons only)
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 686.dp, start = 16.dp, end = 16.dp, bottom = 16.dp), // Adjust top padding to below missions (428 + 250 + 8 = 686.dp)
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Temporary test buttons for level up, reset, streak (remove after testing)
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+
+        // Error display (optional)
+        if (error != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 80.dp),
+                contentAlignment = Alignment.BottomCenter
             ) {
-                item {
-                    Button(onClick = { viewModel.addExp(150) }) {
-                        Text("Test Level Up (+150 XP)")
-                    }
-                }
-                item {
-                    Button(onClick = { viewModel.addCoins(100) }) {
-                        Text("Add 100 Coins")
-                    }
-                }
-                item {
-                    Button(onClick = { viewModel.resetUserData() }) {
-                        Text("Reset to Level 1")
-                    }
-                }
-                item {
-                    Button(onClick = { viewModel.resetUnlockedVariants() }) {
-                        Text("Reset Unlocked Variants")
-                    }
-                }
-                item {
-                    Button(onClick = { viewModel.incrementStreak() }) {
-                        Text("Streak ++")
-                    }
-                }
-                item {
-                    Button(onClick = { viewModel.resetStreak() }) {
-                        Text("Reset Streak")
-                    }
-                }
-                item {
-                    Button(onClick = { viewModel.refreshSteps(activity) }) { // UPDATED: Pass Activity
-                        Text("Refresh Steps Now")
-                    }
-                }
-                // NEW: Test buttons for notifications
-                item {
-                    Button(onClick = { NotificationHelper.showStepGoalCompletedNotification(context) }) {
-                        Text("Test Step Goal Completed")
-                    }
-                }
-                item {
-                    Button(onClick = { NotificationHelper.showStepGoalReminderNotification(context) }) {
-                        Text("Test Step Goal Reminder")
-                    }
-                }
-                item {
-                    Button(onClick = { NotificationHelper.showWorkoutCompletedNotification(context) }) {
-                        Text("Test Workout Completed")
-                    }
-                }
-                item {
-                    Button(onClick = { NotificationHelper.showWorkoutReminderNotification(context) }) {
-                        Text("Test Workout Reminder")
-                    }
-                }
-            }
-            if (error != null) {
                 Text(
                     text = "Error: $error",
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 16.dp)
+                    modifier = Modifier
+                        .background(Color.Black.copy(alpha = 0.7f))
+                        .padding(16.dp)
                 )
             }
         }
-        // NEW: Achievements popup
+
+        // Achievements popup
         if (showAchievements) {
             Dialog(onDismissRequest = { showAchievements = false }) {
                 Box(
@@ -554,12 +477,14 @@ fun HomeScreen(
                 }
             }
         }
-        // NEW: Snackbar host at bottom
+
+        // Snackbar host at bottom
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
-        // NEW: Tutorial overlay for first time
+
+        // Tutorial overlay for first time
         val prefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
         var showTutorial by remember { mutableStateOf(prefs.getBoolean("first_time_home", true)) }
         if (showTutorial) {
@@ -584,7 +509,7 @@ fun HomeScreen(
         }
     }
 }
-// NEW: Helper function for ordinal suffixes (1st, 2nd, etc.)
+
 fun ordinal(i: Int): String {
     val suffix = when {
         i % 100 in 11..13 -> "th"
@@ -595,6 +520,7 @@ fun ordinal(i: Int): String {
     }
     return "$i$suffix"
 }
+
 @Composable
 fun WorkoutCard(
     workout: Workout,
@@ -634,8 +560,10 @@ fun WorkoutCard(
         }
     }
 }
+
 private val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
     .withZone(ZoneId.systemDefault())
+
 fun String.formatDate(): String {
     return try {
         val instant = Instant.parse(this)
@@ -643,13 +571,4 @@ fun String.formatDate(): String {
     } catch (e: Exception) {
         "Unknown date"
     }
-}
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    //PixelFitQuestTheme {
-    // HomeScreen(
-    // restartApp = {},
-    // openScreen = {},
-    // }
 }
