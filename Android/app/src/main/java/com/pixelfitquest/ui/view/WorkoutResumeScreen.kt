@@ -218,7 +218,7 @@ fun WorkoutResumeScreen(
                                         containerColor = Color(0xFF566474)
                                     )
                                 ) {
-                                    Column() {
+                                    Column {
 
                                         Row(
                                             modifier = Modifier.fillMaxWidth()
