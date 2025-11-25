@@ -1,0 +1,40 @@
+<!-- res/drawable/ic_pushup_person.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+
+    <!-- Head -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M32,14 a6,6 0 1,0 0,12 a6,6 0 1,0 0,-12 z" />
+
+    <!-- Body (in push-up plank position) -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M32,26 L32,38" />
+
+    <!-- Arms (extended downward) -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M20,38 L32,50 M44,38 L32,50" />
+
+    <!-- Legs (straight back) -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M32,38 L32,54" />
+
+    <!-- Hands on ground (small circles) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M20,54 a3,3 0 1,0 0,6 a3,3 0 1,0 0,-6 z
+                         M44,54 a3,3 0 1,0 0,6 a3,3 0 1,0 0,-6 z" />
+
+</vector>

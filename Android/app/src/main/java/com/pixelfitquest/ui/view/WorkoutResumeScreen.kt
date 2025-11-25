@@ -1,5 +1,6 @@
 package com.pixelfitquest.ui.view
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -12,9 +13,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -37,13 +40,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pixelfitquest.Helpers.displayName
 import com.pixelfitquest.R
 import com.pixelfitquest.model.Exercise
 import com.pixelfitquest.model.WorkoutSet
@@ -99,55 +103,80 @@ fun WorkoutResumeScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF8A9AA8))
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A))
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        // Top summary (XP + Coins)
                         Text(
-                            text = "Workout Complete!",
-                            fontSize = 20.sp,
+                            "Session Complete!",
+                            fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
+                            color = Color.White
                         )
-                        Spacer(modifier = Modifier.size(8.dp))
+                        Spacer(Modifier.height(8.dp))
+
                         Row(
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(start = 8.dp, end = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            horizontalArrangement = Arrangement.spacedBy(24.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // XP Value (uncomment icon if available)
-                            // Icon(painter = painterResource(id = R.drawable.ic_xp), contentDescription = "XP Earned", modifier = Modifier.size(24.dp))
-                            Text(
-                                text = "+${summary.totalXp} XP",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Green
-                            )
-                            // Coins Icon + Value
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.coin),
-                                    contentDescription = "Coins Earned",
-                                    modifier = Modifier.size(20.dp),
-                                    tint = Color.Unspecified
-                                )
-                                Spacer(modifier = Modifier.size(4.dp))
+                                //Icon(painterResource(R.drawable.ic_xp), null, Modifier.size(28.dp))
+                                Spacer(Modifier.width(6.dp))
                                 Text(
-                                    text = "+${summary.totalCoins} Coins",
+                                    "+${summary.totalXp} XP",
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFFFD700)  // Gold
+                                    color = Color.Green
+                                )
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(painterResource(R.drawable.coin), null, Modifier.size(28.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    "+${summary.totalCoins} Coins",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFFFD700)
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.height(20.dp))
+
+                        // Title for exercise feedback
+                        Text(
+                            text = "Exercise Feedback",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White.copy(alpha = 0.9f)
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+
+                        // Scrollable list of per-exercise feedback
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 400.dp),  // Limits height, enables scroll
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(exercisesWithSets) { item ->
+                                val exercise = item.exercise
+                                val avgRom = item.avgWorkoutScore
+                                val avgZTilt = item.sets.map { it.zTiltScore }.average().toInt()
+                                val avgXTilt = item.sets.map { it.xTiltScore }.average().toInt()
+
+                                ExerciseMiniFeedback(
+                                    exerciseName = exercise.type.displayName(),
+                                    avgRomScore = avgRom,
+                                    avgZTiltScore = avgZTilt,
+                                    avgXTiltScore = avgXTilt
                                 )
                             }
                         }
                     }
                 }
-                Spacer(modifier = Modifier.size(16.dp))
             }
 
             // Per-Exercise Cards
@@ -376,4 +405,88 @@ fun TiltScoreBar(
     }
 }
 
+    @Composable
+    fun ExerciseMiniFeedback(
+        exerciseName: String,
+        avgRomScore: Int,
+        avgZTiltScore: Int,
+        avgXTiltScore: Int
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
+                .padding(12.dp)
+        ) {
+            Text(
+                text = exerciseName,
+                fontWeight = FontWeight.Medium,
+                color = Color.White,
+                fontSize = 15.sp
+            )
 
+            Spacer(Modifier.height(6.dp))
+
+            // ROM
+            if (avgRomScore < 90) {
+                FeedbackLine(
+                    icon = painterResource(R.drawable.ic_pushup_person),
+                    text = "Go deeper — full range = max gains!",
+                    color = Color(0xFFFF8800)
+                )
+            } else {
+                FeedbackLine(
+                    icon = painterResource(R.drawable.ic_check_circle),
+                    text = "Perfect range! 🎯",
+                    color = Color.Green
+                )
+            }
+
+            // Z Tilt
+            when {
+                avgZTiltScore > 10 -> FeedbackLine(
+                    icon = painterResource(R.drawable.ic_balance_scale),
+                    text = "Pushing more to the right",
+                    color = Color(0xFFFF8800)
+                )
+                avgZTiltScore < -10 -> FeedbackLine(
+                    icon = painterResource(R.drawable.ic_balance_scale),
+                    text = "Pushing more to the left",
+                    color = Color(0xFFFF8800)
+                )
+                else -> FeedbackLine(
+                    icon = painterResource(R.drawable.ic_check_circle),
+                    text = "Perfect balance!",
+                    color = Color.Green
+                )
+            }
+
+            // X Tilt
+            if (avgXTiltScore > 15) {
+                FeedbackLine(
+                    text = "Right side came closer — keep both arms straight up",
+                    color = Color(0xFFFF8800)
+                )
+            } else if (avgXTiltScore < -15) {
+                FeedbackLine(
+                    text = "Left side came closer — push symmetrically",
+                    color = Color(0xFFFF8800)
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun FeedbackLine(
+        icon: Painter? = null,
+        text: String,
+        color: Color
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            icon?.let {
+                Image(painter = it, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(6.dp))
+            }
+            Text(text, color = color, fontSize = 13.sp)
+        }
+    }

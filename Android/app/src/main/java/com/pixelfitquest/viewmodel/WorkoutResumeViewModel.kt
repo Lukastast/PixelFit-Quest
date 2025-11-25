@@ -1,6 +1,9 @@
 package com.pixelfitquest.viewmodel
 
 import android.util.Log
+import androidx.compose.material3.Card
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -169,9 +172,11 @@ class WorkoutResumeViewModel @Inject constructor(
         }
     }
 
+
     data class WorkoutSummary(
         val totalXp: Int,
         val totalCoins: Int,
         val avgScore: Float = 0f  // NEW: For UI display
     )
 }
+

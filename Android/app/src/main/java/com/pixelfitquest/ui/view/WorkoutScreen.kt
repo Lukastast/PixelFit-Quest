@@ -37,6 +37,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -58,6 +60,7 @@ import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.ui.theme.determination
 import com.pixelfitquest.viewmodel.WorkoutViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,10 +82,24 @@ fun WorkoutScreen(
     val characterData by viewModel.characterData.collectAsState()
     var currentFeedback by remember { mutableStateOf<WorkoutFeedback?>(null) }
     val animState = remember { Animatable(0f) }
+    var countdownNumber by remember { mutableStateOf<Int?>(null) }
 
     val currentExercise = plan.items.getOrNull(state.currentExerciseIndex)?.exercise?.name ?: "Unknown"
     val currentSets = plan.items.getOrNull(state.currentExerciseIndex)?.sets ?: 0
     val currentWeight = plan.items.getOrNull(state.currentExerciseIndex)?.weight ?: 0.0
+
+    LaunchedEffect(Unit) {
+        viewModel.countdownEvent.collectLatest {
+            countdownNumber = 3
+            repeat(3) { i ->
+                delay(1000L)
+                countdownNumber = 3 - i - 1
+            }
+            countdownNumber = null
+            delay(800L)
+            countdownNumber = -1
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.feedbackEvent.collect { feedback ->
@@ -269,6 +286,22 @@ fun WorkoutScreen(
         }
 
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            countdownNumber?.let { number ->
+                val text = if (number >= 0) "${number + 1}" else "GO!"
+                val color = if (number >= 0) Color.Yellow else Color.Green
+
+                Text(
+                    text = text,
+                    fontSize = 120.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = color,
+                    fontFamily = determination,
+                    modifier = Modifier
+                        .scale(animState.value * 1.5f)
+                        .alpha(animState.value)
+                )
+            }
+
             currentFeedback?.let { feedback ->
                 Text(
                     text = feedback.text,

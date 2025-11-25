@@ -46,6 +46,9 @@ class WorkoutViewModel @Inject constructor(
 
     private val _feedbackEvent = Channel<WorkoutFeedback>(Channel.BUFFERED)
     val feedbackEvent = _feedbackEvent.receiveAsFlow()
+    private val _countdownEvent = Channel<Unit>(Channel.BUFFERED)
+    val countdownEvent = _countdownEvent.receiveAsFlow()
+
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -80,7 +83,7 @@ class WorkoutViewModel @Inject constructor(
     // For averaging and failed reps
     private var totalRepTime: Long = 0L
     private var lastPeakTime = 0L
-    private var stabilizationTimeMs = 1000L
+    private var stabilizationTimeMs = 3000L
 
     // Plan-based tracking
     private var currentPlan: WorkoutPlan? = null
@@ -350,6 +353,10 @@ class WorkoutViewModel @Inject constructor(
         baselineTiltX = 0f
         baselineTiltY = 0f
         baselineTiltZ = 0f
+        viewModelScope.launch {
+            _countdownEvent.send(Unit)
+        }
+
         Log.d("WorkoutVM", "Started set $currentSetNumber")
     }
 
