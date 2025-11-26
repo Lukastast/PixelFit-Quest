@@ -1,6 +1,9 @@
 package com.pixelfitquest.viewmodel
 
 import android.util.Log
+import androidx.compose.material3.Card
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -28,7 +31,7 @@ class WorkoutResumeViewModel @Inject constructor(
     val userGameData: StateFlow<UserGameData?> = _userGameData.asStateFlow()
     private val workoutId: String = savedStateHandle.get<String>("workoutId") ?: ""
 
-    private val _summary = MutableStateFlow(WorkoutSummary(0, 0))
+    private val _summary = MutableStateFlow(WorkoutSummary(0, 0, 0f))
     val summary: StateFlow<WorkoutSummary> = _summary.asStateFlow()
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -57,34 +60,45 @@ class WorkoutResumeViewModel @Inject constructor(
         loadExercisesAndSets(workout)
     }
 
-    private suspend fun loadExercisesAndSets(workout: Workout) {
-        try {
-            // 1. Load all exercises for this workout
-            val exercises = workoutRepository.getExercisesByWorkoutId(workoutId)
+    private fun loadExercisesAndSets(workout: Workout) {
+        viewModelScope.launch {
+            try {
+                // 1. Load all exercises for this workout
+                val exercises = workoutRepository.getExercisesByWorkoutId(workoutId)
 
-            // 2. Load ALL sets for this workout
-            val allSets = workoutRepository.getSetsByWorkoutId(workoutId)
+                // 2. Load ALL sets for this workout (no exercise filter yet)
+                val allSets = workoutRepository.getSetsByWorkoutId(workoutId)
 
-            // 3. Group sets by exerciseId
-            val groupedSets = allSets.groupBy { it.exerciseId }
+                // 3. Group sets by exerciseId
+                val groupedSets = allSets.groupBy { it.exerciseId }
 
-            // 4. Combine exercise + its sets + calculate average score
-            val exercisesWithSetsList = exercises
-                .mapNotNull { exercise ->
-                    val exerciseSets = groupedSets[exercise.id] ?: emptyList()
-                    if (exerciseSets.isNotEmpty()) {
-                        val avgScore = exerciseSets
-                            .map { it.workoutScore }
-                            .average()
-                            .toInt()
-                            .coerceIn(0, 100)
+                // 4. Combine exercise + its sets + calculate average score
+                val exercisesWithSetsList = exercises
+                    .mapNotNull { exercise ->
+                        val exerciseSets = groupedSets[exercise.id] ?: emptyList()
+                        if (exerciseSets.isNotEmpty()) {
+                            val avgScore = exerciseSets
+                                .map { it.workoutScore }
+                                .average()
+                                .toInt()
+                                .coerceIn(0, 100)
 
-                        ExerciseWithSets(
-                            exercise = exercise,
-                            sets = exerciseSets,
-                            avgWorkoutScore = avgScore
-                        )
-                    } else null
+                            ExerciseWithSets(
+                                exercise = exercise,
+                                sets = exerciseSets,
+                                avgWorkoutScore = avgScore
+                            )
+                        } else null
+                    }
+
+
+                _exercisesWithSets.value = exercisesWithSetsList
+
+                _summary.value = calculateSummary(exercisesWithSetsList)
+
+                if (!workout.rewardsAwarded) {
+                    awardRewards(_summary.value)
+                    workoutRepository.updateWorkout(workoutId, mapOf("rewardsAwarded" to true))
                 }
 
             // 5. Update UI state
@@ -103,7 +117,7 @@ class WorkoutResumeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun calculateAndAwardRewards(exercisesWithSets: List<ExerciseWithSets>) {
+    private fun calculateSummary(exercisesWithSets: List<ExerciseWithSets>): WorkoutSummary {
         val allSets = exercisesWithSets.flatMap { it.sets }
 
         var totalXp = 0
@@ -112,6 +126,7 @@ class WorkoutResumeViewModel @Inject constructor(
         allSets.forEach { set ->
             val reps = set.reps.coerceAtLeast(0)
             val score = set.workoutScore.coerceIn(0f, 100f)
+
             totalReps += reps
 
             val multiplier = when {
@@ -123,16 +138,19 @@ class WorkoutResumeViewModel @Inject constructor(
             totalXp += (reps * multiplier).toInt()
         }
 
-        val totalCoins = totalReps / 10
+        val totalCoins = totalReps / 5
+        val avgScore = allSets.map { it.workoutScore }.average().toFloat()
 
-        _summary.value = WorkoutSummary(
+        return WorkoutSummary(
             totalXp = totalXp,
             totalCoins = totalCoins,
-            avgScore = allSets.map { it.workoutScore }.average().toFloat()
+            avgScore = avgScore
         )
+    }
 
-        addXp(totalXp)
-        addCoins(totalCoins)
+    private fun awardRewards(summary: WorkoutSummary) {
+        addXp(summary.totalXp)
+        addCoins(summary.totalCoins)
     }
 
     private suspend fun addXp(amount: Int) {
@@ -156,9 +174,11 @@ class WorkoutResumeViewModel @Inject constructor(
         }
     }
 
+
     data class WorkoutSummary(
         val totalXp: Int,
         val totalCoins: Int,
         val avgScore: Float = 0f
     )
 }
+
