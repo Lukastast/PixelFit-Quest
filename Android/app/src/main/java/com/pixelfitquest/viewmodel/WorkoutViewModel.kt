@@ -2,7 +2,6 @@ package com.pixelfitquest.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.pixelfitquest.Helpers.WORKOUT_RESUME_SCREEN
 import com.pixelfitquest.model.CharacterData
 import com.pixelfitquest.model.Exercise
 import com.pixelfitquest.model.ExerciseType
@@ -15,12 +14,14 @@ import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.UserSettingsRepository
 import com.pixelfitquest.repository.WorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
@@ -42,6 +43,12 @@ class WorkoutViewModel @Inject constructor(
 
     private val _userSettings = MutableStateFlow<UserSettings?>(null)
     val userSettings: StateFlow<UserSettings?> = _userSettings.asStateFlow()
+
+    private val _feedbackEvent = Channel<WorkoutFeedback>(Channel.BUFFERED)
+    val feedbackEvent = _feedbackEvent.receiveAsFlow()
+    private val _countdownEvent = Channel<Unit>(Channel.BUFFERED)
+    val countdownEvent = _countdownEvent.receiveAsFlow()
+
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -76,7 +83,7 @@ class WorkoutViewModel @Inject constructor(
     // For averaging and failed reps
     private var totalRepTime: Long = 0L
     private var lastPeakTime = 0L
-    private var stabilizationTimeMs = 1000L
+    private var stabilizationTimeMs = 3000L
 
     // Plan-based tracking
     private var currentPlan: WorkoutPlan? = null
@@ -100,6 +107,7 @@ class WorkoutViewModel @Inject constructor(
     //animation
     private val _characterData = MutableStateFlow(CharacterData())
     val characterData: StateFlow<CharacterData> = _characterData.asStateFlow()
+
 
     //navigation
     private val _navigationEvent = MutableSharedFlow<String>(replay = 1)
@@ -345,6 +353,10 @@ class WorkoutViewModel @Inject constructor(
         baselineTiltX = 0f
         baselineTiltY = 0f
         baselineTiltZ = 0f
+        viewModelScope.launch {
+            _countdownEvent.send(Unit)
+        }
+
         Log.d("WorkoutVM", "Started set $currentSetNumber")
     }
 
@@ -483,14 +495,18 @@ class WorkoutViewModel @Inject constructor(
     private fun updateFeedback(score: Float) {
         val feedback = when {
             score >= 90 -> WorkoutFeedback.PERFECT
+            score >= 80 -> WorkoutFeedback.EXCELLENT
             score >= 70 -> WorkoutFeedback.GREAT
             score >= 50 -> WorkoutFeedback.GOOD
             else -> WorkoutFeedback.MISS
         }
-        _workoutState.value = _workoutState.value.copy(feedback = feedback, showFeedback = true)
+       triggerFeedback(feedback)
     }
-    fun hideFeedback() {
-        _workoutState.value = _workoutState.value.copy(showFeedback = false, feedback = null)
+
+    fun triggerFeedback(feedback: WorkoutFeedback) {
+        viewModelScope.launch {
+            _feedbackEvent.send(feedback)  // One-time emission
+        }
     }
     fun setError(message: String?) {
         _error.value = message
@@ -528,7 +544,8 @@ class WorkoutViewModel @Inject constructor(
         val avgTiltZScore = if (newReps > 0) (newTotalTiltZ / newReps.toFloat()).coerceIn(-100f, 100f) else 0f
 
         val workoutScore = (avgRomScore + (100-abs(avgTiltXScore)) + (100-abs(100-avgTiltZScore))) / 3f
-        updateFeedback(workoutScore)
+        val feedbackScore = (lastRepScore * 2 + (100-abs(tiltXScore)) + (100-abs(tiltZScore))) / 4f
+
         Log.d("TiltDebug", "Rep avg X: $avgTiltX, Y: $avgTiltZ | Score X: $tiltXScore, Z: $tiltZScore")
 
         tiltXSum = 0f
@@ -566,7 +583,7 @@ class WorkoutViewModel @Inject constructor(
             tiltZScore = tiltZScore,
             workoutScore = workoutScore
         )
-
+        updateFeedback(feedbackScore)
         Log.d("WorkoutVM", "Rep completed: $newReps reps, ROM: $newEstROM cm")
     }
 
