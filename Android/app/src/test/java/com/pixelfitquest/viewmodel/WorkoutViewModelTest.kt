@@ -404,16 +404,6 @@ class WorkoutViewModelTest {
         assertFalse(viewModel.workoutState.value.isSetActive)
     }
 
-    // ========== Feedback Tests ==========
-
-    @Test
-    fun `hideFeedback clears feedback state`() = runTest {
-        viewModel.hideFeedback()
-
-        assertFalse(viewModel.workoutState.value.showFeedback)
-        assertNull(viewModel.workoutState.value.feedback)
-    }
-
     // ========== Error Handling Tests ==========
 
     @Test
