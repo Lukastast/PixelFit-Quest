@@ -51,7 +51,7 @@ class WorkoutRepository @Inject constructor(
     // Real-time Flow for user's workouts (all types, sorted by date desc)
     fun getWorkouts(): Flow<List<Workout>> = callbackFlow {
         val listener = workoutsSubcollection
-            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .orderBy("date", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     trySend(emptyList())
@@ -91,13 +91,16 @@ class WorkoutRepository @Inject constructor(
         }
     }
     suspend fun getSetsByWorkoutId(workoutId: String): List<WorkoutSet> {
+        println("Starting getSetsByWorkoutId for $workoutId")
         return try {
             val exercises = getExercisesByWorkoutId(workoutId)
-            Log.d("WorkoutRepo", "Found ${exercises.size} exercises for sets load on $workoutId")
+            println("Got ${exercises.size} exercises")
 
             val allSets = mutableListOf<WorkoutSet>()
             exercises.forEach { exercise ->
                 try {
+                    println("Loading sets for exercise ${exercise.id}")
+
                     val setsSnapshot = workoutsSubcollection
                         .document(workoutId)
                         .collection("exercises")
@@ -106,73 +109,68 @@ class WorkoutRepository @Inject constructor(
                         .get()
                         .await()
 
-                    Log.d("WorkoutRepo", "TEST: Exercise.id used to load sets: '${exercise.id}'")
-
-                    Log.d("WorkoutRepo", "Snapshot for sets under exercise ${exercise.id} has ${setsSnapshot.documents.size} docs")
+                    println("Got ${setsSnapshot.documents.size} set docs for exercise ${exercise.id}")
 
                     val exerciseSets = setsSnapshot.documents.mapNotNull { doc ->
-                        try {
-                            val data = doc.data ?: emptyMap()
-                            val enrichedData = data.toMutableMap().apply {
-                                this["workoutId"] = workoutId
-                                this["exerciseId"] = exercise.id
-                            }
-                            WorkoutSet.fromMap(enrichedData)
-                        } catch (ex: Exception) {
-                            Log.w("WorkoutRepo", "Failed to parse set ${doc.id}: ${ex.message}")
-                            null
+                        val data = doc.data ?: emptyMap()
+                        println("Parsing set ${doc.id} with raw data: $data")
+
+                        val enrichedData = data.toMutableMap().apply {
+                            this["workoutId"] = workoutId
+                            this["exerciseId"] = exercise.id
                         }
+                        println("Enriched data for set ${doc.id}: $enrichedData")
+
+                        val parsedSet = WorkoutSet.fromMap(enrichedData)
+                        println("Parsed set for ${doc.id}: $parsedSet")  // null or object?
+
+                        parsedSet
                     }
+                    println("Parsed ${exerciseSets.size} sets for exercise ${exercise.id}")
+
                     allSets.addAll(exerciseSets)
                 } catch (ex: Exception) {
-                    Log.e("WorkoutRepo", "Failed to load sets for exercise ${exercise.id}: ${ex.message}")
-                    // Continue to next exercise—don't fail all
+                    println("Exception in sets load for exercise ${exercise.id}: ${ex.message}")
                 }
             }
 
-            Log.d("WorkoutRepo", "Total sets loaded: ${allSets.size}")
+            println("Total allSets size: ${allSets.size}")
             allSets
         } catch (e: Exception) {
-            Log.e("WorkoutRepo", "Failed to load sets for $workoutId: ${e.message}")
+            println("Outer exception in getSetsByWorkoutId: ${e.message}")
             emptyList()
         }
     }
     suspend fun getExercisesByWorkoutId(workoutId: String): List<Exercise> {
         return try {
-            val userId = currentUserId()  // Log this
+            val userId = currentUserId()
             Log.d("WorkoutRepo", "Loading exercises for userId: '$userId', workoutId: '$workoutId'")
             if (userId.isBlank()) {
                 Log.e("WorkoutRepo", "currentUserId() is blank—cannot query user-specific path")
                 return emptyList()
             }
 
-            val snapshot = workoutsSubcollection  // This calls get(), so fresh userId
+            val snapshot = workoutsSubcollection
                 .document(workoutId)
                 .collection("exercises")
                 .get()
                 .await()
 
-            Log.d("WorkoutRepo", "Snapshot for exercises under user $userId / workout $workoutId has ${snapshot.documents.size} docs")
-
-            // Log first doc ID if any (for verification)
-            snapshot.documents.firstOrNull()?.let { doc ->
-                Log.d("WorkoutRepo", "Sample exercise doc ID: '${doc.id}', raw data keys: ${doc.data?.keys}")
-            }
+            Log.d("WorkoutRepo", "Snapshot has ${snapshot.documents.size} exercise docs")
 
             val parsedExercises = snapshot.documents.mapNotNull { doc ->
-                try {
-                    val data = doc.data ?: emptyMap()
-                    Log.d("WorkoutRepo", "Parsing exercise '${doc.id}' with data: $data")  // Temp: Log full map for first few; remove in prod
-                    data.let { Exercise.fromMap(it) }  // No need for workoutId inject if already in map
-                } catch (ex: Exception) {
-                    Log.w("WorkoutRepo", "Failed to parse exercise ${doc.id}: ${ex.message}; data: ${doc.data?.keys}")
-                    null
-                }
+                Exercise.fromMap(doc.data ?: emptyMap())
+                    .also { exercise ->
+                        if (exercise == null) {
+                            Log.w("WorkoutRepo", "Failed to parse exercise ${doc.id} – missing id/workoutId or invalid data")
+                        }
+                    }
             }
-            Log.d("WorkoutRepo", "Parsed ${parsedExercises.size} exercises from ${snapshot.documents.size} docs")
+
+            Log.d("WorkoutRepo", "Successfully parsed ${parsedExercises.size} exercises")
             parsedExercises
         } catch (e: Exception) {
-            Log.e("WorkoutRepo", "Failed to load exercises for $workoutId: ${e.message}")
+            Log.e("WorkoutRepo", "Failed to load exercises for $workoutId", e)
             emptyList()
         }
     }

@@ -1,6 +1,7 @@
 package com.pixelfitquest.repository
 
 import android.util.Log
+
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
@@ -31,6 +32,11 @@ class UserRepository @Inject constructor(
         private const val MAX_LEVEL = 30  // Hard cap at level 30
         private const val MILLIS_PER_DAY = 24 * 60 * 60 * 1000L  // Extracted constant for milliseconds in a day
         private val cachedProgression = ConcurrentHashMap<Int, Int>()  // Thread-safe map for concurrent access
+
+        @JvmStatic
+        fun clearCacheForTesting() {
+            cachedProgression.clear()
+        }
     }
 
     // Game Data (level, coins, exp, streak)

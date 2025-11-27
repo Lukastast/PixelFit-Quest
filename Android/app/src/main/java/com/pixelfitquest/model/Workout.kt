@@ -81,17 +81,19 @@ data class Exercise(
     )
 
     companion object {
-        fun fromMap(map: Map<String, Any?>): Exercise {
-            val parsedType = ExerciseType.entries.find { it.type == (map["type"] as? String) }
-            if (parsedType == null) {
-                Log.d("Exercise", "Unknown type '${map["type"]}', defaulting to BENCH_PRESS")
-            }
+        fun fromMap(map: Map<String, Any?>): Exercise? {
+            val id = map["id"] as? String ?: return null
+            val workoutId = map["workoutId"] as? String ?: return null
+
+            val typeStr = map["type"] as? String
+            val parsedType = ExerciseType.entries.find { it.type == typeStr } ?: ExerciseType.BENCH_PRESS
+
             return Exercise(
-                id = map["id"] as? String ?: "",
-                workoutId = map["workoutId"] as? String ?: "",
-                type = parsedType ?: ExerciseType.BENCH_PRESS,
+                id = id,
+                workoutId = workoutId,
+                type = parsedType,
                 totalSets = map["totalSets"] as? Int ?: 0,
-                weight = map["weight"] as? Float ?: 0f,
+                weight = (map["weight"] as? Number)?.toFloat() ?: 0f,
                 notes = map["notes"] as? String
             )
         }
@@ -130,20 +132,24 @@ data class WorkoutSet(
     )
 
     companion object {
-        fun fromMap(map: Map<String, Any?>): WorkoutSet {
+        fun fromMap(map: Map<String, Any?>): WorkoutSet? {
+            // VI MÅ IKKE KASTE EXCEPTION – vi skal returnere null hvis krævede felter mangler
+            val workoutId = map["workoutId"] as? String ?: return null
+            val exerciseId = map["exerciseId"] as? String ?: return null
+
             return WorkoutSet(
                 id = map["id"] as? String ?: "",
-                exerciseId = map["exerciseId"] as? String ?: "",
-                workoutId = map["workoutId"] as? String ?: "",
-                setNumber = (map["setNumber"] as? Long)?.toInt() ?: (map["setNumber"] as? Double)?.toInt() ?: (map["setNumber"] as? Int) ?: 0,
-                reps = (map["reps"] as? Long)?.toInt() ?: (map["reps"] as? Double)?.toInt() ?: (map["reps"] as? Int) ?: 0,
-                romScore = (map["romScore"] as? Double)?.toFloat() ?: (map["romScore"] as? Float) ?: (map["romScore"] as? Long)?.toFloat() ?: 0f,
-                xTiltScore = (map["xTiltScore"] as? Double)?.toFloat() ?: (map["xTiltScore"] as? Float) ?: (map["xTiltScore"] as? Long)?.toFloat() ?: 0f,
-                zTiltScore = (map["zTiltScore"] as? Double)?.toFloat() ?: (map["zTiltScore"] as? Float) ?: (map["zTiltScore"] as? Long)?.toFloat() ?: 0f,
-                workoutScore = (map["workoutScore"] as? Double)?.toFloat() ?: (map["workoutScore"] as? Float) ?: (map["workoutScore"] as? Long)?.toFloat() ?: 0f,
-                avgRepTime = (map["avgRepTime"] as? Double)?.toFloat() ?: (map["avgRepTime"] as? Float) ?: (map["avgRepTime"] as? Long)?.toFloat() ?: 0f,
-                verticalAccel = (map["verticalAccel"] as? Double)?.toFloat() ?: (map["verticalAccel"] as? Float) ?: (map["verticalAccel"] as? Long)?.toFloat() ?: 0f,
-                weight = (map["weight"] as? Double)?.toFloat() ?: (map["weight"] as? Float) ?: (map["weight"] as? Long)?.toFloat() ?: 0f,
+                workoutId = workoutId,
+                exerciseId = exerciseId,
+                setNumber = map["setNumber"]?.toString()?.toIntOrNull() ?: 0,
+                reps = map["reps"]?.toString()?.toIntOrNull() ?: 0,
+                romScore = map["romScore"]?.toString()?.toFloatOrNull() ?: 0f,
+                xTiltScore = map["xTiltScore"]?.toString()?.toFloatOrNull() ?: 0f,
+                zTiltScore = map["zTiltScore"]?.toString()?.toFloatOrNull() ?: 0f,
+                workoutScore = map["workoutScore"]?.toString()?.toFloatOrNull() ?: 0f,
+                avgRepTime = map["avgRepTime"]?.toString()?.toFloatOrNull() ?: 0f,
+                verticalAccel = map["verticalAccel"]?.toString()?.toFloatOrNull() ?: 0f,
+                weight = map["weight"]?.toString()?.toFloatOrNull() ?: 0f,
                 notes = map["notes"] as? String
             )
         }

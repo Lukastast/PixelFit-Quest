@@ -69,8 +69,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.pixelfitquest.helpers.TypewriterText
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.pixelfitquest.Helpers.TypewriterText
 import com.pixelfitquest.R
 import com.pixelfitquest.model.ExerciseType
 import com.pixelfitquest.model.WorkoutPlan
@@ -204,8 +204,7 @@ fun WorkoutCustomizationScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                // Top Padding
-                Spacer(modifier = Modifier.padding(top = 8.dp))
+
 
                 // Exercises Section: Separate Scrollable View
                 Box(
@@ -229,7 +228,9 @@ fun WorkoutCustomizationScreen(
                     )
                 }
 
-                // Template Name Input (if editing or saving)
+                // Top Padding
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+
                 if (uiState.editMode || uiState.selections.isNotEmpty()) {
                     Box(
                         modifier = Modifier
@@ -509,8 +510,6 @@ fun WorkoutCustomizationScreen(
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.padding(top = 8.dp))
 
                 if (templates.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))

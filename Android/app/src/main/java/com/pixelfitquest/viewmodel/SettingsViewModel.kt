@@ -6,9 +6,9 @@ import androidx.credentials.CustomCredential
 import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-import com.pixelfitquest.Helpers.ERROR_TAG
-import com.pixelfitquest.Helpers.SPLASH_SCREEN
-import com.pixelfitquest.Helpers.UNEXPECTED_CREDENTIAL
+import com.pixelfitquest.helpers.ERROR_TAG
+import com.pixelfitquest.helpers.SPLASH_SCREEN
+import com.pixelfitquest.helpers.UNEXPECTED_CREDENTIAL
 import com.pixelfitquest.R
 import com.pixelfitquest.model.User
 import com.pixelfitquest.model.UserSettings

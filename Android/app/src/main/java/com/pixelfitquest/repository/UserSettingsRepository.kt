@@ -53,7 +53,7 @@ import javax.inject.Inject
 
         // Update fields (updated to create if not exists)
     suspend fun updateUserSettings(updates: Map<String, Any>) {
-        val user = auth.currentUser ?: throw Exception("No user logged in")
+        val user = auth.currentUser ?: throw IllegalStateException("No user logged in")
         val docRef = usersCollection.document(user.uid)
         try {
             val doc = docRef.get().await()
