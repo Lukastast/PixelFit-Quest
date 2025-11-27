@@ -69,7 +69,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.Helpers.TypewriterText
 import com.pixelfitquest.R
 import com.pixelfitquest.model.ExerciseType
@@ -78,6 +78,7 @@ import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.WorkoutCustomizationViewModel
 import kotlinx.coroutines.launch
+import androidx.core.content.edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun Modifier.simpleVerticalScrollbar(
@@ -659,7 +660,7 @@ fun WorkoutCustomizationScreen(
                 TypewriterText(
                     text = "Welcome to Workout Customization! Select exercises by checking them, adjust sets and weights. Enter a name to save as template. Use 'Start Workout' to begin your adventure of acquiring coins and exp .",
                     onComplete = {
-                        prefs.edit().putBoolean("first_time_customization", false).apply()
+                        prefs.edit { putBoolean("first_time_customization", false) }
                         showTutorial = false
                     },
                     modifier = Modifier.padding(16.dp),
