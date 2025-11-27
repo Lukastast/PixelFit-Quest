@@ -16,7 +16,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,7 +23,7 @@ import javax.inject.Inject
 class WorkoutResumeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val workoutRepository: WorkoutRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository  // For rewards if needed
 ) : ViewModel() {
 
     private val _userGameData = MutableStateFlow<UserGameData?>(null)
@@ -40,24 +39,27 @@ class WorkoutResumeViewModel @Inject constructor(
 
     init {
         if (workoutId.isNotBlank()) {
-            viewModelScope.launch {
-                loadUserData()
-                loadWorkoutData()
+            loadWorkoutData()
+        }
+    }
+
+    private fun loadUserData() {
+        viewModelScope.launch {
+            try {
+                userRepository.getUserGameData().collect { data ->
+                    _userGameData.value = data
+
+                }
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to load user data"
             }
         }
     }
-
-    private suspend fun loadUserData() {
-        try {
-            _userGameData.value = userRepository.getUserGameData().first()
-        } catch (e: Exception) {
-            _error.value = e.message ?: "Failed to load user data"
+    private fun loadWorkoutData() {
+        viewModelScope.launch {
+            val workout = workoutRepository.getWorkout(workoutId) ?: return@launch
+            loadExercisesAndSets(workout)
         }
-    }
-
-    private suspend fun loadWorkoutData() {
-        val workout = workoutRepository.getWorkout(workoutId) ?: return
-        loadExercisesAndSets(workout)
     }
 
     private fun loadExercisesAndSets(workout: Workout) {
@@ -101,19 +103,10 @@ class WorkoutResumeViewModel @Inject constructor(
                     workoutRepository.updateWorkout(workoutId, mapOf("rewardsAwarded" to true))
                 }
 
-            // 5. Update UI state
-            _exercisesWithSets.value = exercisesWithSetsList
-
-            // 6. Calculate rewards only the FIRST time (check flag)
-            if (!workout.rewardsAwarded) {
-                calculateAndAwardRewards(exercisesWithSetsList)
-                // Mark as awarded
-                workoutRepository.updateWorkout(workoutId, mapOf("rewardsAwarded" to true))
+            } catch (e: Exception) {
+                Log.e("WorkoutResumeVM", "Failed to load exercises/sets", e)
+                _exercisesWithSets.value = emptyList()
             }
-
-        } catch (e: Exception) {
-            Log.e("WorkoutResumeVM", "Failed to load exercises/sets", e)
-            _exercisesWithSets.value = emptyList()
         }
     }
 
@@ -153,24 +146,29 @@ class WorkoutResumeViewModel @Inject constructor(
         addCoins(summary.totalCoins)
     }
 
-    private suspend fun addXp(amount: Int) {
+    private fun addXp(amount: Int) {
         if (amount <= 0) return
-        try {
-            userRepository.updateExp(amount)
-            Log.d("ResumeVM", "Added $amount XP")
-        } catch (e: Exception) {
-            _error.value = e.message ?: "Failed to update XP"
+        viewModelScope.launch {
+            try {
+                userRepository.updateExp(amount)
+                Log.d("ResumeVM", "Added $amount XP")
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to update XP"
+            }
         }
     }
 
-    private suspend fun addCoins(amount: Int) {
+    // NEW: Add Coins (inspired by HomeViewModel.addCoins)
+    private fun addCoins(amount: Int) {
         if (amount <= 0) return
-        try {
-            val current = _userGameData.value ?: return
-            userRepository.updateUserGameData(mapOf("coins" to current.coins + amount))
-            Log.d("ResumeVM", "Added $amount Coins")
-        } catch (e: Exception) {
-            _error.value = e.message ?: "Failed to update coins"
+        viewModelScope.launch {
+            try {
+                val current = _userGameData.value ?: return@launch
+                userRepository.updateUserGameData(mapOf("coins" to current.coins + amount))
+                Log.d("ResumeVM", "Added $amount Coins")
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to update coins"
+            }
         }
     }
 
@@ -178,7 +176,6 @@ class WorkoutResumeViewModel @Inject constructor(
     data class WorkoutSummary(
         val totalXp: Int,
         val totalCoins: Int,
-        val avgScore: Float = 0f
+        val avgScore: Float = 0f  // NEW: For UI display
     )
 }
-
