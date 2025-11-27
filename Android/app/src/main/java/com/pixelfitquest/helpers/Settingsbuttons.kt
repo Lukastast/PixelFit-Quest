@@ -1,4 +1,4 @@
-package com.pixelfitquest.Helpers
+package com.pixelfitquest.helpers
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable

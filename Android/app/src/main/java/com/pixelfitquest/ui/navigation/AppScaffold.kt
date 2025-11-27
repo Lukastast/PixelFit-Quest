@@ -1,7 +1,6 @@
 package com.pixelfitquest.ui.navigation
 
 import android.media.MediaPlayer
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -49,15 +48,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.pixelfitquest.Helpers.CUSTOMIZATION_SCREEN
-import com.pixelfitquest.Helpers.HOME_SCREEN
-import com.pixelfitquest.Helpers.INTRO_SCREEN
-import com.pixelfitquest.Helpers.LOGIN_SCREEN
-import com.pixelfitquest.Helpers.SETTINGS_SCREEN
-import com.pixelfitquest.Helpers.SIGNUP_SCREEN
-import com.pixelfitquest.Helpers.SPLASH_SCREEN
-import com.pixelfitquest.Helpers.WORKOUT_CUSTOMIZATION_SCREEN
-import com.pixelfitquest.Helpers.WORKOUT_SCREEN
+import com.pixelfitquest.helpers.CUSTOMIZATION_SCREEN
+import com.pixelfitquest.helpers.HOME_SCREEN
+import com.pixelfitquest.helpers.INTRO_SCREEN
+import com.pixelfitquest.helpers.LOGIN_SCREEN
+import com.pixelfitquest.helpers.SETTINGS_SCREEN
+import com.pixelfitquest.helpers.SIGNUP_SCREEN
+import com.pixelfitquest.helpers.SPLASH_SCREEN
+import com.pixelfitquest.helpers.WORKOUT_CUSTOMIZATION_SCREEN
+import com.pixelfitquest.helpers.WORKOUT_SCREEN
 import com.pixelfitquest.R
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.ui.screens.LoginScreen

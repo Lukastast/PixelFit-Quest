@@ -1,4 +1,4 @@
-package com.PixelFitQuest.model
+package com.pixelfitquest.model
 
 // Missions pool (unchanged)
 val missionsPool = listOf(

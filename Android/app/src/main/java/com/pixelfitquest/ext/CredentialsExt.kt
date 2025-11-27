@@ -3,9 +3,7 @@ package com.pixelfitquest.ext
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,8 +20,8 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.NoCredentialException
-import com.pixelfitquest.Helpers.ERROR_TAG
-import com.pixelfitquest.Helpers.SnackbarManager
+import com.pixelfitquest.helpers.ERROR_TAG
+import com.pixelfitquest.helpers.SnackbarManager
 import com.pixelfitquest.R
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
@@ -40,12 +38,18 @@ fun AuthenticationButton(
     val coroutineScope = rememberCoroutineScope()
 
     PixelArtButton(
-        onClick = { coroutineScope.launch { launchCredManButtonUI(context, onRequestResult) } },
-        imageRes = R.drawable.button_signup_unclicked,  // Your normal pixel art PNG
-        pressedRes = R.drawable.button_clicked,  // Your pressed pixel art PNG
-        modifier = modifier  // Pass through for sizing/alignment
+        onClick = {
+            coroutineScope.launch {
+                launchCredManButtonUI(
+                    context = context,
+                    onRequestResult = onRequestResult
+                )
+            }
+        },
+        imageRes = R.drawable.button_signup_unclicked,
+        pressedRes = R.drawable.button_clicked,
+        modifier = modifier
     ) {
-        // Icon and text overlay
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -62,8 +66,9 @@ fun AuthenticationButton(
     }
 }
 
-private suspend fun launchCredManButtonUI(
+suspend fun launchCredManButtonUI(
     context: Context,
+    credentialManager: CredentialManager = CredentialManager.create(context),
     onRequestResult: (Credential) -> Unit
 ) {
     try {
@@ -75,7 +80,7 @@ private suspend fun launchCredManButtonUI(
             .addCredentialOption(signInWithGoogleOption)
             .build()
 
-        val result = CredentialManager.create(context).getCredential(
+        val result = credentialManager.getCredential(
             request = request,
             context = context
         )
@@ -88,12 +93,12 @@ private suspend fun launchCredManButtonUI(
         e.printStackTrace()
         Log.d(ERROR_TAG, e.message.orEmpty())
     }
-
 }
 
 suspend fun launchCredManBottomSheet(
     context: Context,
     hasFilter: Boolean = true,
+    credentialManager: CredentialManager = CredentialManager.create(context),
     onRequestResult: (Credential) -> Unit
 ) {
     try {
@@ -106,7 +111,7 @@ suspend fun launchCredManBottomSheet(
             .addCredentialOption(googleIdOption)
             .build()
 
-        val result = CredentialManager.create(context).getCredential(
+        val result = credentialManager.getCredential(
             request = request,
             context = context
         )
@@ -114,11 +119,13 @@ suspend fun launchCredManBottomSheet(
         onRequestResult(result.credential)
     } catch (e: NoCredentialException) {
         Log.d(ERROR_TAG, e.message.orEmpty())
-        //If the bottom sheet was launched with filter by authorized accounts, we launch it again
-        //without filter so the user can see all available accounts, not only the ones that have
-        //been previously authorized in this app
         if (hasFilter) {
-            launchCredManBottomSheet(context, hasFilter = false, onRequestResult)
+            launchCredManBottomSheet(
+                context = context,
+                hasFilter = false,
+                credentialManager = credentialManager,
+                onRequestResult = onRequestResult
+            )
         }
     } catch (e: GetCredentialException) {
         Log.d(ERROR_TAG, e.message.orEmpty())

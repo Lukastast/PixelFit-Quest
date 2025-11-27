@@ -14,9 +14,9 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.pixelfitquest.ui.theme.PixelFitQuestTheme
 import com.google.firebase.FirebaseApp
+import com.pixelfitquest.helpers.FitnessReminderWorker
+import com.pixelfitquest.helpers.NotificationHelper
 import com.pixelfitquest.ui.navigation.AppScaffold
-import com.pixelfitquest.utils.FitnessReminderWorker
-import com.pixelfitquest.utils.NotificationHelper
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.TimeUnit
 

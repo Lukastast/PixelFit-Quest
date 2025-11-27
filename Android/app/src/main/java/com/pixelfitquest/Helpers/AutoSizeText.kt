@@ -1,3 +1,5 @@
+package com.pixelfitquest.helpers
+
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,7 +23,6 @@ fun AutoSizeText(
     stepSize: TextUnit = 1.sp
 ) {
     var fontSize by remember { mutableStateOf(maxFontSize) }
-    var readyToDraw by remember { mutableStateOf(false) }
 
     Text(
         text = text,
@@ -33,11 +34,7 @@ fun AutoSizeText(
             if (layoutResult.hasVisualOverflow || layoutResult.lineCount > 1) {
                 if (fontSize > minFontSize) {
                     fontSize = (fontSize.value - stepSize.value).sp
-                } else {
-                    readyToDraw = true
                 }
-            } else {
-                readyToDraw = true
             }
         }
     )

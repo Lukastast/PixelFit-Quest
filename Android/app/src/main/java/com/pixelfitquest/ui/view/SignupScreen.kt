@@ -1,6 +1,5 @@
 package com.pixelfitquest.ui.view
 
-import AutoSizeText
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,9 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,16 +36,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.pixelfitquest.Helpers.LOGIN_SCREEN
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.ext.AuthenticationButton
 import com.pixelfitquest.ext.launchCredManBottomSheet
+import com.pixelfitquest.helpers.AutoSizeText
+import com.pixelfitquest.helpers.LOGIN_SCREEN
 import com.pixelfitquest.model.service.AuthState
+import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.ui.theme.PixelFitQuestTheme
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.SignupViewModel
-import com.pixelfitquest.ui.components.PixelArtButton
 
 @Composable
 fun SignupScreen(

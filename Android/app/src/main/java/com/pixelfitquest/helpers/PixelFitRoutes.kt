@@ -1,4 +1,4 @@
-package com.pixelfitquest.Helpers
+package com.pixelfitquest.helpers
 const val HOME_SCREEN = "home"
 const val SIGNUP_SCREEN = "signup"
 const val WORKOUT_SCREEN = "workout"

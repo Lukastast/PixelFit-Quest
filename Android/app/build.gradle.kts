@@ -20,7 +20,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.pixelfitquest.HiltTestRunner"
         proguardFiles("proguard-rules.pro")
     }
 
@@ -32,15 +32,19 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            enableUnitTestCoverage = true
+        }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlin {
         compilerOptions {
-            compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
@@ -49,6 +53,30 @@ android {
     }
     buildToolsVersion = "36.0.0"
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+
+            // Fix JaCoCo + Robolectric conflict
+            all {
+                it.extensions.configure(JacocoTaskExtension::class.java) {
+                    isIncludeNoLocationClasses = true
+                    excludes = listOf("jdk.internal.*")
+                }
+
+                // Add JVM args to handle the conflict
+                it.jvmArgs(
+                    "-noverify",
+                    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                    "--add-opens=java.base/java.util=ALL-UNNAMED"
+                )
+
+                // Set max heap size if needed
+                it.maxHeapSize = "2048m"
+            }
+        }
+    }
 }
 
 dependencies {
@@ -89,6 +117,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.hilt.common)
+    implementation(libs.androidx.compose.ui.text.google.fonts)
+    implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.androidx.ui.test.junit4)
     kapt("com.google.dagger:hilt-compiler:2.57.2")
     kapt("com.google.dagger:hilt-android-compiler:2.57.2")
 
@@ -98,13 +129,29 @@ dependencies {
     // Samsung Health SDK
     implementation(files("libs/samsung-health.aar"))
 
+    // Unit Tests (JVM)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    testImplementation("io.mockk:mockk:1.13.12")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation(kotlin("test"))
+    testImplementation("org.robolectric:robolectric:4.14")
+    testImplementation("app.cash.turbine:turbine:1.1.0")
+
+    // Hilt testing for unit tests
+    testImplementation("com.google.dagger:hilt-android-testing:2.57.2")
+    kaptTest("com.google.dagger:hilt-android-compiler:2.57.2")
+
+    // Android Instrumented Tests (Device/Emulator)
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+
+    // Hilt testing for instrumented tests
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
+    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.57.2")
+
+    // Debug dependencies
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    implementation(libs.androidx.compose.ui.text.google.fonts)
-    implementation(libs.kotlinx.coroutines.play.services)
 }
