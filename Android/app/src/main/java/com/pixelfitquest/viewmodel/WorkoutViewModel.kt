@@ -55,7 +55,7 @@ class WorkoutViewModel @Inject constructor(
 
     private lateinit var workoutName: String
 
-    private val repIntervalMs = 1000L  // For 2-3s rep cycles
+    private val repIntervalMs = 1000L
     private val lowPassAlpha = 0.7f
     private val minPhaseDisp = 0.05f
     private val hysteresisWindow = 3
@@ -102,7 +102,7 @@ class WorkoutViewModel @Inject constructor(
     private var baselineTiltY = 0f
     private var baselineTiltZ = 0f
 
-    private val maxTiltAccel = 4.0f  // FIXED: Threshold for max tilt (tune via testing)
+    private val maxTiltAccel = 4.0f
 
     //animation
     private val _characterData = MutableStateFlow(CharacterData())
@@ -159,8 +159,8 @@ class WorkoutViewModel @Inject constructor(
             }
 
             // Detect phases
-            detectTop(prevVelocity, currentVelocity, currentTime)  // OPTIMIZED: Extracted
-            detectBottom(prevVelocity, currentVelocity, currentDisplacement, repStartPos)  // OPTIMIZED: Extracted
+            detectTop(prevVelocity, currentVelocity, currentTime)
+            detectBottom(prevVelocity, currentVelocity, currentDisplacement, repStartPos)
         }
     }
 
@@ -211,6 +211,7 @@ class WorkoutViewModel @Inject constructor(
     private fun calculateVerticalAccel(netAccel: FloatArray, upwardUnit: FloatArray): Float {
         return netAccel[0] * upwardUnit[0] + netAccel[1] * upwardUnit[1] + netAccel[2] * upwardUnit[2]
     }
+
     private fun smoothAccel(verticalAccel: Float): Float {
         accelHistory.addLast(verticalAccel)
         if (accelHistory.size > 2) {
@@ -234,7 +235,7 @@ class WorkoutViewModel @Inject constructor(
 
     private fun detectTop(prevVelocity: Float, currentVelocity: Float, currentTime: Long) {
         val timeSincePeak = currentTime - lastPeakTime
-        val lastVels = velHistory.toList().takeLast(hysteresisWindow.coerceAtMost(velHistory.size))  // OPTIMIZED: Compute once
+        val lastVels = velHistory.toList().takeLast(hysteresisWindow.coerceAtMost(velHistory.size))
         val positiveCount = lastVels.count { it >= 0f }
         val positiveHysteresis = velHistory.size >= hysteresisWindow / 2 && positiveCount >= (lastVels.size * 0.6).toInt()
         if (prevVelocity >= 0f && currentVelocity < 0f &&
@@ -244,7 +245,7 @@ class WorkoutViewModel @Inject constructor(
             if (hasBottom) {
                 onRepCompleted()
             } else {
-                // Failed rep logic (your existing)
+                // Failed rep logic
                 repStartPos = currentDisplacement
                 bottomPos = currentDisplacement
                 hasBottom = false
@@ -256,7 +257,7 @@ class WorkoutViewModel @Inject constructor(
 
                 _workoutState.value = _workoutState.value.copy(
                     verticalAccel = lastVerticalAccel,
-                    xAccel = _workoutState.value.xAccel,  // Preserve from state
+                    xAccel = _workoutState.value.xAccel,
                     yAccel = _workoutState.value.yAccel,
                 )
             }
@@ -265,7 +266,7 @@ class WorkoutViewModel @Inject constructor(
     }
 
     private fun detectBottom(prevVelocity: Float, currentVelocity: Float, currentDisplacement: Float, repStartPos: Float) {
-        val lastVels = velHistory.toList().takeLast(hysteresisWindow.coerceAtMost(velHistory.size))  // OPTIMIZED: Reuse if possible
+        val lastVels = velHistory.toList().takeLast(hysteresisWindow.coerceAtMost(velHistory.size))
         val negativeCount = lastVels.count { it <= 0f }
         val negativeHysteresis = velHistory.size >= hysteresisWindow / 2 && negativeCount >= (lastVels.size * 0.6).toInt()
         if (prevVelocity <= 0f && currentVelocity > 0f &&
@@ -298,10 +299,8 @@ class WorkoutViewModel @Inject constructor(
         tiltYSum += relativeY
         tiltZSum += relativeZ
         tiltSampleCount++
-        //maybe add a sample count that keeps increasing tiltsum until corrected? and then have the treshholds
-        //if (tiltSampleCount % 5 == 0)
-        //Log.d("TiltAccumDebug", "New sample: X=$tiltXSum, Y=$tiltYSum; Z=$tiltZSum total samples: $tiltSampleCount")
     }
+
     fun startWorkoutFromPlan(plan: WorkoutPlan, templateName: String? = null) {
         workoutName = templateName?.takeIf { it.isNotBlank() }
             ?.lowercase()
@@ -313,6 +312,10 @@ class WorkoutViewModel @Inject constructor(
         currentSetNumber = 1
         isSetActive = false
         currentExerciseType = plan.items[0].exercise
+
+        // Get the weight from the first exercise
+        val initialWeight = plan.items[0].weight
+
         val startTime = System.currentTimeMillis()
         totalRepTime = 0L
         lastPeakTime = startTime
@@ -342,7 +345,8 @@ class WorkoutViewModel @Inject constructor(
             isSetActive = false,
             currentSetNumber = 1,
             totalSets = plan.items.sumOf { it.sets },
-            currentExerciseIndex = 0
+            currentExerciseIndex = 0,
+            weight = initialWeight  // Set initial weight from plan
         )
     }
 
@@ -365,19 +369,17 @@ class WorkoutViewModel @Inject constructor(
         isSetActive = false
         _workoutState.value = _workoutState.value.copy(isSetActive = false)
 
-        saveCurrentSet()  // Assumes this adds to completedSets and saves
+        saveCurrentSet()
 
         val currentPlan = currentPlan ?: return
         val currentItem = currentPlan.items.getOrNull(currentExerciseIndex) ?: return
 
-        // NEW: Check if this was the last set *before* increment
         val wasLastSet = currentSetNumber == currentItem.sets
         currentSetNumber++
 
-        if (currentSetNumber > currentItem.sets) {  // Now advances after last set
-            // NEW: Call finishExercise() here if it was the last set (saves aggregate before advancing)
+        if (currentSetNumber > currentItem.sets) {
             if (wasLastSet) {
-                finishExercise()  // Save-only now—no double increment
+                finishExercise()
             }
 
             currentExerciseIndex++
@@ -388,16 +390,22 @@ class WorkoutViewModel @Inject constructor(
                 return
             }
             currentExerciseType = currentPlan.items[currentExerciseIndex].exercise
+
+            // Update weight when moving to next exercise
+            val newWeight = currentPlan.items[currentExerciseIndex].weight
+            _workoutState.value = _workoutState.value.copy(
+                weight = newWeight
+            )
         }
 
         _workoutState.value = _workoutState.value.copy(
             currentSetNumber = currentSetNumber,
             currentExerciseIndex = currentExerciseIndex
         )
-        Log.d("WorkoutVM", "Finished set $ (currentSetNumber - 1), advanced to set $currentSetNumber of exercise $currentExerciseIndex")
+        Log.d("WorkoutVM", "Finished set ${currentSetNumber - 1}, advanced to set $currentSetNumber of exercise $currentExerciseIndex")
     }
-    fun finishExercise() {
 
+    fun finishExercise() {
         val exerciseId = currentExerciseType!!.name.lowercase().replace("_", "-")
         val exercise = Exercise(
             id = exerciseId,
@@ -409,11 +417,11 @@ class WorkoutViewModel @Inject constructor(
         )
         viewModelScope.launch {
             workoutRepository.saveExercise(exercise)
-            Log.d("WorkoutVM", "finish exercise() Saved exercise $exercise.id under workout $workoutId")
+            Log.d("WorkoutVM", "finish exercise() Saved exercise ${exercise.id} under workout $workoutId")
         }
     }
 
-    fun finishWorkout() {  // Call when all exercises done
+    fun finishWorkout() {
         val workout = Workout(
             id = workoutId,
             date = Instant.now().toString(),
@@ -445,6 +453,7 @@ class WorkoutViewModel @Inject constructor(
             _navigationEvent.emit(workoutId)
         }
     }
+
     private fun saveCurrentSet() {
         val currentState = _workoutState.value
         if (currentPlan == null || currentExerciseType == null) return
@@ -464,12 +473,11 @@ class WorkoutViewModel @Inject constructor(
             avgRepTime = currentState.avgRepTime,
             verticalAccel = currentState.verticalAccel,
             weight = currentState.weight,
-
             notes = currentState.notes
         )
         viewModelScope.launch {
             workoutRepository.saveSet(set)
-            Log.d("WorkoutVM", "Saved set $setId for exercise $exerciseId")
+            Log.d("WorkoutVM", "Saved set $setId for exercise $exerciseId with weight ${currentState.weight}")
         }
     }
 
@@ -515,17 +523,19 @@ class WorkoutViewModel @Inject constructor(
             score >= 50 -> WorkoutFeedback.GOOD
             else -> WorkoutFeedback.MISS
         }
-       triggerFeedback(feedback)
+        triggerFeedback(feedback)
     }
 
     fun triggerFeedback(feedback: WorkoutFeedback) {
         viewModelScope.launch {
-            _feedbackEvent.send(feedback)  // One-time emission
+            _feedbackEvent.send(feedback)
         }
     }
+
     fun setError(message: String?) {
         _error.value = message
     }
+
     private fun onRepCompleted() {
         val currentState = _workoutState.value
         val currentTime = System.currentTimeMillis()
@@ -542,7 +552,6 @@ class WorkoutViewModel @Inject constructor(
 
         val newAvgRepTime = if (newReps > 0) (totalRepTime / newReps).toFloat() else 0f
 
-        //  Score calculation (use currentWorkoutType)
         val lastRepScore = calculateRomScore(newEstROM)
         val newTotalRom = currentState.totalRom + lastRepScore
         val avgRomScore = if (newReps > 0) (newTotalRom / newReps.toFloat()).coerceIn(0f, 100f) else 0f
@@ -551,7 +560,7 @@ class WorkoutViewModel @Inject constructor(
         val avgTiltX = if (tiltSampleCount > 0) tiltXSum / tiltSampleCount else 0f
         val avgTiltZ = if (tiltSampleCount > 0) tiltZSum / tiltSampleCount else 0f
         val tiltXScore = ((avgTiltX / maxTiltAccel) * 120f).coerceIn(-100f, 100f)
-        val tiltZScore = ((avgTiltZ / maxTiltAccel) * 120f).coerceIn(-100f, 100f) // FIXED: X tilt (-100 left lowest, +100 right lowest)
+        val tiltZScore = ((avgTiltZ / maxTiltAccel) * 120f).coerceIn(-100f, 100f)
 
         val newTotalTiltX = currentState.totalTiltX + tiltXScore
         val newTotalTiltZ = currentState.totalTiltZ + tiltZScore
@@ -566,6 +575,7 @@ class WorkoutViewModel @Inject constructor(
         tiltXSum = 0f
         tiltZSum = 0f
         tiltSampleCount = 0
+
         // Reset for next rep
         repStartPos = currentDisplacement
         bottomPos = currentDisplacement
@@ -584,9 +594,9 @@ class WorkoutViewModel @Inject constructor(
             estimatedROM = newEstROM,
             downROM = downROM,
             upROM = upROM,
-            verticalAccel = lastVerticalAccel,  // From sensor
-            xAccel = currentState.xAccel,  // Preserve
-            yAccel = currentState.yAccel,  // Preserve
+            verticalAccel = lastVerticalAccel,
+            xAccel = currentState.xAccel,
+            yAccel = currentState.yAccel,
             romScore = lastRepScore,
             totalRom = newTotalRom,
             totalTiltX = newTotalTiltX,
@@ -602,7 +612,7 @@ class WorkoutViewModel @Inject constructor(
         Log.d("WorkoutVM", "Rep completed: $newReps reps, ROM: $newEstROM cm")
     }
 
-    data class WorkoutState( 
+    data class WorkoutState(
         val isTracking: Boolean = false,
         val userHeightCm: Float? = null,
         val theoreticalMaxRomCm: Float? = null,
@@ -626,10 +636,10 @@ class WorkoutViewModel @Inject constructor(
         val isSetActive: Boolean = false,
         val currentSetNumber: Int = 1,
         val totalSets: Int = 0,
-        val currentExerciseIndex: Int = 0,  
+        val currentExerciseIndex: Int = 0,
         val workoutScore: Float = 0f,
         val timingScore: Float = 0f,
-        val tiltXScore: Float = 0f,  // tilt (-100 left, +100 right, 0 centered)
+        val tiltXScore: Float = 0f,
         val tiltZScore: Float = 0f,
         val weight: Float = 0f,
         val notes: String? = null,
