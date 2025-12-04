@@ -46,7 +46,7 @@ fun SettingsScreen(restartApp: (String) -> Unit,
 
     val user by viewModel.user.collectAsState(initial = User())
     val userSettings by viewModel.userSettings.collectAsState(initial = null)
-    val musicVolume by remember { mutableStateOf(userSettings?.musicVolume ?: 50) }
+    val musicVolume = userSettings?.musicVolume ?: 50  // CHANGED THIS LINE
     val provider = user.provider.replaceFirstChar { it.titlecase(Locale.getDefault()) }
 
     Box(modifier = Modifier.fillMaxSize()) {

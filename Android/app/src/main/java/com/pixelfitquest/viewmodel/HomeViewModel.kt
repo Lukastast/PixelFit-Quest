@@ -305,7 +305,18 @@ class HomeViewModel @Inject constructor(
                 workoutRepository.saveWorkout(workout)
                 addExp(100)
                 addCoins(20)
-                incrementStreak()
+
+                // Only increment streak once per day
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+                val today = dateFormat.format(Date())
+                val lastStreakUpdateDate = userRepository.getUserField("last_streak_update_date") as? String ?: ""
+
+                if (lastStreakUpdateDate != today) {
+                    incrementStreak()
+                    userRepository.updateUserGameData(mapOf("last_streak_update_date" to today))
+                }
+
                 NotificationHelper.showWorkoutCompletedNotification(context)
                 fetchCompletedWorkouts()
             } catch (e: Exception) {

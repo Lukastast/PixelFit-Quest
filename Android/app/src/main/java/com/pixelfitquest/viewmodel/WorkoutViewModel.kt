@@ -425,6 +425,21 @@ class WorkoutViewModel @Inject constructor(
         )
         launchCatching {
             workoutRepository.saveWorkout(workout)
+
+            // Increment streak only once per day
+            val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+            dateFormat.timeZone = java.util.TimeZone.getTimeZone("UTC")
+            val today = dateFormat.format(java.util.Date())
+            val lastStreakUpdateDate = userRepository.getUserField("last_streak_update_date") as? String ?: ""
+
+            if (lastStreakUpdateDate != today) {
+                userRepository.updateStreak(increment = true)
+                userRepository.updateUserGameData(mapOf("last_streak_update_date" to today))
+                Log.d("WorkoutVM", "Streak incremented for $today")
+            } else {
+                Log.d("WorkoutVM", "Streak already incremented today")
+            }
+
             stopWorkout()
             Log.d("WorkoutVM", "Saved workout, should navigate to resume $workoutId")
             _navigationEvent.emit(workoutId)
