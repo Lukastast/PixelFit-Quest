@@ -1,6 +1,7 @@
 package com.pixelfitquest.ui.navigation
 
 import android.media.MediaPlayer
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +36,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -57,6 +59,7 @@ import com.pixelfitquest.helpers.SIGNUP_SCREEN
 import com.pixelfitquest.helpers.SPLASH_SCREEN
 import com.pixelfitquest.helpers.WORKOUT_CUSTOMIZATION_SCREEN
 import com.pixelfitquest.helpers.WORKOUT_SCREEN
+import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.ui.screens.LoginScreen
@@ -71,6 +74,7 @@ import com.pixelfitquest.ui.view.WorkoutResumeScreen
 import com.pixelfitquest.ui.view.WorkoutScreen
 import com.pixelfitquest.viewmodel.GlobalSettingsViewModel
 import com.pixelfitquest.viewmodel.WorkoutResumeViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun AppScaffold() {
@@ -80,7 +84,6 @@ fun AppScaffold() {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val isUserLoggedIn = appState.currentUser != null
 
-    // NEW: Observe user settings for music volume (inject repo via Hilt)
     val globalSettingsViewModel: GlobalSettingsViewModel = hiltViewModel()
     val userSettings by globalSettingsViewModel.userSettingsRepository.getUserSettings().collectAsState(initial = null)
 
@@ -92,7 +95,6 @@ fun AppScaffold() {
         WORKOUT_CUSTOMIZATION_SCREEN
     )
 
-    // UPDATED: Track if settings are loaded to delay player start
     var settingsLoaded by remember { mutableStateOf(false) }
     LaunchedEffect(userSettings) {
         if (userSettings != null && !settingsLoaded) {
@@ -100,9 +102,25 @@ fun AppScaffold() {
         }
     }
 
+    // Tutorial overlay state - managed globally
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
+
+    var showTutorial by remember { mutableStateOf(false) }
+    var tutorialText by remember { mutableStateOf("") }
+
+    // Track when screen content is ready (passed from individual screens)
+    var screenContentReady by remember { mutableStateOf(false) }
+
+    // Reset when route changes
+    LaunchedEffect(currentRoute) {
+        screenContentReady = false
+        showTutorial = false
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,  // Back to default for clean slate
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
             if (hasBottomBar) {
@@ -124,19 +142,19 @@ fun AppScaffold() {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(80.dp),  // Matches default NavigationBar height; adjust if needed
-                        horizontalArrangement = Arrangement.SpaceEvenly  // Evenly spaces items; tweak for your design
+                            .height(80.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         items.forEach { item ->
                             val interactionSource = remember { MutableInteractionSource() }
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
-                                    .height(80.dp)  // Ensures full tap area
+                                    .height(80.dp)
                                     .clickable(
                                         interactionSource = interactionSource,
-                                        indication = null,  // Disables ripple/shadow effect
-                                        role = Role.Tab  // Provides semantics for accessibility
+                                        indication = null,
+                                        role = Role.Tab
                                     ) {
                                         appState.navigate(item.route)
                                     }
@@ -149,7 +167,6 @@ fun AppScaffold() {
                                     tint = Color.Unspecified,
                                     modifier = Modifier.size(72.dp),
                                 )
-                                // Uncomment and add label if needed: Text(item.label, style = ... )
                             }
                         }
                     }
@@ -157,7 +174,6 @@ fun AppScaffold() {
             }
         }
     ) { innerPaddingModifier ->
-        // Apply the background image to the entire content area
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -166,16 +182,12 @@ fun AppScaffold() {
                     contentScale = ContentScale.Crop
                 )
         ) {
-            // UPDATED: Background music player (create/start only after settings loaded)
-            val context = LocalContext.current
-            val musicVolume = remember { derivedStateOf { (userSettings?.musicVolume ?: 50) / 100f } } // 0.0f to 1.0f
+            val musicVolume = remember { derivedStateOf { (userSettings?.musicVolume ?: 50) / 100f } }
 
-            // Create and start player only when settings are loaded
             DisposableEffect(settingsLoaded) {
                 if (settingsLoaded && appState.mediaPlayer == null) {
                     val mediaPlayerLocal = MediaPlayer.create(context, R.raw.cavern_quest)?.apply {
                         isLooping = true
-                        // Set initial volume from loaded settings (0% will be silent)
                         setVolume(musicVolume.value, musicVolume.value)
                         start()
                     }
@@ -187,33 +199,22 @@ fun AppScaffold() {
                 }
             }
 
-            // UPDATED: Reactively update volume when settings change (no restart)
             LaunchedEffect(musicVolume.value) {
                 if (settingsLoaded) {
                     appState.mediaPlayer?.let { player ->
                         player.setVolume(musicVolume.value, musicVolume.value)
-                        // OPTIONAL: Pause if volume is 0 to save resources (uncomment if desired)
-                        // if (musicVolume.value == 0f) {
-                        //     player.pause()
-                        // } else if (player.isPlaying.not()) {
-                        //     player.start()
-                        // }
                     }
                 }
             }
 
-            // UPDATED: Observe activity lifecycle for faster pause/resume on background/foreground
-            // (LocalLifecycleOwner provides tighter timing than ProcessLifecycleOwner for single-activity apps)
             val lifecycleOwner = LocalLifecycleOwner.current
             DisposableEffect(lifecycleOwner) {
                 val observer = LifecycleEventObserver { _, event ->
                     when (event) {
                         Lifecycle.Event.ON_PAUSE -> {
-                            // App/activity pausing (backgrounding): Pause music immediately
                             appState.mediaPlayer?.pause()
                         }
                         Lifecycle.Event.ON_RESUME -> {
-                            // App/activity resuming (foregrounding): Resume music if settings loaded
                             if (settingsLoaded && appState.mediaPlayer != null) {
                                 appState.mediaPlayer?.start()
                             }
@@ -227,19 +228,82 @@ fun AppScaffold() {
                 }
             }
 
-            // Simple NavHost—no extra wrappers or backgrounds
             NavHost(
                 navController = appState.navController,
                 startDestination = SPLASH_SCREEN,
                 modifier = if (hasBottomBar) Modifier.padding(innerPaddingModifier) else Modifier
             ) {
-                pixelFitGraph(appState)
+                pixelFitGraph(
+                    appState = appState,
+                    onScreenReady = { screen ->
+                        screenContentReady = true
+
+                        // Check if we should show tutorial for this screen
+                        when (screen) {
+                            HOME_SCREEN -> {
+                                if (prefs.getBoolean("first_time_home_screen", true)) {
+                                    tutorialText = "Welcome to the Home Screen! Here you can view your level, coins, experience, and streak at the top. Track your daily steps for rewards. Check your rank on the leaderboard and check you unlocked achievements by pressing the achievements trophy. See your completed workouts and resume them. And dont forget to complete daily missions for extra rewards."
+                                    showTutorial = true
+                                }
+                            }
+                            CUSTOMIZATION_SCREEN -> {
+                                if (prefs.getBoolean("first_time_customization", true)) {
+                                    tutorialText = "Welcome to Customization! Choose your character's gender and variant. Basic is free, fitness gives bonuses for coins, premium coming soon. Select and buy to customize."
+                                    showTutorial = true
+                                }
+                            }
+                            SETTINGS_SCREEN -> {
+                                if (prefs.getBoolean("first_time_settings", true)) {
+                                    tutorialText = "Welcome to Settings! Here you can adjust music volume. Sign out or delete your account if needed."
+                                    showTutorial = true
+                                }
+                            }
+                            WORKOUT_CUSTOMIZATION_SCREEN -> {
+                                if (prefs.getBoolean("first_time_workout_customization", true)) {
+                                    tutorialText = "Welcome to Workout Customization! Select exercises by checking them, adjust sets and weights. Enter a name to save as template. Use 'Start Workout' to begin your adventure of acquiring coins and exp."
+                                    showTutorial = true
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+
+            // Centralized tutorial overlay
+            if (showTutorial && screenContentReady) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.7f))
+                        .clickable(enabled = false) { },
+                    contentAlignment = Alignment.Center
+                ) {
+                    TypewriterText(
+                        text = tutorialText,
+                        onComplete = {
+                            when (currentRoute) {
+                                HOME_SCREEN -> prefs.edit().putBoolean("first_time_home_screen", false).apply()
+                                CUSTOMIZATION_SCREEN -> prefs.edit().putBoolean("first_time_customization", false).apply()
+                                SETTINGS_SCREEN -> prefs.edit().putBoolean("first_time_settings", false).apply()
+                                WORKOUT_CUSTOMIZATION_SCREEN -> prefs.edit().putBoolean("first_time_workout_customization", false).apply()
+                            }
+                            showTutorial = false
+                        },
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }
 }
 
-fun NavGraphBuilder.pixelFitGraph(appState: AppState) {
+fun NavGraphBuilder.pixelFitGraph(
+    appState: AppState,
+    onScreenReady: (String) -> Unit
+) {
     composable(INTRO_SCREEN) {
         IntroScreen(
             navController = appState.navController
@@ -268,7 +332,8 @@ fun NavGraphBuilder.pixelFitGraph(appState: AppState) {
         HomeScreen(
             restartApp = { route -> appState.clearAndNavigate(route) },
             openScreen = { route -> appState.navigate(route) },
-            navController = appState.navController
+            navController = appState.navController,
+            onScreenReady = { onScreenReady(HOME_SCREEN) }
         )
     }
 
@@ -314,7 +379,7 @@ fun NavGraphBuilder.pixelFitGraph(appState: AppState) {
 
     composable(CUSTOMIZATION_SCREEN) {
         CustomizationScreen(
-            openScreen = { route -> appState.navigate(route) }
+            openScreen = { route -> appState.navigate(route) },
         )
     }
     composable(WORKOUT_CUSTOMIZATION_SCREEN) {
@@ -323,12 +388,12 @@ fun NavGraphBuilder.pixelFitGraph(appState: AppState) {
                 val gson = Gson()
                 val planJson = gson.toJson(plan)
                 appState.navigate("$WORKOUT_SCREEN/$planJson/$templateName")
-            }
+            },
         )
     }
     composable(SETTINGS_SCREEN) {
         SettingsScreen(
-            restartApp = { route -> appState.clearAndNavigate(route) }
+            restartApp = { route -> appState.clearAndNavigate(route) },
         )
     }
 }

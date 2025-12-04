@@ -1,4 +1,6 @@
 package com.pixelfitquest.ui.view
+
+import android.util.Log
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -43,8 +46,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
+import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.model.Workout
 import com.pixelfitquest.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
@@ -62,16 +65,63 @@ fun HomeScreen(
     restartApp: (String) -> Unit,
     openScreen: (String) -> Unit,
     navController: NavController,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    onScreenReady: () -> Unit = {}
 ) {
     val activity = LocalActivity.current
     val context = LocalContext.current
+
+    // Collect loading state
+    val isLoading by viewModel.isLoading.collectAsState()
+
     LaunchedEffect(Unit) {
+        Log.d("HomeScreen", "Initializing HomeScreen")
         viewModel.initialize(restartApp, activity)
     }
+
     val userGameData by viewModel.userGameData.collectAsState()
-    val error by viewModel.error.collectAsState()
     val workouts by viewModel.workouts.collectAsState()
+
+    // Tutorial state managed locally in HomeScreen
+    val prefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
+    var showTutorial by remember { mutableStateOf(false) }
+
+    // Notify when screen is ready and show tutorial if needed
+    LaunchedEffect(isLoading) {
+        Log.d("HomeScreen", "Loading state changed: isLoading=$isLoading")
+        if (!isLoading) {
+            Log.d("HomeScreen", "Screen finished loading, calling onScreenReady")
+            onScreenReady()
+
+            // Check if we should show tutorial
+            val isFirstTime = prefs.getBoolean("first_time_home_screen", true)
+            Log.d("HomeScreen", "First time check: $isFirstTime")
+            if (isFirstTime) {
+                delay(300) // Small delay to ensure UI is rendered
+                Log.d("HomeScreen", "Showing tutorial")
+                showTutorial = true
+            }
+        }
+    }
+
+    // Show loading screen while data is being fetched
+    if (isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator(color = Color.White)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Loading...", color = Color.White, fontSize = 16.sp)
+            }
+        }
+        return
+    }
+
     val level = userGameData?.level ?: 0
     val coins = userGameData?.coins ?: 0
     val exp = userGameData?.exp ?: 0
@@ -90,7 +140,7 @@ fun HomeScreen(
 
     LaunchedEffect(Unit) {
         while (true) {
-            delay(30000L) // 30 seconds
+            delay(30000L)
             viewModel.refreshSteps(activity)
         }
     }
@@ -289,32 +339,34 @@ fun HomeScreen(
         }
 
         // Workouts LazyRow
-        LazyRow(
+        Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = 280.dp, start = 16.dp, end = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(top = 280.dp, start = 16.dp, end = 16.dp)
+                .height(140.dp),
+            contentAlignment = Alignment.Center
         ) {
             if (workouts.isEmpty()) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "No completed workouts yet",
-                            color = Color.White.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(16.dp)
+                Text(
+                    text = "No completed workouts yet",
+                    color = Color.White.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                LazyRow(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    items(workouts) { workout ->
+                        WorkoutCard(
+                            workout = workout,
+                            onClick = {
+                                navController.navigate("workout_resume/${workout.id}")
+                            }
                         )
                     }
-                }
-            } else {
-                items(workouts) { workout ->
-                    WorkoutCard(
-                        workout = workout,
-                        onClick = {
-                            navController.navigate("workout_resume/${workout.id}")
-                        }
-                    )
                 }
             }
         }
@@ -395,24 +447,6 @@ fun HomeScreen(
             }
         }
 
-        // Error display (optional)
-        if (error != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 80.dp),
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                Text(
-                    text = "Error: $error",
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier
-                        .background(Color.Black.copy(alpha = 0.7f))
-                        .padding(16.dp)
-                )
-            }
-        }
-
         // Achievements popup
         if (showAchievements) {
             Dialog(onDismissRequest = { showAchievements = false }) {
@@ -484,20 +518,21 @@ fun HomeScreen(
             modifier = Modifier.align(Alignment.BottomCenter)
         )
 
-        // Tutorial overlay for first time
-        val prefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
-        var showTutorial by remember { mutableStateOf(prefs.getBoolean("first_time_home", true)) }
+        // Tutorial overlay managed locally
         if (showTutorial) {
+            Log.d("HomeScreen", "Rendering tutorial overlay")
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)),
+                    .background(Color.Black.copy(alpha = 0.7f))
+                    .clickable(enabled = false) { },
                 contentAlignment = Alignment.Center
             ) {
                 TypewriterText(
                     text = "Welcome to the Home Screen! Here you can view your level, coins, experience, and streak at the top. Track your daily steps for rewards. Check your rank on the leaderboard and check you unlocked achievements by pressing the achievements trophy. See your completed workouts and resume them. And dont forget to complete daily missions for extra rewards.",
                     onComplete = {
-                        prefs.edit().putBoolean("first_time_home", false).apply()
+                        Log.d("HomeScreen", "Tutorial completed, marking as done")
+                        prefs.edit().putBoolean("first_time_home_screen", false).apply()
                         showTutorial = false
                     },
                     modifier = Modifier.padding(16.dp),
