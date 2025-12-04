@@ -1,5 +1,6 @@
 package com.pixelfitquest.ui.view
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,7 +50,6 @@ import com.pixelfitquest.viewmodel.SettingsViewModel
 fun CustomizationScreen(
     openScreen: (String) -> Unit,
     viewModel: CustomizationViewModel = hiltViewModel(),
-
 ) {
     val characterData by viewModel.characterData.collectAsState()
     val settingsViewModel: SettingsViewModel = hiltViewModel()
@@ -82,13 +82,42 @@ fun CustomizationScreen(
         }
     }
 
-    val displayGender = if (currentVariant == "basic") {
-        characterData.gender
-    } else if (isPremium) {
-        if (characterData.gender == "female") "locked_woman" else "locked_male"
-    } else {
-        val baseGender = if (characterData.gender == "female") "woman" else "male"
-        "fitness_character_character_${baseGender}_idle"
+    // FIXED: Correct sprite names with explicit gender check
+    val displayGender = when {
+        isPremium -> {
+            // Premium is always locked
+            if (characterData.gender == "female") "locked_woman" else "locked_male"
+        }
+        isFitness && isUnlocked -> {
+            // Fitness variant unlocked - show the fitness sprite
+            if (characterData.gender == "female") {
+                "fitness_character_woman_idle"
+            } else {
+                "fitness_character_male_idle"
+            }
+        }
+        isFitness && !isUnlocked -> {
+            // Fitness variant locked - show locked sprite
+            if (characterData.gender == "female") "locked_woman" else "locked_male"
+        }
+        else -> {
+            // Basic variant - show basic sprite
+            // FIXED: Use direct equality check instead of just else
+            when (characterData.gender) {
+                "female" -> "character_woman_idle"
+                "male" -> "character_male_idle"
+                else -> {
+                    // Fallback for unexpected values - log and default to male
+                    Log.w("CustomizationScreen", "Unexpected gender value: ${characterData.gender}, defaulting to male")
+                    "character_male_idle"
+                }
+            }
+        }
+    }
+
+    // Add debug logging
+    LaunchedEffect(characterData.gender, displayGender) {
+        Log.d("CustomizationScreen", "Gender: ${characterData.gender}, Display: $displayGender, Variant: $currentVariant, IsUnlocked: $isUnlocked")
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -113,8 +142,7 @@ fun CustomizationScreen(
                         .fillMaxSize()
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-
-                    ) {
+                ) {
                     Text(
                         text = "Choose Your Character",
                         style = MaterialTheme.typography.bodyMedium,
@@ -125,7 +153,10 @@ fun CustomizationScreen(
 
                     Row {
                         PixelArtButton(
-                            onClick = { viewModel.updateGender("male") },
+                            onClick = {
+                                Log.d("CustomizationScreen", "Male button clicked")
+                                viewModel.updateGender("male")
+                            },
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
                             modifier = Modifier.size(80.dp, 40.dp)
@@ -133,7 +164,10 @@ fun CustomizationScreen(
                             Text("Male")
                         }
                         PixelArtButton(
-                            onClick = { viewModel.updateGender("female") },
+                            onClick = {
+                                Log.d("CustomizationScreen", "Female button clicked")
+                                viewModel.updateGender("female")
+                            },
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
                             modifier = Modifier.size(80.dp, 40.dp)
@@ -171,7 +205,7 @@ fun CustomizationScreen(
                             modifier = Modifier
                                 .size(120.dp)
                                 .offset(x = (offset).dp),
-                            gender = if (isUnlocked && !isPremium) displayGender else if (characterData.gender == "female") "locked_woman" else "locked_male",
+                            gender = displayGender,
                             isAnimating = true
                         )
 
