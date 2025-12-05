@@ -158,9 +158,8 @@ class WorkoutViewModel @Inject constructor(
                 velHistory.removeFirst()
             }
 
-            // Detect phases
-            detectTop(prevVelocity, currentVelocity, currentTime)  // OPTIMIZED: Extracted
-            detectBottom(prevVelocity, currentVelocity, currentDisplacement, repStartPos)  // OPTIMIZED: Extracted
+            detectTop(prevVelocity, currentVelocity, currentTime)
+            detectBottom(prevVelocity, currentVelocity, currentDisplacement, repStartPos)
         }
     }
 
@@ -265,7 +264,7 @@ class WorkoutViewModel @Inject constructor(
     }
 
     private fun detectBottom(prevVelocity: Float, currentVelocity: Float, currentDisplacement: Float, repStartPos: Float) {
-        val lastVels = velHistory.toList().takeLast(hysteresisWindow.coerceAtMost(velHistory.size))  // OPTIMIZED: Reuse if possible
+        val lastVels = velHistory.toList().takeLast(hysteresisWindow.coerceAtMost(velHistory.size))
         val negativeCount = lastVels.count { it <= 0f }
         val negativeHysteresis = velHistory.size >= hysteresisWindow / 2 && negativeCount >= (lastVels.size * 0.6).toInt()
         if (prevVelocity <= 0f && currentVelocity > 0f &&
