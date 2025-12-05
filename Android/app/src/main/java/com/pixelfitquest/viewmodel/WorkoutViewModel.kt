@@ -158,7 +158,6 @@ class WorkoutViewModel @Inject constructor(
                 velHistory.removeFirst()
             }
 
-            // Detect phases
             detectTop(prevVelocity, currentVelocity, currentTime)
             detectBottom(prevVelocity, currentVelocity, currentDisplacement, repStartPos)
         }
@@ -299,6 +298,9 @@ class WorkoutViewModel @Inject constructor(
         tiltYSum += relativeY
         tiltZSum += relativeZ
         tiltSampleCount++
+        //maybe add a sample count that keeps increasing tiltsum until corrected? and then have the treshholds
+        //if (tiltSampleCount % 5 == 0)
+        //Log.d("TiltAccumDebug", "New sample: X=$tiltXSum, Y=$tiltYSum; Z=$tiltZSum total samples: $tiltSampleCount")
     }
 
     fun startWorkoutFromPlan(plan: WorkoutPlan, templateName: String? = null) {
