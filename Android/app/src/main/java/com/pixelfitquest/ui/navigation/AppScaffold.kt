@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -122,129 +121,130 @@ fun AppScaffold() {
         skipTypewriter = false
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        bottomBar = {
-            if (hasBottomBar) {
-                NavigationBar(
-                    modifier = Modifier
-                        .paint(
-                            painter = painterResource(id = R.drawable.navbar),
-                            contentScale = ContentScale.Crop
-                        ),
-                    containerColor = Color.Transparent
-                ) {
-                    val items = listOf(
-                        BottomNavItem.Home,
-                        BottomNavItem.Settings,
-                        BottomNavItem.Customization,
-                        BottomNavItem.WorkoutCustomization
-                    )
-
-                    Row(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = MaterialTheme.colorScheme.background,
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+            bottomBar = {
+                if (hasBottomBar) {
+                    NavigationBar(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(80.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                            .paint(
+                                painter = painterResource(id = R.drawable.navbar),
+                                contentScale = ContentScale.Crop
+                            ),
+                        containerColor = Color.Transparent
                     ) {
-                        items.forEach { item ->
-                            val interactionSource = remember { MutableInteractionSource() }
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .height(80.dp)
-                                    .clickable(
-                                        interactionSource = interactionSource,
-                                        indication = null,
-                                        role = Role.Tab
-                                    ) {
-                                        appState.navigate(item.route)
-                                    }
-                            ) {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (currentRoute == item.route) item.selectedIcon else item.unSelectedIcon
-                                    ),
-                                    contentDescription = item.label,
-                                    tint = Color.Unspecified,
-                                    modifier = Modifier.size(72.dp),
-                                )
+                        val items = listOf(
+                            BottomNavItem.Home,
+                            BottomNavItem.Settings,
+                            BottomNavItem.Customization,
+                            BottomNavItem.WorkoutCustomization
+                        )
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(80.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            items.forEach { item ->
+                                val interactionSource = remember { MutableInteractionSource() }
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier
+                                        .height(80.dp)
+                                        .clickable(
+                                            interactionSource = interactionSource,
+                                            indication = null,
+                                            role = Role.Tab
+                                        ) {
+                                            appState.navigate(item.route)
+                                        }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (currentRoute == item.route) item.selectedIcon else item.unSelectedIcon
+                                        ),
+                                        contentDescription = item.label,
+                                        tint = Color.Unspecified,
+                                        modifier = Modifier.size(72.dp),
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-    ) { innerPaddingModifier ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .paint(
-                    painter = painterResource(id = R.drawable.logsigninbackground),
-                    contentScale = ContentScale.Crop
-                )
-        ) {
-            val musicVolume = remember { derivedStateOf { (userSettings?.musicVolume ?: 50) / 100f } }
-
-            DisposableEffect(settingsLoaded) {
-                if (settingsLoaded && appState.mediaPlayer == null) {
-                    val mediaPlayerLocal = MediaPlayer.create(context, R.raw.cavern_quest)?.apply {
-                        isLooping = true
-                        setVolume(musicVolume.value, musicVolume.value)
-                        start()
-                    }
-                    appState.mediaPlayer = mediaPlayerLocal
-                }
-                onDispose {
-                    appState.mediaPlayer?.release()
-                    appState.mediaPlayer = null
-                }
-            }
-
-            LaunchedEffect(musicVolume.value) {
-                if (settingsLoaded) {
-                    appState.mediaPlayer?.let { player ->
-                        player.setVolume(musicVolume.value, musicVolume.value)
-                    }
-                }
-            }
-
-            val lifecycleOwner = LocalLifecycleOwner.current
-            DisposableEffect(lifecycleOwner) {
-                val observer = LifecycleEventObserver { _, event ->
-                    when (event) {
-                        Lifecycle.Event.ON_PAUSE -> {
-                            appState.mediaPlayer?.pause()
-                        }
-                        Lifecycle.Event.ON_RESUME -> {
-                            if (settingsLoaded && appState.mediaPlayer != null) {
-                                appState.mediaPlayer?.start()
-                            }
-                        }
-                        else -> {}
-                    }
-                }
-                lifecycleOwner.lifecycle.addObserver(observer)
-                onDispose {
-                    lifecycleOwner.lifecycle.removeObserver(observer)
-                }
-            }
-
-            NavHost(
-                navController = appState.navController,
-                startDestination = SPLASH_SCREEN,
-                modifier = if (hasBottomBar) Modifier.padding(innerPaddingModifier) else Modifier
+        ) { innerPaddingModifier ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .paint(
+                        painter = painterResource(id = R.drawable.logsigninbackground),
+                        contentScale = ContentScale.Crop
+                    )
             ) {
-                pixelFitGraph(
-                    appState = appState,
-                    onScreenReady = { screen ->
-                        screenContentReady = true
+                val musicVolume = remember { derivedStateOf { (userSettings?.musicVolume ?: 50) / 100f } }
 
-                        if (screen == HOME_SCREEN) {
-                            if (prefs.getBoolean("first_time_home_screen", true)) {
-                                tutorialText = """
+                DisposableEffect(settingsLoaded) {
+                    if (settingsLoaded && appState.mediaPlayer == null) {
+                        val mediaPlayerLocal = MediaPlayer.create(context, R.raw.cavern_quest)?.apply {
+                            isLooping = true
+                            setVolume(musicVolume.value, musicVolume.value)
+                            start()
+                        }
+                        appState.mediaPlayer = mediaPlayerLocal
+                    }
+                    onDispose {
+                        appState.mediaPlayer?.release()
+                        appState.mediaPlayer = null
+                    }
+                }
+
+                LaunchedEffect(musicVolume.value) {
+                    if (settingsLoaded) {
+                        appState.mediaPlayer?.let { player ->
+                            player.setVolume(musicVolume.value, musicVolume.value)
+                        }
+                    }
+                }
+
+                val lifecycleOwner = LocalLifecycleOwner.current
+                DisposableEffect(lifecycleOwner) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        when (event) {
+                            Lifecycle.Event.ON_PAUSE -> {
+                                appState.mediaPlayer?.pause()
+                            }
+                            Lifecycle.Event.ON_RESUME -> {
+                                if (settingsLoaded && appState.mediaPlayer != null) {
+                                    appState.mediaPlayer?.start()
+                                }
+                            }
+                            else -> {}
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(observer)
+                    onDispose {
+                        lifecycleOwner.lifecycle.removeObserver(observer)
+                    }
+                }
+
+                NavHost(
+                    navController = appState.navController,
+                    startDestination = SPLASH_SCREEN,
+                    modifier = if (hasBottomBar) Modifier.padding(innerPaddingModifier) else Modifier
+                ) {
+                    pixelFitGraph(
+                        appState = appState,
+                        onScreenReady = { screen ->
+                            screenContentReady = true
+
+                            if (screen == HOME_SCREEN) {
+                                if (prefs.getBoolean("first_time_home_screen", true)) {
+                                    tutorialText = """
                                     Welcome to PixelFit Quest!
                                     
                                     HOME SCREEN: View your level, coins, experience, and streak at the top. Track your daily steps for rewards. Check your rank on the leaderboard and unlocked achievements by pressing the trophy. See your completed workouts and resume them. Complete daily missions for extra rewards.
@@ -255,70 +255,71 @@ fun AppScaffold() {
                                     
                                     SETTINGS: Adjust music volume. Sign out or delete your account if needed.
                                 """.trimIndent()
-                                showTutorial = true
-                            }
-                        }
-                    }
-                )
-            }
-
-            if (showTutorial && screenContentReady) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.7f))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Center)
-                            .padding(horizontal = 32.dp)
-                            .padding(top = 30.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Top
-                    ) {
-                        TypewriterText(
-                            text = tutorialText,
-                            onComplete = {
-                                tutorialComplete = true
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White,
-                            textAlign = TextAlign.Center,
-                            skipToEnd = skipTypewriter
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(bottom = 32.dp, end = 32.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color.White.copy(alpha = 0.9f))
-                            .clickable {
-                                if (tutorialComplete) {
-                                    prefs
-                                        .edit()
-                                        .putBoolean("first_time_home_screen", false)
-                                        .apply()
-                                    showTutorial = false
-                                    tutorialComplete = false
-                                    skipTypewriter = false
-                                } else {
-                                    skipTypewriter = true
+                                    showTutorial = true
                                 }
                             }
-                            .padding(horizontal = 24.dp, vertical = 12.dp)
-                    ) {
-                        Text(
-                            text = if (tutorialComplete) "START" else "SKIP",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.Black,
-                            fontSize = 18.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                        }
+                    )
+                }
+            }
+        }
+
+        if (showTutorial && screenContentReady) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center)
+                        .padding(horizontal = 32.dp)
+                        .padding(top = 30.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    TypewriterText(
+                        text = tutorialText,
+                        onComplete = {
+                            tutorialComplete = true
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        skipToEnd = skipTypewriter
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 32.dp, end = 32.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.White.copy(alpha = 0.9f))
+                        .clickable {
+                            if (tutorialComplete) {
+                                prefs
+                                    .edit()
+                                    .putBoolean("first_time_home_screen", false)
+                                    .apply()
+                                showTutorial = false
+                                tutorialComplete = false
+                                skipTypewriter = false
+                            } else {
+                                skipTypewriter = true
+                            }
+                        }
+                        .padding(horizontal = 24.dp, vertical = 12.dp)
+                ) {
+                    Text(
+                        text = if (tutorialComplete) "START" else "SKIP",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.Black,
+                        fontSize = 18.sp,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         }
