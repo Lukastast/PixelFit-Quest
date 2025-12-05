@@ -195,21 +195,26 @@ class UserRepository @Inject constructor(
         }
     }
 
-    // Streak-specific methods (date-based logic, fixed for UTC timezone invariance)
     suspend fun updateStreak(increment: Boolean = true, reset: Boolean = false) {
         val user = auth.currentUser ?: throw Exception("No user logged in")
         val docRef = usersCollection.document(user.uid)
         try {
             val snapshot = docRef.get().await()
+
+            // Check if document exists, if not create it first
+            if (!snapshot.exists()) {
+                docRef.set(UserGameData()).await()
+                Log.d(TAG, "Created new user document for streak update")
+            }
+
             val currentData = snapshot.toObject<UserGameData>() ?: UserGameData()
             val currentStreak = currentData.streak
             val lastActivityDate = snapshot.getString("last_activity_date") ?: ""
 
-            // Fixed: Use UTC timezone for consistent date comparisons (avoids local timezone shifts on travel/DST)
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)  // Locale.US for consistent formatting
-            dateFormat.timeZone = TimeZone.getTimeZone("UTC")  // UTC for global day boundaries
-            val today = dateFormat.format(Date())  // Current UTC date
-            val yesterday = dateFormat.format(Date(System.currentTimeMillis() - MILLIS_PER_DAY))  // Previous UTC day using constant
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+            val today = dateFormat.format(Date())
+            val yesterday = dateFormat.format(Date(System.currentTimeMillis() - MILLIS_PER_DAY))
 
             var newStreak = currentStreak
             var newLastActivityDate = today
@@ -217,8 +222,12 @@ class UserRepository @Inject constructor(
             if (reset) {
                 newStreak = 0
             } else if (increment) {
-                if (lastActivityDate.isEmpty() || lastActivityDate == today) {
-                    // Same UTC day or first time: no change (prevents multi-taps)
+                if (lastActivityDate.isEmpty()) {
+                    // First workout ever: start streak at 1
+                    newStreak = 1
+                } else if (lastActivityDate == today) {
+                    // Same UTC day: no change (prevents multi-taps)
+                    // Keep current streak
                 } else if (lastActivityDate == yesterday) {
                     // Consecutive UTC day: increment
                     newStreak++

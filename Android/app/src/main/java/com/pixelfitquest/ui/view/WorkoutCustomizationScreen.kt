@@ -1,6 +1,5 @@
 package com.pixelfitquest.ui.view
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,7 +34,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -62,14 +60,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.pixelfitquest.helpers.TypewriterText
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.model.ExerciseType
@@ -78,7 +73,6 @@ import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.WorkoutCustomizationViewModel
 import kotlinx.coroutines.launch
-import androidx.core.content.edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun Modifier.simpleVerticalScrollbar(
@@ -119,14 +113,11 @@ fun WorkoutCustomizationScreen(
     val uiState by viewModel.uiState.collectAsState()
     val templates by viewModel.templates.collectAsState()
 
-    // NEW: Track the currently selected template ID for visual indication
     var selectedTemplateId by remember { mutableStateOf<String?>(null) }
 
-    // Snackbar Host State for bottom positioning
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    // Show error Snackbar when error changes
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
             coroutineScope.launch {
@@ -135,29 +126,22 @@ fun WorkoutCustomizationScreen(
         }
     }
 
-    // NEW: Clear selection after successful save
     LaunchedEffect(uiState.isSaving, uiState.editMode, uiState.error) {
         if (!uiState.isSaving && !uiState.editMode && uiState.error == null) {
             selectedTemplateId = null
         }
     }
 
-    val context = LocalContext.current
-    val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
-    var showTutorial by remember { mutableStateOf(prefs.getBoolean("first_time_customization", true)) }
-
     Box(modifier = modifier.fillMaxSize()) {
         Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) },  // Positions Snackbar at bottom
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = {
-                // Fixed Bottom Bar with Buttons
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.Transparent),  // Make bottom bar transparent
+                        .background(Color.Transparent),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    // Save Template Button (Conditional)
                     if (uiState.selections.isNotEmpty() && uiState.templateName.isNotBlank()) {
                         PixelArtButton(
                             onClick = {
@@ -182,21 +166,20 @@ fun WorkoutCustomizationScreen(
                                 onStartWorkout(plan, templateName)
                             }
                         },
-                        imageRes = R.drawable.button_unclicked,  // Your normal PNG
-                        pressedRes = R.drawable.button_clicked,  // Your pressed PNG
-                        modifier = Modifier.width(250.dp).height(60.dp)  // Reduced width from 350.dp
+                        imageRes = R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_clicked,
+                        modifier = Modifier.width(250.dp).height(60.dp)
                     ) {
                         Text("Start Workout")
                     }
 
-                    // Loading Indicator in Bottom Bar
                     if (uiState.isSaving) {
                         Spacer(modifier = Modifier.height(8.dp))
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
                 }
             },
-            containerColor = Color.Transparent,  // Make Scaffold transparent
+            containerColor = Color.Transparent,
             modifier = Modifier.fillMaxSize()
         ) { paddingValues ->
             Column(
@@ -206,11 +189,10 @@ fun WorkoutCustomizationScreen(
             ) {
 
 
-                // Exercises Section: Separate Scrollable View
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)  // Adjust height for image
+                        .height(50.dp)
                         .padding(horizontal = 16.dp)
                 ) {
                     Image(
@@ -221,21 +203,20 @@ fun WorkoutCustomizationScreen(
                     )
                     Text(
                         text = "Customize Workout",
-                        style = typography.bodyMedium,  // Smaller font
+                        style = typography.bodyMedium,
                         color = Color.White,
                         modifier = Modifier
                             .align(Alignment.Center)
                     )
                 }
 
-                // Top Padding
                 Spacer(modifier = Modifier.padding(top = 8.dp))
 
                 if (uiState.editMode || uiState.selections.isNotEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(100.dp)  // Adjust height for background image + field
+                            .height(100.dp)
                             .padding(horizontal = 16.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -328,7 +309,6 @@ fun WorkoutCustomizationScreen(
                             mutableStateOf(uiState.selections[exercise]?.weight?.toString() ?: "3")
                         }
 
-                        // Sync local state when uiState.selections changes (e.g., loadTemplate)
                         LaunchedEffect(uiState.selections[exercise]) {
                             uiState.selections[exercise]?.let { item ->
                                 localSets = item.sets.toString()
@@ -426,7 +406,7 @@ fun WorkoutCustomizationScreen(
                                                             viewModel.updateSets(exercise, finalSets)
                                                         }
                                                     },
-                                                textStyle = MaterialTheme.typography.bodyMedium,
+                                                textStyle = typography.bodyMedium,
                                                 singleLine = true,
                                                 keyboardOptions = KeyboardOptions(
                                                     keyboardType = KeyboardType.Number,
@@ -553,7 +533,6 @@ fun WorkoutCustomizationScreen(
                                 template.plan.items.sumOf { (it.sets.coerceAtLeast(1)) }
                             Log.d("TemplateUI", "Template ${template.name}: total sets = $totalSets")
 
-                            // NEW: Check if this template is currently selected
                             val isSelected = template.id == selectedTemplateId
 
                             Box(
@@ -567,7 +546,6 @@ fun WorkoutCustomizationScreen(
                                     modifier = Modifier.fillMaxSize(),
                                     contentScale = ContentScale.FillBounds
                                 )
-                                // NEW: Dark overlay for selected template (50% opacity)
                                 if (isSelected) {
                                     Box(
                                         modifier = Modifier
@@ -647,26 +625,6 @@ fun WorkoutCustomizationScreen(
                     )
                 }
 
-            }
-        }
-        if (showTutorial) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)),
-                contentAlignment = Alignment.Center
-            ) {
-                TypewriterText(
-                    text = "Welcome to Workout Customization! Select exercises by checking them, adjust sets and weights. Enter a name to save as template. Use 'Start Workout' to begin your adventure of acquiring coins and exp .",
-                    onComplete = {
-                        prefs.edit { putBoolean("first_time_customization", false) }
-                        showTutorial = false
-                    },
-                    modifier = Modifier.padding(16.dp),
-                    style = typography.bodyLarge,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                )
             }
         }
     }

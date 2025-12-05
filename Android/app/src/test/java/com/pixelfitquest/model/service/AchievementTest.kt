@@ -1,5 +1,6 @@
-package com.pixelfitquest.model
+package com.pixelfitquest.model.service.module
 
+import com.pixelfitquest.model.achievementsList
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

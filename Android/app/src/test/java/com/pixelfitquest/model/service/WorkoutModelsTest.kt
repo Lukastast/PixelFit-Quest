@@ -1,5 +1,9 @@
-package com.pixelfitquest.model
+package com.pixelfitquest.model.service.module
 
+import com.pixelfitquest.model.Exercise
+import com.pixelfitquest.model.ExerciseType
+import com.pixelfitquest.model.Workout
+import com.pixelfitquest.model.WorkoutSet
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

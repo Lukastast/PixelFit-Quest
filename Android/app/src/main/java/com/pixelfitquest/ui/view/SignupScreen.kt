@@ -100,7 +100,7 @@ fun SignupScreen(
         ) {
             AutoSizeText(
                 text = "Sign Up",
-                style = typography.titleLarge.copy(color = MaterialTheme.colorScheme.primary),
+                style = typography.titleLarge.copy(color = Color.White),
                 modifier = Modifier.padding(bottom = 8.dp),
                 maxFontSize = 32.sp,  // Customize based on your design
                 minFontSize = 30.sp
@@ -139,7 +139,9 @@ fun SignupScreen(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent
+                        errorIndicatorColor = Color.Transparent,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     )
                 )
             }
@@ -178,7 +180,9 @@ fun SignupScreen(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent
+                        errorIndicatorColor = Color.Transparent,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     )
                 )
             }
@@ -217,7 +221,9 @@ fun SignupScreen(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent
+                        errorIndicatorColor = Color.Transparent,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     )
                 )
             }
@@ -238,7 +244,7 @@ fun SignupScreen(
             }
 
             TextButton(onClick = { openScreen(LOGIN_SCREEN) }) {
-                Text(text = stringResource(R.string.login_description), fontSize = 14.sp)
+                Text(text = stringResource(R.string.login_description), fontSize = 14.sp, color=Color.White)
             }
 
             Row(

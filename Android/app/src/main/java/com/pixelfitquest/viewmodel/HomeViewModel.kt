@@ -80,6 +80,10 @@ class HomeViewModel @Inject constructor(
     private val _achievements = MutableStateFlow<List<Pair<Achievement, Boolean>>>(emptyList())
     val achievements: StateFlow<List<Pair<Achievement, Boolean>>> = _achievements.asStateFlow()
 
+    // NEW: Add loading state
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     private var healthDataStore: HealthDataStore? = null
 
     private val stepPermissions = setOf(
@@ -98,14 +102,30 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
+                _isLoading.value = true
+
+                // Load progression config first
                 userRepository.loadProgressionConfig()
+
+                // Load user data and wait for first emission
                 loadUserData()
+
+                // Wait a bit for the flow to emit
+                userGameData.first { it != null }
+
+                // Load other data
                 fetchCompletedWorkouts()
                 fetchLeaderboard()
-                initializeHealthConnection(activity)
                 generateDailyMissions()
+
+                // Initialize health connection (can be async)
+                initializeHealthConnection(activity)
+
+                _isLoading.value = false
             } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to load progression config"
+                _error.value = e.message ?: "Failed to load data"
+                _isLoading.value = false
+                Log.e("HomeVM", "Initialize error", e)
             }
         }
     }
@@ -130,6 +150,7 @@ class HomeViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to load user data"
+                Log.e("HomeVM", "Load user data error", e)
             }
         }
     }
@@ -188,6 +209,7 @@ class HomeViewModel @Inject constructor(
             }
         } catch (e: Exception) {
             _error.value = e.message ?: "Failed to fetch leaderboard"
+            Log.e("HomeVM", "Fetch leaderboard error", e)
         }
     }
 
@@ -305,7 +327,18 @@ class HomeViewModel @Inject constructor(
                 workoutRepository.saveWorkout(workout)
                 addExp(100)
                 addCoins(20)
-                incrementStreak()
+
+                // Only increment streak once per day
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+                val today = dateFormat.format(Date())
+                val lastStreakUpdateDate = userRepository.getUserField("last_streak_update_date") as? String ?: ""
+
+                if (lastStreakUpdateDate != today) {
+                    incrementStreak()
+                    userRepository.updateUserGameData(mapOf("last_streak_update_date" to today))
+                }
+
                 NotificationHelper.showWorkoutCompletedNotification(context)
                 fetchCompletedWorkouts()
             } catch (e: Exception) {

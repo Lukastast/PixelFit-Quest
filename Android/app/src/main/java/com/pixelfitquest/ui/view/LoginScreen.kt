@@ -99,7 +99,7 @@ fun LoginScreen(
             Text(
                 text = "Login",
                 style = typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary,
+                color = Color.White,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
@@ -136,7 +136,9 @@ fun LoginScreen(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent
+                        errorIndicatorColor = Color.Transparent,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     )
                 )
             }
@@ -175,7 +177,9 @@ fun LoginScreen(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent
+                        errorIndicatorColor = Color.Transparent,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     )
                 )
             }
@@ -196,7 +200,7 @@ fun LoginScreen(
             }
 
             TextButton(onClick = { openScreen(SIGNUP_SCREEN) }) {
-                Text(text = stringResource(R.string.sign_up_description), fontSize = 16.sp)
+                Text(text = stringResource(R.string.sign_up_description), fontSize = 16.sp, color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(8.dp))

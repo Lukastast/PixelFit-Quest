@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.res.imageResource
 import com.pixelfitquest.R
-import com.pixelfitquest.model.CharacterData
 import kotlinx.coroutines.delay
 
 @Composable
@@ -25,6 +24,8 @@ fun IdleAnimation(
     val spriteSheetId = when (gender) {
         "male" -> R.drawable.character_male_idle
         "female" -> R.drawable.character_woman_idle
+        "character_male_idle" -> R.drawable.character_male_idle  // NEW: Handle full sprite name
+        "character_woman_idle" -> R.drawable.character_woman_idle  // NEW: Handle full sprite name
         "locked_male" -> R.drawable.locked_male_character_idle
         "locked_woman" -> R.drawable.locked_woman_character_idle
         "fitness_character_male_idle" -> R.drawable.fitness_character_male_idle

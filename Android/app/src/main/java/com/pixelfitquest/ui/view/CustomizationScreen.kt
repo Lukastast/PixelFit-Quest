@@ -1,7 +1,7 @@
 package com.pixelfitquest.ui.view
 
+import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,14 +33,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
 import com.pixelfitquest.ui.components.IdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
@@ -52,9 +49,8 @@ import com.pixelfitquest.viewmodel.SettingsViewModel
 @Composable
 fun CustomizationScreen(
     openScreen: (String) -> Unit,
-    viewModel: CustomizationViewModel = hiltViewModel()
+    viewModel: CustomizationViewModel = hiltViewModel(),
 ) {
-    val context = LocalContext.current
     val characterData by viewModel.characterData.collectAsState()
     val settingsViewModel: SettingsViewModel = hiltViewModel()
     val offset = -18
@@ -64,12 +60,11 @@ fun CustomizationScreen(
     val aspectRatio = if (intrinsicSize.isSpecified) {
         intrinsicSize.height / intrinsicSize.width
     } else {
-        280f / 400f // fallback aspect ratio, adjust based on your image if needed
+        280f / 400f
     }
 
     var currentVariantIndex by remember { mutableStateOf(0) }
 
-    // Gender-specific fitness and premium variants
     val fitnessVariant = if (characterData.gender == "female") "female_fitness" else "male_fitness"
     val premiumVariant = if (characterData.gender == "female") "female_premium" else "male_premium"
     val variants = listOf("basic", fitnessVariant, premiumVariant)
@@ -78,7 +73,6 @@ fun CustomizationScreen(
     val isPremium = currentVariant == premiumVariant
     val isFitness = currentVariant == fitnessVariant
 
-    // Set initial index based on saved variant
     LaunchedEffect(characterData.variant, characterData.gender) {
         val savedVariant = characterData.variant
         when (savedVariant) {
@@ -88,15 +82,42 @@ fun CustomizationScreen(
         }
     }
 
-    // Compute display gender for IdleAnimation
-    val displayGender = if (currentVariant == "basic") {
-        characterData.gender
-    } else if (isPremium) {
-        // For premium, always show locked
-        if (characterData.gender == "female") "locked_woman" else "locked_male"
-    } else {
-        val baseGender = if (characterData.gender == "female") "woman" else "male"
-        "fitness_character_character_${baseGender}_idle"
+    // FIXED: Correct sprite names with explicit gender check
+    val displayGender = when {
+        isPremium -> {
+            // Premium is always locked
+            if (characterData.gender == "female") "locked_woman" else "locked_male"
+        }
+        isFitness && isUnlocked -> {
+            // Fitness variant unlocked - show the fitness sprite
+            if (characterData.gender == "female") {
+                "fitness_character_woman_idle"
+            } else {
+                "fitness_character_male_idle"
+            }
+        }
+        isFitness && !isUnlocked -> {
+            // Fitness variant locked - show locked sprite
+            if (characterData.gender == "female") "locked_woman" else "locked_male"
+        }
+        else -> {
+            // Basic variant - show basic sprite
+            // FIXED: Use direct equality check instead of just else
+            when (characterData.gender) {
+                "female" -> "character_woman_idle"
+                "male" -> "character_male_idle"
+                else -> {
+                    // Fallback for unexpected values - log and default to male
+                    Log.w("CustomizationScreen", "Unexpected gender value: ${characterData.gender}, defaulting to male")
+                    "character_male_idle"
+                }
+            }
+        }
+    }
+
+    // Add debug logging
+    LaunchedEffect(characterData.gender, displayGender) {
+        Log.d("CustomizationScreen", "Gender: ${characterData.gender}, Display: $displayGender, Variant: $currentVariant, IsUnlocked: $isUnlocked")
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -104,13 +125,11 @@ fun CustomizationScreen(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Custom card with background image for the entire customization screen
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(aspectRatio)
             ) {
-                // Background image
                 Image(
                     painter = painter,
                     contentDescription = null,
@@ -118,34 +137,37 @@ fun CustomizationScreen(
                     contentScale = ContentScale.Fit
                 )
 
-                // Content on top
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-
-                    ) {
+                ) {
                     Text(
                         text = "Choose Your Character",
-                        style = MaterialTheme.typography.bodyMedium,  // Same font as PixelArtButton
-                        color = Color.White  // White color
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Gender Toggle Buttons
                     Row {
                         PixelArtButton(
-                            onClick = { viewModel.updateGender("male") },
-                            imageRes = R.drawable.button_unclicked,  // Your normal PNG
-                            pressedRes = R.drawable.button_clicked,  // Your pressed PNG
-                            modifier = Modifier.size(80.dp, 40.dp)  // Compact size for toggles
+                            onClick = {
+                                Log.d("CustomizationScreen", "Male button clicked")
+                                viewModel.updateGender("male")
+                            },
+                            imageRes = R.drawable.button_unclicked,
+                            pressedRes = R.drawable.button_clicked,
+                            modifier = Modifier.size(80.dp, 40.dp)
                         ) {
                             Text("Male")
                         }
                         PixelArtButton(
-                            onClick = { viewModel.updateGender("female") },
+                            onClick = {
+                                Log.d("CustomizationScreen", "Female button clicked")
+                                viewModel.updateGender("female")
+                            },
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
                             modifier = Modifier.size(80.dp, 40.dp)
@@ -154,7 +176,6 @@ fun CustomizationScreen(
                         }
                     }
 
-                    // NEW: Bonus info for unlocked fitness variant, positioned under gender buttons and over IdleAnimation
                     if (isUnlocked && isFitness) {
                         Text(
                             text = "+2 coins & +2 exp per reward",
@@ -164,7 +185,6 @@ fun CustomizationScreen(
                         )
                     }
 
-                    // Left and Right Navigation Buttons
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
@@ -181,12 +201,11 @@ fun CustomizationScreen(
 
                         Spacer(modifier = Modifier.width(16.dp))
 
-                        // Animated Character Preview
                         IdleAnimation(
                             modifier = Modifier
                                 .size(120.dp)
                                 .offset(x = (offset).dp),
-                            gender = if (isUnlocked && !isPremium) displayGender else if (characterData.gender == "female") "locked_woman" else "locked_male",
+                            gender = displayGender,
                             isAnimating = true
                         )
 
@@ -204,13 +223,11 @@ fun CustomizationScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Variant option button
                     if (isPremium) {
-                        // Coming Soon button - not clickable
                         PixelArtButton(
                             onClick = { },
                             imageRes = R.drawable.button_unclicked,
-                            pressedRes = R.drawable.button_unclicked,  // No press effect
+                            pressedRes = R.drawable.button_unclicked,
                             modifier = Modifier.size(200.dp, 60.dp)
                         ) {
                             Text("Coming Soon")
@@ -219,7 +236,6 @@ fun CustomizationScreen(
                         PixelArtButton(
                             onClick = {
                                 viewModel.updateVariant(currentVariant)
-                                // Optionally update index to reflect selection, but LaunchedEffect handles it
                             },
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
@@ -257,29 +273,6 @@ fun CustomizationScreen(
 
             SetHeight(settingsViewModel)
         }
-        // NEW: Tutorial overlay for first time
-        val prefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
-        var showTutorial by remember { mutableStateOf(prefs.getBoolean("first_time_customization", true)) }
-        if (showTutorial) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)),
-                contentAlignment = Alignment.Center
-            ) {
-                TypewriterText(
-                    text = "Welcome to Customization! Choose your character's gender and variant. Basic is free, fitness gives bonuses for coins, premium coming soon. Select and buy to customize.",
-                    onComplete = {
-                        prefs.edit().putBoolean("first_time_customization", false).apply()
-                        showTutorial = false
-                    },
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
     }
 }
 
@@ -289,7 +282,7 @@ fun CustomizationScreen(
 fun SetHeight(
     viewModel: SettingsViewModel
 ) {
-    val userSettings by viewModel.userSettings.collectAsState()
+    val userSettings by viewModel.userSettings.collectAsState(initial = null)
     var heightInput by remember { mutableStateOf("") }
 
     LaunchedEffect(userSettings?.height) {
@@ -301,16 +294,14 @@ fun SetHeight(
     val aspectRatio = if (intrinsicSize.isSpecified) {
         intrinsicSize.height / intrinsicSize.width
     } else {
-        280f / 400f // fallback aspect ratio, adjust based on your image if needed
+        280f / 400f
     }
 
-    // Custom card with background image for set height
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(aspectRatio)
     ) {
-        // Background image
         Image(
             painter = painter,
             contentDescription = null,
@@ -318,7 +309,6 @@ fun SetHeight(
             contentScale = ContentScale.Fit
         )
 
-        // Content on top
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -326,7 +316,6 @@ fun SetHeight(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Centered row for current height text
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
@@ -352,7 +341,6 @@ fun SetHeight(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Label for input field
             Text(
                 text = "Enter height (e.g., 175)",
                 color = Color.White,
@@ -360,7 +348,6 @@ fun SetHeight(
                 modifier = Modifier.padding(bottom = 4.dp)
             )
 
-            // Custom input field with background image
             Box(
                 modifier = Modifier
                     .width(200.dp)
