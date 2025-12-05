@@ -249,7 +249,7 @@ fun AppScaffold() {
                                     
                                     HOME SCREEN: View your level, coins, experience, and streak at the top. Track your daily steps for rewards. Check your rank on the leaderboard and unlocked achievements by pressing the trophy. See your completed workouts and resume them. Complete daily missions for extra rewards.
                                     
-                                    CUSTOMIZATION: Choose your character's gender and variant. Basic is free, fitness gives bonuses for coins, premium coming soon. Select and buy to customize. Set your height for accurate tracking.
+                                    CUSTOMIZATION: Choose your character's gender and variant. Basic is free, the rest are locked. Select and buy to customize. Set your height for accurate tracking.
                                     
                                     WORKOUT CUSTOMIZATION: Select exercises by checking them, adjust sets and weights. Enter a name to save as template. Use 'Start Workout' to begin your adventure of acquiring coins and exp.
                                     
