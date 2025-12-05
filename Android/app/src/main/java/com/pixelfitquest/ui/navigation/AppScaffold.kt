@@ -246,15 +246,18 @@ fun AppScaffold() {
                                 if (prefs.getBoolean("first_time_home_screen", true)) {
                                     tutorialText = """
                                     Welcome to PixelFit Quest!
+
+                                    HOME SCREEN  
+                                    View your level, coins, exp and streak at the top. Track daily steps for rewards, check your rank and achievements with the trophy icon, resume past workouts, and complete daily missions for extra coins/exp.
                                     
-                                    HOME SCREEN: View your level, coins, experience, and streak at the top. Track your daily steps for rewards. Check your rank on the leaderboard and unlocked achievements by pressing the trophy. See your completed workouts and resume them. Complete daily missions for extra rewards.
+                                    CUSTOMIZATION  
+                                    Choose your character's gender and cloths that can be purchased with coins to equip and set your height for accurate tracking.
                                     
-                                    CUSTOMIZATION: Choose your character's gender and variant. Basic is free, the rest are locked. Select and buy to customize. Set your height for accurate tracking.
+                                    WORKOUT CUSTOMIZATION  
+                                    Check exercises to select them, adjust sets and weights, give a name to save as template, then tap "Start Workout" to earn coins and exp.
                                     
-                                    WORKOUT CUSTOMIZATION: Select exercises by checking them, adjust sets and weights. Enter a name to save as template. Use 'Start Workout' to begin your adventure of acquiring coins and exp.
-                                    
-                                    SETTINGS: Adjust music volume. Sign out or delete your account if needed.
-                                """.trimIndent()
+                                    SETTINGS  
+                                    Adjust music volume, sign out or delete your account.  """.trimIndent()
                                     showTutorial = true
                                 }
                             }
