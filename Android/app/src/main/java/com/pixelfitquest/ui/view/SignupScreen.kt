@@ -69,7 +69,7 @@ fun SignupScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background PNG image
+
         Image(
             painter = painterResource(R.drawable.logsigninbackground),
             contentDescription = null,
@@ -77,7 +77,6 @@ fun SignupScreen(
             contentScale = ContentScale.FillBounds
         )
 
-        // Foreground board PNG image
         Image(
             painter = painterResource(R.drawable.questloginboard),
             contentDescription = null,
@@ -90,7 +89,6 @@ fun SignupScreen(
             contentScale = ContentScale.FillBounds
         )
 
-        // Foreground signup content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -102,7 +100,7 @@ fun SignupScreen(
                 text = "Sign Up",
                 style = typography.titleLarge.copy(color = Color.White),
                 modifier = Modifier.padding(bottom = 8.dp),
-                maxFontSize = 32.sp,  // Customize based on your design
+                maxFontSize = 32.sp,
                 minFontSize = 30.sp
             )
 
@@ -253,8 +251,8 @@ fun SignupScreen(
             ) {
                 PixelArtButton(
                     onClick = { viewModel.onSignUpClick(openAndPopUp) },
-                    imageRes = R.drawable.button_signup_unclicked,  // Your PNG
-                    pressedRes = R.drawable.button_signup_clicked,  // Optional pressed
+                    imageRes = R.drawable.button_signup_unclicked,
+                    pressedRes = R.drawable.button_signup_clicked,
                     modifier = Modifier.weight(1f).height(60.dp)
                 ) {
                     Text("Sign Up")

@@ -6,7 +6,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.pixelfitquest.R // Adjust if your R is in a different package
+import com.pixelfitquest.R
 
 // Custom FontFamily for Jacquard 24
 /*val jacquard24 = FontFamily(
@@ -14,7 +14,7 @@ import com.pixelfitquest.R // Adjust if your R is in a different package
 )*/
 
 val determination = FontFamily(
-    Font(R.font.determination, FontWeight.Normal) // References the TTF file (rename to jacquard24_regular.ttf if needed)
+    Font(R.font.determination, FontWeight.Normal)
 )
 val typography = Typography(
 
@@ -35,7 +35,7 @@ val typography = Typography(
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
-    // Add custom styles using Jacquard 24, e.g., for headings or labels
+
     displayLarge = TextStyle(
         //fontFamily = jacquard24,
         fontFamily = determination,

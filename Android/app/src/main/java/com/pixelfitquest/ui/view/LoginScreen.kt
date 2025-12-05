@@ -67,7 +67,6 @@ fun LoginScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background PNG image
         Image(
             painter = painterResource(R.drawable.logsigninbackground),
             contentDescription = null,
@@ -75,7 +74,6 @@ fun LoginScreen(
             contentScale = ContentScale.FillBounds
         )
 
-        // Foreground board PNG image
         Image(
             painter = painterResource(R.drawable.questloginboard),
             contentDescription = null,
@@ -88,7 +86,6 @@ fun LoginScreen(
             contentScale = ContentScale.FillBounds
         )
 
-        // Foreground login content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -211,9 +208,9 @@ fun LoginScreen(
             ) {
                 PixelArtButton(
                     onClick = { viewModel.onLogInClick(openAndPopUp) },
-                    imageRes = R.drawable.button_unclicked,  // Your normal PNG
-                    pressedRes = R.drawable.button_clicked,  // Your pressed PNG
-                    modifier = Modifier.weight(1f).height(59.dp)  // Match SignupScreen height
+                    imageRes = R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier.weight(1f).height(59.dp)
                 ) {
                     Text(
                         text = stringResource(R.string.log_in),
@@ -225,7 +222,7 @@ fun LoginScreen(
 
                 AuthenticationButton(
                     buttonText = R.string.login_with_google,
-                    modifier = Modifier.weight(1f).height(59.dp)  // Match height
+                    modifier = Modifier.weight(1f).height(59.dp)
                 ) { credential ->
                     viewModel.onLogInWithGoogle(credential, openAndPopUp)
                 }

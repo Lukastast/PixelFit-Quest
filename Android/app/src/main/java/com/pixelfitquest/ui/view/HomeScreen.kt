@@ -3,7 +3,6 @@ package com.pixelfitquest.ui.view
 import android.util.Log
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,7 +46,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pixelfitquest.R
-import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.model.Workout
 import com.pixelfitquest.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
@@ -71,7 +69,7 @@ fun HomeScreen(
     val activity = LocalActivity.current
     val context = LocalContext.current
 
-    // Collect loading state
+
     val isLoading by viewModel.isLoading.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -82,29 +80,29 @@ fun HomeScreen(
     val userGameData by viewModel.userGameData.collectAsState()
     val workouts by viewModel.workouts.collectAsState()
 
-    // Tutorial state managed locally in HomeScreen
+
     val prefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
     var showTutorial by remember { mutableStateOf(false) }
 
-    // Notify when screen is ready and show tutorial if needed
+
     LaunchedEffect(isLoading) {
         Log.d("HomeScreen", "Loading state changed: isLoading=$isLoading")
         if (!isLoading) {
             Log.d("HomeScreen", "Screen finished loading, calling onScreenReady")
             onScreenReady()
 
-            // Check if we should show tutorial
+
             val isFirstTime = prefs.getBoolean("first_time_home_screen", true)
             Log.d("HomeScreen", "First time check: $isFirstTime")
             if (isFirstTime) {
-                delay(300) // Small delay to ensure UI is rendered
+                delay(300)
                 Log.d("HomeScreen", "Showing tutorial")
                 showTutorial = true
             }
         }
     }
 
-    // Show loading screen while data is being fetched
+
     if (isLoading) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -166,7 +164,6 @@ fun HomeScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Top stats row with background image
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -240,7 +237,6 @@ fun HomeScreen(
             }
         }
 
-        // Steps display
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -279,7 +275,6 @@ fun HomeScreen(
             }
         }
 
-        // Leaderboard and achievement button row
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -338,7 +333,6 @@ fun HomeScreen(
             }
         }
 
-        // Workouts LazyRow
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -371,7 +365,6 @@ fun HomeScreen(
             }
         }
 
-        // Daily missions box
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -447,7 +440,6 @@ fun HomeScreen(
             }
         }
 
-        // Achievements popup
         if (showAchievements) {
             Dialog(onDismissRequest = { showAchievements = false }) {
                 Box(
@@ -512,7 +504,6 @@ fun HomeScreen(
             }
         }
 
-        // Snackbar host at bottom
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)

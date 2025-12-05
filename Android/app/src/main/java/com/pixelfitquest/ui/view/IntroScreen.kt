@@ -45,12 +45,12 @@ fun IntroScreen(
     navController: NavController,
     viewModel: IntroViewModel = hiltViewModel()
 ) {
-    val delayAdvanceMs = 1000L // 1-second pause before auto-advance
-    val pauseAfterTextMs = 500L // 0.5-second pause after text finishes
-    val transitionDurationMs = 500L // Fade duration
+    val delayAdvanceMs = 1000L
+    val pauseAfterTextMs = 500L
+    val transitionDurationMs = 500L
     var currentSlide by remember { mutableStateOf(0) }
-    var textFinished by remember { mutableStateOf(false) } // Track when text is done
-    var showSlide by remember { mutableStateOf(true) } // Track fade state for slide
+    var textFinished by remember { mutableStateOf(false) }
+    var showSlide by remember { mutableStateOf(true) }
     val slides = listOf(
         Slide(R.drawable.slide1, "In a shadowed world, OBESITY grips 1 in 8. HEROES weaken, lost to distractions. Knowledge and gyms abound."),
         Slide(R.drawable.slide2, "Warriors can't track moves or stay motivated. Apps promise help, but none forge ADVENTURE. No quests. No glory."),
@@ -79,7 +79,7 @@ fun IntroScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                Spacer(modifier = Modifier.height(150.dp))  // Space between image and text
+                Spacer(modifier = Modifier.height(150.dp))
 
 
                 Image(
@@ -90,14 +90,14 @@ fun IntroScreen(
                     contentScale = ContentScale.Fit
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))  // Space between image and text
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Typewriter text below image
+
                 TypewriterText(
                     text = slides[currentSlide].text,
-                    delayMs = 100L,  // Slower typing for effect
+                    delayMs = 100L,
                     onComplete = {
-                        textFinished = true  // Mark text as finished
+                        textFinished = true
                     },
                     modifier = Modifier
                         .fillMaxSize()
@@ -109,7 +109,6 @@ fun IntroScreen(
             }
         }
 
-        // NEW: Skip button in bottom right corner
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -128,22 +127,22 @@ fun IntroScreen(
             }
         }
 
-        // Handle auto-advance with delay after text finishes, including fade transition
+
         LaunchedEffect(currentSlide, slides.size, textFinished) {
             if (currentSlide < slides.size - 1 && textFinished) {
-                delay(pauseAfterTextMs)  // Pause after text completes
-                showSlide = false  // Fade out current slide
-                delay(transitionDurationMs)  // Wait for fade out
-                currentSlide++  // Advance slide
-                showSlide = true  // Fade in next slide
-                textFinished = false  // Reset for next slide
-                delay(delayAdvanceMs)  // Original advance delay after transition
+                delay(pauseAfterTextMs)
+                showSlide = false
+                delay(transitionDurationMs)
+                currentSlide++
+                showSlide = true
+                textFinished = false
+                delay(delayAdvanceMs)
             } else if (currentSlide == slides.size - 1 && textFinished) {
-                delay(pauseAfterTextMs)  // Pause after last slide text
-                showSlide = false  // Fade out last slide
-                delay(transitionDurationMs)  // Wait for fade out
+                delay(pauseAfterTextMs)
+                showSlide = false
+                delay(transitionDurationMs)
                 viewModel.onIntroComplete(navController)
-                textFinished = false  // Reset
+                textFinished = false
             }
         }
     }

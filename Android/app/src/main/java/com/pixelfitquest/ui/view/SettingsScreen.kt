@@ -44,7 +44,6 @@ fun SettingsScreen(
     val musicVolume = userSettings?.musicVolume ?: 50
     val provider = user.provider.replaceFirstChar { it.titlecase(Locale.getDefault()) }
 
-    // Notify that screen is ready
     LaunchedEffect(Unit) {
         onScreenReady()
     }

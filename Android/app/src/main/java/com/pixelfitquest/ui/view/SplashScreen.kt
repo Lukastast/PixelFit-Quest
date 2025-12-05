@@ -30,7 +30,7 @@ fun SplashScreen(
 
     AnimatedVisibility(
         visible = visible,
-        exit = fadeOut(animationSpec = tween(durationMillis = 500))  // 0.5-second fade out
+        exit = fadeOut(animationSpec = tween(durationMillis = 400))
     ) {
         Image(
             painter = painterResource(id = R.drawable.splash_image),
@@ -40,12 +40,12 @@ fun SplashScreen(
         )
     }
 
-    // Logic: Check auth, delay, fade out, then navigate
+
     LaunchedEffect(Unit) {
         viewModel.checkAuthState { isAuthenticated ->
-            delay(1000)  // 1-second delay
-            visible = false  // Trigger fade out
-            delay(500)  // Wait for animation to finish
+            delay(1000)
+            visible = false
+            delay(500)
             if (isAuthenticated) {
                 navController.navigate("home") {
                     popUpTo(SPLASH_SCREEN) { inclusive = true }

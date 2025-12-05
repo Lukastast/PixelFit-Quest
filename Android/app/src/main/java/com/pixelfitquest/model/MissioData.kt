@@ -1,6 +1,6 @@
 package com.pixelfitquest.model
 
-// Missions pool (unchanged)
+
 val missionsPool = listOf(
     "Walk 5000 steps",
     "Walk 10000 steps",
@@ -10,9 +10,9 @@ val missionsPool = listOf(
     "Walk 7500 steps",
 )
 
-// Rewards pool: Now each reward is either EXP or Coins (randomly chosen type with a value)
+
 val rewardsPool = listOf(
-    "exp:50",   // Format: "TYPE:VALUE"
+    "exp:50",
     "exp:100",
     "exp:75",
     "exp:150",

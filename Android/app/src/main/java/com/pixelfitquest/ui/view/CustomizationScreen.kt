@@ -1,6 +1,5 @@
 package com.pixelfitquest.ui.view
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,7 +37,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.ui.components.IdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
@@ -49,7 +49,7 @@ import com.pixelfitquest.viewmodel.SettingsViewModel
 @Composable
 fun CustomizationScreen(
     openScreen: (String) -> Unit,
-    viewModel: CustomizationViewModel = hiltViewModel(),
+    viewModel: CustomizationViewModel = hiltViewModel()
 ) {
     val characterData by viewModel.characterData.collectAsState()
     val settingsViewModel: SettingsViewModel = hiltViewModel()
@@ -63,7 +63,7 @@ fun CustomizationScreen(
         280f / 400f
     }
 
-    var currentVariantIndex by remember { mutableStateOf(0) }
+    var currentVariantIndex by remember { mutableIntStateOf(0) }
 
     val fitnessVariant = if (characterData.gender == "female") "female_fitness" else "male_fitness"
     val premiumVariant = if (characterData.gender == "female") "female_premium" else "male_premium"
@@ -82,197 +82,161 @@ fun CustomizationScreen(
         }
     }
 
-    // FIXED: Correct sprite names with explicit gender check
-    val displayGender = when {
-        isPremium -> {
-            // Premium is always locked
-            if (characterData.gender == "female") "locked_woman" else "locked_male"
-        }
-        isFitness && isUnlocked -> {
-            // Fitness variant unlocked - show the fitness sprite
-            if (characterData.gender == "female") {
-                "fitness_character_woman_idle"
-            } else {
-                "fitness_character_male_idle"
-            }
-        }
-        isFitness && !isUnlocked -> {
-            // Fitness variant locked - show locked sprite
-            if (characterData.gender == "female") "locked_woman" else "locked_male"
-        }
-        else -> {
-            // Basic variant - show basic sprite
-            // FIXED: Use direct equality check instead of just else
-            when (characterData.gender) {
-                "female" -> "character_woman_idle"
-                "male" -> "character_male_idle"
-                else -> {
-                    // Fallback for unexpected values - log and default to male
-                    Log.w("CustomizationScreen", "Unexpected gender value: ${characterData.gender}, defaulting to male")
-                    "character_male_idle"
-                }
-            }
-        }
+    val displayGender = if (currentVariant == "basic") {
+        characterData.gender
+    } else if (isPremium) {
+        if (characterData.gender == "female") "locked_woman" else "locked_male"
+    } else {
+        val baseGender = if (characterData.gender == "female") "woman" else "male"
+        "fitness_character_${baseGender}_idle"
     }
 
-    // Add debug logging
-    LaunchedEffect(characterData.gender, displayGender) {
-        Log.d("CustomizationScreen", "Gender: ${characterData.gender}, Display: $displayGender, Variant: $currentVariant, IsUnlocked: $isUnlocked")
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(aspectRatio)
         ) {
-            Box(
+            Image(
+                painter = painter,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
+
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(aspectRatio)
-            ) {
-                Image(
-                    painter = painter,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+
+                ) {
+                Text(
+                    text = "Choose Your Character",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White  // White color
                 )
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Gender Toggle Buttons
+                Row {
+                    PixelArtButton(
+                        onClick = { viewModel.updateGender("male") },
+                        imageRes = R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_clicked,
+                        modifier = Modifier.size(80.dp, 40.dp)
+                    ) {
+                        Text("Male")
+                    }
+                    PixelArtButton(
+                        onClick = { viewModel.updateGender("female") },
+                        imageRes = R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_clicked,
+                        modifier = Modifier.size(80.dp, 40.dp)
+                    ) {
+                        Text("Female")
+                    }
+                }
+
+                if (isUnlocked && isFitness) {
                     Text(
-                        text = "Choose Your Character",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White
+                        text = "+2 coins & +2 exp per reward",
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        style = typography.bodyMedium
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    PixelArtButton(
+                        onClick = {
+                            currentVariantIndex = (currentVariantIndex - 1 + variants.size) % variants.size
+                        },
+                        imageRes = R.drawable.unclicked_customization_button_left,
+                        pressedRes = R.drawable.clicked_customization_button_left,
+                        modifier = Modifier.size(40.dp)
+                    ) {}
+
+                    Spacer(modifier = Modifier.width(16.dp))
+                    IdleAnimation(
+                        modifier = Modifier
+                            .size(120.dp)
+                            .offset(x = (offset).dp),
+                        gender = if (isUnlocked && !isPremium) displayGender else if (characterData.gender == "female") "locked_woman" else "locked_male",
+                        isAnimating = true
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.width(16.dp))
 
-                    Row {
-                        PixelArtButton(
-                            onClick = {
-                                Log.d("CustomizationScreen", "Male button clicked")
-                                viewModel.updateGender("male")
-                            },
-                            imageRes = R.drawable.button_unclicked,
-                            pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier.size(80.dp, 40.dp)
-                        ) {
-                            Text("Male")
-                        }
-                        PixelArtButton(
-                            onClick = {
-                                Log.d("CustomizationScreen", "Female button clicked")
-                                viewModel.updateGender("female")
-                            },
-                            imageRes = R.drawable.button_unclicked,
-                            pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier.size(80.dp, 40.dp)
-                        ) {
-                            Text("Female")
-                        }
-                    }
-
-                    if (isUnlocked && isFitness) {
-                        Text(
-                            text = "+2 coins & +2 exp per reward",
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            style = typography.bodyMedium
-                        )
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        PixelArtButton(
-                            onClick = {
-                                currentVariantIndex = (currentVariantIndex - 1 + variants.size) % variants.size
-                            },
-                            imageRes = R.drawable.unclicked_customization_button_left,
-                            pressedRes = R.drawable.clicked_customization_button_left,
-                            modifier = Modifier.size(40.dp)
-                        ) {}
-
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        IdleAnimation(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .offset(x = (offset).dp),
-                            gender = displayGender,
-                            isAnimating = true
-                        )
-
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        PixelArtButton(
-                            onClick = {
-                                currentVariantIndex = (currentVariantIndex + 1) % variants.size
-                            },
-                            imageRes = R.drawable.unclicked_customization_button_right,
-                            pressedRes = R.drawable.clicked_customization_button_right,
-                            modifier = Modifier.size(40.dp)
-                        ) {}
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    if (isPremium) {
-                        PixelArtButton(
-                            onClick = { },
-                            imageRes = R.drawable.button_unclicked,
-                            pressedRes = R.drawable.button_unclicked,
-                            modifier = Modifier.size(200.dp, 60.dp)
-                        ) {
-                            Text("Coming Soon")
-                        }
-                    } else if (isUnlocked) {
-                        PixelArtButton(
-                            onClick = {
-                                viewModel.updateVariant(currentVariant)
-                            },
-                            imageRes = R.drawable.button_unclicked,
-                            pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier.size(200.dp, 60.dp)
-                        ) {
-                            Text("Select")
-                        }
-                    } else {
-                        PixelArtButton(
-                            onClick = { viewModel.buyVariant(currentVariant, price) },
-                            imageRes = R.drawable.button_unclicked,
-                            pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier.size(200.dp, 60.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Text("$price ")
-                                Image(
-                                    painter = painterResource(R.drawable.coin),
-                                    contentDescription = "Coin icon",
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Text(" coins")
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
+                    PixelArtButton(
+                        onClick = {
+                            currentVariantIndex = (currentVariantIndex + 1) % variants.size
+                        },
+                        imageRes = R.drawable.unclicked_customization_button_right,
+                        pressedRes = R.drawable.clicked_customization_button_right,
+                        modifier = Modifier.size(40.dp)
+                    ) {}
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (isPremium) {
+                    PixelArtButton(
+                        onClick = { },
+                        imageRes = R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_unclicked,
+                        modifier = Modifier.size(200.dp, 60.dp)
+                    ) {
+                        Text("Coming Soon")
+                    }
+                } else if (isUnlocked) {
+                    PixelArtButton(
+                        onClick = {
+                            viewModel.updateVariant(currentVariant)
+                        },
+                        imageRes = R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_clicked,
+                        modifier = Modifier.size(200.dp, 60.dp)
+                    ) {
+                        Text("Select")
+                    }
+                } else {
+                    PixelArtButton(
+                        onClick = { viewModel.buyVariant(currentVariant, price) },
+                        imageRes = R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_clicked,
+                        modifier = Modifier.size(200.dp, 60.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text("$price ")
+                            Image(
+                                painter = painterResource(R.drawable.coin),
+                                contentDescription = "Coin icon",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(" coins")
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            SetHeight(settingsViewModel)
         }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        SetHeight(settingsViewModel)
     }
 }
 
@@ -282,7 +246,7 @@ fun CustomizationScreen(
 fun SetHeight(
     viewModel: SettingsViewModel
 ) {
-    val userSettings by viewModel.userSettings.collectAsState(initial = null)
+    val userSettings by viewModel.userSettings.collectAsState()
     var heightInput by remember { mutableStateOf("") }
 
     LaunchedEffect(userSettings?.height) {
@@ -399,7 +363,7 @@ fun SetHeight(
                     imageRes = R.drawable.button_unclicked,
                     pressedRes = R.drawable.button_clicked,
                     modifier = Modifier.width(220.dp).height(60.dp)
-                ) {
+                ){
                     Text("Set Height", fontSize = 14.sp)
                 }
             }

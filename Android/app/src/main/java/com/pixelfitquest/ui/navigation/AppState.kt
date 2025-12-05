@@ -1,6 +1,6 @@
 package com.pixelfitquest.ui.navigation
 
-import android.media.MediaPlayer  // NEW: Import for MediaPlayer
+import android.media.MediaPlayer
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -27,7 +27,7 @@ class AppState(
     val currentUser: FirebaseUser?
         get() = firebaseAuth.currentUser
 
-    // NEW: Shared MediaPlayer for background music (with volume control)
+
     var mediaPlayer: MediaPlayer? = null
 
     init {

@@ -23,7 +23,7 @@ import javax.inject.Inject
 class WorkoutResumeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val workoutRepository: WorkoutRepository,
-    private val userRepository: UserRepository  // For rewards if needed
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _userGameData = MutableStateFlow<UserGameData?>(null)

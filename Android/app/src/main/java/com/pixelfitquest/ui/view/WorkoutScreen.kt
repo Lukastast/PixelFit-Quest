@@ -66,9 +66,9 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutScreen(
-    plan: WorkoutPlan,  // From nav arg
+    plan: WorkoutPlan,
     templateName: String = "workout",
-    openScreen: (String) -> Unit,  // Navigation callback
+    openScreen: (String) -> Unit,
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
@@ -88,25 +88,26 @@ fun WorkoutScreen(
     val currentSets = plan.items.getOrNull(state.currentExerciseIndex)?.sets ?: 0
     val currentWeight = plan.items.getOrNull(state.currentExerciseIndex)?.weight ?: 0.0
 
-    LaunchedEffect(Unit) {
-        viewModel.countdownEvent.collectLatest {
-            countdownNumber = 3
-            repeat(3) { i ->
-                delay(1000L)
-                countdownNumber = 3 - i - 1
-            }
-            countdownNumber = null
-            delay(800L)
-            countdownNumber = -1
-        }
-    }
+//    countdown animation
+//    LaunchedEffect(Unit) {
+//        viewModel.countdownEvent.collectLatest {
+//            countdownNumber = 3
+//            repeat(3) { i ->
+//                delay(1000L)
+//                countdownNumber = 3 - i - 1
+//            }
+//            countdownNumber = null
+//            delay(800L)
+//            countdownNumber = -1
+//        }
+//    }
 
     LaunchedEffect(Unit) {
         viewModel.feedbackEvent.collect { feedback ->
-            // If an animation is already running → instantly finish the old one
+
             if (animState.isRunning) {
-                animState.snapTo(1f)      // Force complete instantly
-                animState.animateTo(0f)   // Quick fade out
+                animState.snapTo(1f)
+                animState.animateTo(0f)
             }
 
             currentFeedback = feedback
@@ -115,7 +116,7 @@ fun WorkoutScreen(
                 targetValue = 1f,
                 animationSpec = spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = 500f)
             )
-            delay(1200L)
+            delay(900L)
             animState.animateTo(0f)
             currentFeedback = null
         }
@@ -123,11 +124,11 @@ fun WorkoutScreen(
 
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { workoutId ->
-                navController.navigate("workout_resume/$workoutId") {  // FIXED: Direct navController with options
-                    popUpTo(HOME_SCREEN) {  // Clear stack up to Home
-                        inclusive = false  // Keep Home
+                navController.navigate("workout_resume/$workoutId") {
+                    popUpTo(HOME_SCREEN) {
+                        inclusive = false
                     }
-                    launchSingleTop = true  // Avoid duplicates
+                    launchSingleTop = true
                 }
         }
     }
@@ -135,7 +136,7 @@ fun WorkoutScreen(
     LaunchedEffect(Unit) {
         if (plan.items.isEmpty()) {
             viewModel.setError("No workout plan provided—cannot start tracking")
-            openScreen("workout_customization")  // Redirect back
+            openScreen("workout_customization")
             return@LaunchedEffect
         }
         viewModel.startWorkoutFromPlan(plan, templateName)
@@ -149,22 +150,21 @@ fun WorkoutScreen(
     }
 
     DisposableEffect(Unit) {
-        // Set to landscape
+
         activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
         onDispose {
-            // Revert to portrait (or sensor default) on exit
+
             activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
     }
 
-    // FIXED: Sensor listener setup
+
     DisposableEffect(context, lifecycleOwner) {
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         val gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
         if (accelerometer == null ) {
-            // Handle no sensor (e.g., show error)
             viewModel.setError("No acclerometer sensor found")
 
             return@DisposableEffect onDispose {}
@@ -181,11 +181,11 @@ fun WorkoutScreen(
                 when (event.sensor.type) {
                     Sensor.TYPE_ACCELEROMETER -> {
                         val accelData = floatArrayOf(event.values[0], event.values[1], event.values[2])
-                        viewModel.onSensorDataUpdated(accelData, event.timestamp)  // Pass gyro as null
+                        viewModel.onSensorDataUpdated(accelData, event.timestamp)
                     }
                     Sensor.TYPE_GYROSCOPE -> {
                         val gyroData = floatArrayOf(event.values[0], event.values[1], event.values[2])
-                        //viewModel.onGyroDataUpdated(gyroData, event.timestamp)  // FIXED: Separate for gyro
+                        //viewModel.onGyroDataUpdated(gyroData, event.timestamp)
                     }
                 }
             }
@@ -206,7 +206,7 @@ fun WorkoutScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        // Background image (fills entire screen)
+
         Image(
             painter = painterResource(id = R.drawable.gym_background),
             contentDescription = null,
@@ -228,7 +228,7 @@ fun WorkoutScreen(
         Row( modifier = Modifier
             .align(Alignment.TopCenter)
             .padding(top = 32.dp)) {
-            // Buttons
+
             if (state.isSetActive) {
                 PixelArtButton(
                     onClick = { viewModel.finishSet() },
@@ -252,7 +252,7 @@ fun WorkoutScreen(
                 Text(
                     text = currentExercise.replace("_", " "),
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,  // Or your theme color for visibility
+                    color = Color.White,
                     modifier = Modifier
                         .background(
                             color = Color.Black.copy(alpha = 0.7f),
@@ -321,24 +321,23 @@ fun WorkoutScreen(
         }
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.CenterEnd  // Right middle alignment
+            contentAlignment = Alignment.CenterEnd
         ) {
             Card(
                 modifier = Modifier
-                    .padding(end = 8.dp)  // Right padding to avoid edge
+                    .padding(end = 8.dp)
                     .widthIn(max = 150.dp),
                         colors = CardDefaults.cardColors(
-                        containerColor = Color.Black.copy(alpha = 0.6f)  // 60% opacity black (adjust 0.0f-1.0f)
+                        containerColor = Color.Black.copy(alpha = 0.6f)
                         ),
-                shape = RoundedCornerShape(8.dp)  // Rounded like other cards
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),  // Inner padding
+                        .padding(16.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    // FIXED: Access accel/ROM in UI
                     Text("ROM Score: \n${state.romScore.toInt()} / 100 \navg = ${state.avgRomScore.toInt()}")
                     Text("X Tilt Score: \n-100 / ${state.tiltXScore.toInt()} / 100 \navg = ${state.avgTiltXScore.toInt()}")
                     Text("Z Tilt Score: \n-100 / ${state.tiltZScore.toInt()} / 100 \navg = ${state.avgTiltZScore.toInt()}")

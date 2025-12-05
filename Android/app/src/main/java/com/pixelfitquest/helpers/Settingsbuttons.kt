@@ -54,7 +54,7 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
 
     val cardTitle = displayName.ifBlank { stringResource(R.string.profile_name) }
 
-    // Custom card with background image for display name
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -65,7 +65,6 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
                 showDisplayNameDialog = true
             }
     ) {
-        // Background image
         Image(
             painter = painterResource(id = R.drawable.info_background_higher),
             contentDescription = null,
@@ -73,7 +72,6 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
             contentScale = ContentScale.Fit
         )
 
-        // Content on top
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -116,7 +114,6 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
                 ) {
                     Text(stringResource(R.string.profile_name), color = Color.White)
 
-                    // Updated TextField with inputfield drawable background (like LoginScreen)
                     Box(
                         modifier = Modifier
                             .width(280.dp)
@@ -215,7 +212,6 @@ fun ExitAppCard(onSignOutClick: () -> Unit) {
 
     val cardTitle = stringResource(R.string.sign_out)
 
-    // Custom card with background image for exit app
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -225,7 +221,6 @@ fun ExitAppCard(onSignOutClick: () -> Unit) {
                 showExitAppDialog = true
             }
     ) {
-        // Background image
         Image(
             painter = painterResource(id = R.drawable.info_background_higher),
             contentDescription = null,
@@ -233,7 +228,6 @@ fun ExitAppCard(onSignOutClick: () -> Unit) {
             contentScale = ContentScale.Fit
         )
 
-        // Content on top
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -271,7 +265,7 @@ fun ExitAppCard(onSignOutClick: () -> Unit) {
                 Column(
                     modifier = Modifier
                         .padding(32.dp)
-                        .heightIn(max = 300.dp)  // Shorter (max 300dp)
+                        .heightIn(max = 300.dp)
                 ) {
                     Text(stringResource(R.string.sign_out_title), color = Color.White)
                     Text(stringResource(R.string.sign_out_description), color = Color.White)
@@ -335,8 +329,8 @@ fun GoogleLinkCard(
                 Column(
                     modifier = Modifier
                         .padding(32.dp)
-                        .fillMaxWidth(0.95f)  // Wider
-                        .heightIn(max = 300.dp)  // Shorter
+                        .fillMaxWidth(0.95f)
+                        .heightIn(max = 300.dp)
                 ) {
                     Text(stringResource(R.string.link_google_title), color = Color.White)
                     Text(stringResource(R.string.link_google_description), color = Color.White)
@@ -355,7 +349,6 @@ fun GoogleLinkCard(
             }
         }
     }
-    // TODO: Add Google linking logic
 }
 
 @Composable
@@ -364,7 +357,6 @@ fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
 
     val cardTitle = stringResource(R.string.delete_account)
 
-    // Custom card with background image for remove account
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -374,7 +366,6 @@ fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
                 showRemoveAccDialog = true
             }
     ) {
-        // Background image
         Image(
             painter = painterResource(id = R.drawable.info_background_higher),
             contentDescription = null,
@@ -382,7 +373,6 @@ fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
             contentScale = ContentScale.Fit
         )
 
-        // Content on top
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier

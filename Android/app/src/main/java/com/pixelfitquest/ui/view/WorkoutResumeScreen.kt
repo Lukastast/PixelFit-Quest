@@ -62,7 +62,7 @@ data class ExerciseWithSets(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutResumeScreen(
-    openScreen: (String) -> Unit,  // Navigation callback
+    openScreen: (String) -> Unit,
     viewModel: WorkoutResumeViewModel,
     modifier: Modifier = Modifier
 ) {
@@ -99,7 +99,6 @@ fun WorkoutResumeScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(16.dp)
         ) {
-            // Total XP and Coins Summary Card
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -107,7 +106,6 @@ fun WorkoutResumeScreen(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        // Top summary (XP + Coins)
                         Text(
                             "Session Complete!",
                             fontSize = 22.sp,
@@ -121,7 +119,6 @@ fun WorkoutResumeScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                //Icon(painterResource(R.drawable.ic_xp), null, Modifier.size(28.dp))
                                 Spacer(Modifier.width(6.dp))
                                 Text(
                                     "+${summary.totalXp} XP",
@@ -144,7 +141,6 @@ fun WorkoutResumeScreen(
 
                         Spacer(Modifier.height(20.dp))
 
-                        // Title for exercise feedback
                         Text(
                             text = "Exercise Feedback",
                             fontSize = 18.sp,
@@ -154,11 +150,10 @@ fun WorkoutResumeScreen(
 
                         Spacer(Modifier.height(8.dp))
 
-                        // Scrollable list of per-exercise feedback
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(max = 400.dp),  // Limits height, enables scroll
+                                .heightIn(max = 400.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(exercisesWithSets) { item ->
@@ -179,7 +174,6 @@ fun WorkoutResumeScreen(
                 }
             }
 
-            // Per-Exercise Cards
             items(exercisesWithSets) { exerciseWithSets ->
                 val exercise = exerciseWithSets.exercise
                 val sets = exerciseWithSets.sets
@@ -193,7 +187,6 @@ fun WorkoutResumeScreen(
                     Column(
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        // Exercise Header
                         Text(
                             text = exercise.type.name.replace("_", " "),
                             fontSize = 18.sp,
@@ -268,7 +261,7 @@ fun WorkoutResumeScreen(
                                                     color = when {
                                                         set.workoutScore >= 90 -> Color.Green
                                                         set.workoutScore >= 70 -> Color.Yellow
-                                                        set.workoutScore >= 50 -> Color(0xFFFFA500)  // Orange
+                                                        set.workoutScore >= 50 -> Color(0xFFFFA500)
                                                         else -> Color.Red
                                                     }
                                                 )
@@ -341,7 +334,7 @@ fun WorkoutResumeScreen(
                 Spacer(modifier = Modifier.size(8.dp))
             }
 
-            // Optional: Empty State
+
             if (exercisesWithSets.isEmpty()) {
                 item {
                     Box(
@@ -375,31 +368,29 @@ fun TiltScoreBar(
         modifier = modifier
             .clip(RoundedCornerShape(7.dp))
     ) {
-        // Full gradient background bar
+
         Box(
             Modifier
                 .fillMaxSize()
                 .background(
                     brush = Brush.horizontalGradient(
                         colors = listOf(
-                            Color.Red,     // -100
-                            Color.Green,   // 0
-                            Color.Red      // +100
+                            Color.Red,
+                            Color.Green,
+                            Color.Red
                         )
                     )
                 )
         )
 
-        // Calculate marker X position
         val markerX = (constraints.maxWidth * positionFraction).toInt()
 
-        // Marker
         Box(
             modifier = Modifier
-                .offset { IntOffset(markerX - 6, 0) } // center the dot
+                .offset { IntOffset(markerX - 6, 0) }
                 .size(12.dp)
                 .clip(CircleShape)
-                .background(Color.White) // marker color (white stands out)
+                .background(Color.White)
                 .border(2.dp, Color.Black.copy(alpha = 0.6f), CircleShape)
         )
     }
@@ -427,7 +418,6 @@ fun TiltScoreBar(
 
             Spacer(Modifier.height(6.dp))
 
-            // ROM
             if (avgRomScore < 90) {
                 FeedbackLine(
                     icon = painterResource(R.drawable.ic_pushup_person),
@@ -442,7 +432,6 @@ fun TiltScoreBar(
                 )
             }
 
-            // Z Tilt
             when {
                 avgZTiltScore > 10 -> FeedbackLine(
                     icon = painterResource(R.drawable.ic_balance_scale),
@@ -461,7 +450,6 @@ fun TiltScoreBar(
                 )
             }
 
-            // X Tilt
             if (avgXTiltScore > 15) {
                 FeedbackLine(
                     text = "Right side came closer — keep both arms straight up",

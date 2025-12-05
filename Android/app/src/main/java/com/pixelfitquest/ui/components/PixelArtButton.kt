@@ -26,17 +26,17 @@ import kotlinx.coroutines.delay
 @Composable
 fun PixelArtButton(
     onClick: () -> Unit,
-    imageRes: Int,  // Normal state PNG
-    pressedRes: Int = imageRes,  // Optional pressed PNG
+    imageRes: Int,
+    pressedRes: Int = imageRes,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit = { }  // Optional content like Text
+    content: @Composable () -> Unit = { }
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
 
     LaunchedEffect(isPressed) {
         if (isPressed) {
-            delay(100L)  // Brief delay for feedback
+            delay(100L)
             isPressed = false
         }
     }
@@ -45,13 +45,13 @@ fun PixelArtButton(
         modifier = modifier
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,  // Disable ripple/shadow
+                indication = null,
                 role = Role.Button
             ) {
                 isPressed = true
                 onClick()
             }
-            .clip(RoundedCornerShape(4.dp))  // Optional rounding
+            .clip(RoundedCornerShape(4.dp))
     ) {
         Image(
             painter = painterResource(id = if (isPressed) pressedRes else imageRes),
@@ -60,7 +60,6 @@ fun PixelArtButton(
             contentScale = ContentScale.FillBounds
         )
 
-        // Optional content (e.g., text on button)
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,

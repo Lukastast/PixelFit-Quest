@@ -62,7 +62,6 @@ class WorkoutViewModel @Inject constructor(
     private val dtHistory: Deque<Float> = ArrayDeque<Float>(3)
     private val dtWindowSize = 3
 
-    // For per-rep ROM
     private var currentDisplacement = 0f
     private var currentVelocity = 0f
     private var minPos = 0f
@@ -71,21 +70,17 @@ class WorkoutViewModel @Inject constructor(
     private var gravityVector = floatArrayOf(0f, 0f, 9.81f)
     private var lastTimestamp: Long = 0L
 
-    // For hysteresis and smoothing
     private val velHistory: Deque<Float> = ArrayDeque<Float>(hysteresisWindow)
     private val accelHistory: Deque<Float> = ArrayDeque<Float>(2)
 
-    // For rep phases
     private var repStartPos = 0f
     private var bottomPos = 0f
     private var hasBottom = false
 
-    // For averaging and failed reps
     private var totalRepTime: Long = 0L
     private var lastPeakTime = 0L
     private var stabilizationTimeMs = 3000L
 
-    // Plan-based tracking
     private var currentPlan: WorkoutPlan? = null
     private var currentExerciseIndex = 0
     private var currentSetNumber = 1
@@ -93,7 +88,6 @@ class WorkoutViewModel @Inject constructor(
     private var currentExerciseType: ExerciseType? = null
     private var workoutId: String = ""
 
-    // Tilt
     private var tiltXSum = 0f
     private var tiltYSum = 0f
     private var tiltZSum = 0f
@@ -104,12 +98,10 @@ class WorkoutViewModel @Inject constructor(
 
     private val maxTiltAccel = 4.0f
 
-    //animation
     private val _characterData = MutableStateFlow(CharacterData())
     val characterData: StateFlow<CharacterData> = _characterData.asStateFlow()
 
 
-    //navigation
     private val _navigationEvent = MutableSharedFlow<String>(replay = 1)
     val navigationEvent: SharedFlow<String> = _navigationEvent.asSharedFlow()
 
@@ -141,13 +133,11 @@ class WorkoutViewModel @Inject constructor(
 
             val smoothedAccel = smoothAccel(verticalAccel)
             accumulateTilt(netAccelX, netAccelZ, netAccelY)
-            // Always update accel state (for UI, even if not integrating)
+            //CHECK IF NESSECARY
             updateAccelStateIfChanged(verticalAccel, netAccelX, netAccelY, currentState)
 
-            // Guard integration/detection
             if (!isSetActive) return@let
 
-            // Integrate
             lastVerticalAccel = verticalAccel
             val prevVelocity = currentVelocity
             currentDisplacement += currentVelocity * dt + 0.5f * smoothedAccel * dt * dt
@@ -348,7 +338,7 @@ class WorkoutViewModel @Inject constructor(
             currentSetNumber = 1,
             totalSets = plan.items.sumOf { it.sets },
             currentExerciseIndex = 0,
-            weight = initialWeight  // Set initial weight from plan
+            weight = initialWeight
         )
     }
 
@@ -359,9 +349,10 @@ class WorkoutViewModel @Inject constructor(
         baselineTiltX = 0f
         baselineTiltY = 0f
         baselineTiltZ = 0f
-        viewModelScope.launch {
-            _countdownEvent.send(Unit)
-        }
+        // Countdown animation
+        // viewModelScope.launch {
+            //_countdownEvent.send(Unit)
+        //}
 
         Log.d("WorkoutVM", "Started set $currentSetNumber")
     }
@@ -393,7 +384,6 @@ class WorkoutViewModel @Inject constructor(
             }
             currentExerciseType = currentPlan.items[currentExerciseIndex].exercise
 
-            // Update weight when moving to next exercise
             val newWeight = currentPlan.items[currentExerciseIndex].weight
             _workoutState.value = _workoutState.value.copy(
                 weight = newWeight
@@ -436,7 +426,6 @@ class WorkoutViewModel @Inject constructor(
         launchCatching {
             workoutRepository.saveWorkout(workout)
 
-            // Increment streak only once per day
             val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
             dateFormat.timeZone = java.util.TimeZone.getTimeZone("UTC")
             val today = dateFormat.format(java.util.Date())
@@ -545,7 +534,6 @@ class WorkoutViewModel @Inject constructor(
         totalRepTime += repTime
         val newReps = currentState.reps + 1
 
-        // ROM calculation
         val downDelta = bottomPos - repStartPos
         val upDelta = currentDisplacement - bottomPos
         val downROM = abs(downDelta) * 100f
@@ -558,7 +546,6 @@ class WorkoutViewModel @Inject constructor(
         val newTotalRom = currentState.totalRom + lastRepScore
         val avgRomScore = if (newReps > 0) (newTotalRom / newReps.toFloat()).coerceIn(0f, 100f) else 0f
 
-        // Tilt score
         val avgTiltX = if (tiltSampleCount > 0) tiltXSum / tiltSampleCount else 0f
         val avgTiltZ = if (tiltSampleCount > 0) tiltZSum / tiltSampleCount else 0f
         val tiltXScore = ((avgTiltX / maxTiltAccel) * 120f).coerceIn(-100f, 100f)
@@ -578,7 +565,6 @@ class WorkoutViewModel @Inject constructor(
         tiltZSum = 0f
         tiltSampleCount = 0
 
-        // Reset for next rep
         repStartPos = currentDisplacement
         bottomPos = currentDisplacement
         hasBottom = false
@@ -588,7 +574,6 @@ class WorkoutViewModel @Inject constructor(
         velHistory.clear()
         accelHistory.clear()
 
-        // Update state
         _workoutState.value = currentState.copy(
             reps = newReps,
             lastRepTime = currentTime,

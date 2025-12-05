@@ -2,7 +2,7 @@ package com.pixelfitquest.model
 
 import android.util.Log
 
-// Enum at the top
+
 enum class ExerciseType {
     BENCH_PRESS,
     SQUAT,
@@ -20,20 +20,20 @@ enum class ExerciseType {
             LAT_PULLDOWN -> 0.60f
             SEATED_ROWS -> 0.40f
             TRICEP_EXTENSION -> 0.18f
-            // Default or add cases: else -> 0.4f
+
         }
 
-    // Computed string for Firestore (reusable)
+
     val type: String get() = name.lowercase().replace("_", "-")
 }
 
 data class Workout(
     val id: String,
-    val date: String,  // ISO
-    val name: String,  // e.g., "Leg Day"
+    val date: String,
+    val name: String,
     val totalExercises: Int = 0,
     val totalSets: Int = 0,
-    val overallScore: Float = 0f,  // Aggregate from exercises
+    val overallScore: Float = 0f,
     val notes: String? = null,
     val rewardsAwarded: Boolean = false
 ) {
@@ -65,7 +65,7 @@ data class Workout(
 
 data class Exercise(
     val id: String,
-    val workoutId: String,  // Parent reference
+    val workoutId: String,
     val type: ExerciseType,
     val totalSets: Int,
     val weight: Float,
@@ -133,7 +133,6 @@ data class WorkoutSet(
 
     companion object {
         fun fromMap(map: Map<String, Any?>): WorkoutSet? {
-            // VI MÅ IKKE KASTE EXCEPTION – vi skal returnere null hvis krævede felter mangler
             val workoutId = map["workoutId"] as? String ?: return null
             val exerciseId = map["exerciseId"] as? String ?: return null
 

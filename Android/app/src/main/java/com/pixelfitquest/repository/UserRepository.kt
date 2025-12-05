@@ -28,18 +28,16 @@ class UserRepository @Inject constructor(
     private val TAG = "UserRepository"
 
     companion object {
-        private const val DEFAULT_BASE_EXP = 100  // Fallback for offline/first-run
-        private const val MAX_LEVEL = 30  // Hard cap at level 30
-        private const val MILLIS_PER_DAY = 24 * 60 * 60 * 1000L  // Extracted constant for milliseconds in a day
-        private val cachedProgression = ConcurrentHashMap<Int, Int>()  // Thread-safe map for concurrent access
+        private const val DEFAULT_BASE_EXP = 100
+        private const val MAX_LEVEL = 30
+        private const val MILLIS_PER_DAY = 24 * 60 * 60 * 1000L
+        private val cachedProgression = ConcurrentHashMap<Int, Int>()
 
         @JvmStatic
         fun clearCacheForTesting() {
             cachedProgression.clear()
         }
     }
-
-    // Game Data (level, coins, exp, streak)
 
     fun getUserGameData(): Flow<UserGameData?> = callbackFlow {
         val user = auth.currentUser ?: run {

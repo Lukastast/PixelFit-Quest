@@ -80,7 +80,6 @@ class HomeViewModel @Inject constructor(
     private val _achievements = MutableStateFlow<List<Pair<Achievement, Boolean>>>(emptyList())
     val achievements: StateFlow<List<Pair<Achievement, Boolean>>> = _achievements.asStateFlow()
 
-    // NEW: Add loading state
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
@@ -104,21 +103,16 @@ class HomeViewModel @Inject constructor(
             try {
                 _isLoading.value = true
 
-                // Load progression config first
                 userRepository.loadProgressionConfig()
 
-                // Load user data and wait for first emission
                 loadUserData()
 
-                // Wait a bit for the flow to emit
                 userGameData.first { it != null }
 
-                // Load other data
                 fetchCompletedWorkouts()
                 fetchLeaderboard()
                 generateDailyMissions()
 
-                // Initialize health connection (can be async)
                 initializeHealthConnection(activity)
 
                 _isLoading.value = false
@@ -328,7 +322,6 @@ class HomeViewModel @Inject constructor(
                 addExp(100)
                 addCoins(20)
 
-                // Only increment streak once per day
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                 dateFormat.timeZone = TimeZone.getTimeZone("UTC")
                 val today = dateFormat.format(Date())

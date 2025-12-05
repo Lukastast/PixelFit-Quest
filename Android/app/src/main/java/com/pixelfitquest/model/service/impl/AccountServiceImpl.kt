@@ -84,7 +84,7 @@ class AccountServiceImpl @Inject constructor() : AccountService {
             provider = this.providerId,
             displayName = this.displayName ?: "",
             profilePictureUrl = this.photoUrl?.toString() ?: "",
-            isLinkedWithGoogle = this.providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID } //"google.com"
+            isLinkedWithGoogle = this.providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID }
         )
     }
 }
