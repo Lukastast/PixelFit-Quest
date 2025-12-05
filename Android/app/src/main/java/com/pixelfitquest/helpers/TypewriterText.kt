@@ -31,16 +31,16 @@ fun TypewriterText(
     modifier: Modifier = Modifier,
     style: TextStyle = typography.labelLarge,
     textAlign: TextAlign = TextAlign.Left,
-    color: Color = Color.White
+    color: Color = Color.White,
+    skipToEnd: Boolean = false
 ) {
     var displayedText by remember { mutableStateOf("") }
     var job by remember { mutableStateOf<Job?>(null) }
     val context = LocalContext.current
 
-    // Create SoundPool
     val soundPool = remember {
         SoundPool.Builder()
-            .setMaxStreams(5)  // Allow up to 5 simultaneous blips
+            .setMaxStreams(5)
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -50,17 +50,24 @@ fun TypewriterText(
             .build()
     }
 
-    // Load sound
     val soundId = remember { soundPool.load(context, R.raw.typewriter_blip, 1) }
 
     DisposableEffect(Unit) {
         onDispose {
-            soundPool.release()  // Release resources
+            soundPool.release()
+        }
+    }
+
+    LaunchedEffect(skipToEnd) {
+        if (skipToEnd) {
+            job?.cancel()
+            displayedText = text
+            onComplete()
         }
     }
 
     LaunchedEffect(text) {
-        job?.cancel() // Cancel any existing job
+        job?.cancel()
         val stringBuilder = StringBuilder()
         job = launch {
             stringBuilder.clear()
@@ -69,7 +76,7 @@ fun TypewriterText(
                 stringBuilder.append(char)
                 displayedText = stringBuilder.toString()
                 if (soundId != 0) {
-                    soundPool.play(soundId, 1f, 1f, 0, 0, 1f)  // Play: volume L/R, priority, loop, rate
+                    soundPool.play(soundId, 1f, 1f, 0, 0, 1f)
                 }
                 delay(delayMs)
             }
@@ -85,7 +92,7 @@ fun TypewriterText(
         modifier = modifier
             .fillMaxSize()
             .clickable {
-                job?.cancel() // Cancel only the typewriter job
+                job?.cancel()
                 displayedText = text
                 onComplete()
             }

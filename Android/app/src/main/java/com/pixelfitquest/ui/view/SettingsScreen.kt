@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -33,13 +34,20 @@ import java.util.Locale
 
 
 @Composable
-fun SettingsScreen(restartApp: (String) -> Unit,
-                   viewModel: SettingsViewModel = hiltViewModel()) {
-
+fun SettingsScreen(
+    restartApp: (String) -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel(),
+    onScreenReady: () -> Unit = {}
+) {
     val user by viewModel.user.collectAsState(initial = User())
     val userSettings by viewModel.userSettings.collectAsState(initial = null)
     val musicVolume = userSettings?.musicVolume ?: 50
     val provider = user.provider.replaceFirstChar { it.titlecase(Locale.getDefault()) }
+
+    // Notify that screen is ready
+    LaunchedEffect(Unit) {
+        onScreenReady()
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -49,7 +57,6 @@ fun SettingsScreen(restartApp: (String) -> Unit,
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

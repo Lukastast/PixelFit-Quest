@@ -107,7 +107,8 @@ fun Modifier.simpleVerticalScrollbar(
 @Composable
 fun WorkoutCustomizationScreen(
     onStartWorkout: (WorkoutPlan, String?) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onScreenReady: () -> Unit = {}
 ) {
     val viewModel: WorkoutCustomizationViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()

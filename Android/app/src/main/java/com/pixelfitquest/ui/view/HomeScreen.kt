@@ -517,31 +517,6 @@ fun HomeScreen(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
-
-        // Tutorial overlay managed locally
-        if (showTutorial) {
-            Log.d("HomeScreen", "Rendering tutorial overlay")
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.7f))
-                    .clickable(enabled = false) { },
-                contentAlignment = Alignment.Center
-            ) {
-                TypewriterText(
-                    text = "Welcome to the Home Screen! Here you can view your level, coins, experience, and streak at the top. Track your daily steps for rewards. Check your rank on the leaderboard and check you unlocked achievements by pressing the achievements trophy. See your completed workouts and resume them. And dont forget to complete daily missions for extra rewards.",
-                    onComplete = {
-                        Log.d("HomeScreen", "Tutorial completed, marking as done")
-                        prefs.edit().putBoolean("first_time_home_screen", false).apply()
-                        showTutorial = false
-                    },
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
     }
 }
 
