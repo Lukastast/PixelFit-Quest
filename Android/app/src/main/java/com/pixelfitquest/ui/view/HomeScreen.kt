@@ -43,7 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pixelfitquest.R
 import com.pixelfitquest.model.Workout
@@ -61,7 +61,6 @@ import java.util.TimeZone
 @Composable
 fun HomeScreen(
     restartApp: (String) -> Unit,
-    openScreen: (String) -> Unit,
     navController: NavController,
     viewModel: HomeViewModel = hiltViewModel(),
     onScreenReady: () -> Unit = {}
@@ -77,7 +76,7 @@ fun HomeScreen(
         viewModel.initialize(restartApp, activity)
     }
 
-    val userGameData by viewModel.userGameData.collectAsState()
+    val userData by viewModel.userData.collectAsState()
     val workouts by viewModel.workouts.collectAsState()
 
 
@@ -120,10 +119,10 @@ fun HomeScreen(
         return
     }
 
-    val level = userGameData?.level ?: 0
-    val coins = userGameData?.coins ?: 0
-    val exp = userGameData?.exp ?: 0
-    val streak = userGameData?.streak ?: 0
+    val level = userData?.level ?: 0
+    val coins = userData?.coins ?: 0
+    val exp = userData?.exp ?: 0
+    val streak = userData?.streak ?: 0
     val maxExp by viewModel.currentMaxExp.collectAsState()
     val todaySteps by viewModel.todaySteps.collectAsState()
     val stepGoal by viewModel.stepGoal.collectAsState()

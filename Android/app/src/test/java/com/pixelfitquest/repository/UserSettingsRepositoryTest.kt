@@ -11,7 +11,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.pixelfitquest.model.UserSettings
+import com.pixelfitquest.model.UserData
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -69,16 +69,16 @@ class UserSettingsRepositoryTest {
         }
 
         repository.getUserSettings().test {
-            assertEquals(UserSettings(), awaitItem())
+            assertEquals(UserData(), awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
     fun `getUserSettings emits data from firestore`() = runTest {
-        val expected = UserSettings(height = 180)
+        val expected = UserData(height = 180)
         val snapshot = mockk<DocumentSnapshot>()
-        every { snapshot.toObject(UserSettings::class.java) } returns expected
+        every { snapshot.toObject(UserData::class.java) } returns expected
 
         every { userDocRef.addSnapshotListener(any()) } answers {
             val listener = it.invocation.args[0] as EventListener<DocumentSnapshot>

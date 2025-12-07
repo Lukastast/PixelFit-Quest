@@ -20,9 +20,7 @@ enum class ExerciseType {
             LAT_PULLDOWN -> 0.60f
             SEATED_ROWS -> 0.40f
             TRICEP_EXTENSION -> 0.18f
-
         }
-
 
     val type: String get() = name.lowercase().replace("_", "-")
 }

@@ -246,7 +246,7 @@ fun CustomizationScreen(
 fun SetHeight(
     viewModel: SettingsViewModel
 ) {
-    val userSettings by viewModel.userSettings.collectAsState()
+    val userSettings by viewModel.userData.collectAsState()
     var heightInput by remember { mutableStateOf("") }
 
     LaunchedEffect(userSettings?.height) {

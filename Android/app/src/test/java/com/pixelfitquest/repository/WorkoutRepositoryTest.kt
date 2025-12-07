@@ -8,7 +8,6 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.*
 import com.pixelfitquest.model.Exercise
 import com.pixelfitquest.model.ExerciseType
-import com.pixelfitquest.model.UserGameData
 import com.pixelfitquest.model.Workout
 import io.mockk.*
 import kotlinx.coroutines.flow.first

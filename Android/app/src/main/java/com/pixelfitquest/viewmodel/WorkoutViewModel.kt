@@ -5,13 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.model.CharacterData
 import com.pixelfitquest.model.Exercise
 import com.pixelfitquest.model.ExerciseType
-import com.pixelfitquest.model.UserSettings
+import com.pixelfitquest.model.UserData
 import com.pixelfitquest.model.Workout
 import com.pixelfitquest.model.WorkoutFeedback
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.model.WorkoutSet
 import com.pixelfitquest.repository.UserRepository
-import com.pixelfitquest.repository.UserSettingsRepository
 import com.pixelfitquest.repository.WorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -33,16 +32,15 @@ import kotlin.math.sqrt
 
 @HiltViewModel
 class WorkoutViewModel @Inject constructor(
-    private val userSettingsRepository: UserSettingsRepository,
+    private val userRepository: UserRepository,
     private val workoutRepository: WorkoutRepository,
-    private val userRepository: UserRepository
 ) : PixelFitViewModel() {
 
     private val _workoutState = MutableStateFlow(WorkoutState())
     val workoutState: StateFlow<WorkoutState> = _workoutState.asStateFlow()
 
-    private val _userSettings = MutableStateFlow<UserSettings?>(null)
-    val userSettings: StateFlow<UserSettings?> = _userSettings.asStateFlow()
+    private val _userData = MutableStateFlow<UserData?>(null)
+    val userData: StateFlow<UserData?> = _userData.asStateFlow()
 
     private val _feedbackEvent = Channel<WorkoutFeedback>(Channel.BUFFERED)
     val feedbackEvent = _feedbackEvent.receiveAsFlow()
@@ -133,9 +131,8 @@ class WorkoutViewModel @Inject constructor(
 
             val smoothedAccel = smoothAccel(verticalAccel)
             accumulateTilt(netAccelX, netAccelZ, netAccelY)
-            //CHECK IF NESSECARY
-            updateAccelStateIfChanged(verticalAccel, netAccelX, netAccelY, currentState)
 
+            //CHECK IF NECESSARY
             if (!isSetActive) return@let
 
             lastVerticalAccel = verticalAccel
@@ -207,19 +204,6 @@ class WorkoutViewModel @Inject constructor(
             accelHistory.removeFirst()
         }
         return if (accelHistory.size < 2) verticalAccel else accelHistory.average().toFloat()
-    }
-
-    private fun updateAccelStateIfChanged(verticalAccel: Float, netAccelX: Float, netAccelY: Float, currentState: WorkoutState) {
-        val needsUpdate = abs(verticalAccel - currentState.verticalAccel) > 0.1f ||
-                abs(netAccelX - currentState.xAccel) > 0.1f ||
-                abs(netAccelY - currentState.yAccel) > 0.1f
-        if (needsUpdate) {
-            _workoutState.value = currentState.copy(
-                verticalAccel = verticalAccel,
-                xAccel = netAccelX,
-                yAccel = netAccelY
-            )
-        }
     }
 
     private fun detectTop(prevVelocity: Float, currentVelocity: Float, currentTime: Long) {
@@ -349,10 +333,10 @@ class WorkoutViewModel @Inject constructor(
         baselineTiltX = 0f
         baselineTiltY = 0f
         baselineTiltZ = 0f
-        // Countdown animation
-        // viewModelScope.launch {
-            //_countdownEvent.send(Unit)
-        //}
+
+        viewModelScope.launch {
+            _countdownEvent.send(Unit)
+        }
 
         Log.d("WorkoutVM", "Started set $currentSetNumber")
     }
@@ -433,7 +417,7 @@ class WorkoutViewModel @Inject constructor(
 
             if (lastStreakUpdateDate != today) {
                 userRepository.updateStreak(increment = true)
-                userRepository.updateUserGameData(mapOf("last_streak_update_date" to today))
+                userRepository.updateUserData(mapOf("last_streak_update_date" to today))
                 Log.d("WorkoutVM", "Streak incremented for $today")
             } else {
                 Log.d("WorkoutVM", "Streak already incremented today")
@@ -480,8 +464,8 @@ class WorkoutViewModel @Inject constructor(
     private fun loadUserData() {
         viewModelScope.launch {
             try {
-                userSettingsRepository.getUserSettings().collect { data ->
-                    _userSettings.value = data
+                userRepository.getUserData().collect { data ->
+                    _userData.value = data
                 }
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to load user data"
@@ -491,7 +475,7 @@ class WorkoutViewModel @Inject constructor(
 
     fun calculateRomScore(estimatedRomCm: Float): Float {
         val currentType = currentExerciseType ?: ExerciseType.BENCH_PRESS
-        val heightCm = _userSettings.value?.height ?: return 0f
+        val heightCm = _userData.value?.height ?: return 0f
         val romFactor = currentType.romFactor
         val theoreticalMaxRom = heightCm * romFactor
         val score = (estimatedRomCm / theoreticalMaxRom * 100f).coerceIn(0f, 100f)

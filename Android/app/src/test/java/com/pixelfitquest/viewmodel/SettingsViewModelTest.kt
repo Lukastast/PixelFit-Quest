@@ -1,7 +1,7 @@
 package com.pixelfitquest.viewmodel
 
 import com.pixelfitquest.model.User
-import com.pixelfitquest.model.UserSettings
+import com.pixelfitquest.model.UserData
 import com.pixelfitquest.model.service.AccountService
 import com.pixelfitquest.repository.UserSettingsRepository
 import com.pixelfitquest.R
@@ -35,7 +35,7 @@ class SettingsViewModelTest {
         // Default mocks
         coEvery { mockAccountService.getUserProfile() } returns User()
         coEvery { mockUserSettingsRepository.getUserSettings() } returns flowOf(
-            UserSettings(height = 175, musicVolume = 50)
+            UserData(height = 175, musicVolume = 50)
         )
     }
 
@@ -62,14 +62,14 @@ class SettingsViewModelTest {
 
     @Test
     fun `init loads user settings`() = runTest {
-        val testSettings = UserSettings(height = 180, musicVolume = 75)
+        val testSettings = UserData(height = 180, musicVolume = 75)
         coEvery { mockUserSettingsRepository.getUserSettings() } returns flowOf(testSettings)
 
         viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(180, viewModel.userSettings.value?.height)
-        assertEquals(75, viewModel.userSettings.value?.musicVolume)
+        assertEquals(180, viewModel.userData.value?.height)
+        assertEquals(75, viewModel.userData.value?.musicVolume)
     }
 
     // ========== Display Name Update Tests ==========

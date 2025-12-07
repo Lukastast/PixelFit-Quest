@@ -7,7 +7,6 @@ import com.pixelfitquest.repository.WorkoutRepository
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.*
 import org.junit.After
@@ -34,7 +33,7 @@ class WorkoutViewModelTest {
 
         // Default mocks
         coEvery { mockUserSettingsRepository.getUserSettings() } returns flowOf(
-            UserSettings(height = 180, musicVolume = 50)
+            UserData(height = 180, musicVolume = 50)
         )
         coEvery { mockUserRepository.getCharacterData() } returns flowOf(CharacterData())
         coEvery { mockWorkoutRepository.saveWorkout(any()) } just Runs
@@ -446,8 +445,8 @@ class WorkoutViewModelTest {
 
     @Test
     fun `user settings loaded on init`() = runTest {
-        assertNotNull(viewModel.userSettings.value)
-        assertEquals(180, viewModel.userSettings.value?.height)
+        assertNotNull(viewModel.userData.value)
+        assertEquals(180, viewModel.userData.value?.height)
     }
 
     @Test

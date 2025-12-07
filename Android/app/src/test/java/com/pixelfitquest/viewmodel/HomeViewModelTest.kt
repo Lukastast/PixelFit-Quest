@@ -1,7 +1,6 @@
 package com.pixelfitquest.viewmodel
 
 import android.content.Context
-import com.pixelfitquest.model.UserGameData
 import com.pixelfitquest.model.Workout
 import com.pixelfitquest.model.service.AccountService
 import com.pixelfitquest.repository.UserRepository
@@ -39,8 +38,8 @@ class HomeViewModelTest {
         mockContext = mockk(relaxed = true)
 
         // Default mocks
-        coEvery { mockUserRepository.getUserGameData() } returns flowOf(
-            UserGameData(level = 1, exp = 0, coins = 0, streak = 0)
+        coEvery { mockUserRepository.getUserData() } returns flowOf(
+            UserData(level = 1, exp = 0, coins = 0, streak = 0)
         )
         coEvery { mockUserRepository.loadProgressionConfig() } just Runs
         coEvery { mockUserRepository.getExpRequiredForLevel(any()) } returns 100
@@ -66,13 +65,13 @@ class HomeViewModelTest {
 
     @Test
     fun `addCoins increases coins by specified amount`() = runTest {
-        val initialData = UserGameData(coins = 100)
-        coEvery { mockUserRepository.getUserGameData() } returns flowOf(initialData)
-        coEvery { mockUserRepository.updateUserGameData(any()) } just Runs
+        val initialData = UserData(coins = 100)
+        coEvery { mockUserRepository.getUserData() } returns flowOf(initialData)
+        coEvery { mockUserRepository.updateUserData(any()) } just Runs
 
         viewModel = HomeViewModel(mockAccountService, mockUserRepository, mockWorkoutRepository, mockContext)
 
-        // Call initialize to populate userGameData state
+        // Call initialize to populate userData state
         viewModel.initialize({}, null)
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -80,7 +79,7 @@ class HomeViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify {
-            mockUserRepository.updateUserGameData(match {
+            mockUserRepository.updateUserData(match {
                 it["coins"] == 150
             })
         }
@@ -91,7 +90,7 @@ class HomeViewModelTest {
         viewModel.addCoins(0)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        coVerify(exactly = 0) { mockUserRepository.updateUserGameData(any()) }
+        coVerify(exactly = 0) { mockUserRepository.updateUserData(any()) }
     }
 
     @Test
@@ -99,14 +98,14 @@ class HomeViewModelTest {
         viewModel.addCoins(-50)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        coVerify(exactly = 0) { mockUserRepository.updateUserGameData(any()) }
+        coVerify(exactly = 0) { mockUserRepository.updateUserData(any()) }
     }
 
     @Test
     fun `addCoins sets error when repository throws exception`() = runTest {
-        val initialData = UserGameData(coins = 100)
-        coEvery { mockUserRepository.getUserGameData() } returns flowOf(initialData)
-        coEvery { mockUserRepository.updateUserGameData(any()) } throws Exception("Database error")
+        val initialData = UserData(coins = 100)
+        coEvery { mockUserRepository.getUserData() } returns flowOf(initialData)
+        coEvery { mockUserRepository.updateUserData(any()) } throws Exception("Database error")
 
         viewModel = HomeViewModel(mockAccountService, mockUserRepository, mockWorkoutRepository, mockContext)
 
@@ -207,9 +206,9 @@ class HomeViewModelTest {
     // ========== User Data Loading Tests ==========
 
     @Test
-    fun `userGameData flow emits loaded data`() = runTest {
-        val testData = UserGameData(level = 5, exp = 250, coins = 500, streak = 3)
-        coEvery { mockUserRepository.getUserGameData() } returns flowOf(testData)
+    fun `userData flow emits loaded data`() = runTest {
+        val testData = UserData(level = 5, exp = 250, coins = 500, streak = 3)
+        coEvery { mockUserRepository.getUserData() } returns flowOf(testData)
 
         viewModel = HomeViewModel(mockAccountService, mockUserRepository, mockWorkoutRepository, mockContext)
 
@@ -217,7 +216,7 @@ class HomeViewModelTest {
         viewModel.initialize({}, null)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val result = viewModel.userGameData.value
+        val result = viewModel.userData.value
         assertNotNull(result)
         assertEquals(5, result.level)
         assertEquals(250, result.exp)
@@ -227,8 +226,8 @@ class HomeViewModelTest {
 
     @Test
     fun `currentMaxExp is calculated for next level`() = runTest {
-        val testData = UserGameData(level = 5, exp = 250)
-        coEvery { mockUserRepository.getUserGameData() } returns flowOf(testData)
+        val testData = UserData(level = 5, exp = 250)
+        coEvery { mockUserRepository.getUserData() } returns flowOf(testData)
         coEvery { mockUserRepository.getExpRequiredForLevel(6) } returns 600
         coEvery { mockUserRepository.getMaxLevel() } returns 100
 
@@ -243,8 +242,8 @@ class HomeViewModelTest {
 
     @Test
     fun `currentMaxExp uses max level exp when at max level`() = runTest {
-        val testData = UserGameData(level = 100, exp = 9999)
-        coEvery { mockUserRepository.getUserGameData() } returns flowOf(testData)
+        val testData = UserData(level = 100, exp = 9999)
+        coEvery { mockUserRepository.getUserData() } returns flowOf(testData)
         coEvery { mockUserRepository.getMaxLevel() } returns 100
         coEvery { mockUserRepository.getExpRequiredForLevel(100) } returns 10000
 
@@ -259,7 +258,7 @@ class HomeViewModelTest {
 
     @Test
     fun `loadUserData sets error when repository throws exception`() = runTest {
-        coEvery { mockUserRepository.getUserGameData() } throws Exception("Network error")
+        coEvery { mockUserRepository.getUserData() } throws Exception("Network error")
         // Also need to mock these since initialize() calls them
         coEvery { mockUserRepository.loadProgressionConfig() } just Runs
         coEvery { mockWorkoutRepository.getAllCompletedWorkouts() } returns emptyList()

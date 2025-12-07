@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pixelfitquest.model.UserGameData
 import com.pixelfitquest.model.Workout
 import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.WorkoutRepository
@@ -23,8 +22,8 @@ class WorkoutResumeViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    private val _userGameData = MutableStateFlow<UserGameData?>(null)
-    val userGameData: StateFlow<UserGameData?> = _userGameData.asStateFlow()
+    private val _UserData = MutableStateFlow<UserData?>(null)
+    val UserData: StateFlow<UserData?> = _UserData.asStateFlow()
 
     private val workoutId: String = savedStateHandle.get<String>("workoutId") ?: ""
 
@@ -47,8 +46,8 @@ class WorkoutResumeViewModel @Inject constructor(
     private fun loadUserData() {
         viewModelScope.launch {
             try {
-                userRepository.getUserGameData().collect { data ->
-                    _userGameData.value = data
+                userRepository.getUserData().collect { data ->
+                    _UserData.value = data
                 }
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to load user data"
@@ -166,8 +165,8 @@ class WorkoutResumeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
-                val current = _userGameData.value ?: return@launch
-                userRepository.updateUserGameData(mapOf("coins" to current.coins + amount))
+                val current = _UserData.value ?: return@launch
+                userRepository.updateUserData(mapOf("coins" to current.coins + amount))
                 Log.d("ResumeVM", "Added $amount Coins")
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to update coins"

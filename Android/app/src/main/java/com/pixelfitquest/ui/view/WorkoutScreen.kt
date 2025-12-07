@@ -51,8 +51,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
-import com.pixelfitquest.helpers.HOME_SCREEN
 import com.pixelfitquest.R
+import com.pixelfitquest.helpers.HOME_SCREEN
 import com.pixelfitquest.model.WorkoutFeedback
 import com.pixelfitquest.model.WorkoutPlan
 import com.pixelfitquest.ui.components.CharacterIdleAnimation
@@ -88,19 +88,20 @@ fun WorkoutScreen(
     val currentSets = plan.items.getOrNull(state.currentExerciseIndex)?.sets ?: 0
     val currentWeight = plan.items.getOrNull(state.currentExerciseIndex)?.weight ?: 0.0
 
-//    countdown animation
-//    LaunchedEffect(Unit) {
-//        viewModel.countdownEvent.collectLatest {
-//            countdownNumber = 3
-//            repeat(3) { i ->
-//                delay(1000L)
-//                countdownNumber = 3 - i - 1
-//            }
-//            countdownNumber = null
-//            delay(800L)
-//            countdownNumber = -1
-//        }
-//    }
+    LaunchedEffect(Unit) {
+        viewModel.countdownEvent.collectLatest {
+            countdownNumber = 3
+            repeat(3) { i ->
+                delay(1000L)
+                countdownNumber = 3 - i - 1  // 3 → 2 → 1 → 0
+            }
+            countdownNumber = null
+            delay(300L)
+            countdownNumber = -1
+            delay(1000L)
+            countdownNumber = null
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.feedbackEvent.collect { feedback ->
@@ -213,6 +214,31 @@ fun WorkoutScreen(
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillBounds
         )
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            countdownNumber?.let { number ->
+                val text = if (number >= 0) "$number" else "GO!"
+                val color = if (number >= 0) Color.Yellow else Color.Green
+
+                Text(
+                    text = text,
+                    fontSize = 120.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = color,
+                    fontFamily = determination,
+                    modifier = Modifier
+                        .scale(1.2f)
+                        .padding(bottom = 10.dp)
+                        .graphicsLayer {
+                            alpha = 0.9f
+                        }
+                        .background(
+                            color = Color.Black.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        .padding(horizontal = 48.dp, vertical = 12.dp)
+                )
+            }
+        }
 
         Row( modifier = Modifier
             .padding(top = 16.dp, start = 16.dp, end = 16.dp)
@@ -287,7 +313,7 @@ fun WorkoutScreen(
 
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             countdownNumber?.let { number ->
-                val text = if (number >= 0) "${number + 1}" else "GO!"
+                val text = if (number >= 0) "$number" else "GO!"
                 val color = if (number >= 0) Color.Yellow else Color.Green
 
                 Text(
@@ -314,8 +340,6 @@ fun WorkoutScreen(
                             scaleY = animState.value * feedback.scale
                             alpha = animState.value
                         }
-                        .background(feedback.color.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
-                        .padding(8.dp)
                 )
             }
         }

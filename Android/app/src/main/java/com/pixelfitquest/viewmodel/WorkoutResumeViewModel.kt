@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pixelfitquest.model.UserGameData
+import com.pixelfitquest.model.UserData
 import com.pixelfitquest.model.Workout
 import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.WorkoutRepository
@@ -26,8 +26,8 @@ class WorkoutResumeViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    private val _userGameData = MutableStateFlow<UserGameData?>(null)
-    val userGameData: StateFlow<UserGameData?> = _userGameData.asStateFlow()
+    private val _userData = MutableStateFlow<UserData?>(null)
+    val userData: StateFlow<UserData?> = _userData.asStateFlow()
     private val workoutId: String = savedStateHandle.get<String>("workoutId") ?: ""
 
     private val _summary = MutableStateFlow(WorkoutSummary(0, 0, 0f))
@@ -43,11 +43,11 @@ class WorkoutResumeViewModel @Inject constructor(
         }
     }
 
-    private fun loadUserData() {
+    private fun loaduserData() {
         viewModelScope.launch {
             try {
-                userRepository.getUserGameData().collect { data ->
-                    _userGameData.value = data
+                userRepository.getUserData().collect { data ->
+                   _userData.value = data
 
                 }
             } catch (e: Exception) {
@@ -163,8 +163,8 @@ class WorkoutResumeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
-                val current = _userGameData.value ?: return@launch
-                userRepository.updateUserGameData(mapOf("coins" to current.coins + amount))
+                val current = _userData.value ?: return@launch
+                userRepository.updateUserData(mapOf("coins" to current.coins + amount))
                 Log.d("ResumeVM", "Added $amount Coins")
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to update coins"

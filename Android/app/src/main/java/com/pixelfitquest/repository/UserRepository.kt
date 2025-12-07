@@ -5,8 +5,8 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
-import com.pixelfitquest.model.UserGameData
 import com.pixelfitquest.model.CharacterData
+import com.pixelfitquest.model.UserData
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -38,47 +38,47 @@ class UserRepository @Inject constructor(
             cachedProgression.clear()
         }
     }
-
-    fun getUserGameData(): Flow<UserGameData?> = callbackFlow {
+    
+    fun getUserData(): Flow<UserData?> = callbackFlow {
         val user = auth.currentUser ?: run {
             close()
             return@callbackFlow
         }
         val listener = usersCollection.document(user.uid).addSnapshotListener { snapshot, e ->
             if (e != null) {
-                Log.e(TAG, "Error loading game data", e)
+                Log.e(TAG, "Error loading user data", e)
                 trySend(null)
             } else {
-                val data = snapshot?.toObject<UserGameData>()
-                trySend(data ?: UserGameData())
+                val data = snapshot?.toObject<UserData>()
+                trySend(data ?: UserData())
             }
         }
         awaitClose { listener.remove() }
     }
 
-    suspend fun fetchUserGameDataOnce(): UserGameData? {
+    suspend fun fetchUserDataOnce(): UserData? {
         val user = auth.currentUser ?: return null
         return try {
             val doc = usersCollection.document(user.uid).get().await()
-            doc.toObject<UserGameData>() ?: UserGameData()
+            doc.toObject<UserData>() ?: UserData()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to fetch game data", e)
+            Log.e(TAG, "Failed to fetch user data", e)
             null
         }
     }
 
-    suspend fun initUserGameData() {
+    suspend fun initUserData() {
         val user = auth.currentUser ?: throw Exception("No user logged in")
         try {
-            usersCollection.document(user.uid).set(UserGameData()).await()
-            Log.d(TAG, "Initialized game data")
+            usersCollection.document(user.uid).set(UserData()).await()
+            Log.d(TAG, "Initialized user data")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to init game data", e)
+            Log.e(TAG, "Failed to init user data", e)
             throw e
         }
     }
 
-    suspend fun updateUserGameData(updates: Map<String, Any>) {
+    suspend fun updateUserData(updates: Map<String, Any>) {
         val user = auth.currentUser ?: throw Exception("No user logged in")
         val docRef = usersCollection.document(user.uid)
         try {
@@ -87,18 +87,17 @@ class UserRepository @Inject constructor(
                 docRef.update(updates).await()
             } else {
                 // Create with defaults if not exists
-                val defaultData = UserGameData().toMutableMap()
+                val defaultData = UserData().toMutableMap()
                 defaultData.putAll(updates)
                 docRef.set(defaultData).await()
             }
-            Log.d(TAG, "Updated game data: $updates")
+            Log.d(TAG, "Updated user data: $updates")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to update game data", e)
+            Log.e(TAG, "Failed to update user data", e)
             throw e
         }
     }
 
-    // NEW: Get a single user field value (for fields not in UserGameData model)
     suspend fun getUserField(field: String): Any? {
         val user = auth.currentUser ?: return null
         return try {
@@ -110,7 +109,6 @@ class UserRepository @Inject constructor(
         }
     }
 
-    // Load progression config (call from ViewModel init)
     suspend fun loadProgressionConfig() {
         try {
             val configDoc = firestore.collection("configs").document("game_progression").get().await()
@@ -135,51 +133,46 @@ class UserRepository @Inject constructor(
         }
     }
 
-    // Extracted fallback initialization to avoid duplication
     private fun initializeDefaultProgression() {
         repeat(MAX_LEVEL) { level ->
             cachedProgression[level + 1] = DEFAULT_BASE_EXP * (level + 1)
         }
     }
 
-    // Getter for max level (exposed for use in ViewModel)
     fun getMaxLevel(): Int = MAX_LEVEL
 
-    // Exp required for a specific level (non-suspend for quick access)
     fun getExpRequiredForLevel(level: Int): Int {
-        return cachedProgression[level] ?: (DEFAULT_BASE_EXP * level)  // Concurrent get
+        return cachedProgression[level] ?: (DEFAULT_BASE_EXP * level)
     }
 
-    // Exp-specific methods with progressive leveling and max level cap
     suspend fun updateExp(amount: Int) {
-        if (amount <= 0) return  // Ignore non-positive amounts
+        if (amount <= 0) return
 
         val user = auth.currentUser ?: throw Exception("No user logged in")
         val docRef = usersCollection.document(user.uid)
         try {
             val snapshot = docRef.get().await()
-            val currentData = snapshot.toObject<UserGameData>() ?: UserGameData()
+            val currentData = snapshot.toObject<UserData>() ?: UserData()
             var currentLevel = currentData.level.coerceAtMost(MAX_LEVEL)  // Cap on load
             var currentExp = currentData.exp
 
             var newExp = currentExp + amount
             while (true) {
                 if (currentLevel >= MAX_LEVEL) {
-                    // Cap at max level: Don't level up further, but allow exp to accumulate (or cap exp too if desired)
+
                     val maxLevelExp = getExpRequiredForLevel(MAX_LEVEL)
                     newExp = newExp.coerceAtMost(maxLevelExp)
                     break
                 }
                 val expRequiredForNext = getExpRequiredForLevel(currentLevel)
                 if (newExp >= expRequiredForNext) {
-                    // Level up: Subtract the exp needed for this step
                     newExp -= expRequiredForNext
                     currentLevel++
                 } else {
                     break
                 }
             }
-            currentLevel = currentLevel.coerceAtMost(MAX_LEVEL)  // Final cap
+            currentLevel = currentLevel.coerceAtMost(MAX_LEVEL)
 
             val updates = mapOf(
                 "level" to currentLevel,
@@ -199,13 +192,12 @@ class UserRepository @Inject constructor(
         try {
             val snapshot = docRef.get().await()
 
-            // Check if document exists, if not create it first
             if (!snapshot.exists()) {
-                docRef.set(UserGameData()).await()
+                docRef.set(UserData()).await()
                 Log.d(TAG, "Created new user document for streak update")
             }
 
-            val currentData = snapshot.toObject<UserGameData>() ?: UserGameData()
+            val currentData = snapshot.toObject<UserData>() ?: UserData()
             val currentStreak = currentData.streak
             val lastActivityDate = snapshot.getString("last_activity_date") ?: ""
 
@@ -221,16 +213,11 @@ class UserRepository @Inject constructor(
                 newStreak = 0
             } else if (increment) {
                 if (lastActivityDate.isEmpty()) {
-                    // First workout ever: start streak at 1
                     newStreak = 1
                 } else if (lastActivityDate == today) {
-                    // Same UTC day: no change (prevents multi-taps)
-                    // Keep current streak
                 } else if (lastActivityDate == yesterday) {
-                    // Consecutive UTC day: increment
                     newStreak++
                 } else {
-                    // Missed UTC day(s): start new streak at 1
                     newStreak = 1
                 }
                 newLastActivityDate = today
@@ -247,8 +234,6 @@ class UserRepository @Inject constructor(
             throw e
         }
     }
-
-    // Character Data (gender, variants)
 
     suspend fun saveCharacterData(data: CharacterData) {
         val user = auth.currentUser ?: throw Exception("No user logged in")
@@ -314,21 +299,21 @@ class UserRepository @Inject constructor(
         }
     }
 
-    private fun UserGameData.toMutableMap(): MutableMap<String, Any> = mutableMapOf(
+    private fun UserData.toMutableMap(): MutableMap<String, Any> = mutableMapOf(
         "level" to level,
         "coins" to coins,
         "exp" to exp,
-        "streak" to streak
+        "streak" to streak,
+        "height" to height
     )
-
-    // NEW: Fetch leaderboard data (all users sorted by level desc, then exp desc)
-    suspend fun getLeaderboard(): List<Pair<String, UserGameData>> {
+    
+    suspend fun getLeaderboard(): List<Pair<String, UserData>> {
         return try {
             val snapshot = usersCollection.get().await()
             snapshot.documents.mapNotNull { doc ->
-                val data = doc.toObject<UserGameData>() ?: return@mapNotNull null
+                val data = doc.toObject<UserData>() ?: return@mapNotNull null
                 Pair(doc.id, data)
-            }.sortedWith(compareByDescending<Pair<String, UserGameData>> { it.second.level }.thenByDescending { it.second.exp })
+            }.sortedWith(compareByDescending<Pair<String, UserData>> { it.second.level }.thenByDescending { it.second.exp })
         } catch (e: Exception) {
             Log.e(TAG, "Failed to fetch leaderboard", e)
             emptyList()
