@@ -166,7 +166,7 @@ fun WorkoutScreen(
         val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         val gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
         if (accelerometer == null ) {
-            viewModel.setError("No acclerometer sensor found")
+            viewModel.setError("No accelerometer sensor found")
 
             return@DisposableEffect onDispose {}
         }
@@ -244,11 +244,18 @@ fun WorkoutScreen(
             .padding(top = 16.dp, start = 16.dp, end = 16.dp)
             .align(Alignment.TopCenter)
         ) {
-            Text(text ="Set: ${state.currentSetNumber} / $currentSets, Reps: ${state.reps}, Weight: $currentWeight Kg",
-                modifier.background(
-                    color = Color.Black.copy(alpha = 0.7f),
-                    shape = RoundedCornerShape(8.dp)
-                ))
+            Text(
+                text = "Set: ${state.currentSetNumber} / $currentSets, Reps: ${state.reps}, Weight: $currentWeight Kg",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .background(
+                        color = Color.Black.copy(alpha = 0.7f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(horizontal = 10.dp)
+            )
         }
 
         Row( modifier = Modifier
@@ -362,9 +369,24 @@ fun WorkoutScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text("ROM Score: \n${state.romScore.toInt()} / 100 \navg = ${state.avgRomScore.toInt()}")
-                    Text("X Tilt Score: \n-100 / ${state.tiltXScore.toInt()} / 100 \navg = ${state.avgTiltXScore.toInt()}")
-                    Text("Z Tilt Score: \n-100 / ${state.tiltZScore.toInt()} / 100 \navg = ${state.avgTiltZScore.toInt()}")
+                    Text(
+                        text = "ROM Score: \n${state.romScore.toInt()} / 100 \navg = ${state.avgRomScore.toInt()}",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "X Tilt Score: \n-100 / ${state.tiltXScore.toInt()} / 100 \navg = ${state.avgTiltXScore.toInt()}",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "Z Tilt Score: \n-100 / ${state.tiltZScore.toInt()} / 100 \navg = ${state.avgTiltZScore.toInt()}",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             }
         }

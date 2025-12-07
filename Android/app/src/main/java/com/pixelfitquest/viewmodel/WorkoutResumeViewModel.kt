@@ -156,7 +156,6 @@ class WorkoutResumeViewModel @Inject constructor(
         }
     }
 
-    // NEW: Add Coins (inspired by HomeViewModel.addCoins)
     private fun addCoins(amount: Int) {
         if (amount <= 0) return
         viewModelScope.launch {
