@@ -47,17 +47,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pixelfitquest.Helpers.displayName
 import com.pixelfitquest.R
-import com.pixelfitquest.model.Exercise
-import com.pixelfitquest.model.WorkoutSet
+import com.pixelfitquest.model.enums.displayName
+import com.pixelfitquest.model.workout.Exercise
+import com.pixelfitquest.model.workout.WorkoutSet
 import com.pixelfitquest.viewmodel.WorkoutResumeViewModel
 
-data class ExerciseWithSets(
-    val exercise: Exercise,
-    val sets: List<WorkoutSet>,
-    val avgWorkoutScore: Int
-)
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -1,4 +1,4 @@
-package com.pixelfitquest.model
+package com.pixelfitquest.model.enums
 
 import androidx.compose.ui.graphics.Color
 

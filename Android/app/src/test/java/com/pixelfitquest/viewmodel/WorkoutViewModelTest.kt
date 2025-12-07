@@ -1,6 +1,9 @@
 package com.pixelfitquest.viewmodel
 
 import com.pixelfitquest.model.*
+import com.pixelfitquest.model.workout.ExerciseType
+import com.pixelfitquest.model.workout.WorkoutPlan
+import com.pixelfitquest.model.workout.WorkoutPlanItem
 import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.UserSettingsRepository
 import com.pixelfitquest.repository.WorkoutRepository

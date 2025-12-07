@@ -67,8 +67,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
-import com.pixelfitquest.model.ExerciseType
-import com.pixelfitquest.model.WorkoutPlan
+import com.pixelfitquest.model.enums.ExerciseType
+import com.pixelfitquest.model.workout.WorkoutPlan
 import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.WorkoutCustomizationViewModel

@@ -1,7 +1,7 @@
-package com.pixelfitquest.model
+package com.pixelfitquest.model.workout
 
-import android.util.Log
 import com.google.gson.Gson
+import com.pixelfitquest.model.enums.ExerciseType
 import java.time.Instant
 
 data class WorkoutPlanItem(

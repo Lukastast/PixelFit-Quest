@@ -1,9 +1,9 @@
 package com.pixelfitquest.model.service.module
 
-import com.pixelfitquest.model.ExerciseType
-import com.pixelfitquest.model.WorkoutPlan
-import com.pixelfitquest.model.WorkoutPlanItem
-import com.pixelfitquest.model.WorkoutTemplate
+import com.pixelfitquest.model.workout.ExerciseType
+import com.pixelfitquest.model.workout.WorkoutPlan
+import com.pixelfitquest.model.workout.WorkoutPlanItem
+import com.pixelfitquest.model.workout.WorkoutTemplate
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

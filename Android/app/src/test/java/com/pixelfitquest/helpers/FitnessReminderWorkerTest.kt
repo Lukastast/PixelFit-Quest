@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.work.ListenableWorker.Result
 import androidx.work.WorkerParameters
 import com.pixelfitquest.repository.WorkoutRepository
-import com.pixelfitquest.model.Workout
+import com.pixelfitquest.model.workout.Workout
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just

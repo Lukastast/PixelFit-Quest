@@ -53,8 +53,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.pixelfitquest.R
 import com.pixelfitquest.helpers.HOME_SCREEN
-import com.pixelfitquest.model.WorkoutFeedback
-import com.pixelfitquest.model.WorkoutPlan
+import com.pixelfitquest.model.enums.WorkoutFeedback
+import com.pixelfitquest.model.workout.WorkoutPlan
 import com.pixelfitquest.ui.components.CharacterIdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.ui.theme.determination

@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.helpers.NotificationHelper
 import com.pixelfitquest.helpers.SPLASH_SCREEN
-import com.pixelfitquest.model.Workout
+import com.pixelfitquest.model.workout.Workout
 import com.pixelfitquest.model.Achievement
 import com.pixelfitquest.model.UserData
 import com.pixelfitquest.model.achievementsList

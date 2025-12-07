@@ -2,10 +2,11 @@ package com.pixelfitquest.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pixelfitquest.model.WorkoutPlan
-import com.pixelfitquest.model.WorkoutPlanItem
-import com.pixelfitquest.model.WorkoutTemplate
-import com.pixelfitquest.model.ExerciseType
+import com.pixelfitquest.model.CustomizationUiState
+import com.pixelfitquest.model.enums.ExerciseType
+import com.pixelfitquest.model.workout.WorkoutPlan
+import com.pixelfitquest.model.workout.WorkoutPlanItem
+import com.pixelfitquest.model.workout.WorkoutTemplate
 import com.pixelfitquest.repository.WorkoutTemplateRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,10 +38,8 @@ class WorkoutCustomizationViewModel @Inject constructor(
     fun toggleExercise(exercise: ExerciseType, sets: Int = 3, weight: Float = 0f) {
         val currentSelections = _uiState.value.selections
         val updated = if (currentSelections.containsKey(exercise)) {
-            // Toggle off: Remove the exercise
             currentSelections - exercise
         } else {
-            // Toggle on: Add the exercise with defaults
             val item = WorkoutPlanItem(exercise, sets.coerceIn(1, 10), weight.coerceIn(0f, 500f))
             currentSelections + (exercise to item)
         }
@@ -97,7 +96,7 @@ class WorkoutCustomizationViewModel @Inject constructor(
                 state.editingTemplateId
             } else {
                 generateId()
-            }!!
+            }
 
             val template = WorkoutTemplate(
                 id = id,
@@ -125,7 +124,7 @@ class WorkoutCustomizationViewModel @Inject constructor(
     }
 
     fun loadTemplate(template: WorkoutTemplate) {
-        val selections = template.plan.items.associateBy { it.exercise }  // Key by exercise, value is full item
+        val selections = template.plan.items.associateBy { it.exercise }
         _uiState.value = _uiState.value.copy(
             selections = selections,
             templateName = template.name,
@@ -157,13 +156,4 @@ class WorkoutCustomizationViewModel @Inject constructor(
     }
 
     private fun generateId(): String = "template_${System.currentTimeMillis()}"
-
-    data class CustomizationUiState(
-        val selections: Map<ExerciseType, WorkoutPlanItem> = emptyMap(),
-        val templateName: String = "",
-        val isSaving: Boolean = false,
-        val error: String? = null,
-        val editMode: Boolean = false,
-        val editingTemplateId: String? = null
-    )
 }

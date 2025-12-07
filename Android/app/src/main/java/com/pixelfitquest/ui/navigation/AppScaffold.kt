@@ -65,7 +65,7 @@ import com.pixelfitquest.helpers.WORKOUT_CUSTOMIZATION_SCREEN
 import com.pixelfitquest.helpers.WORKOUT_SCREEN
 import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
-import com.pixelfitquest.model.WorkoutPlan
+import com.pixelfitquest.model.workout.WorkoutPlan
 import com.pixelfitquest.ui.screens.LoginScreen
 import com.pixelfitquest.ui.view.CustomizationScreen
 import com.pixelfitquest.ui.view.HomeScreen

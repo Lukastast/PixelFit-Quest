@@ -1,7 +1,7 @@
 package com.pixelfitquest.viewmodel
 
 import android.content.Context
-import com.pixelfitquest.model.Workout
+import com.pixelfitquest.model.workout.Workout
 import com.pixelfitquest.model.service.AccountService
 import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.WorkoutRepository

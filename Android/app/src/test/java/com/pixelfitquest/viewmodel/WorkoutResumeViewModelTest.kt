@@ -4,7 +4,8 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pixelfitquest.model.Workout
+import com.pixelfitquest.model.workout.Workout
+import com.pixelfitquest.model.workout.WorkoutSummary
 import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.WorkoutRepository
 import com.pixelfitquest.ui.view.ExerciseWithSets
@@ -174,9 +175,5 @@ class WorkoutResumeViewModel @Inject constructor(
         }
     }
 
-    data class WorkoutSummary(
-        val totalXp: Int,
-        val totalCoins: Int,
-        val avgScore: Float = 0f
-    )
+
 }

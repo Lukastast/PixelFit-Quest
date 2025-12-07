@@ -1,17 +1,15 @@
 package com.pixelfitquest.viewmodel
 
 import android.util.Log
-import androidx.compose.material3.Card
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.model.UserData
-import com.pixelfitquest.model.Workout
+import com.pixelfitquest.model.workout.ExerciseWithSets
+import com.pixelfitquest.model.workout.Workout
+import com.pixelfitquest.model.workout.WorkoutSummary
 import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.WorkoutRepository
-import com.pixelfitquest.ui.view.ExerciseWithSets
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -173,9 +171,5 @@ class WorkoutResumeViewModel @Inject constructor(
     }
 
 
-    data class WorkoutSummary(
-        val totalXp: Int,
-        val totalCoins: Int,
-        val avgScore: Float = 0f  // NEW: For UI display
-    )
+
 }

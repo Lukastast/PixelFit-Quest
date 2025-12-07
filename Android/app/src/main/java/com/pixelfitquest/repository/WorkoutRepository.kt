@@ -4,9 +4,9 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.pixelfitquest.model.Exercise
-import com.pixelfitquest.model.Workout
-import com.pixelfitquest.model.WorkoutSet
+import com.pixelfitquest.model.workout.Exercise
+import com.pixelfitquest.model.workout.Workout
+import com.pixelfitquest.model.workout.WorkoutSet
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
