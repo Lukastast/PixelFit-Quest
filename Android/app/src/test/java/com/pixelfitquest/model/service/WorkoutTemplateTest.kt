@@ -1,6 +1,6 @@
 package com.pixelfitquest.model.service.module
 
-import com.pixelfitquest.model.workout.ExerciseType
+import com.pixelfitquest.model.enums.ExerciseType
 import com.pixelfitquest.model.workout.WorkoutPlan
 import com.pixelfitquest.model.workout.WorkoutPlanItem
 import com.pixelfitquest.model.workout.WorkoutTemplate

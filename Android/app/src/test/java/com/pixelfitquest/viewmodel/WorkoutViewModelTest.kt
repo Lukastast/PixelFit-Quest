@@ -1,11 +1,10 @@
 package com.pixelfitquest.viewmodel
 
 import com.pixelfitquest.model.*
-import com.pixelfitquest.model.workout.ExerciseType
+import com.pixelfitquest.model.enums.ExerciseType
 import com.pixelfitquest.model.workout.WorkoutPlan
 import com.pixelfitquest.model.workout.WorkoutPlanItem
 import com.pixelfitquest.repository.UserRepository
-import com.pixelfitquest.repository.UserSettingsRepository
 import com.pixelfitquest.repository.WorkoutRepository
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +20,6 @@ import kotlin.test.*
 class WorkoutViewModelTest {
 
     private lateinit var viewModel: WorkoutViewModel
-    private lateinit var mockUserSettingsRepository: UserSettingsRepository
     private lateinit var mockWorkoutRepository: WorkoutRepository
     private lateinit var mockUserRepository: UserRepository
     private val testDispatcher = StandardTestDispatcher()
@@ -29,24 +27,22 @@ class WorkoutViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-
-        mockUserSettingsRepository = mockk(relaxed = true)
+        
         mockWorkoutRepository = mockk(relaxed = true)
         mockUserRepository = mockk(relaxed = true)
 
         // Default mocks
-        coEvery { mockUserSettingsRepository.getUserSettings() } returns flowOf(
-            UserData(height = 180, musicVolume = 50)
-        )
+        coEvery { mockUserRepository.getUserData() } returns flowOf(
+                    UserData(height = 180, musicVolume = 50)
+                )
         coEvery { mockUserRepository.getCharacterData() } returns flowOf(CharacterData())
         coEvery { mockWorkoutRepository.saveWorkout(any()) } just Runs
         coEvery { mockWorkoutRepository.saveExercise(any()) } just Runs
         coEvery { mockWorkoutRepository.saveSet(any()) } just Runs
 
         viewModel = WorkoutViewModel(
-            mockUserSettingsRepository,
-            mockWorkoutRepository,
-            mockUserRepository
+            mockUserRepository,
+            mockWorkoutRepository
         )
         testDispatcher.scheduler.advanceUntilIdle()
     }
@@ -119,12 +115,11 @@ class WorkoutViewModelTest {
 
     @Test
     fun `calculateRomScore returns 0 when user settings not loaded`() = runTest {
-        coEvery { mockUserSettingsRepository.getUserSettings() } returns flowOf(null)
+        coEvery { mockUserRepository.getUserData() } returns flowOf(null)
 
         viewModel = WorkoutViewModel(
-            mockUserSettingsRepository,
-            mockWorkoutRepository,
-            mockUserRepository
+            mockUserRepository,
+            mockWorkoutRepository
         )
         testDispatcher.scheduler.advanceUntilIdle()
 

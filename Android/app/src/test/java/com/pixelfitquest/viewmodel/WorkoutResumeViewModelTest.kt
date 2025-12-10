@@ -4,11 +4,12 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pixelfitquest.model.UserData
+import com.pixelfitquest.model.workout.ExerciseWithSets
 import com.pixelfitquest.model.workout.Workout
 import com.pixelfitquest.model.workout.WorkoutSummary
 import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.WorkoutRepository
-import com.pixelfitquest.ui.view.ExerciseWithSets
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

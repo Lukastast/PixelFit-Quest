@@ -1,6 +1,7 @@
 package com.pixelfitquest.viewmodel
 
 import com.pixelfitquest.model.CharacterData
+import com.pixelfitquest.model.UserData
 import com.pixelfitquest.repository.UserRepository
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers

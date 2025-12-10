@@ -6,8 +6,8 @@ import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.*
+import com.pixelfitquest.model.enums.ExerciseType
 import com.pixelfitquest.model.workout.Exercise
-import com.pixelfitquest.model.workout.ExerciseType
 import com.pixelfitquest.model.workout.Workout
 import io.mockk.*
 import kotlinx.coroutines.flow.first

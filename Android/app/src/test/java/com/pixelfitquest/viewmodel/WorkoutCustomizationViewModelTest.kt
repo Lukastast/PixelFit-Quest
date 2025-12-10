@@ -1,9 +1,9 @@
 package com.pixelfitquest.viewmodel
 
+import com.pixelfitquest.model.enums.ExerciseType
 import com.pixelfitquest.model.workout.WorkoutPlan
 import com.pixelfitquest.model.workout.WorkoutPlanItem
 import com.pixelfitquest.model.workout.WorkoutTemplate
-import com.pixelfitquest.model.workout.ExerciseType
 import com.pixelfitquest.repository.WorkoutTemplateRepository
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
