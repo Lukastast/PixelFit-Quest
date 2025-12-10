@@ -2,6 +2,7 @@ package com.pixelfitquest.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.pixelfitquest.helpers.PerRepAverager
 import com.pixelfitquest.model.CharacterData
 import com.pixelfitquest.model.UserData
 import com.pixelfitquest.model.enums.ExerciseType
@@ -94,6 +95,11 @@ class WorkoutViewModel @Inject constructor(
     private var baselineTiltY = 0f
     private var baselineTiltZ = 0f
 
+    private var totalRomScore = 0f
+    private var totalTiltXScore = 0f
+    private var totalTiltZScore = 0f
+    private var lastRepTime = 0L
+    private var workoutStartTime = 0L
     private val maxTiltAccel = 4.0f
 
     private val _characterData = MutableStateFlow(CharacterData())
@@ -116,7 +122,7 @@ class WorkoutViewModel @Inject constructor(
         if (!currentState.isTracking || !isSetActive) return
 
         val currentTime = System.currentTimeMillis()
-        if (currentTime < currentState.workoutStartTime + stabilizationTimeMs) return
+        if (currentTime < workoutStartTime + stabilizationTimeMs) return
 
         accelerometer?.let { values ->
             val dt = calculateDt(timestamp)
@@ -227,12 +233,6 @@ class WorkoutViewModel @Inject constructor(
                 this.currentVelocity = 0f
                 velHistory.clear()
                 accelHistory.clear()
-
-                _workoutState.value = _workoutState.value.copy(
-                    verticalAccel = lastVerticalAccel,
-                    xAccel = _workoutState.value.xAccel,
-                    yAccel = _workoutState.value.yAccel,
-                )
             }
             accelHistory.clear()
         }
@@ -308,16 +308,13 @@ class WorkoutViewModel @Inject constructor(
         dtHistory.clear()
         lastTimestamp = 0L
         gravityVector = floatArrayOf(0f, 0f, 9.81f)
+        lastRepTime = startTime
+        workoutStartTime = startTime
         _workoutState.value = _workoutState.value.copy(
             isTracking = true,
-            workoutStartTime = startTime,
-            lastRepTime = startTime,
             estimatedROM = 0f,
             downROM = 0f,
             upROM = 0f,
-            verticalAccel = 0f,
-            xAccel = 0f,
-            yAccel = 0f,
             isSetActive = false,
             currentSetNumber = 1,
             totalSets = plan.items.sumOf { it.sets },
@@ -446,7 +443,6 @@ class WorkoutViewModel @Inject constructor(
             xTiltScore = currentState.avgTiltXScore,
             zTiltScore = currentState.avgTiltZScore,
             avgRepTime = currentState.avgRepTime,
-            verticalAccel = currentState.verticalAccel,
             weight = currentState.weight,
             notes = currentState.notes
         )
@@ -514,40 +510,51 @@ class WorkoutViewModel @Inject constructor(
     private fun onRepCompleted() {
         val currentState = _workoutState.value
         val currentTime = System.currentTimeMillis()
-        val repTime = currentTime - currentState.lastRepTime
-        totalRepTime += repTime
-        val newReps = currentState.reps + 1
+        val repTimeMs = currentTime - lastRepTime
 
+        // === 1. Update rep timing
+        totalRepTime += repTimeMs
+        val newReps = currentState.reps + 1
+        val newAvgRepTime = if (newReps > 0) totalRepTime.toFloat() / newReps else 0f
+
+        // 2. ROM calculation for this rep
         val downDelta = bottomPos - repStartPos
         val upDelta = currentDisplacement - bottomPos
         val downROM = abs(downDelta) * 100f
         val upROM = abs(upDelta) * 100f
-        val newEstROM = downROM + upROM
+        val newROM = downROM + upROM
+        val thisRepRomScore = calculateRomScore(newROM)
 
-        val newAvgRepTime = if (newReps > 0) (totalRepTime / newReps).toFloat() else 0f
-
-        val lastRepScore = calculateRomScore(newEstROM)
-        val newTotalRom = currentState.totalRom + lastRepScore
-        val avgRomScore = if (newReps > 0) (newTotalRom / newReps.toFloat()).coerceIn(0f, 100f) else 0f
-
+        // 3. Tilt calculation for this rep (using averagers)
         val avgTiltX = if (tiltSampleCount > 0) tiltXSum / tiltSampleCount else 0f
-        val avgTiltZ = if (tiltSampleCount > 0) tiltZSum / tiltSampleCount else 0f
-        val tiltXScore = ((avgTiltX / maxTiltAccel) * 120f).coerceIn(-100f, 100f)
-        val tiltZScore = ((avgTiltZ / maxTiltAccel) * 120f).coerceIn(-100f, 100f)
+        // left/right
+        val avgTiltZ = if (tiltSampleCount > 0) tiltZSum / tiltSampleCount else 0f    // forward/back
 
-        val newTotalTiltX = currentState.totalTiltX + tiltXScore
-        val newTotalTiltZ = currentState.totalTiltZ + tiltZScore
-        val avgTiltXScore = if (newReps > 0) (newTotalTiltX / newReps.toFloat()).coerceIn(-100f, 100f) else 0f
-        val avgTiltZScore = if (newReps > 0) (newTotalTiltZ / newReps.toFloat()).coerceIn(-100f, 100f) else 0f
+        val thisRepTiltXPenalty = (abs(avgTiltX) / maxTiltAccel * 120f).coerceAtMost(100f)
+        val thisRepTiltZPenalty = (abs(avgTiltZ) / maxTiltAccel * 120f).coerceAtMost(100f)
 
-        val workoutScore = (avgRomScore + (100-abs(avgTiltXScore)) + (100-abs(100-avgTiltZScore))) / 3f
-        val feedbackScore = (lastRepScore * 2 + (100-abs(tiltXScore)) + (100-abs(tiltZScore))) / 4f
+        // Convert penalty → positive score (100 - penalty)
+        val thisRepTiltXScore = (100f - thisRepTiltXPenalty).coerceAtLeast(0f)
+        val thisRepTiltZScore = (100f - thisRepTiltZPenalty).coerceAtLeast(0f)
 
-        Log.d("TiltDebug", "Rep avg X: $avgTiltX, Y: $avgTiltZ | Score X: $tiltXScore, Z: $tiltZScore")
+        // 4. Accumulate for workout average
+        totalRomScore += thisRepRomScore
+        totalTiltXScore += thisRepTiltXScore
+        totalTiltZScore += thisRepTiltZScore
+
+        val workoutAvgRom = totalRomScore / newReps
+        val workoutAvgTiltX = totalTiltXScore / newReps
+        val workoutAvgTiltZ = totalTiltZScore / newReps
+
+
+        val workoutScore = (workoutAvgRom + workoutAvgTiltX + workoutAvgTiltZ) / 3f
+        val feedbackScore = (thisRepRomScore * 2f + thisRepTiltXScore + thisRepTiltZScore) / 4f
+
 
         tiltXSum = 0f
         tiltZSum = 0f
         tiltSampleCount = 0
+
 
         repStartPos = currentDisplacement
         bottomPos = currentDisplacement
@@ -558,58 +565,48 @@ class WorkoutViewModel @Inject constructor(
         velHistory.clear()
         accelHistory.clear()
 
+        lastRepTime = currentTime
         _workoutState.value = currentState.copy(
             reps = newReps,
-            lastRepTime = currentTime,
             avgRepTime = newAvgRepTime,
-            estimatedROM = newEstROM,
+            estimatedROM = newROM,
             downROM = downROM,
             upROM = upROM,
-            verticalAccel = lastVerticalAccel,
-            xAccel = currentState.xAccel,
-            yAccel = currentState.yAccel,
-            romScore = lastRepScore,
-            totalRom = newTotalRom,
-            totalTiltX = newTotalTiltX,
-            totalTiltZ = newTotalTiltZ,
-            avgRomScore = avgRomScore,
-            avgTiltXScore = avgTiltXScore,
-            avgTiltZScore = avgTiltZScore,
-            tiltXScore = tiltXScore,
-            tiltZScore = tiltZScore,
+            romScore = thisRepRomScore,
+            tiltXScore = (thisRepTiltXScore - 50f) * 2f,     // -100 to +100
+            tiltZScore = (thisRepTiltZScore - 50f) * 2f,
+
+            // Workout averages
+            avgRomScore = workoutAvgRom,
+            avgTiltXScore = (workoutAvgTiltX - 50f) * 2f,
+            avgTiltZScore = (workoutAvgTiltZ - 50f) * 2f,
             workoutScore = workoutScore
         )
+
         updateFeedback(feedbackScore)
-        Log.d("WorkoutVM", "Rep completed: $newReps reps, ROM: $newEstROM cm")
+
+        Log.d("WorkoutVM", "Rep $newReps | ROM: ${thisRepRomScore.toInt()} | TiltX: ${thisRepTiltXScore.toInt()} | TiltZ: ${thisRepTiltZScore.toInt()} | Score: ${workoutScore.toInt()}")
     }
 
     data class WorkoutState(
         val isTracking: Boolean = false,
-        val userHeightCm: Float? = null,
-        val theoreticalMaxRomCm: Float? = null,
         val romScore: Float = 0f,
         val avgRomScore: Float = 0f,
         val avgTiltXScore: Float = 0f,
         val avgTiltZScore: Float = 0f,
         val avgRepTime: Float = 0f,
         val reps: Int = 0,
-        val lastRepTime: Long = 0L,
         val estimatedROM: Float = 0f,
         val totalRom: Float = 0f,
         val totalTiltX: Float = 0f,
         val totalTiltZ: Float = 0f,
         val downROM: Float = 0f,
         val upROM: Float = 0f,
-        val workoutStartTime: Long = 0L,
-        val verticalAccel: Float = 0f,
-        val xAccel: Float = 0f,
-        val yAccel: Float = 0f,
         val isSetActive: Boolean = false,
         val currentSetNumber: Int = 1,
         val totalSets: Int = 0,
         val currentExerciseIndex: Int = 0,
         val workoutScore: Float = 0f,
-        val timingScore: Float = 0f,
         val tiltXScore: Float = 0f,
         val tiltZScore: Float = 0f,
         val weight: Float = 0f,
