@@ -117,7 +117,7 @@ fun WorkoutScreen(
                 targetValue = 1f,
                 animationSpec = spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = 500f)
             )
-            delay(600L)
+            delay(300L)
             animState.animateTo(0f)
             currentFeedback = null
         }
@@ -164,14 +164,8 @@ fun WorkoutScreen(
     DisposableEffect(context, lifecycleOwner) {
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        val gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
         if (accelerometer == null ) {
             viewModel.setError("No accelerometer sensor found")
-
-            return@DisposableEffect onDispose {}
-        }
-        else if (gyroscope == null) {
-            viewModel.setError("No gyroscope sensor found")
 
             return@DisposableEffect onDispose {}
         }
@@ -184,10 +178,6 @@ fun WorkoutScreen(
                         val accelData = floatArrayOf(event.values[0], event.values[1], event.values[2])
                         viewModel.onSensorDataUpdated(accelData, event.timestamp)
                     }
-                    Sensor.TYPE_GYROSCOPE -> {
-                        val gyroData = floatArrayOf(event.values[0], event.values[1], event.values[2])
-                        //viewModel.onGyroDataUpdated(gyroData, event.timestamp)
-                    }
                 }
             }
 
@@ -197,8 +187,7 @@ fun WorkoutScreen(
         coroutineScope.launch {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
-                sensorManager.registerListener(listener, gyroscope, SensorManager.SENSOR_DELAY_NORMAL)
-            }
+             }
         }
 
         onDispose {

@@ -2,7 +2,6 @@ package com.pixelfitquest.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.pixelfitquest.helpers.PerRepAverager
 import com.pixelfitquest.model.CharacterData
 import com.pixelfitquest.model.UserData
 import com.pixelfitquest.model.enums.ExerciseType
@@ -78,7 +77,7 @@ class WorkoutViewModel @Inject constructor(
 
     private var totalRepTime: Long = 0L
     private var lastPeakTime = 0L
-    private var stabilizationTimeMs = 3000L
+    private var stabilizationTimeMs = 5600L
 
     private var currentPlan: WorkoutPlan? = null
     private var currentExerciseIndex = 0
@@ -138,7 +137,6 @@ class WorkoutViewModel @Inject constructor(
             val smoothedAccel = smoothAccel(verticalAccel)
             accumulateTilt(netAccelX, netAccelZ, netAccelY)
 
-            //CHECK IF NECESSARY
             if (!isSetActive) return@let
 
             lastVerticalAccel = verticalAccel
@@ -233,6 +231,7 @@ class WorkoutViewModel @Inject constructor(
                 this.currentVelocity = 0f
                 velHistory.clear()
                 accelHistory.clear()
+                triggerFeedback(WorkoutFeedback.MISS)
             }
             accelHistory.clear()
         }
@@ -272,10 +271,7 @@ class WorkoutViewModel @Inject constructor(
         tiltYSum += relativeY
         tiltZSum += relativeZ
         tiltSampleCount++
-        //maybe add a sample count that keeps increasing tiltsum until corrected? and then have the treshholds
-        //if (tiltSampleCount % 5 == 0)
-        //Log.d("TiltAccumDebug", "New sample: X=$tiltXSum, Y=$tiltYSum; Z=$tiltZSum total samples: $tiltSampleCount")
-    }
+      }
 
     fun startWorkoutFromPlan(plan: WorkoutPlan, templateName: String? = null) {
         workoutName = templateName?.takeIf { it.isNotBlank() }
@@ -406,7 +402,16 @@ class WorkoutViewModel @Inject constructor(
         )
         launchCatching {
             workoutRepository.saveWorkout(workout)
+            updateDailyStreak()
 
+            stopWorkout()
+            Log.d("WorkoutVM", "Saved workout, should navigate to resume $workoutId")
+            _navigationEvent.emit(workoutId)
+        }
+    }
+    
+    private fun updateDailyStreak() {
+        launchCatching {
             val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
             dateFormat.timeZone = java.util.TimeZone.getTimeZone("UTC")
             val today = dateFormat.format(java.util.Date())
@@ -419,10 +424,6 @@ class WorkoutViewModel @Inject constructor(
             } else {
                 Log.d("WorkoutVM", "Streak already incremented today")
             }
-
-            stopWorkout()
-            Log.d("WorkoutVM", "Saved workout, should navigate to resume $workoutId")
-            _navigationEvent.emit(workoutId)
         }
     }
 
@@ -512,12 +513,10 @@ class WorkoutViewModel @Inject constructor(
         val currentTime = System.currentTimeMillis()
         val repTimeMs = currentTime - lastRepTime
 
-        // === 1. Update rep timing
         totalRepTime += repTimeMs
         val newReps = currentState.reps + 1
         val newAvgRepTime = if (newReps > 0) totalRepTime.toFloat() / newReps else 0f
 
-        // 2. ROM calculation for this rep
         val downDelta = bottomPos - repStartPos
         val upDelta = currentDisplacement - bottomPos
         val downROM = abs(downDelta) * 100f
@@ -525,36 +524,27 @@ class WorkoutViewModel @Inject constructor(
         val newROM = downROM + upROM
         val thisRepRomScore = calculateRomScore(newROM)
 
-        // 3. Tilt calculation for this rep (using averagers)
         val avgTiltX = if (tiltSampleCount > 0) tiltXSum / tiltSampleCount else 0f
-        // left/right
         val avgTiltZ = if (tiltSampleCount > 0) tiltZSum / tiltSampleCount else 0f    // forward/back
 
-        val thisRepTiltXPenalty = (abs(avgTiltX) / maxTiltAccel * 150f).coerceAtMost(100f)
-        val thisRepTiltZPenalty = (abs(avgTiltZ) / maxTiltAccel * 150f).coerceAtMost(100f)
+        val thisRepTiltXScore = ((avgTiltX / maxTiltAccel) * 120f).coerceIn(-100f, 100f)
+        val thisRepTiltZScore = ((avgTiltZ/ maxTiltAccel) * 120f).coerceIn(-100f, 100f)
 
-        // Convert penalty → positive score (100 - penalty)
-        val thisRepTiltXScore = (100f - thisRepTiltXPenalty).coerceAtLeast(0f)
-        val thisRepTiltZScore = (100f - thisRepTiltZPenalty).coerceAtLeast(0f)
-
-        // 4. Accumulate for workout average
         totalRomScore += thisRepRomScore
         totalTiltXScore += thisRepTiltXScore
         totalTiltZScore += thisRepTiltZScore
 
-        val workoutAvgRom = totalRomScore / newReps
-        val workoutAvgTiltX = totalTiltXScore / newReps
-        val workoutAvgTiltZ = totalTiltZScore / newReps
+        val workoutAvgRom = (totalRomScore / newReps).coerceIn(0f, 100f)
+        val workoutAvgTiltX = (totalTiltXScore / newReps).coerceIn(0f, 100f)
+        val workoutAvgTiltZ = (totalTiltZScore / newReps).coerceIn(0f, 100f)
 
 
-        val workoutScore = (workoutAvgRom + workoutAvgTiltX + workoutAvgTiltZ) / 3f
-        val feedbackScore = (thisRepRomScore * 2f + thisRepTiltXScore + thisRepTiltZScore) / 4f
-
+        val workoutScore = (workoutAvgRom + (100-abs(workoutAvgTiltX)) + (100-abs(workoutAvgTiltZ))) / 3f
+        val feedbackScore = (thisRepRomScore * 2f + (100-abs(thisRepTiltXScore)) + (100-abs(thisRepTiltZScore))) / 4f
 
         tiltXSum = 0f
         tiltZSum = 0f
         tiltSampleCount = 0
-
 
         repStartPos = currentDisplacement
         bottomPos = currentDisplacement
@@ -573,13 +563,13 @@ class WorkoutViewModel @Inject constructor(
             downROM = downROM,
             upROM = upROM,
             romScore = thisRepRomScore,
-            tiltXScore = (thisRepTiltXScore - 50f) * 2f,     // -100 to +100
-            tiltZScore = (thisRepTiltZScore - 50f) * 2f,
+            tiltXScore = thisRepTiltXScore,
+            tiltZScore = thisRepTiltZScore,
 
             // Workout averages
             avgRomScore = workoutAvgRom,
-            avgTiltXScore = (workoutAvgTiltX - 50f) * 2f,
-            avgTiltZScore = (workoutAvgTiltZ - 50f) * 2f,
+            avgTiltXScore = workoutAvgTiltX,
+            avgTiltZScore = workoutAvgTiltZ,
             workoutScore = workoutScore
         )
 
