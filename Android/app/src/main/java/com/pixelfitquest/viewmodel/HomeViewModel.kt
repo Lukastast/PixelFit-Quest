@@ -5,9 +5,9 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.helpers.NotificationHelper
 import com.pixelfitquest.helpers.SPLASH_SCREEN
-import com.pixelfitquest.model.UserGameData
-import com.pixelfitquest.model.Workout
+import com.pixelfitquest.model.workout.Workout
 import com.pixelfitquest.model.Achievement
+import com.pixelfitquest.model.UserData
 import com.pixelfitquest.model.achievementsList
 import com.pixelfitquest.model.missionsPool
 import com.pixelfitquest.model.rewardsPool
@@ -47,8 +47,8 @@ class HomeViewModel @Inject constructor(
     private val workoutRepository: WorkoutRepository,
     @ApplicationContext private val context: Context
 ) : PixelFitViewModel() {
-    private val _userGameData = MutableStateFlow<UserGameData?>(null)
-    val userGameData: StateFlow<UserGameData?> = _userGameData.asStateFlow()
+    private val _userData = MutableStateFlow<UserData?>(null)
+    val userData: StateFlow<UserData?> = _userData.asStateFlow()
 
     private val _currentMaxExp = MutableStateFlow(100)
     val currentMaxExp: StateFlow<Int> = _currentMaxExp.asStateFlow()
@@ -107,7 +107,7 @@ class HomeViewModel @Inject constructor(
 
                 loadUserData()
 
-                userGameData.first { it != null }
+                userData.first { it != null }
 
                 fetchCompletedWorkouts()
                 fetchLeaderboard()
@@ -127,8 +127,8 @@ class HomeViewModel @Inject constructor(
     private fun loadUserData() {
         viewModelScope.launch {
             try {
-                userRepository.getUserGameData().collect { data ->
-                    _userGameData.value = data
+                userRepository.getUserData().collect { data ->
+                    _userData.value = data
                     if (data != null) {
                         val nextLevel = data.level + 1
                         val maxLevel = userRepository.getMaxLevel()
@@ -153,8 +153,8 @@ class HomeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
-                val current = _userGameData.value ?: return@launch
-                userRepository.updateUserGameData(mapOf("coins" to current.coins + amount))
+                val current = _userData.value ?: return@launch
+                userRepository.updateUserData(mapOf("coins" to current.coins + amount))
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to update coins"
             }
@@ -242,7 +242,7 @@ class HomeViewModel @Inject constructor(
         if (_todaySteps.value >= _stepGoal.value.toLong() && lastRewardDate != today) {
             addExp(50)
             addCoins(10)
-            userRepository.updateUserGameData(mapOf("last_steps_reward_date" to today))
+            userRepository.updateUserData(mapOf("last_steps_reward_date" to today))
             Log.d("HomeVM", "Awarded +50 EXP and +10 coins for steps goal on $today")
             NotificationHelper.showStepGoalCompletedNotification(context)
         }
@@ -329,7 +329,7 @@ class HomeViewModel @Inject constructor(
 
                 if (lastStreakUpdateDate != today) {
                     incrementStreak()
-                    userRepository.updateUserGameData(mapOf("last_streak_update_date" to today))
+                    userRepository.updateUserData(mapOf("last_streak_update_date" to today))
                 }
 
                 NotificationHelper.showWorkoutCompletedNotification(context)

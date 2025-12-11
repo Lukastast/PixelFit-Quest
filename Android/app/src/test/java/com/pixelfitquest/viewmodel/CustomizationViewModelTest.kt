@@ -1,7 +1,7 @@
 package com.pixelfitquest.viewmodel
 
 import com.pixelfitquest.model.CharacterData
-import com.pixelfitquest.model.UserGameData
+import com.pixelfitquest.model.UserData
 import com.pixelfitquest.repository.UserRepository
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
@@ -159,16 +159,16 @@ class CustomizationViewModelTest {
 
     @Test
     fun `buyVariant purchases variant when user has enough coins`() = runTest {
-        val gameData = UserGameData(coins = 150)
-        coEvery { mockRepository.fetchUserGameDataOnce() } returns gameData
-        coEvery { mockRepository.updateUserGameData(any()) } just Runs
+        val gameData = UserData(coins = 150)
+        coEvery { mockRepository.fetchUserDataOnce() } returns gameData
+        coEvery { mockRepository.updateUserData(any()) } just Runs
 
         viewModel.buyVariant("male_fitness", 100)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Verify coins were deducted
         coVerify {
-            mockRepository.updateUserGameData(match {
+            mockRepository.updateUserData(match {
                 it["coins"] == 50
             })
         }
@@ -185,14 +185,14 @@ class CustomizationViewModelTest {
 
     @Test
     fun `buyVariant does nothing when user has insufficient coins`() = runTest {
-        val gameData = UserGameData(coins = 50)
-        coEvery { mockRepository.fetchUserGameDataOnce() } returns gameData
+        val gameData = UserData(coins = 50)
+        coEvery { mockRepository.fetchUserDataOnce() } returns gameData
 
         viewModel.buyVariant("male_fitness", 100)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Verify no coin update happened
-        coVerify(exactly = 0) { mockRepository.updateUserGameData(any()) }
+        coVerify(exactly = 0) { mockRepository.updateUserData(any()) }
 
         // Verify variant was not unlocked
         assertFalse(viewModel.characterData.value.unlockedVariants.contains("male_fitness"))
@@ -213,28 +213,28 @@ class CustomizationViewModelTest {
         val vm = CustomizationViewModel(mockRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val gameData = UserGameData(coins = 150)
-        coEvery { mockRepository.fetchUserGameDataOnce() } returns gameData
+        val gameData = UserData(coins = 150)
+        coEvery { mockRepository.fetchUserDataOnce() } returns gameData
 
         vm.buyVariant("male_fitness", 100)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Verify no coin update happened
-        coVerify(exactly = 0) { mockRepository.updateUserGameData(any()) }
+        coVerify(exactly = 0) { mockRepository.updateUserData(any()) }
 
         // Unlocked variants should remain unchanged
         assertEquals(listOf("basic", "male_fitness"), vm.characterData.value.unlockedVariants)
     }
 
     @Test
-    fun `buyVariant does nothing when fetchUserGameDataOnce returns null`() = runTest {
-        coEvery { mockRepository.fetchUserGameDataOnce() } returns null
+    fun `buyVariant does nothing when fetchUserDataOnce returns null`() = runTest {
+        coEvery { mockRepository.fetchUserDataOnce() } returns null
 
         viewModel.buyVariant("male_fitness", 100)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Verify no coin update happened
-        coVerify(exactly = 0) { mockRepository.updateUserGameData(any()) }
+        coVerify(exactly = 0) { mockRepository.updateUserData(any()) }
 
         // Verify variant was not unlocked
         assertFalse(viewModel.characterData.value.unlockedVariants.contains("male_fitness"))
@@ -242,16 +242,16 @@ class CustomizationViewModelTest {
 
     @Test
     fun `buyVariant deducts exact price from coins`() = runTest {
-        val gameData = UserGameData(coins = 100)
-        coEvery { mockRepository.fetchUserGameDataOnce() } returns gameData
-        coEvery { mockRepository.updateUserGameData(any()) } just Runs
+        val gameData = UserData(coins = 100)
+        coEvery { mockRepository.fetchUserDataOnce() } returns gameData
+        coEvery { mockRepository.updateUserData(any()) } just Runs
 
         viewModel.buyVariant("male_fitness", 100)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Verify exact deduction
         coVerify {
-            mockRepository.updateUserGameData(match {
+            mockRepository.updateUserData(match {
                 it["coins"] == 0
             })
         }
@@ -259,11 +259,11 @@ class CustomizationViewModelTest {
 
     @Test
     fun `buyVariant unlocks multiple variants independently`() = runTest {
-        val gameData1 = UserGameData(coins = 200)
-        val gameData2 = UserGameData(coins = 100)
+        val gameData1 = UserData(coins = 200)
+        val gameData2 = UserData(coins = 100)
 
-        coEvery { mockRepository.fetchUserGameDataOnce() } returnsMany listOf(gameData1, gameData2)
-        coEvery { mockRepository.updateUserGameData(any()) } just Runs
+        coEvery { mockRepository.fetchUserDataOnce() } returnsMany listOf(gameData1, gameData2)
+        coEvery { mockRepository.updateUserData(any()) } just Runs
 
         // Buy first variant
         viewModel.buyVariant("male_fitness", 100)
@@ -331,9 +331,9 @@ class CustomizationViewModelTest {
 
     @Test
     fun `buyVariant with zero price still requires validation`() = runTest {
-        val gameData = UserGameData(coins = 0)
-        coEvery { mockRepository.fetchUserGameDataOnce() } returns gameData
-        coEvery { mockRepository.updateUserGameData(any()) } just Runs
+        val gameData = UserData(coins = 0)
+        coEvery { mockRepository.fetchUserDataOnce() } returns gameData
+        coEvery { mockRepository.updateUserData(any()) } just Runs
 
         viewModel.buyVariant("male_fitness", 0)
         testDispatcher.scheduler.advanceUntilIdle()

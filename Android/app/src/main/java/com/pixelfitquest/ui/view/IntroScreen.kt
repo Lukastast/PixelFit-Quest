@@ -37,6 +37,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
+import com.pixelfitquest.model.Slide
 import com.pixelfitquest.viewmodel.IntroViewModel
 import kotlinx.coroutines.delay
 
@@ -52,7 +53,10 @@ fun IntroScreen(
     var textFinished by remember { mutableStateOf(false) }
     var showSlide by remember { mutableStateOf(true) }
     val slides = listOf(
-        Slide(R.drawable.slide1, "In a shadowed world, OBESITY grips 1 in 8. HEROES weaken, lost to distractions. Knowledge and gyms abound."),
+        Slide(
+            R.drawable.slide1,
+            "In a shadowed world, OBESITY grips 1 in 8. HEROES weaken, lost to distractions. Knowledge and gyms abound."
+        ),
         Slide(R.drawable.slide2, "Warriors can't track moves or stay motivated. Apps promise help, but none forge ADVENTURE. No quests. No glory."),
         Slide(R.drawable.slide3, "Welcome, brave hero! Behold PixelFit Quest! Level up through workouts. Your quest begins. Ready to fight?")
     )
@@ -148,7 +152,3 @@ fun IntroScreen(
     }
 }
 
-data class Slide(
-    val imageRes: Int,
-    val text: String
-)

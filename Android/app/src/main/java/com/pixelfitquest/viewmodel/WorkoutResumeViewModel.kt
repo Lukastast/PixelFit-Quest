@@ -1,17 +1,15 @@
 package com.pixelfitquest.viewmodel
 
 import android.util.Log
-import androidx.compose.material3.Card
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pixelfitquest.model.UserGameData
-import com.pixelfitquest.model.Workout
+import com.pixelfitquest.model.UserData
+import com.pixelfitquest.model.workout.ExerciseWithSets
+import com.pixelfitquest.model.workout.Workout
+import com.pixelfitquest.model.workout.WorkoutSummary
 import com.pixelfitquest.repository.UserRepository
 import com.pixelfitquest.repository.WorkoutRepository
-import com.pixelfitquest.ui.view.ExerciseWithSets
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,8 +24,8 @@ class WorkoutResumeViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    private val _userGameData = MutableStateFlow<UserGameData?>(null)
-    val userGameData: StateFlow<UserGameData?> = _userGameData.asStateFlow()
+    private val _userData = MutableStateFlow<UserData?>(null)
+    val userData: StateFlow<UserData?> = _userData.asStateFlow()
     private val workoutId: String = savedStateHandle.get<String>("workoutId") ?: ""
 
     private val _summary = MutableStateFlow(WorkoutSummary(0, 0, 0f))
@@ -43,11 +41,11 @@ class WorkoutResumeViewModel @Inject constructor(
         }
     }
 
-    private fun loadUserData() {
+    private fun loaduserData() {
         viewModelScope.launch {
             try {
-                userRepository.getUserGameData().collect { data ->
-                    _userGameData.value = data
+                userRepository.getUserData().collect { data ->
+                   _userData.value = data
 
                 }
             } catch (e: Exception) {
@@ -158,13 +156,12 @@ class WorkoutResumeViewModel @Inject constructor(
         }
     }
 
-    // NEW: Add Coins (inspired by HomeViewModel.addCoins)
     private fun addCoins(amount: Int) {
         if (amount <= 0) return
         viewModelScope.launch {
             try {
-                val current = _userGameData.value ?: return@launch
-                userRepository.updateUserGameData(mapOf("coins" to current.coins + amount))
+                val current = _userData.value ?: return@launch
+                userRepository.updateUserData(mapOf("coins" to current.coins + amount))
                 Log.d("ResumeVM", "Added $amount Coins")
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to update coins"
@@ -173,9 +170,5 @@ class WorkoutResumeViewModel @Inject constructor(
     }
 
 
-    data class WorkoutSummary(
-        val totalXp: Int,
-        val totalCoins: Int,
-        val avgScore: Float = 0f  // NEW: For UI display
-    )
+
 }

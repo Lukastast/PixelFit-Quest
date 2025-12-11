@@ -51,10 +51,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
-import com.pixelfitquest.helpers.HOME_SCREEN
 import com.pixelfitquest.R
-import com.pixelfitquest.model.WorkoutFeedback
-import com.pixelfitquest.model.WorkoutPlan
+import com.pixelfitquest.helpers.HOME_SCREEN
+import com.pixelfitquest.model.enums.WorkoutFeedback
+import com.pixelfitquest.model.workout.WorkoutPlan
 import com.pixelfitquest.ui.components.CharacterIdleAnimation
 import com.pixelfitquest.ui.components.PixelArtButton
 import com.pixelfitquest.ui.theme.determination
@@ -88,19 +88,20 @@ fun WorkoutScreen(
     val currentSets = plan.items.getOrNull(state.currentExerciseIndex)?.sets ?: 0
     val currentWeight = plan.items.getOrNull(state.currentExerciseIndex)?.weight ?: 0.0
 
-//    countdown animation
-//    LaunchedEffect(Unit) {
-//        viewModel.countdownEvent.collectLatest {
-//            countdownNumber = 3
-//            repeat(3) { i ->
-//                delay(1000L)
-//                countdownNumber = 3 - i - 1
-//            }
-//            countdownNumber = null
-//            delay(800L)
-//            countdownNumber = -1
-//        }
-//    }
+    LaunchedEffect(Unit) {
+        viewModel.countdownEvent.collectLatest {
+            countdownNumber = 3
+            repeat(3) { i ->
+                delay(1000L)
+                countdownNumber = 3 - i - 1  // 3 → 2 → 1 → 0
+            }
+            countdownNumber = null
+            delay(300L)
+            countdownNumber = -1
+            delay(1000L)
+            countdownNumber = null
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.feedbackEvent.collect { feedback ->
@@ -116,7 +117,7 @@ fun WorkoutScreen(
                 targetValue = 1f,
                 animationSpec = spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = 500f)
             )
-            delay(900L)
+            delay(300L)
             animState.animateTo(0f)
             currentFeedback = null
         }
@@ -163,14 +164,8 @@ fun WorkoutScreen(
     DisposableEffect(context, lifecycleOwner) {
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        val gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
         if (accelerometer == null ) {
-            viewModel.setError("No acclerometer sensor found")
-
-            return@DisposableEffect onDispose {}
-        }
-        else if (gyroscope == null) {
-            viewModel.setError("No gyroscope sensor found")
+            viewModel.setError("No accelerometer sensor found")
 
             return@DisposableEffect onDispose {}
         }
@@ -183,10 +178,6 @@ fun WorkoutScreen(
                         val accelData = floatArrayOf(event.values[0], event.values[1], event.values[2])
                         viewModel.onSensorDataUpdated(accelData, event.timestamp)
                     }
-                    Sensor.TYPE_GYROSCOPE -> {
-                        val gyroData = floatArrayOf(event.values[0], event.values[1], event.values[2])
-                        //viewModel.onGyroDataUpdated(gyroData, event.timestamp)
-                    }
                 }
             }
 
@@ -196,8 +187,7 @@ fun WorkoutScreen(
         coroutineScope.launch {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
-                sensorManager.registerListener(listener, gyroscope, SensorManager.SENSOR_DELAY_NORMAL)
-            }
+             }
         }
 
         onDispose {
@@ -213,16 +203,48 @@ fun WorkoutScreen(
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillBounds
         )
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            countdownNumber?.let { number ->
+                val text = if (number >= 0) "$number" else "GO!"
+                val color = if (number >= 0) Color.Yellow else Color.Green
+
+                Text(
+                    text = text,
+                    fontSize = 120.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = color,
+                    fontFamily = determination,
+                    modifier = Modifier
+                        .scale(1.2f)
+                        .padding(bottom = 10.dp)
+                        .graphicsLayer {
+                            alpha = 0.9f
+                        }
+                        .background(
+                            color = Color.Black.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        .padding(horizontal = 48.dp, vertical = 12.dp)
+                )
+            }
+        }
 
         Row( modifier = Modifier
             .padding(top = 16.dp, start = 16.dp, end = 16.dp)
             .align(Alignment.TopCenter)
         ) {
-            Text(text ="Set: ${state.currentSetNumber} / $currentSets, Reps: ${state.reps}, Weight: $currentWeight Kg",
-                modifier.background(
-                    color = Color.Black.copy(alpha = 0.7f),
-                    shape = RoundedCornerShape(8.dp)
-                ))
+            Text(
+                text = "Set: ${state.currentSetNumber} / $currentSets, Reps: ${state.reps}, Weight: $currentWeight Kg",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .background(
+                        color = Color.Black.copy(alpha = 0.7f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(horizontal = 10.dp)
+            )
         }
 
         Row( modifier = Modifier
@@ -287,7 +309,7 @@ fun WorkoutScreen(
 
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             countdownNumber?.let { number ->
-                val text = if (number >= 0) "${number + 1}" else "GO!"
+                val text = if (number >= 0) "$number" else "GO!"
                 val color = if (number >= 0) Color.Yellow else Color.Green
 
                 Text(
@@ -314,8 +336,6 @@ fun WorkoutScreen(
                             scaleY = animState.value * feedback.scale
                             alpha = animState.value
                         }
-                        .background(feedback.color.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
-                        .padding(8.dp)
                 )
             }
         }
@@ -338,9 +358,24 @@ fun WorkoutScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text("ROM Score: \n${state.romScore.toInt()} / 100 \navg = ${state.avgRomScore.toInt()}")
-                    Text("X Tilt Score: \n-100 / ${state.tiltXScore.toInt()} / 100 \navg = ${state.avgTiltXScore.toInt()}")
-                    Text("Z Tilt Score: \n-100 / ${state.tiltZScore.toInt()} / 100 \navg = ${state.avgTiltZScore.toInt()}")
+                    Text(
+                        text = "ROM Score: \n${state.romScore.toInt()} / 100 \navg = ${state.avgRomScore.toInt()}",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "X Tilt Score: \n-100 / ${state.tiltXScore.toInt()} / 100 \navg = ${state.avgTiltXScore.toInt()}",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "Z Tilt Score: \n-100 / ${state.tiltZScore.toInt()} / 100 \navg = ${state.avgTiltZScore.toInt()}",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             }
         }

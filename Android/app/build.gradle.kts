@@ -120,6 +120,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.ui.test.junit4)
+    implementation(libs.androidx.compose.foundation)
     kapt("com.google.dagger:hilt-compiler:2.57.2")
     kapt("com.google.dagger:hilt-android-compiler:2.57.2")
 

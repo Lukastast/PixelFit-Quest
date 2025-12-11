@@ -65,7 +65,7 @@ import com.pixelfitquest.helpers.WORKOUT_CUSTOMIZATION_SCREEN
 import com.pixelfitquest.helpers.WORKOUT_SCREEN
 import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
-import com.pixelfitquest.model.WorkoutPlan
+import com.pixelfitquest.model.workout.WorkoutPlan
 import com.pixelfitquest.ui.screens.LoginScreen
 import com.pixelfitquest.ui.view.CustomizationScreen
 import com.pixelfitquest.ui.view.HomeScreen
@@ -88,7 +88,7 @@ fun AppScaffold() {
     val isUserLoggedIn = appState.currentUser != null
 
     val globalSettingsViewModel: GlobalSettingsViewModel = hiltViewModel()
-    val userSettings by globalSettingsViewModel.userSettingsRepository.getUserSettings().collectAsState(initial = null)
+    val userSettings by globalSettingsViewModel.userRepository.getUserData().collectAsState(initial = null)
 
     val hasBottomBar = isUserLoggedIn && currentRoute in listOf(
         HOME_SCREEN,
@@ -205,9 +205,7 @@ fun AppScaffold() {
 
                 LaunchedEffect(musicVolume.value) {
                     if (settingsLoaded) {
-                        appState.mediaPlayer?.let { player ->
-                            player.setVolume(musicVolume.value, musicVolume.value)
-                        }
+                        appState.mediaPlayer?.setVolume(musicVolume.value, musicVolume.value)
                     }
                 }
 
@@ -362,7 +360,6 @@ fun NavGraphBuilder.pixelFitGraph(
     composable(HOME_SCREEN) {
         HomeScreen(
             restartApp = { route -> appState.clearAndNavigate(route) },
-            openScreen = { route -> appState.navigate(route) },
             navController = appState.navController,
             onScreenReady = { onScreenReady(HOME_SCREEN) }
         )

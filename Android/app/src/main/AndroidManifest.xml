@@ -5,9 +5,9 @@
         android:name="android.hardware.sensor.accelerometer"
         android:required="true" />
 
-    <uses-feature
-        android:name="android.hardware.sensor.gyroscope"
-        android:required="false" />
+    <attribution
+        android:tag="workout_tracking"
+        android:label="@string/attribution_workout_tracking" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 

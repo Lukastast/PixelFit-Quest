@@ -1,10 +1,10 @@
 package com.pixelfitquest.viewmodel
 
 import com.pixelfitquest.model.User
-import com.pixelfitquest.model.UserSettings
+import com.pixelfitquest.model.UserData
 import com.pixelfitquest.model.service.AccountService
-import com.pixelfitquest.repository.UserSettingsRepository
 import com.pixelfitquest.R
+import com.pixelfitquest.repository.UserRepository
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,7 +22,7 @@ class SettingsViewModelTest {
 
     private lateinit var viewModel: SettingsViewModel
     private lateinit var mockAccountService: AccountService
-    private lateinit var mockUserSettingsRepository: UserSettingsRepository
+    private lateinit var mockUserRepository: UserRepository
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
@@ -30,12 +30,12 @@ class SettingsViewModelTest {
         Dispatchers.setMain(testDispatcher)
 
         mockAccountService = mockk(relaxed = true)
-        mockUserSettingsRepository = mockk(relaxed = true)
+        mockUserRepository = mockk(relaxed = true)
 
         // Default mocks
         coEvery { mockAccountService.getUserProfile() } returns User()
-        coEvery { mockUserSettingsRepository.getUserSettings() } returns flowOf(
-            UserSettings(height = 175, musicVolume = 50)
+        coEvery { mockUserRepository.getUserData() } returns flowOf(
+            UserData(height = 175, musicVolume = 50)
         )
     }
 
@@ -52,7 +52,7 @@ class SettingsViewModelTest {
         val testUser = User(id = "123", email = "test@example.com", displayName = "Test User")
         coEvery { mockAccountService.getUserProfile() } returns testUser
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals("123", viewModel.user.value.id)
@@ -62,14 +62,14 @@ class SettingsViewModelTest {
 
     @Test
     fun `init loads user settings`() = runTest {
-        val testSettings = UserSettings(height = 180, musicVolume = 75)
-        coEvery { mockUserSettingsRepository.getUserSettings() } returns flowOf(testSettings)
+        val testSettings = UserData(height = 180, musicVolume = 75)
+        coEvery { mockUserRepository.getUserData() } returns flowOf(testSettings)
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(180, viewModel.userSettings.value?.height)
-        assertEquals(75, viewModel.userSettings.value?.musicVolume)
+        assertEquals(180, viewModel.userData.value?.height)
+        assertEquals(75, viewModel.userData.value?.musicVolume)
     }
 
     // ========== Display Name Update Tests ==========
@@ -82,7 +82,7 @@ class SettingsViewModelTest {
         coEvery { mockAccountService.getUserProfile() } returnsMany listOf(initialUser, updatedUser)
         coEvery { mockAccountService.updateDisplayName(any()) } just Runs
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.onUpdateDisplayNameClick("New Name")
@@ -96,7 +96,7 @@ class SettingsViewModelTest {
     fun `onUpdateDisplayNameClick handles empty name`() = runTest {
         coEvery { mockAccountService.updateDisplayName(any()) } just Runs
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.onUpdateDisplayNameClick("")
@@ -112,7 +112,7 @@ class SettingsViewModelTest {
         val user = User(profilePictureUrl = null)
         coEvery { mockAccountService.getUserProfile() } returns user
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         val result = viewModel.getProfilePictureModel()
@@ -125,7 +125,7 @@ class SettingsViewModelTest {
         val user = User(profilePictureUrl = "")
         coEvery { mockAccountService.getUserProfile() } returns user
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         val result = viewModel.getProfilePictureModel()
@@ -138,7 +138,7 @@ class SettingsViewModelTest {
         val user = User(profilePictureUrl = "https://example.com/profile.jpg")
         coEvery { mockAccountService.getUserProfile() } returns user
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         val result = viewModel.getProfilePictureModel()
@@ -151,7 +151,7 @@ class SettingsViewModelTest {
         val user = User(profilePictureUrl = "   ")
         coEvery { mockAccountService.getUserProfile() } returns user
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         val result = viewModel.getProfilePictureModel()
@@ -165,7 +165,7 @@ class SettingsViewModelTest {
     fun `onSignOutClick calls signOut and restarts app`() = runTest {
         coEvery { mockAccountService.signOut() } just Runs
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         var restartCalled = false
@@ -186,7 +186,7 @@ class SettingsViewModelTest {
     fun `onDeleteAccountClick calls deleteAccount and restarts app`() = runTest {
         coEvery { mockAccountService.deleteAccount() } just Runs
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         var restartCalled = false
@@ -207,16 +207,16 @@ class SettingsViewModelTest {
 
     @Test
     fun `setHeight updates height setting`() = runTest {
-        coEvery { mockUserSettingsRepository.updateUserSettings(any()) } just Runs
+        coEvery { mockUserRepository.updateUserData(any()) } just Runs
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.setHeight(180)
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify {
-            mockUserSettingsRepository.updateUserSettings(match {
+            mockUserRepository.updateUserData(match {
                 it["height"] == 180
             })
         }
@@ -224,16 +224,16 @@ class SettingsViewModelTest {
 
     @Test
     fun `setHeight handles minimum valid height`() = runTest {
-        coEvery { mockUserSettingsRepository.updateUserSettings(any()) } just Runs
+        coEvery { mockUserRepository.updateUserData(any()) } just Runs
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.setHeight(1)
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify {
-            mockUserSettingsRepository.updateUserSettings(match {
+            mockUserRepository.updateUserData(match {
                 it["height"] == 1
             })
         }
@@ -241,16 +241,16 @@ class SettingsViewModelTest {
 
     @Test
     fun `setHeight handles maximum valid height`() = runTest {
-        coEvery { mockUserSettingsRepository.updateUserSettings(any()) } just Runs
+        coEvery { mockUserRepository.updateUserData(any()) } just Runs
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.setHeight(272)
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify {
-            mockUserSettingsRepository.updateUserSettings(match {
+            mockUserRepository.updateUserData(match {
                 it["height"] == 272
             })
         }
@@ -258,9 +258,9 @@ class SettingsViewModelTest {
 
     @Test
     fun `setHeight sets error when repository throws exception`() = runTest {
-        coEvery { mockUserSettingsRepository.updateUserSettings(any()) } throws Exception("Update failed")
+        coEvery { mockUserRepository.updateUserData(any()) } throws Exception("Update failed")
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.setHeight(180)
@@ -274,16 +274,16 @@ class SettingsViewModelTest {
 
     @Test
     fun `setMusicVolume updates music volume setting`() = runTest {
-        coEvery { mockUserSettingsRepository.updateUserSettings(any()) } just Runs
+        coEvery { mockUserRepository.updateUserData(any()) } just Runs
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.setMusicVolume(75)
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify {
-            mockUserSettingsRepository.updateUserSettings(match {
+            mockUserRepository.updateUserData(match {
                 it["musicVolume"] == 75
             })
         }
@@ -291,16 +291,16 @@ class SettingsViewModelTest {
 
     @Test
     fun `setMusicVolume handles zero volume`() = runTest {
-        coEvery { mockUserSettingsRepository.updateUserSettings(any()) } just Runs
+        coEvery { mockUserRepository.updateUserData(any()) } just Runs
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.setMusicVolume(0)
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify {
-            mockUserSettingsRepository.updateUserSettings(match {
+            mockUserRepository.updateUserData(match {
                 it["musicVolume"] == 0
             })
         }
@@ -308,16 +308,16 @@ class SettingsViewModelTest {
 
     @Test
     fun `setMusicVolume handles maximum volume`() = runTest {
-        coEvery { mockUserSettingsRepository.updateUserSettings(any()) } just Runs
+        coEvery { mockUserRepository.updateUserData(any()) } just Runs
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.setMusicVolume(100)
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify {
-            mockUserSettingsRepository.updateUserSettings(match {
+            mockUserRepository.updateUserData(match {
                 it["musicVolume"] == 100
             })
         }
@@ -325,9 +325,9 @@ class SettingsViewModelTest {
 
     @Test
     fun `setMusicVolume sets error when repository throws exception`() = runTest {
-        coEvery { mockUserSettingsRepository.updateUserSettings(any()) } throws Exception("Volume update failed")
+        coEvery { mockUserRepository.updateUserData(any()) } throws Exception("Volume update failed")
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.setMusicVolume(50)
@@ -341,9 +341,9 @@ class SettingsViewModelTest {
 
     @Test
     fun `loadUserData sets error when repository throws exception`() = runTest {
-        coEvery { mockUserSettingsRepository.getUserSettings() } throws Exception("Network error")
+        coEvery { mockUserRepository.getUserData() } throws Exception("Network error")
 
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertNotNull(viewModel.error.value)
@@ -354,7 +354,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `initial user is empty`() = runTest {
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
 
         // Before initialization completes
         assertEquals("", viewModel.user.value.id)
@@ -362,7 +362,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `initial error is null`() = runTest {
-        viewModel = SettingsViewModel(mockAccountService, mockUserSettingsRepository)
+        viewModel = SettingsViewModel(mockAccountService, mockUserRepository)
 
         assertEquals(null, viewModel.error.value)
     }

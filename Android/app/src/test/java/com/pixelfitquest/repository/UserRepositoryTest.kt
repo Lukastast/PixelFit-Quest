@@ -13,7 +13,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.QuerySnapshot
 import com.pixelfitquest.model.CharacterData
-import com.pixelfitquest.model.UserGameData
+import com.pixelfitquest.model.UserData
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -88,37 +88,37 @@ class UserRepositoryTest {
     }
 
     // ╔══════════════════════════════════════════════════════════╗
-    //   getUserGameData() Flow tests
+    //   getUserData() Flow tests
     // ╚══════════════════════════════════════════════════════════╝
 
     @Test
-    fun `getUserGameData emits null when no user logged in`() = runTest {
+    fun `getUserData emits null when no user logged in`() = runTest {
         every { auth.currentUser } returns null
 
-        repository.getUserGameData().test {
+        repository.getUserData().test {
             awaitComplete() // Should close immediately
         }
     }
 
     @Test
-    fun `getUserGameData emits default UserGameData when document does not exist`() = runTest {
+    fun `getUserData emits default UserData when document does not exist`() = runTest {
         every { userDocRef.addSnapshotListener(any()) } answers {
             val listener = it.invocation.args[0] as EventListener<DocumentSnapshot>
             listener.onEvent(null, null)  // document doesn't exist
             mockk<ListenerRegistration>(relaxed = true)
         }
 
-        repository.getUserGameData().test {
-            assertEquals(UserGameData(), awaitItem())
+        repository.getUserData().test {
+            assertEquals(UserData(), awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
-    fun `getUserGameData emits data from firestore`() = runTest {
-        val expected = UserGameData(level = 5, exp = 250, coins = 999, streak = 7)
+    fun `getUserData emits data from firestore`() = runTest {
+        val expected = UserData(level = 5, exp = 250, coins = 999, streak = 7)
         val snapshot = mockk<DocumentSnapshot>()
-        every { snapshot.toObject(UserGameData::class.java) } returns expected
+        every { snapshot.toObject(UserData::class.java) } returns expected
 
         every { userDocRef.addSnapshotListener(any()) } answers {
             val listener = it.invocation.args[0] as EventListener<DocumentSnapshot>
@@ -126,49 +126,49 @@ class UserRepositoryTest {
             mockk<ListenerRegistration>(relaxed = true)
         }
 
-        repository.getUserGameData().test {
+        repository.getUserData().test {
             assertEquals(expected, awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
     }
     // ╔══════════════════════════════════════════════════════════╗
-    //   fetchUserGameDataOnce tests
+    //   fetchUserDataOnce tests
     // ╚══════════════════════════════════════════════════════════╝
 
     @Test
-    fun `fetchUserGameDataOnce returns null when no user`() = runTest {
+    fun `fetchUserDataOnce returns null when no user`() = runTest {
         every { auth.currentUser } returns null
 
-        assertNull(repository.fetchUserGameDataOnce())
+        assertNull(repository.fetchUserDataOnce())
     }
 
     @Test
-    fun `fetchUserGameDataOnce returns default when document missing`() = runTest {
+    fun `fetchUserDataOnce returns default when document missing`() = runTest {
         val snapshot = mockk<DocumentSnapshot>()
-        every { snapshot.toObject(UserGameData::class.java) } returns null
+        every { snapshot.toObject(UserData::class.java) } returns null
         coEvery { userDocRef.get() } returns Tasks.forResult(snapshot)
 
-        assertEquals(UserGameData(), repository.fetchUserGameDataOnce())
+        assertEquals(UserData(), repository.fetchUserDataOnce())
     }
 
     // ╔══════════════════════════════════════════════════════════╗
-    //   initUserGameData tests
+    //   initUserData tests
     // ╚══════════════════════════════════════════════════════════╝
 
     @Test
-    fun `initUserGameData creates document with defaults`() = runTest {
-        coEvery { userDocRef.set(UserGameData()) } returns Tasks.forResult(null)
+    fun `initUserData creates document with defaults`() = runTest {
+        coEvery { userDocRef.set(UserData()) } returns Tasks.forResult(null)
 
-        repository.initUserGameData()
+        repository.initUserData()
 
-        coVerify { userDocRef.set(UserGameData()) }
+        coVerify { userDocRef.set(UserData()) }
     }
 
     @Test(expected = Exception::class)
-    fun `initUserGameData throws when no user`() = runTest {
+    fun `initUserData throws when no user`() = runTest {
         every { auth.currentUser } returns null
 
-        repository.initUserGameData()
+        repository.initUserData()
     }
 
     // ╔══════════════════════════════════════════════════════════╗
@@ -180,9 +180,9 @@ class UserRepositoryTest {
         // This now instantly loads fallback defaults — no hang!
         repository.loadProgressionConfig()
 
-        val initialData = UserGameData(level = 1, exp = 0)
+        val initialData = UserData(level = 1, exp = 0)
         val snapshot = mockk<DocumentSnapshot>()
-        every { snapshot.toObject(UserGameData::class.java) } returns initialData
+        every { snapshot.toObject(UserData::class.java) } returns initialData
         every { snapshot.exists() } returns true
 
         coEvery { userDocRef.get() } returns Tasks.forResult(snapshot)
@@ -202,9 +202,9 @@ class UserRepositoryTest {
     fun `updateExp caps level and exp at MAX_LEVEL=30`() = runTest {
         repository.loadProgressionConfig() // loads defaults
 
-        val initialData = UserGameData(level = 30, exp = 0)
+        val initialData = UserData(level = 30, exp = 0)
         val snapshot = mockk<DocumentSnapshot>()
-        every { snapshot.toObject(UserGameData::class.java) } returns initialData
+        every { snapshot.toObject(UserData::class.java) } returns initialData
         every { snapshot.exists() } returns true
 
         coEvery { userDocRef.get() } returns Tasks.forResult(snapshot)
@@ -230,7 +230,7 @@ class UserRepositoryTest {
         val yesterday = java.time.LocalDate.now().minusDays(1).format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
 
         val snapshot = mockk<DocumentSnapshot>()
-        every { snapshot.toObject(UserGameData::class.java) } returns UserGameData(streak = 5)
+        every { snapshot.toObject(UserData::class.java) } returns UserData(streak = 5)
         every { snapshot.getString("last_activity_date") } returns yesterday // yesterday in UTC
         every { snapshot.exists() } returns true
 
@@ -253,7 +253,7 @@ class UserRepositoryTest {
         val threeDaysAgo = java.time.LocalDate.now().minusDays(3).format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
 
         val snapshot = mockk<DocumentSnapshot>()
-        every { snapshot.toObject(UserGameData::class.java) } returns UserGameData(streak = 10)
+        every { snapshot.toObject(UserData::class.java) } returns UserData(streak = 10)
         every { snapshot.getString("last_activity_date") } returns threeDaysAgo
         every { snapshot.exists() } returns true
 
@@ -319,13 +319,13 @@ class UserRepositoryTest {
         val doc3 = mockk<DocumentSnapshot>()
 
         every { doc1.id } returns "userA"
-        every { doc1.toObject(UserGameData::class.java) } returns UserGameData(level = 10, exp = 500)
+        every { doc1.toObject(UserData::class.java) } returns UserData(level = 10, exp = 500)
 
         every { doc2.id } returns "userB"
-        every { doc2.toObject(UserGameData::class.java) } returns UserGameData(level = 15, exp = 100)
+        every { doc2.toObject(UserData::class.java) } returns UserData(level = 15, exp = 100)
 
         every { doc3.id } returns "userC"
-        every { doc3.toObject(UserGameData::class.java) } returns UserGameData(level = 15, exp = 300)
+        every { doc3.toObject(UserData::class.java) } returns UserData(level = 15, exp = 300)
 
         every { querySnapshot.documents } returns listOf(doc1, doc2, doc3)
 

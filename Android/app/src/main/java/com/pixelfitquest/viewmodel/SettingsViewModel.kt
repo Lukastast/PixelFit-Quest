@@ -11,9 +11,9 @@ import com.pixelfitquest.helpers.SPLASH_SCREEN
 import com.pixelfitquest.helpers.UNEXPECTED_CREDENTIAL
 import com.pixelfitquest.R
 import com.pixelfitquest.model.User
-import com.pixelfitquest.model.UserSettings
+import com.pixelfitquest.model.UserData
 import com.pixelfitquest.model.service.AccountService
-import com.pixelfitquest.repository.UserSettingsRepository
+import com.pixelfitquest.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,12 +24,12 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val accountService: AccountService,
-    private val userSettingsRepository: UserSettingsRepository
+    private val userRepository: UserRepository
 ) : PixelFitViewModel() {
 
     private val _user = MutableStateFlow(User())
-    private val _userSettings = MutableStateFlow<UserSettings?>(null)
-    val userSettings: StateFlow<UserSettings?> = _userSettings.asStateFlow()
+    private val _userData = MutableStateFlow<UserData?>(null)
+    val userData: StateFlow<UserData?> = _userData.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -92,8 +92,8 @@ class SettingsViewModel @Inject constructor(
     private fun loadUserData() {
         viewModelScope.launch {
             try {
-                userSettingsRepository.getUserSettings().collect { data ->
-                    _userSettings.value = data
+                userRepository.getUserData().collect { data ->
+                    _userData.value = data
                 }
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to load user data"
@@ -103,7 +103,7 @@ class SettingsViewModel @Inject constructor(
     fun setHeight(height: Int) {
         viewModelScope.launch {
             try {
-                userSettingsRepository.updateUserSettings(
+                userRepository.updateUserData(
                     mapOf("height" to height)
                 )
                 loadUserData()
@@ -116,7 +116,7 @@ class SettingsViewModel @Inject constructor(
     fun setMusicVolume(volume: Int) {
         viewModelScope.launch {
             try {
-                userSettingsRepository.updateUserSettings(
+                userRepository.updateUserData(
                     mapOf("musicVolume" to volume)
                 )
                 loadUserData()

@@ -22,7 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.helpers.ExitAppCard
 import com.pixelfitquest.helpers.RemoveAccountCard
 import com.pixelfitquest.helpers.VolumeCard
@@ -40,7 +40,7 @@ fun SettingsScreen(
     onScreenReady: () -> Unit = {}
 ) {
     val user by viewModel.user.collectAsState(initial = User())
-    val userSettings by viewModel.userSettings.collectAsState(initial = null)
+    val userSettings by viewModel.userData.collectAsState(initial = null)
     val musicVolume = userSettings?.musicVolume ?: 50
     val provider = user.provider.replaceFirstChar { it.titlecase(Locale.getDefault()) }
 

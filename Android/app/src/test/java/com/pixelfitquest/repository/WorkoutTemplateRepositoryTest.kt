@@ -14,10 +14,10 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
-import com.pixelfitquest.model.ExerciseType
-import com.pixelfitquest.model.WorkoutPlan
-import com.pixelfitquest.model.WorkoutPlanItem
-import com.pixelfitquest.model.WorkoutTemplate
+import com.pixelfitquest.model.enums.ExerciseType
+import com.pixelfitquest.model.workout.WorkoutPlan
+import com.pixelfitquest.model.workout.WorkoutPlanItem
+import com.pixelfitquest.model.workout.WorkoutTemplate
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
 import org.junit.After

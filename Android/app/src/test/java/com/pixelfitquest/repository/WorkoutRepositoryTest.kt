@@ -6,10 +6,9 @@ import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.*
-import com.pixelfitquest.model.Exercise
-import com.pixelfitquest.model.ExerciseType
-import com.pixelfitquest.model.UserGameData
-import com.pixelfitquest.model.Workout
+import com.pixelfitquest.model.enums.ExerciseType
+import com.pixelfitquest.model.workout.Exercise
+import com.pixelfitquest.model.workout.Workout
 import io.mockk.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -17,7 +16,6 @@ import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 class WorkoutRepositoryTest {
 

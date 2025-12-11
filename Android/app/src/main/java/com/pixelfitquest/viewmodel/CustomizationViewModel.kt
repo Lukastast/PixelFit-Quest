@@ -49,9 +49,9 @@ class CustomizationViewModel @Inject constructor(
 
     fun buyVariant(variant: String, price: Int) {
         viewModelScope.launch {
-            val gameData = userRepository.fetchUserGameDataOnce()
+            val gameData = userRepository.fetchUserDataOnce()
             if (gameData != null && gameData.coins >= price && !_characterData.value.unlockedVariants.contains(variant)) {
-                userRepository.updateUserGameData(mapOf("coins" to (gameData.coins - price)))
+                userRepository.updateUserData(mapOf("coins" to (gameData.coins - price)))
                 unlockVariant(variant)
                 updateVariant(variant)
             }
