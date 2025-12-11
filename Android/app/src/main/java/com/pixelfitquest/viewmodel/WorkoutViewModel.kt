@@ -530,8 +530,8 @@ class WorkoutViewModel @Inject constructor(
         // left/right
         val avgTiltZ = if (tiltSampleCount > 0) tiltZSum / tiltSampleCount else 0f    // forward/back
 
-        val thisRepTiltXPenalty = (abs(avgTiltX) / maxTiltAccel * 120f).coerceAtMost(100f)
-        val thisRepTiltZPenalty = (abs(avgTiltZ) / maxTiltAccel * 120f).coerceAtMost(100f)
+        val thisRepTiltXPenalty = (abs(avgTiltX) / maxTiltAccel * 150f).coerceAtMost(100f)
+        val thisRepTiltZPenalty = (abs(avgTiltZ) / maxTiltAccel * 150f).coerceAtMost(100f)
 
         // Convert penalty → positive score (100 - penalty)
         val thisRepTiltXScore = (100f - thisRepTiltXPenalty).coerceAtLeast(0f)

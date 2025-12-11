@@ -117,7 +117,7 @@ fun WorkoutScreen(
                 targetValue = 1f,
                 animationSpec = spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = 500f)
             )
-            delay(900L)
+            delay(600L)
             animState.animateTo(0f)
             currentFeedback = null
         }
