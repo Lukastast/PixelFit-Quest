@@ -3,6 +3,7 @@ package com.pixelfitquest.ui.view
 import android.util.Log
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -34,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -393,7 +396,7 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 dailyMissions.forEach { (mission, reward) ->
                     val isCompleted = completedMissions.contains(mission)
-                    val effectiveCompleted = isCompleted || (when {
+                    val effectiveCompleted = isCompleted || when {
                         mission.startsWith("Walk") -> {
                             val target = mission.split(" ")[1].toLongOrNull() ?: 0
                             todaySteps >= target
@@ -403,36 +406,52 @@ fun HomeScreen(
                             todaysWorkouts >= target
                         }
                         else -> false
-                    })
-                    val progress = if (effectiveCompleted) "Completed" else {
+                    }
+
+                    val progressText = if (effectiveCompleted) {
+                        if (mission.startsWith("Walk")) {
+                            val target = mission.split(" ")[1].toLongOrNull() ?: 0
+                            "$target / $target"
+                        } else {
+                            val target = mission.split(" ")[1].toIntOrNull() ?: 0
+                            "$target / $target"
+                        }
+                    } else {
                         if (mission.startsWith("Walk")) {
                             val target = mission.split(" ")[1].toLongOrNull() ?: 0
                             "$todaySteps / $target"
-                        } else if (mission.startsWith("Complete")) {
+                        } else {
                             val target = mission.split(" ")[1].toIntOrNull() ?: 0
                             "$todaysWorkouts / $target"
-                        } else ""
+                        }
                     }
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                            .padding(vertical = 6.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = mission,
                             color = Color.White,
-                            fontSize = 14.sp
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium
                         )
+
                         Text(
-                            text = progress,
-                            color = if (effectiveCompleted) Color.Green else Color.White,
-                            fontSize = 14.sp
+                            text = progressText,
+                            color = if (effectiveCompleted) Color(0xFF4CAF50) else Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = if (effectiveCompleted) FontWeight.Bold else FontWeight.Normal
                         )
+
                         Text(
                             text = "+$reward",
-                            color = Color.White,
-                            fontSize = 14.sp
+                            color = Color(0xFFFFD700),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
