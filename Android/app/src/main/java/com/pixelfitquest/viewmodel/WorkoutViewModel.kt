@@ -231,7 +231,6 @@ class WorkoutViewModel @Inject constructor(
                 this.currentVelocity = 0f
                 velHistory.clear()
                 accelHistory.clear()
-                triggerFeedback(WorkoutFeedback.MISS)
             }
             accelHistory.clear()
         }
