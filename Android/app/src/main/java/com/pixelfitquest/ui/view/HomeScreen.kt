@@ -389,7 +389,7 @@ fun HomeScreen(
             ) {
                 Text(
                     text = "Daily Missions",
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
@@ -436,23 +436,51 @@ fun HomeScreen(
                         Text(
                             text = mission,
                             color = Color.White,
-                            fontSize = 15.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
                         )
 
                         Text(
                             text = progressText,
                             color = if (effectiveCompleted) Color(0xFF4CAF50) else Color.White,
-                            fontSize = 15.sp,
+                            fontSize = 12.sp,
                             fontWeight = if (effectiveCompleted) FontWeight.Bold else FontWeight.Normal
                         )
 
-                        Text(
-                            text = "+$reward",
-                            color = Color(0xFFFFD700),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        val rewardParts = reward.split(":", limit = 2).map { it.trim() }
+                        val rewardType = if (rewardParts.size == 2) rewardParts[0].lowercase() else ""
+                        val rewardAmount = if (rewardParts.size == 2) rewardParts[1].toIntOrNull() ?: 0 else 0
+
+                        val isCoins = rewardType == "coins"
+                        val isExp = rewardType == "exp"
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "+$rewardAmount",
+                                color = Color(0xFFFFD700),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            if (isCoins) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.coin),
+                                    contentDescription = "Coins reward",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            } else if (isExp) {
+                                Text(
+                                    text = "EXP",
+                                    color = Color(0xFFFFD700),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
                 }
             }
