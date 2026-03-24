@@ -14,10 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
@@ -241,7 +241,7 @@ fun ExitAppCard(onSignOutClick: () -> Unit) {
                 )
             }
             Icon(
-                Icons.Filled.ExitToApp,
+                Icons.AutoMirrored.Filled.ExitToApp,
                 contentDescription = "Sign Out",
                 tint = Color.White
             )

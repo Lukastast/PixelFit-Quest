@@ -2,7 +2,6 @@ package com.pixelfitquest.di
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.preference.PreferenceManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
@@ -38,6 +37,6 @@ object AppModule {
     @Provides
     @Singleton
     fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
-        return PreferenceManager.getDefaultSharedPreferences(context)
+        return context.getSharedPreferences("pixelfitquest_prefs", Context.MODE_PRIVATE)
     }
 }

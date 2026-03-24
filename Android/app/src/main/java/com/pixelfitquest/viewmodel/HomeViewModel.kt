@@ -274,7 +274,7 @@ class HomeViewModel @Inject constructor(
             val goalResult = store.aggregateData(goalRequest)
             Log.d("HomeVM", "Goal result size: ${goalResult.dataList.size}")
 
-            val goal = goalResult.dataList.firstOrNull()?.value?.toInt() ?: 0
+            val goal = goalResult.dataList.firstOrNull()?.value ?: 0
             _stepGoal.value = goal
 
             val progressPercent = if (_stepGoal.value > 0) ((_todaySteps.value * 100) / _stepGoal.value).toInt() else 0
