@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -69,7 +70,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.model.enums.ExerciseType
 import com.pixelfitquest.model.workout.WorkoutPlan
-import com.pixelfitquest.ui.components.PixelArtButton
+import com.pixelfitquest.ui.components.atoms.PixelArtButton
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.WorkoutCustomizationViewModel
 import kotlinx.coroutines.launch

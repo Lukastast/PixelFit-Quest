@@ -1,35 +1,13 @@
 package com.pixelfitquest.ui.view
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -39,106 +17,76 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
-import com.pixelfitquest.ui.components.IdleAnimation
-import com.pixelfitquest.ui.components.PixelArtButton
+import com.pixelfitquest.ui.components.atoms.IdleAnimation
+import com.pixelfitquest.ui.components.atoms.PixelArtButton
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.CustomizationViewModel
 import com.pixelfitquest.viewmodel.SettingsViewModel
 
-
 @Composable
 fun CustomizationScreen(
-    openScreen: (String) -> Unit,
-    viewModel: CustomizationViewModel = hiltViewModel()
+    viewModel: CustomizationViewModel = hiltViewModel(),
+    settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val characterData by viewModel.characterData.collectAsState()
-    val settingsViewModel: SettingsViewModel = hiltViewModel()
-    val offset = -18
-    val price = 100
-    val painter = painterResource(id = R.drawable.info_background_even_even_higher)
-    val intrinsicSize = painter.intrinsicSize
-    val aspectRatio = if (intrinsicSize.isSpecified) {
-        intrinsicSize.height / intrinsicSize.width
-    } else {
-        280f / 400f
-    }
+    val userData by settingsViewModel.userData.collectAsState()
+
+    val gender = characterData.gender
+    val fitnessVariant = if (gender == "female") "female_fitness" else "male_fitness"
+    val premiumVariant = if (gender == "female") "female_premium" else "male_premium"
+    val variants = remember(gender) { listOf("basic", fitnessVariant, premiumVariant) }
 
     var currentVariantIndex by remember { mutableIntStateOf(0) }
 
-    val fitnessVariant = if (characterData.gender == "female") "female_fitness" else "male_fitness"
-    val premiumVariant = if (characterData.gender == "female") "female_premium" else "male_premium"
-    val variants = listOf("basic", fitnessVariant, premiumVariant)
+    // Synchronize UI index when character data or gender changes
+    LaunchedEffect(characterData.variant, gender) {
+        val index = variants.indexOf(characterData.variant)
+        if (index != -1) currentVariantIndex = index
+    }
+
     val currentVariant = variants[currentVariantIndex]
     val isUnlocked = characterData.unlockedVariants.contains(currentVariant)
     val isPremium = currentVariant == premiumVariant
     val isFitness = currentVariant == fitnessVariant
 
-    LaunchedEffect(characterData.variant, characterData.gender) {
-        val savedVariant = characterData.variant
-        when (savedVariant) {
-            fitnessVariant -> currentVariantIndex = 1
-            premiumVariant -> currentVariantIndex = 2
-            else -> currentVariantIndex = 0
+    // Logic to determine which sprite key to pass to IdleAnimation
+    val displaySprite = remember(currentVariant, gender, isUnlocked, isPremium) {
+        when {
+            currentVariant == "basic" -> gender
+            isPremium || !isUnlocked -> if (gender == "female") "locked_woman" else "locked_male"
+            else -> "fitness_character_${if (gender == "female") "woman" else "male"}_idle"
         }
     }
 
-    val displayGender = if (currentVariant == "basic") {
-        characterData.gender
-    } else if (isPremium) {
-        if (characterData.gender == "female") "locked_woman" else "locked_male"
-    } else {
-        val baseGender = if (characterData.gender == "female") "woman" else "male"
-        "fitness_character_${baseGender}_idle"
-    }
-
     Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(aspectRatio)
-        ) {
-            Image(
-                painter = painter,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
-            )
-
+        // Character Customization Section
+        CustomizationCard {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-
-                ) {
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = "Choose Your Character",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White  // White color
+                    color = Color.White
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Gender Toggle Buttons
-                Row {
-                    PixelArtButton(
-                        onClick = { viewModel.updateGender("male") },
-                        imageRes = R.drawable.button_unclicked,
-                        pressedRes = R.drawable.button_clicked,
-                        modifier = Modifier.size(80.dp, 40.dp)
-                    ) {
-                        Text("Male")
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    GenderToggleButton("Male", isSelected = gender == "male") {
+                        viewModel.updateGender("male")
                     }
-                    PixelArtButton(
-                        onClick = { viewModel.updateGender("female") },
-                        imageRes = R.drawable.button_unclicked,
-                        pressedRes = R.drawable.button_clicked,
-                        modifier = Modifier.size(80.dp, 40.dp)
-                    ) {
-                        Text("Female")
+                    GenderToggleButton("Female", isSelected = gender == "female") {
+                        viewModel.updateGender("female")
                     }
                 }
 
@@ -147,124 +95,49 @@ fun CustomizationScreen(
                         text = "+2 coins & +2 exp per reward",
                         color = Color.White,
                         fontSize = 12.sp,
-                        style = typography.bodyMedium
+                        style = typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp)
                     )
                 }
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    PixelArtButton(
-                        onClick = {
-                            currentVariantIndex = (currentVariantIndex - 1 + variants.size) % variants.size
-                        },
-                        imageRes = R.drawable.unclicked_customization_button_left,
-                        pressedRes = R.drawable.clicked_customization_button_left,
-                        modifier = Modifier.size(40.dp)
-                    ) {}
+                VariantCarousel(
+                    spriteKey = displaySprite,
+                    onPrevious = { currentVariantIndex = (currentVariantIndex - 1 + variants.size) % variants.size },
+                    onNext = { currentVariantIndex = (currentVariantIndex + 1) % variants.size }
+                )
 
-                    Spacer(modifier = Modifier.width(16.dp))
-                    IdleAnimation(
-                        modifier = Modifier
-                            .size(120.dp)
-                            .offset(x = (offset).dp),
-                        gender = if (isUnlocked && !isPremium) displayGender else if (characterData.gender == "female") "locked_woman" else "locked_male",
-                        isAnimating = true
-                    )
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    PixelArtButton(
-                        onClick = {
-                            currentVariantIndex = (currentVariantIndex + 1) % variants.size
-                        },
-                        imageRes = R.drawable.unclicked_customization_button_right,
-                        pressedRes = R.drawable.clicked_customization_button_right,
-                        modifier = Modifier.size(40.dp)
-                    ) {}
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (isPremium) {
-                    PixelArtButton(
-                        onClick = { },
-                        imageRes = R.drawable.button_unclicked,
-                        pressedRes = R.drawable.button_unclicked,
-                        modifier = Modifier.size(200.dp, 60.dp)
-                    ) {
-                        Text("Coming Soon")
-                    }
-                } else if (isUnlocked) {
-                    PixelArtButton(
-                        onClick = {
-                            viewModel.updateVariant(currentVariant)
-                        },
-                        imageRes = R.drawable.button_unclicked,
-                        pressedRes = R.drawable.button_clicked,
-                        modifier = Modifier.size(200.dp, 60.dp)
-                    ) {
-                        Text("Select")
-                    }
-                } else {
-                    PixelArtButton(
-                        onClick = { viewModel.buyVariant(currentVariant, price) },
-                        imageRes = R.drawable.button_unclicked,
-                        pressedRes = R.drawable.button_clicked,
-                        modifier = Modifier.size(200.dp, 60.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text("$price ")
-                            Image(
-                                painter = painterResource(R.drawable.coin),
-                                contentDescription = "Coin icon",
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(" coins")
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
+                ActionButtons(
+                    isPremium = isPremium,
+                    isUnlocked = isUnlocked,
+                    onSelect = { viewModel.updateVariant(currentVariant) },
+                    onBuy = { viewModel.buyVariant(currentVariant, 100) }
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        SetHeight(settingsViewModel)
+        // User Stats / Height Section
+        HeightSettingsCard(
+            currentHeight = userData?.height,
+            onSave = { settingsViewModel.setHeight(it) }
+        )
     }
 }
 
-
-
 @Composable
-fun SetHeight(
-    viewModel: SettingsViewModel
-) {
-    val userSettings by viewModel.userData.collectAsState()
-    var heightInput by remember { mutableStateOf("") }
-
-    LaunchedEffect(userSettings?.height) {
-        heightInput = userSettings?.height?.toString() ?: ""
-    }
-
+private fun CustomizationCard(content: @Composable BoxScope.() -> Unit) {
     val painter = painterResource(id = R.drawable.info_background_even_even_higher)
-    val intrinsicSize = painter.intrinsicSize
-    val aspectRatio = if (intrinsicSize.isSpecified) {
-        intrinsicSize.height / intrinsicSize.width
-    } else {
-        280f / 400f
+    val aspectRatio = remember(painter) {
+        val size = painter.intrinsicSize
+        if (size.isSpecified) size.height / size.width else 0.7f
     }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(aspectRatio)
+            .aspectRatio(aspectRatio),
+        contentAlignment = Alignment.Center
     ) {
         Image(
             painter = painter,
@@ -272,7 +145,95 @@ fun SetHeight(
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Fit
         )
+        content()
+    }
+}
 
+@Composable
+private fun GenderToggleButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
+    PixelArtButton(
+        onClick = onClick,
+        imageRes = if (isSelected) R.drawable.button_clicked else R.drawable.button_unclicked,
+        pressedRes = R.drawable.button_clicked,
+        modifier = Modifier.size(80.dp, 40.dp)
+    ) {
+        Text(text)
+    }
+}
+
+@Composable
+private fun VariantCarousel(spriteKey: String, onPrevious: () -> Unit, onNext: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        PixelArtButton(
+            onClick = onPrevious,
+            imageRes = R.drawable.unclicked_customization_button_left,
+            pressedRes = R.drawable.clicked_customization_button_left,
+            modifier = Modifier.size(40.dp)
+        ) {}
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        IdleAnimation(
+            modifier = Modifier
+                .size(120.dp)
+                .offset(x = (-18).dp),
+            gender = spriteKey,
+            isAnimating = true
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        PixelArtButton(
+            onClick = onNext,
+            imageRes = R.drawable.unclicked_customization_button_right,
+            pressedRes = R.drawable.clicked_customization_button_right,
+            modifier = Modifier.size(40.dp)
+        ) {}
+    }
+}
+
+@Composable
+private fun ActionButtons(
+    isPremium: Boolean,
+    isUnlocked: Boolean,
+    onSelect: () -> Unit,
+    onBuy: () -> Unit,
+    price: Int = 100
+) {
+    val modifier = Modifier.size(200.dp, 60.dp)
+    when {
+        isPremium -> {
+            PixelArtButton(onClick = {}, imageRes = R.drawable.button_unclicked, pressedRes = R.drawable.button_unclicked, modifier = modifier) {
+                Text("Coming Soon")
+            }
+        }
+        isUnlocked -> {
+            PixelArtButton(onClick = onSelect, imageRes = R.drawable.button_unclicked, pressedRes = R.drawable.button_clicked, modifier = modifier) {
+                Text("Select")
+            }
+        }
+        else -> {
+            PixelArtButton(onClick = onBuy, imageRes = R.drawable.button_unclicked, pressedRes = R.drawable.button_clicked, modifier = modifier) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("$price ")
+                    Image(painter = painterResource(R.drawable.coin), contentDescription = null, modifier = Modifier.size(16.dp))
+                    Text(" coins")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeightSettingsCard(currentHeight: Int?, onSave: (Int) -> Unit) {
+    var heightInput by remember { mutableStateOf("") }
+    LaunchedEffect(currentHeight) { heightInput = currentHeight?.toString() ?: "" }
+
+    CustomizationCard {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -280,44 +241,17 @@ fun SetHeight(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Current height:",
-                        color = Color.White,
-                        fontSize = 18.sp
-                    )
-
-                    userSettings?.height?.let { currentHeight ->
-                        Text(
-                            text = " $currentHeight cm",
-                            color = Color.White,
-                            fontSize = 18.sp
-                        )
-                    }
-                }
-            }
+            Text(
+                text = "Current height: ${currentHeight ?: "--"} cm",
+                color = Color.White,
+                fontSize = 18.sp
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Enter height (e.g., 175)",
-                color = Color.White,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
+            Text(text = "Enter height (e.g., 175)", color = Color.White, fontSize = 12.sp)
 
-            Box(
-                modifier = Modifier
-                    .width(200.dp)
-                    .height(60.dp),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.size(200.dp, 60.dp), contentAlignment = Alignment.Center) {
                 Image(
                     painter = painterResource(R.drawable.inputfield),
                     contentDescription = null,
@@ -325,22 +259,16 @@ fun SetHeight(
                     contentScale = ContentScale.FillBounds
                 )
                 TextField(
-                    singleLine = true,
                     value = heightInput,
-                    onValueChange = { heightInput = it },
+                    onValueChange = { if (it.length <= 3) heightInput = it.filter { c -> c.isDigit() } },
+                    singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(0.96f),
+                    modifier = Modifier.fillMaxHeight().fillMaxWidth(0.9f),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                        errorContainerColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent,
                         unfocusedTextColor = Color.Black,
                         focusedTextColor = Color.Black
                     )
@@ -349,23 +277,15 @@ fun SetHeight(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+            PixelArtButton(
+                onClick = {
+                    heightInput.toIntOrNull()?.let { if (it in 1..272) onSave(it) }
+                },
+                imageRes = R.drawable.button_unclicked,
+                pressedRes = R.drawable.button_clicked,
+                modifier = Modifier.size(220.dp, 60.dp)
             ) {
-                PixelArtButton(
-                    onClick = {
-                        val heightCm = heightInput.toIntOrNull()
-                        if (heightCm != null && heightCm in 1..272) {
-                            viewModel.setHeight(heightCm)
-                        }
-                    },
-                    imageRes = R.drawable.button_unclicked,
-                    pressedRes = R.drawable.button_clicked,
-                    modifier = Modifier.width(220.dp).height(60.dp)
-                ){
-                    Text("Set Height", fontSize = 14.sp)
-                }
+                Text("Set Height", fontSize = 14.sp)
             }
         }
     }

@@ -25,7 +25,7 @@ import com.pixelfitquest.helpers.SnackbarManager
 import com.pixelfitquest.R
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
-import com.pixelfitquest.ui.components.PixelArtButton
+import com.pixelfitquest.ui.components.atoms.PixelArtButton
 import kotlinx.coroutines.launch
 
 @Composable

@@ -405,7 +405,6 @@ fun NavGraphBuilder.pixelFitGraph(
 
     composable(CUSTOMIZATION_SCREEN) {
         CustomizationScreen(
-            openScreen = { route -> appState.navigate(route) }
         )
     }
 

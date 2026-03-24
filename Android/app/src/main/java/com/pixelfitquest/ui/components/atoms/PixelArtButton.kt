@@ -1,4 +1,4 @@
-package com.pixelfitquest.ui.components
+package com.pixelfitquest.ui.components.atoms
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable

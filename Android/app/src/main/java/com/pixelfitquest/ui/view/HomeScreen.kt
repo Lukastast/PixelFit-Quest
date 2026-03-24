@@ -3,7 +3,6 @@ package com.pixelfitquest.ui.view
 import android.util.Log
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -36,20 +34,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pixelfitquest.R
-import com.pixelfitquest.model.workout.Workout
+import com.pixelfitquest.ui.components.molecules.WorkoutCard
+import com.pixelfitquest.ui.components.molecules.formatDate
 import com.pixelfitquest.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -566,56 +563,4 @@ fun ordinal(i: Int): String {
         else -> "th"
     }
     return "$i$suffix"
-}
-
-@Composable
-fun WorkoutCard(
-    workout: Workout,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier.clickable(onClick = onClick)
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.fourth_and_more),
-            contentDescription = null,
-            modifier = Modifier.size(120.dp, 140.dp),
-            contentScale = ContentScale.Fit
-        )
-        Column(
-            modifier = Modifier
-                .matchParentSize()
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = workout.name,
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = workout.date.formatDate(),
-                color = Color.White.copy(alpha = 0.9f),
-                fontSize = 12.sp
-            )
-        }
-    }
-}
-
-private val dateFormatter = DateTimeFormatter.ofPattern("d MMM, yyyy")
-    .withZone(ZoneId.systemDefault())
-
-fun String.formatDate(): String {
-    return try {
-        val instant = Instant.parse(this)
-        dateFormatter.format(instant)
-    } catch (e: Exception) {
-        "Unknown date"
-    }
 }

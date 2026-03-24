@@ -43,7 +43,7 @@ import com.pixelfitquest.ext.launchCredManBottomSheet
 import com.pixelfitquest.helpers.AutoSizeText
 import com.pixelfitquest.helpers.LOGIN_SCREEN
 import com.pixelfitquest.model.service.AuthState
-import com.pixelfitquest.ui.components.PixelArtButton
+import com.pixelfitquest.ui.components.atoms.PixelArtButton
 import com.pixelfitquest.ui.theme.PixelFitQuestTheme
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.SignupViewModel

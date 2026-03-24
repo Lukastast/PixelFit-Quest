@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.pixelfitquest.R
 import com.pixelfitquest.model.User
-import com.pixelfitquest.ui.components.PixelArtButton
+import com.pixelfitquest.ui.components.atoms.PixelArtButton
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)

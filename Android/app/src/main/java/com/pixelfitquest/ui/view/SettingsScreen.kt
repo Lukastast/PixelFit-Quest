@@ -23,11 +23,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.pixelfitquest.helpers.ExitAppCard
-import com.pixelfitquest.helpers.RemoveAccountCard
-import com.pixelfitquest.helpers.VolumeCard
 import com.pixelfitquest.R
 import com.pixelfitquest.model.User
+import com.pixelfitquest.ui.components.molecules.ExitAppCard
+import com.pixelfitquest.ui.components.molecules.RemoveAccountCard
+import com.pixelfitquest.ui.components.molecules.VolumeCard
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.viewmodel.SettingsViewModel
 import java.util.Locale
