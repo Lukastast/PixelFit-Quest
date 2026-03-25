@@ -54,30 +54,21 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.pixelfitquest.helpers.CUSTOMIZATION_SCREEN
-import com.pixelfitquest.helpers.HOME_SCREEN
-import com.pixelfitquest.helpers.INTRO_SCREEN
-import com.pixelfitquest.helpers.LOGIN_SCREEN
-import com.pixelfitquest.helpers.SETTINGS_SCREEN
-import com.pixelfitquest.helpers.SIGNUP_SCREEN
-import com.pixelfitquest.helpers.SPLASH_SCREEN
-import com.pixelfitquest.helpers.WORKOUT_CUSTOMIZATION_SCREEN
-import com.pixelfitquest.helpers.WORKOUT_SCREEN
 import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
-import com.pixelfitquest.model.workout.WorkoutPlan
+import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.ui.screens.LoginScreen
-import com.pixelfitquest.ui.view.CustomizationScreen
-import com.pixelfitquest.ui.view.HomeScreen
-import com.pixelfitquest.ui.view.IntroScreen
-import com.pixelfitquest.ui.view.SettingsScreen
-import com.pixelfitquest.ui.view.SignupScreen
-import com.pixelfitquest.ui.view.SplashScreen
-import com.pixelfitquest.ui.view.WorkoutCustomizationScreen
-import com.pixelfitquest.ui.view.WorkoutResumeScreen
-import com.pixelfitquest.ui.view.WorkoutScreen
+import com.pixelfitquest.feature.customization.CustomizationScreen
+import com.pixelfitquest.feature.home.HomeScreen
+import com.pixelfitquest.feature.intro.IntroScreen
+import com.pixelfitquest.feature.settings.SettingsScreen
+import com.pixelfitquest.feature.Login.SignupScreen
+import com.pixelfitquest.feature.splash.SplashScreen
+import com.pixelfitquest.feature.workoutBuilder.WorkoutCustomizationScreen
+import com.pixelfitquest.feature.workoutResume.WorkoutResumeScreen
+import com.pixelfitquest.feature.workout.WorkoutScreen
 import com.pixelfitquest.viewmodel.GlobalSettingsViewModel
-import com.pixelfitquest.viewmodel.WorkoutResumeViewModel
+import com.pixelfitquest.feature.workoutResume.WorkoutResumeViewModel
 
 @Composable
 fun AppScaffold() {

@@ -1,9 +1,5 @@
 package com.pixelfitquest.ui.navigation
 
-import com.pixelfitquest.helpers.CUSTOMIZATION_SCREEN
-import com.pixelfitquest.helpers.HOME_SCREEN
-import com.pixelfitquest.helpers.SETTINGS_SCREEN
-import com.pixelfitquest.helpers.WORKOUT_CUSTOMIZATION_SCREEN
 import com.pixelfitquest.R
 
 sealed class BottomNavItem(
