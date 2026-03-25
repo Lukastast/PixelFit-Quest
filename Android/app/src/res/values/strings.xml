@@ -1,0 +1,65 @@
+<resources>
+    <string name="app_name">PixelFit Quest</string>
+    <string name="authenticate">Authenticate</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="sign_in">Sign in</string>
+    <string name="log_in">Log in</string>
+    <string name="login_with_google" />
+    <string name="attribution_workout_tracking">Workout Tracking &amp; Form Analysis</string>
+    <string name="no_accounts_error">No Google accounts found on this device</string>
+    <string name="sign_up">Sign up</string>
+    <string name="sign_up_description">Don\'t have an account? Click here to Sign Up!</string>
+    <string name="login_description">Already have an account? Click here to Login!</string>
+    <string name="sign_out">Sign out</string>
+    <string name="sign_out_title">Sign out?</string>
+    <string name="sign_out_description">You will have to sign in again.</string>
+    <string name="delete_account">Delete</string>
+    <string name="delete_account_title">Delete account?</string>
+    <string name="delete_account_description">You will lose all your notes and your account will be deleted. This action is irreversible.</string>
+    <string name="cancel">Cancel</string>
+    <string name="account_center">Account center</string>
+    <string name="profile_name">Display name</string>
+    <string name="profile_email">Email: %1$s</string>
+    <string name="profile_uid">UID: %1$s</string>
+    <string name="profile_provider">Account provider: %1$s</string>
+    <string name="update">Update</string>
+    <string name="or">or</string>
+    <string name="sign_up_with_google" />
+    <string name="link_google_account">Link Google account</string>
+    <string name="link_google_description">Link your Google account to enable seamless sign-in</string>
+    <string name="link_google_title">Link Google account?</string>
+    <string name="link_google">Link Account</string>
+
+    <!-- Customization Screen -->
+    <string name="choose_character">Choose Your Character</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
+    <string name="fitness_bonus">+2 coins &amp; +2 exp per reward</string>
+    <string name="coming_soon">Coming Soon</string>
+    <string name="select">Select</string>
+    <string name="coins_label"> coins</string>
+    <string name="current_height">Current height: %1$s cm</string>
+    <string name="enter_height_hint">Enter height (e.g., 175)</string>
+    <string name="set_height">Set Height</string>
+
+    <!-- Home Screen -->
+    <string name="loading">Loading...</string>
+    <string name="max_level">Max</string>
+    <string name="coin_icon_desc">Coin icon</string>
+    <string name="coins_count">Coins: %1$d</string>
+    <string name="streak_icon_desc">Streak icon</string>
+    <string name="level_display">Level: %1$s</string>
+    <string name="xp_bar_desc">XP bar</string>
+    <string name="steps_label">Steps</string>
+    <string name="steps_progress">%1$d / %2$d</string>
+    <string name="steps_reward_hint">+50 EXP, +10 Coins</string>
+    <string name="total_users_count">/ %1$d users</string>
+    <string name="achievements_button_desc">Achievements</string>
+    <string name="no_workouts_yet">No completed workouts yet</string>
+    <string name="daily_missions_title">Daily Missions</string>
+    <string name="coins_reward_desc">Coins reward</string>
+    <string name="exp_label">EXP</string>
+    <string name="achievements_title">Achievements</string>
+</resources>

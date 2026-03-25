@@ -69,7 +69,7 @@ fun SettingsScreen(
                     contentScale = ContentScale.FillBounds
                 )
                 Text(
-                    text = "Settings",
+                    text = stringResource(R.string.settings_title),
                     style = typography.bodyMedium,
                     color = Color.White,
                     modifier = Modifier

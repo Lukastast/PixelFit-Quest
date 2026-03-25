@@ -43,17 +43,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
 import com.pixelfitquest.model.enums.displayName
-import com.pixelfitquest.model.workout.Exercise
-import com.pixelfitquest.model.workout.WorkoutSet
 import com.pixelfitquest.viewmodel.WorkoutResumeViewModel
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,12 +65,12 @@ fun WorkoutResumeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Resume") },
+                title = { Text(stringResource(R.string.resume_title)) },
                 navigationIcon = {
                     IconButton(onClick = { openScreen("home") }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_arrow_back),
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back_desc)
                         )
                     }
                 },
@@ -103,7 +100,7 @@ fun WorkoutResumeScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            "Session Complete!",
+                            stringResource(R.string.session_complete),
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -117,17 +114,17 @@ fun WorkoutResumeScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Spacer(Modifier.width(6.dp))
                                 Text(
-                                    "+${summary.totalXp} XP",
+                                    stringResource(R.string.xp_reward, summary.totalXp),
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Green
                                 )
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(painterResource(R.drawable.coin), null, Modifier.size(28.dp))
+                                Image(painterResource(R.drawable.coin), null, Modifier.size(28.dp))
                                 Spacer(Modifier.width(6.dp))
                                 Text(
-                                    "+${summary.totalCoins} Coins",
+                                    stringResource(R.string.coins_reward, summary.totalCoins),
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFFFFD700)
@@ -138,7 +135,7 @@ fun WorkoutResumeScreen(
                         Spacer(Modifier.height(20.dp))
 
                         Text(
-                            text = "Exercise Feedback",
+                            text = stringResource(R.string.exercise_feedback_title),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White.copy(alpha = 0.9f)
@@ -189,7 +186,7 @@ fun WorkoutResumeScreen(
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            text = "${sets.size} sets completed",
+                            text = stringResource(R.string.sets_completed_count, sets.size),
                             fontSize = 14.sp,
                             color = Color.DarkGray,
                             modifier = Modifier.padding(bottom = 8.dp)
@@ -217,7 +214,7 @@ fun WorkoutResumeScreen(
 
                                         ) {
                                             Text(
-                                                text = "Set ${set.setNumber}",
+                                                text = stringResource(R.string.set_label, set.setNumber),
                                                 fontSize = 16.sp,
                                                 fontWeight = FontWeight.Medium
                                             )
@@ -233,9 +230,9 @@ fun WorkoutResumeScreen(
                                                 modifier = Modifier.weight(1f),
                                                 horizontalAlignment = Alignment.CenterHorizontally
                                             ) {
-                                                Text("ROM Score", fontSize = 12.sp, color = Color.Gray)
+                                                Text(stringResource(R.string.rom_score_title), fontSize = 12.sp, color = Color.Gray)
                                                 Text(
-                                                    "${set.romScore.toInt()}/100",
+                                                    stringResource(R.string.score_out_of_100, set.romScore.toInt()),
                                                     fontSize = 14.sp,
                                                     fontWeight = FontWeight.Medium,
                                                     color = when {
@@ -249,9 +246,9 @@ fun WorkoutResumeScreen(
                                                 modifier = Modifier.weight(1f),
                                                 horizontalAlignment = Alignment.CenterHorizontally
                                             ) {
-                                                Text("Set Score", fontSize = 12.sp, color = Color.Gray)
+                                                Text(stringResource(R.string.set_score_title), fontSize = 12.sp, color = Color.Gray)
                                                 Text(
-                                                    text = "${set.workoutScore.toInt()}/100",
+                                                    text = stringResource(R.string.score_out_of_100, set.workoutScore.toInt()),
                                                     fontSize = 16.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = when {
@@ -275,7 +272,7 @@ fun WorkoutResumeScreen(
                                                 modifier = Modifier.weight(1f),
                                                 horizontalAlignment = Alignment.CenterHorizontally
                                             ) {
-                                                Text("Reps", fontSize = 12.sp, color = Color.Gray)
+                                                Text(stringResource(R.string.reps_label), fontSize = 12.sp, color = Color.Gray)
                                                 Text("${set.reps}", fontSize = 14.sp, fontWeight = FontWeight.Medium)
                                             }
 
@@ -283,7 +280,7 @@ fun WorkoutResumeScreen(
                                                 modifier = Modifier.weight(1f),
                                                 horizontalAlignment = Alignment.CenterHorizontally
                                             ) {
-                                                Text("KG", fontSize = 12.sp, color = Color.Gray)
+                                                Text(stringResource(R.string.kg_label), fontSize = 12.sp, color = Color.Gray)
                                                 Text("${set.weight.toInt()}", fontSize = 14.sp, fontWeight = FontWeight.Medium)
                                             }
                                         }
@@ -297,24 +294,24 @@ fun WorkoutResumeScreen(
 
                                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-                                                Text("X Tilt Score", fontSize = 12.sp, color = Color.Gray)
+                                                Text(stringResource(R.string.x_tilt_score_title), fontSize = 12.sp, color = Color.Gray)
 
                                                 Spacer(modifier = Modifier.height(6.dp))
 
                                                 TiltScoreBar(set.xTiltScore)
                                                 Text(
-                                                    "${set.xTiltScore.toInt()}/100",
+                                                    stringResource(R.string.score_out_of_100, set.xTiltScore.toInt()),
                                                     fontSize = 14.sp,
                                                     fontWeight = FontWeight.Medium,
                                                     color = Color.White
                                                 )
-                                                Text("Z Tilt Score", fontSize = 12.sp, color = Color.Gray)
+                                                Text(stringResource(R.string.z_tilt_score_title), fontSize = 12.sp, color = Color.Gray)
 
                                                 Spacer(modifier = Modifier.height(6.dp))
 
                                                 TiltScoreBar(set.zTiltScore)
                                                 Text(
-                                                    "${set.zTiltScore.toInt()}/100",
+                                                    stringResource(R.string.score_out_of_100, set.zTiltScore.toInt()),
                                                     fontSize = 14.sp,
                                                     fontWeight = FontWeight.Medium,
                                                     color = Color.White
@@ -338,7 +335,7 @@ fun WorkoutResumeScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No exercises completed yet.",
+                            text = stringResource(R.string.no_exercises_completed),
                             fontSize = 16.sp,
                             color = Color.Gray
                         )
@@ -417,13 +414,13 @@ fun TiltScoreBar(
             if (avgRomScore < 90) {
                 FeedbackLine(
                     icon = painterResource(R.drawable.ic_pushup_person),
-                    text = "Go deeper — full range = max gains!",
+                    text = stringResource(R.string.feedback_rom_low),
                     color = Color(0xFFFF8800)
                 )
             } else {
                 FeedbackLine(
                     icon = painterResource(R.drawable.ic_check_circle),
-                    text = "Perfect range! 🎯",
+                    text = stringResource(R.string.feedback_rom_perfect),
                     color = Color.Green
                 )
             }
@@ -431,29 +428,29 @@ fun TiltScoreBar(
             when {
                 avgZTiltScore > 10 -> FeedbackLine(
                     icon = painterResource(R.drawable.ic_balance_scale),
-                    text = "Pushing more to the right",
+                    text = stringResource(R.string.feedback_tilt_right),
                     color = Color(0xFFFF8800)
                 )
                 avgZTiltScore < -10 -> FeedbackLine(
                     icon = painterResource(R.drawable.ic_balance_scale),
-                    text = "Pushing more to the left",
+                    text = stringResource(R.string.feedback_tilt_left),
                     color = Color(0xFFFF8800)
                 )
                 else -> FeedbackLine(
                     icon = painterResource(R.drawable.ic_check_circle),
-                    text = "Perfect balance!",
+                    text = stringResource(R.string.feedback_tilt_perfect),
                     color = Color.Green
                 )
             }
 
             if (avgXTiltScore > 15) {
                 FeedbackLine(
-                    text = "Right side came closer — keep both arms straight up",
+                    text = stringResource(R.string.feedback_x_tilt_right),
                     color = Color(0xFFFF8800)
                 )
             } else if (avgXTiltScore < -15) {
                 FeedbackLine(
-                    text = "Left side came closer — push symmetrically",
+                    text = stringResource(R.string.feedback_x_tilt_left),
                     color = Color(0xFFFF8800)
                 )
             }

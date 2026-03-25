@@ -97,7 +97,7 @@ fun SignupScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AutoSizeText(
-                text = "Sign Up",
+                text = stringResource(R.string.signup_title),
                 style = typography.titleLarge.copy(color = Color.White),
                 modifier = Modifier.padding(bottom = 8.dp),
                 maxFontSize = 32.sp,
@@ -105,7 +105,7 @@ fun SignupScreen(
             )
 
             Text(
-                text = "Email:",
+                text = stringResource(R.string.email_label),
                 style = typography.labelLarge,
                 modifier = Modifier
                     .align(Alignment.Start)
@@ -145,7 +145,7 @@ fun SignupScreen(
             }
 
             Text(
-                text = "Password:",
+                text = stringResource(R.string.password_label),
                 style = typography.labelLarge,
                 modifier = Modifier
                     .align(Alignment.Start)
@@ -186,7 +186,7 @@ fun SignupScreen(
             }
 
             Text(
-                text = "Confirm Password:",
+                text = stringResource(R.string.confirm_password_label),
                 style = typography.labelLarge,
                 modifier = Modifier
                     .align(Alignment.Start)
@@ -255,7 +255,7 @@ fun SignupScreen(
                     pressedRes = R.drawable.button_signup_clicked,
                     modifier = Modifier.weight(1f).height(60.dp)
                 ) {
-                    Text("Sign Up")
+                    Text(text = stringResource(R.string.signup_button))
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))

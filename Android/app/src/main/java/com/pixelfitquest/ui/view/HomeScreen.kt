@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -46,7 +47,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pixelfitquest.R
 import com.pixelfitquest.ui.components.molecules.WorkoutCard
-import com.pixelfitquest.ui.components.molecules.formatDate
 import com.pixelfitquest.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -113,7 +113,7 @@ fun HomeScreen(
             ) {
                 CircularProgressIndicator(color = Color.White)
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Loading...", color = Color.White, fontSize = 16.sp)
+                Text(stringResource(R.string.loading), color = Color.White, fontSize = 16.sp)
             }
         }
         return
@@ -142,7 +142,7 @@ fun HomeScreen(
         }
     }
 
-    val displayLevel = if (level >= 30) "Max" else level.toString()
+    val displayLevel = if (level >= 30) stringResource(R.string.max_level) else level.toString()
     val progressIndex = if (maxExp > 0) {
         ((exp.toFloat() / maxExp) * 5f).toInt().coerceIn(0, 5)
     } else {
@@ -186,12 +186,12 @@ fun HomeScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
                         painter = painterResource(id = R.drawable.coin),
-                        contentDescription = "Coin icon",
+                        contentDescription = stringResource(R.string.coin_icon_desc),
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.padding(horizontal = 4.dp))
                     Text(
-                        text = "Coins: $coins",
+                        text = stringResource(R.string.coins_count, coins),
                         fontSize = 14.sp,
                         color = Color.White
                     )
@@ -199,7 +199,7 @@ fun HomeScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
                         painter = painterResource(id = R.drawable.streak),
-                        contentDescription = "Streak icon",
+                        contentDescription = stringResource(R.string.streak_icon_desc),
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.padding(horizontal = 2.dp))
@@ -210,7 +210,7 @@ fun HomeScreen(
                     )
                 }
                 Text(
-                    text = "Level: $displayLevel",
+                    text = stringResource(R.string.level_display, displayLevel),
                     fontSize = 14.sp,
                     color = Color.White
                 )
@@ -229,7 +229,7 @@ fun HomeScreen(
                     }
                     Image(
                         painter = xpPainter,
-                        contentDescription = "XP bar",
+                        contentDescription = stringResource(R.string.xp_bar_desc),
                         modifier = Modifier.matchParentSize()
                     )
                 }
@@ -255,19 +255,19 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Steps",
+                    text = stringResource(R.string.steps_label),
                     fontSize = 16.sp,
                     color = Color.White,
                     fontWeight = MaterialTheme.typography.titleMedium.fontWeight
                 )
                 Text(
-                    text = "$todaySteps / $stepGoal",
+                    text = stringResource(R.string.steps_progress, todaySteps, stepGoal),
                     fontSize = 18.sp,
                     color = Color.White,
                     fontWeight = MaterialTheme.typography.titleMedium.fontWeight
                 )
                 Text(
-                    text = "+50 EXP, +10 Coins",
+                    text = stringResource(R.string.steps_reward_hint),
                     fontSize = 12.sp,
                     color = Color.White
                 )
@@ -314,7 +314,7 @@ fun HomeScreen(
                             fontWeight = MaterialTheme.typography.titleMedium.fontWeight
                         )
                         Text(
-                            text = "/ $totalUsers users",
+                            text = stringResource(R.string.total_users_count, totalUsers),
                             fontSize = 16.sp,
                             color = Color.White,
                             fontWeight = MaterialTheme.typography.titleMedium.fontWeight
@@ -324,7 +324,7 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.width(16.dp))
                 Image(
                     painter = painterResource(id = R.drawable.achievement_button),
-                    contentDescription = "Achievements",
+                    contentDescription = stringResource(R.string.achievements_button_desc),
                     modifier = Modifier
                         .size(100.dp)
                         .clickable { showAchievements = true }
@@ -342,7 +342,7 @@ fun HomeScreen(
         ) {
             if (workouts.isEmpty()) {
                 Text(
-                    text = "No completed workouts yet",
+                    text = stringResource(R.string.no_workouts_yet),
                     color = Color.White.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
                 )
@@ -385,7 +385,7 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Daily Missions",
+                    text = stringResource(R.string.daily_missions_title),
                     fontSize = 16.sp,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -466,12 +466,12 @@ fun HomeScreen(
                             if (isCoins) {
                                 Image(
                                     painter = painterResource(id = R.drawable.coin),
-                                    contentDescription = "Coins reward",
+                                    contentDescription = stringResource(R.string.coins_reward_desc),
                                     modifier = Modifier.size(16.dp)
                                 )
                             } else if (isExp) {
                                 Text(
-                                    text = "EXP",
+                                    text = stringResource(R.string.exp_label),
                                     color = Color(0xFFFFD700),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
@@ -504,7 +504,7 @@ fun HomeScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "Achievements",
+                            text = stringResource(R.string.achievements_title),
                             fontSize = 18.sp,
                             color = Color.White,
                             fontWeight = FontWeight.Bold

@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -55,10 +56,10 @@ fun IntroScreen(
     val slides = listOf(
         Slide(
             R.drawable.slide1,
-            "In a shadowed world, OBESITY grips 1 in 8. HEROES weaken, lost to distractions. Knowledge and gyms abound."
+            R.string.intro_slide_1
         ),
-        Slide(R.drawable.slide2, "Warriors can't track moves or stay motivated. Apps promise help, but none forge ADVENTURE. No quests. No glory."),
-        Slide(R.drawable.slide3, "Welcome, brave hero! Behold PixelFit Quest! Level up through workouts. Your quest begins. Ready to fight?")
+        Slide(R.drawable.slide2, R.string.intro_slide_2),
+        Slide(R.drawable.slide3, R.string.intro_slide_3)
     )
 
     Box(
@@ -88,7 +89,7 @@ fun IntroScreen(
 
                 Image(
                     painter = painterResource(id = slides[currentSlide].imageRes),
-                    contentDescription = slides[currentSlide].text,
+                    contentDescription = stringResource(slides[currentSlide].textRes),
                     modifier = Modifier
                         .size(300.dp, 200.dp),
                     contentScale = ContentScale.Fit
@@ -98,7 +99,7 @@ fun IntroScreen(
 
 
                 TypewriterText(
-                    text = slides[currentSlide].text,
+                    text = stringResource(slides[currentSlide].textRes),
                     delayMs = 100L,
                     onComplete = {
                         textFinished = true
@@ -124,7 +125,7 @@ fun IntroScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.SkipNext,
-                    contentDescription = "Skip Intro",
+                    contentDescription = stringResource(R.string.skip_intro),
                     tint = Color.White,
                     modifier = Modifier.size(48.dp)
                 )
@@ -151,4 +152,3 @@ fun IntroScreen(
         }
     }
 }
-

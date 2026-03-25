@@ -1,4 +1,4 @@
-package com.pixelfitquest.ui.screens
+package com.pixelfitquest.ui.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -94,14 +94,14 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Login",
+                text = stringResource(R.string.login_title),
                 style = typography.titleLarge,
                 color = Color.White,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
             Text(
-                text = "Email:",
+                text = stringResource(R.string.email_label),
                 style = typography.labelLarge,
                 modifier = Modifier
                     .align(Alignment.Start)
@@ -141,7 +141,7 @@ fun LoginScreen(
             }
 
             Text(
-                text = "Password:",
+                text = stringResource(R.string.password_label),
                 style = typography.labelLarge,
                 modifier = Modifier
                     .align(Alignment.Start)

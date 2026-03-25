@@ -12,6 +12,7 @@ import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,7 +75,7 @@ fun CustomizationScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Choose Your Character",
+                    text = stringResource(R.string.choose_character),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White
                 )
@@ -82,17 +83,17 @@ fun CustomizationScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    GenderToggleButton("Male", isSelected = gender == "male") {
+                    GenderToggleButton(stringResource(R.string.male), isSelected = gender == "male") {
                         viewModel.updateGender("male")
                     }
-                    GenderToggleButton("Female", isSelected = gender == "female") {
+                    GenderToggleButton(stringResource(R.string.female), isSelected = gender == "female") {
                         viewModel.updateGender("female")
                     }
                 }
 
                 if (isUnlocked && isFitness) {
                     Text(
-                        text = "+2 coins & +2 exp per reward",
+                        text = stringResource(R.string.fitness_bonus),
                         color = Color.White,
                         fontSize = 12.sp,
                         style = typography.bodyMedium,
@@ -208,12 +209,12 @@ private fun ActionButtons(
     when {
         isPremium -> {
             PixelArtButton(onClick = {}, imageRes = R.drawable.button_unclicked, pressedRes = R.drawable.button_unclicked, modifier = modifier) {
-                Text("Coming Soon")
+                Text(stringResource(R.string.coming_soon))
             }
         }
         isUnlocked -> {
             PixelArtButton(onClick = onSelect, imageRes = R.drawable.button_unclicked, pressedRes = R.drawable.button_clicked, modifier = modifier) {
-                Text("Select")
+                Text(stringResource(R.string.select))
             }
         }
         else -> {
@@ -221,7 +222,7 @@ private fun ActionButtons(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("$price ")
                     Image(painter = painterResource(R.drawable.coin), contentDescription = null, modifier = Modifier.size(16.dp))
-                    Text(" coins")
+                    Text(stringResource(R.string.coins_label))
                 }
             }
         }
@@ -242,14 +243,14 @@ private fun HeightSettingsCard(currentHeight: Int?, onSave: (Int) -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Current height: ${currentHeight ?: "--"} cm",
+                text = stringResource(R.string.current_height, currentHeight ?: "--"),
                 color = Color.White,
                 fontSize = 18.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(text = "Enter height (e.g., 175)", color = Color.White, fontSize = 12.sp)
+            Text(text = stringResource(R.string.enter_height_hint), color = Color.White, fontSize = 12.sp)
 
             Box(modifier = Modifier.size(200.dp, 60.dp), contentAlignment = Alignment.Center) {
                 Image(
@@ -285,7 +286,7 @@ private fun HeightSettingsCard(currentHeight: Int?, onSave: (Int) -> Unit) {
                 pressedRes = R.drawable.button_clicked,
                 modifier = Modifier.size(220.dp, 60.dp)
             ) {
-                Text("Set Height", fontSize = 14.sp)
+                Text(stringResource(R.string.set_height), fontSize = 14.sp)
             }
         }
     }

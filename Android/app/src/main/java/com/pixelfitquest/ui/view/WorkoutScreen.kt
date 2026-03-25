@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -136,7 +137,7 @@ fun WorkoutScreen(
 
     LaunchedEffect(Unit) {
         if (plan.items.isEmpty()) {
-            viewModel.setError("No workout plan provided—cannot start tracking")
+            viewModel.setError(context.getString(R.string.no_plan_error))
             openScreen("workout_customization")
             return@LaunchedEffect
         }
@@ -145,7 +146,7 @@ fun WorkoutScreen(
 
     if (plan.items.isEmpty()) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Error: Invalid workout plan. Returning to customization...")
+            Text(stringResource(R.string.invalid_plan_error))
         }
         return
     }
@@ -165,7 +166,7 @@ fun WorkoutScreen(
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         if (accelerometer == null ) {
-            viewModel.setError("No accelerometer sensor found")
+            viewModel.setError(context.getString(R.string.no_accelerometer_error))
 
             return@DisposableEffect onDispose {}
         }
@@ -205,7 +206,7 @@ fun WorkoutScreen(
         )
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             countdownNumber?.let { number ->
-                val text = if (number >= 0) "$number" else "GO!"
+                val text = if (number >= 0) "$number" else stringResource(R.string.workout_go)
                 val color = if (number >= 0) Color.Yellow else Color.Green
 
                 Text(
@@ -234,7 +235,7 @@ fun WorkoutScreen(
             .align(Alignment.TopCenter)
         ) {
             Text(
-                text = "Set: ${state.currentSetNumber} / $currentSets, Reps: ${state.reps}, Weight: $currentWeight Kg",
+                text = stringResource(R.string.workout_status, state.currentSetNumber, currentSets, state.reps, currentWeight),
                 color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
@@ -309,7 +310,7 @@ fun WorkoutScreen(
 
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             countdownNumber?.let { number ->
-                val text = if (number >= 0) "$number" else "GO!"
+                val text = if (number >= 0) "$number" else stringResource(R.string.workout_go)
                 val color = if (number >= 0) Color.Yellow else Color.Green
 
                 Text(
@@ -359,19 +360,19 @@ fun WorkoutScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "ROM Score: \n${state.romScore.toInt()} / 100 \navg = ${state.avgRomScore.toInt()}",
+                        text = stringResource(R.string.rom_score_label, state.romScore.toInt(), state.avgRomScore.toInt()),
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "X Tilt Score: \n-100 / ${state.tiltXScore.toInt()} / 100 \navg = ${state.avgTiltXScore.toInt()}",
+                        text = stringResource(R.string.tilt_x_score_label, state.tiltXScore.toInt(), state.avgTiltXScore.toInt()),
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "Z Tilt Score: \n-100 / ${state.tiltZScore.toInt()} / 100 \navg = ${state.avgTiltZScore.toInt()}",
+                        text = stringResource(R.string.tilt_z_score_label, state.tiltZScore.toInt(), state.avgTiltZScore.toInt()),
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium

@@ -404,8 +404,7 @@ fun NavGraphBuilder.pixelFitGraph(
     }
 
     composable(CUSTOMIZATION_SCREEN) {
-        CustomizationScreen(
-        )
+        CustomizationScreen()
     }
 
     composable(WORKOUT_CUSTOMIZATION_SCREEN) {

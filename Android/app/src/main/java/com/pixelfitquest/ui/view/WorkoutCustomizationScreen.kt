@@ -62,6 +62,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
@@ -156,7 +157,7 @@ fun WorkoutCustomizationScreen(
                             modifier = Modifier.width(200.dp).height(60.dp)
                         ) {
                             Text(
-                                if (uiState.editMode) "Update Template" else "Save as Template"
+                                if (uiState.editMode) stringResource(R.string.update_template) else stringResource(R.string.save_as_template)
                             )
                         }
                     }
@@ -172,7 +173,7 @@ fun WorkoutCustomizationScreen(
                         pressedRes = R.drawable.button_clicked,
                         modifier = Modifier.width(250.dp).height(60.dp)
                     ) {
-                        Text("Start Workout")
+                        Text(stringResource(R.string.start_workout))
                     }
 
                     if (uiState.isSaving) {
@@ -204,7 +205,7 @@ fun WorkoutCustomizationScreen(
                         contentScale = ContentScale.FillBounds
                     )
                     Text(
-                        text = "Customize Workout",
+                        text = stringResource(R.string.customize_workout_title),
                         style = typography.bodyMedium,
                         color = Color.White,
                         modifier = Modifier
@@ -235,7 +236,7 @@ fun WorkoutCustomizationScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = if (uiState.editMode) "Edit Template Name" else "Template Name",
+                                text = if (uiState.editMode) stringResource(R.string.edit_template_name) else stringResource(R.string.template_name_label),
                                 style = typography.bodyMedium,
                                 color = Color.White
                             )
@@ -391,7 +392,7 @@ fun WorkoutCustomizationScreen(
                                         Row(verticalAlignment = Alignment.CenterVertically,
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.SpaceEvenly) {
-                                            Text("Sets: ", style = typography.bodyMedium, color = Color.Black)
+                                            Text(stringResource(R.string.sets_input_label), style = typography.bodyMedium, color = Color.Black)
                                             OutlinedTextField(
                                                 value = localSets,
                                                 onValueChange = { newValue: String ->
@@ -436,7 +437,7 @@ fun WorkoutCustomizationScreen(
 
                                             Spacer(modifier = Modifier.width(4.dp))
 
-                                            Text("Weight:", style = typography.bodyMedium, color = Color.Black)
+                                            Text(stringResource(R.string.weight_input_label), style = typography.bodyMedium, color = Color.Black)
                                             OutlinedTextField(
                                                 value = localWeight,
                                                 onValueChange = { newValue: String ->
@@ -484,7 +485,7 @@ fun WorkoutCustomizationScreen(
                                                     errorBorderColor = Color.Black
                                                 )
                                             )
-                                            Text("Kg", style = typography.bodyMedium, color = Color.Black)
+                                            Text(stringResource(R.string.kg_unit), style = typography.bodyMedium, color = Color.Black)
                                         }
                                     }
                                 }
@@ -508,7 +509,7 @@ fun WorkoutCustomizationScreen(
                             contentScale = ContentScale.FillBounds
                         )
                         Text(
-                            text = "Your Templates",
+                            text = stringResource(R.string.your_templates_title),
                             style = typography.bodyMedium,
                             color = Color.White,
                             modifier = Modifier
@@ -559,7 +560,7 @@ fun WorkoutCustomizationScreen(
                                     headlineContent = { Text(template.name, color = Color.Black) },
                                     supportingContent = {
                                         Text(
-                                            "Exercises: ${template.plan.items.size} | Sets: $totalSets",
+                                            stringResource(R.string.template_stats, template.plan.items.size, totalSets),
                                             color = Color.Black
                                         )
                                     },
@@ -578,7 +579,7 @@ fun WorkoutCustomizationScreen(
                                             ) {
                                                 Icon(
                                                     Icons.Default.Edit,
-                                                    contentDescription = "Edit Template",
+                                                    contentDescription = stringResource(R.string.edit_template_desc),
                                                     tint = Color.Black
                                                 )
                                             }
@@ -587,7 +588,7 @@ fun WorkoutCustomizationScreen(
                                             ) {
                                                 Icon(
                                                     Icons.Default.Delete,
-                                                    contentDescription = "Delete Template",
+                                                    contentDescription = stringResource(R.string.delete_template_desc),
                                                     tint = Color.Black
                                                 )
                                             }
@@ -618,7 +619,7 @@ fun WorkoutCustomizationScreen(
                 } else {
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        text = "No templates yet. Name & save one to get started!",
+                        text = stringResource(R.string.no_templates_msg),
                         style = typography.bodyMedium,
                         color = Color.White,
                         modifier = Modifier

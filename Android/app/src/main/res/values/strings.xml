@@ -31,4 +31,109 @@
     <string name="link_google_description">Link your Google account to enable seamless sign-in</string>
     <string name="link_google_title">Link Google account?</string>
     <string name="link_google">Link Account</string>
+
+    <!-- Customization Screen -->
+    <string name="choose_character">Choose Your Character</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
+    <string name="fitness_bonus">+2 coins &amp; +2 exp per reward</string>
+    <string name="coming_soon">Coming Soon</string>
+    <string name="select">Select</string>
+    <string name="coins_label"> coins</string>
+    <string name="current_height">Current height: %1$s cm</string>
+    <string name="enter_height_hint">Enter height (e.g., 175)</string>
+    <string name="set_height">Set Height</string>
+
+    <!-- Splash Screen -->
+    <string name="splash_screen_desc">Splash Screen</string>
+
+    <!-- Intro Screen -->
+    <string name="intro_slide_1">In a shadowed world, OBESITY grips 1 in 8. HEROES weaken, lost to distractions. Knowledge and gyms abound.</string>
+    <string name="intro_slide_2">Warriors can\'t track moves or stay motivated. Apps promise help, but none forge ADVENTURE. No quests. No glory.</string>
+    <string name="intro_slide_3">Welcome, brave hero! Behold PixelFit Quest! Level up through workouts. Your quest begins. Ready to fight?</string>
+    <string name="skip_intro">Skip Intro</string>
+
+    <!-- Login Screen -->
+    <string name="login_title">Login</string>
+    <string name="email_label">Email:</string>
+    <string name="password_label">Password:</string>
+
+    <!-- Signup Screen -->
+    <string name="signup_title">Sign Up</string>
+    <string name="confirm_password_label">Confirm Password:</string>
+    <string name="signup_button">Sign Up</string>
+
+    <!-- Home Screen -->
+    <string name="loading">Loading...</string>
+    <string name="max_level">Max</string>
+    <string name="coin_icon_desc">Coin icon</string>
+    <string name="coins_count">Coins: %1$d</string>
+    <string name="streak_icon_desc">Streak icon</string>
+    <string name="level_display">Level: %1$s</string>
+    <string name="xp_bar_desc">XP bar</string>
+    <string name="steps_label">Steps</string>
+    <string name="steps_progress">%1$d / %2$d</string>
+    <string name="steps_reward_hint">+50 EXP, +10 Coins</string>
+    <string name="total_users_count">/ %1$d users</string>
+    <string name="achievements_button_desc">Achievements</string>
+    <string name="no_workouts_yet">No completed workouts yet</string>
+    <string name="daily_missions_title">Daily Missions</string>
+    <string name="coins_reward_desc">Coins reward</string>
+    <string name="exp_label">EXP</string>
+    <string name="achievements_title">Achievements</string>
+
+    <!-- Workout Screen -->
+    <string name="workout_go">GO!</string>
+    <string name="workout_status">Set: %1$d / %2$d, Reps: %3$d, Weight: %4$.1f Kg</string>
+    <string name="rom_score_label">ROM Score: \n%1$d / 100 \navg = %2$d</string>
+    <string name="tilt_x_score_label">X Tilt Score: \n-100 / %1$d / 100 \navg = %2$d</string>
+    <string name="tilt_z_score_label">Z Tilt Score: \n-100 / %1$d / 100 \navg = %2$d</string>
+    <string name="no_plan_error">No workout plan provided—cannot start tracking</string>
+    <string name="invalid_plan_error">Error: Invalid workout plan. Returning to customization...</string>
+    <string name="no_accelerometer_error">No accelerometer sensor found</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+
+    <!-- Workout Resume Screen -->
+    <string name="resume_title">Resume</string>
+    <string name="back_desc">Back</string>
+    <string name="session_complete">Session Complete!</string>
+    <string name="xp_reward">+%1$d XP</string>
+    <string name="coins_reward">+%1$d Coins</string>
+    <string name="exercise_feedback_title">Exercise Feedback</string>
+    <string name="sets_completed_count">%1$d sets completed</string>
+    <string name="set_label">Set %1$d</string>
+    <string name="rom_score_title">ROM Score</string>
+    <string name="set_score_title">Set Score</string>
+    <string name="reps_label">Reps</string>
+    <string name="kg_label">KG</string>
+    <string name="x_tilt_score_title">X Tilt Score</string>
+    <string name="z_tilt_score_title">Z Tilt Score</string>
+    <string name="score_out_of_100">%1$d/100</string>
+    <string name="no_exercises_completed">No exercises completed yet.</string>
+    <string name="feedback_rom_low">Go deeper — full range = max gains!</string>
+    <string name="feedback_rom_perfect">Perfect range! 🎯</string>
+    <string name="feedback_tilt_right">Pushing more to the right</string>
+    <string name="feedback_tilt_left">Pushing more to the left</string>
+    <string name="feedback_tilt_perfect">Perfect balance!</string>
+    <string name="feedback_x_tilt_right">Right side came closer — keep both arms straight up</string>
+    <string name="feedback_x_tilt_left">Left side came closer — push symmetrically</string>
+
+    <!-- Workout Customization Screen -->
+    <string name="update_template">Update Template</string>
+    <string name="save_as_template">Save as Template</string>
+    <string name="start_workout">Start Workout</string>
+    <string name="default_workout_name">Workout</string>
+    <string name="customize_workout_title">Customize Workout</string>
+    <string name="edit_template_name">Edit Template Name</string>
+    <string name="template_name_label">Template Name</string>
+    <string name="sets_input_label">Sets: </string>
+    <string name="weight_input_label">Weight:</string>
+    <string name="kg_unit">Kg</string>
+    <string name="your_templates_title">Your Templates</string>
+    <string name="template_stats">Exercises: %1$d | Sets: %2$d</string>
+    <string name="edit_template_desc">Edit Template</string>
+    <string name="delete_template_desc">Delete Template</string>
+    <string name="no_templates_msg">No templates yet. Name &amp; save one to get started!</string>
 </resources>
