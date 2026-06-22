@@ -245,7 +245,6 @@ class HomeViewModel @Inject constructor(
             addCoins(10)
             userRepository.updateUserData(mapOf("last_steps_reward_date" to today))
             Log.d("HomeVM", "Awarded +50 EXP and +10 coins for steps goal on $today")
-            NotificationHelper.showStepGoalCompletedNotification(context)
         }
     }
 
@@ -279,9 +278,6 @@ class HomeViewModel @Inject constructor(
             _stepGoal.value = goal
 
             val progressPercent = if (_stepGoal.value > 0) ((_todaySteps.value * 100) / _stepGoal.value).toInt() else 0
-            if (progressPercent < 80 && progressPercent > 0) {
-                NotificationHelper.showStepGoalReminderNotification(context)
-            }
 
             checkAndAwardStepsReward()
             checkMissionsCompletion()
@@ -332,8 +328,6 @@ class HomeViewModel @Inject constructor(
                     incrementStreak()
                     userRepository.updateUserData(mapOf("last_streak_update_date" to today))
                 }
-
-                NotificationHelper.showWorkoutCompletedNotification(context)
                 fetchCompletedWorkouts()
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to complete workout"
@@ -392,7 +386,6 @@ class HomeViewModel @Inject constructor(
             } else if (type == "coins") {
                 addCoins(amount)
             }
-            NotificationHelper.showMissionCompletedNotification(context, mission, reward)
         }
         _completedMissions.value = currentCompleted
     }

@@ -56,8 +56,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
+import com.pixelfitquest.feature.Login.LoginScreen
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
-import com.pixelfitquest.ui.screens.LoginScreen
 import com.pixelfitquest.feature.customization.CustomizationScreen
 import com.pixelfitquest.feature.home.HomeScreen
 import com.pixelfitquest.feature.intro.IntroScreen
