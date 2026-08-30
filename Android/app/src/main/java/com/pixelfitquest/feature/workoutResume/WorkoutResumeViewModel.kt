@@ -78,15 +78,15 @@ class WorkoutResumeViewModel @Inject constructor(
                         val exerciseSets = groupedSets[exercise.id] ?: emptyList()
                         if (exerciseSets.isNotEmpty()) {
                             val avgScore = exerciseSets
-                                .map { it.workoutScore }
+                                .map { it.formScore }
                                 .average()
-                                .toInt()
-                                .coerceIn(0, 100)
+                                .toFloat()
+                                .coerceIn(0f, 100f)
 
                             ExerciseWithSets(
                                 exercise = exercise,
                                 sets = exerciseSets,
-                                avgWorkoutScore = avgScore
+                                avgFormScore = avgScore
                             )
                         } else null
                     }
@@ -116,7 +116,7 @@ class WorkoutResumeViewModel @Inject constructor(
 
         allSets.forEach { set ->
             val reps = set.reps.coerceAtLeast(0)
-            val score = set.workoutScore.coerceIn(0f, 100f)
+            val score = set.formScore.coerceIn(0f, 100f)
 
             totalReps += reps
 
@@ -130,7 +130,7 @@ class WorkoutResumeViewModel @Inject constructor(
         }
 
         val totalCoins = totalReps / 5
-        val avgScore = allSets.map { it.workoutScore }.average().toFloat()
+        val avgScore = if (allSets.isNotEmpty()) allSets.map { it.formScore }.average().toFloat() else 0f
 
         return WorkoutSummary(
             totalXp = totalXp,

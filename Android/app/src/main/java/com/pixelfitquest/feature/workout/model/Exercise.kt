@@ -7,7 +7,10 @@ data class Exercise(
     val workoutId: String,
     val type: ExerciseType,
     val totalSets: Int,
-    val weight: Float,
+    val weight: Float, // This can be the target weight or avg weight
+    val avgFormScore: Float = 0f,
+    val avgRomScore: Float = 0f,
+    val totalVolume: Float = 0f,
     val notes: String? = null
 ) {
     fun toMap(): Map<String, Any?> = mapOf(
@@ -16,6 +19,9 @@ data class Exercise(
         "type" to type.type,
         "totalSets" to totalSets,
         "weight" to weight,
+        "avgFormScore" to avgFormScore,
+        "avgRomScore" to avgRomScore,
+        "totalVolume" to totalVolume,
         "notes" to notes
     )
 
@@ -31,8 +37,11 @@ data class Exercise(
                 id = id,
                 workoutId = workoutId,
                 type = parsedType,
-                totalSets = map["totalSets"] as? Int ?: 0,
+                totalSets = (map["totalSets"] as? Number)?.toInt() ?: 0,
                 weight = (map["weight"] as? Number)?.toFloat() ?: 0f,
+                avgFormScore = (map["avgFormScore"] as? Number)?.toFloat() ?: 0f,
+                avgRomScore = (map["avgRomScore"] as? Number)?.toFloat() ?: 0f,
+                totalVolume = (map["totalVolume"] as? Number)?.toFloat() ?: 0f,
                 notes = map["notes"] as? String
             )
         }

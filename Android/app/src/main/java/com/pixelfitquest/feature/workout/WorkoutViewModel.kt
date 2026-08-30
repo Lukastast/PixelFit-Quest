@@ -10,6 +10,7 @@ import com.pixelfitquest.feature.workout.model.Exercise
 import com.pixelfitquest.feature.workout.model.Workout
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.feature.workout.model.WorkoutSet
+import com.pixelfitquest.feature.workout.model.RepPerformance
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
 import com.pixelfitquest.viewmodel.PixelFitViewModel
@@ -59,8 +60,8 @@ class WorkoutViewModel @Inject constructor(
     private lateinit var workoutName: String
 
     private val repIntervalMs = 1000L
-    private val lowPassAlpha = 0.7f
-    private val minPhaseDisp = 0.05f
+    private val lowPassAlpha = 0.85f
+    private val velocityDecay = 0.95f
     private val hysteresisWindow = 3
     private val dtHistory: Deque<Float> = ArrayDeque<Float>(3)
     private val dtWindowSize = 3
@@ -144,10 +145,14 @@ class WorkoutViewModel @Inject constructor(
 
             if (!isSetActive) return@let
 
-            lastVerticalAccel = verticalAccel
+            // Apply a small deadzone to acceleration to ignore vibrations
+            val cleanAccel = if (abs(smoothedAccel) < 0.05f) 0f else smoothedAccel
+
             val prevVelocity = currentVelocity
-            currentDisplacement += currentVelocity * dt + 0.5f * smoothedAccel * dt * dt
-            currentVelocity += smoothedAccel * dt
+            
+            // Integration with velocity decay to prevent runaway drift
+            currentVelocity = (currentVelocity + cleanAccel * dt) * velocityDecay
+            currentDisplacement += currentVelocity * dt
 
             velHistory.addLast(currentVelocity)
             if (velHistory.size > hysteresisWindow) {
@@ -216,54 +221,59 @@ class WorkoutViewModel @Inject constructor(
     }
 
     private fun detectTop(prevVelocity: Float, currentVelocity: Float, currentTime: Long) {
+        val exercise = currentExerciseType ?: return
         val timeSincePeak = currentTime - lastPeakTime
-        val lastVels = velHistory.toList().takeLast(hysteresisWindow.coerceAtMost(velHistory.size))
-        val positiveCount = lastVels.count { it >= 0f }
-        val positiveHysteresis = velHistory.size >= hysteresisWindow / 2 && positiveCount >= (lastVels.size * 0.6).toInt()
-        if (prevVelocity >= 0f && currentVelocity < 0f &&
-            positiveHysteresis && timeSincePeak > repIntervalMs
-        ) {
-            lastPeakTime = currentTime
-            if (hasBottom) {
+        val hys = exercise.velocityHysteresis
+
+        // Zero-crossing from positive to negative velocity with hysteresis
+        if (prevVelocity > hys && currentVelocity <= -hys && timeSincePeak > repIntervalMs) {
+            
+            // Check if we actually moved enough to be a rep
+            val totalTravel = abs(currentDisplacement - repStartPos)
+            
+            if (hasBottom && totalTravel > exercise.minRomMeters) {
                 onRepCompleted()
-            } else {
-                // Failed rep logic
-                repStartPos = currentDisplacement
-                bottomPos = currentDisplacement
-                hasBottom = false
-                minPos = currentDisplacement
-                maxPos = currentDisplacement
-                this.currentVelocity = 0f
-                velHistory.clear()
-                accelHistory.clear()
+            } else if (!hasBottom) {
+                resetIntegration(currentDisplacement)
             }
-            accelHistory.clear()
+            
+            lastPeakTime = currentTime
+            this.currentVelocity = 0f 
         }
     }
 
     private fun detectBottom(prevVelocity: Float, currentVelocity: Float, currentDisplacement: Float, repStartPos: Float) {
-        val lastVels = velHistory.toList().takeLast(hysteresisWindow.coerceAtMost(velHistory.size))
-        val negativeCount = lastVels.count { it <= 0f }
-        val negativeHysteresis = velHistory.size >= hysteresisWindow / 2 && negativeCount >= (lastVels.size * 0.6).toInt()
-        if (prevVelocity <= 0f && currentVelocity > 0f &&
-            negativeHysteresis && !hasBottom && abs(currentDisplacement - repStartPos) > minPhaseDisp
-        ) {
-            bottomPos = currentDisplacement
-            hasBottom = true
-            accelHistory.clear()
+        val exercise = currentExerciseType ?: return
+        val hys = exercise.velocityHysteresis
+
+        // Zero-crossing from negative to positive velocity with hysteresis
+        if (prevVelocity < -hys && currentVelocity >= hys) {
+            val travel = abs(currentDisplacement - repStartPos)
+            
+            if (travel > exercise.minRomMeters * 0.4f) { 
+                bottomPos = currentDisplacement
+                hasBottom = true
+                this.currentVelocity = 0f
+            }
         }
 
         minPos = minOf(minPos, currentDisplacement)
         maxPos = maxOf(maxPos, currentDisplacement)
 
-        if (abs(currentDisplacement) > 1.5f) {
-            this.currentDisplacement = 0f
-            this.currentVelocity *= 0.5f
-            minPos = 0f
-            maxPos = 0f
-            velHistory.clear()
-            accelHistory.clear()
+        // Safety reset if displacement goes haywire (drift protection)
+        if (abs(currentDisplacement) > 2.0f) {
+            resetIntegration(0f)
         }
+    }
+
+    private fun resetIntegration(pos: Float) {
+        currentDisplacement = pos
+        currentVelocity = 0f
+        minPos = pos
+        maxPos = pos
+        hasBottom = false
+        velHistory.clear()
+        accelHistory.clear()
     }
 
     private fun accumulateTilt(netAccelX: Float, netAccelZ: Float, netAccelY: Float) {
@@ -444,13 +454,15 @@ class WorkoutViewModel @Inject constructor(
             setNumber = currentSetNumber,
             reps = currentState.reps,
             romScore = currentState.romScore,
-            workoutScore = (currentState.romScore + (100 - abs(currentState.avgTiltXScore)) + (100 - abs(
+            formScore = (currentState.romScore + (100 - abs(currentState.avgTiltXScore)) + (100 - abs(
                 currentState.avgTiltZScore
             ))) / 3f,
             xTiltScore = currentState.avgTiltXScore,
             zTiltScore = currentState.avgTiltZScore,
+            stabilityScore = ( (100 - abs(currentState.avgTiltXScore)) + (100 - abs(currentState.avgTiltZScore)) ) / 2f,
             avgRepTime = currentState.avgRepTime,
             weight = currentState.weight,
+            repDetails = currentState.repDetails,
             notes = currentState.notes
         )
         viewModelScope.launch {
@@ -545,10 +557,17 @@ class WorkoutViewModel @Inject constructor(
         val workoutAvgTiltZ = (totalTiltZScore / newReps).coerceIn(0f, 100f)
 
 
-        val workoutScore = (workoutAvgRom + (100- abs(workoutAvgTiltX)) + (100- abs(workoutAvgTiltZ))) / 3f
+        val workoutFormScore = (workoutAvgRom + (100- abs(workoutAvgTiltX)) + (100- abs(workoutAvgTiltZ))) / 3f
         val feedbackScore = (thisRepRomScore * 2f + (100- abs(thisRepTiltXScore)) + (100- abs(
             thisRepTiltZScore
         ))) / 4f
+
+        val newRepPerformance = RepPerformance(
+            repNumber = newReps,
+            romScore = thisRepRomScore,
+            stabilityScore = ((100 - abs(thisRepTiltXScore)) + (100 - abs(thisRepTiltZScore))) / 2f,
+            durationMillis = repTimeMs
+        )
 
         tiltXSum = 0f
         tiltZSum = 0f
@@ -578,12 +597,13 @@ class WorkoutViewModel @Inject constructor(
             avgRomScore = workoutAvgRom,
             avgTiltXScore = workoutAvgTiltX,
             avgTiltZScore = workoutAvgTiltZ,
-            workoutScore = workoutScore
+            formScore = workoutFormScore,
+            repDetails = currentState.repDetails + newRepPerformance
         )
 
         updateFeedback(feedbackScore)
 
-        Log.d("WorkoutVM", "Rep $newReps | ROM: ${thisRepRomScore.toInt()} | TiltX: ${thisRepTiltXScore.toInt()} | TiltZ: ${thisRepTiltZScore.toInt()} | Score: ${workoutScore.toInt()}")
+        Log.d("WorkoutVM", "Rep $newReps | ROM: ${thisRepRomScore.toInt()} | TiltX: ${thisRepTiltXScore.toInt()} | TiltZ: ${thisRepTiltZScore.toInt()} | Score: ${workoutFormScore.toInt()}")
     }
 
     data class WorkoutState(
@@ -604,10 +624,11 @@ class WorkoutViewModel @Inject constructor(
         val currentSetNumber: Int = 1,
         val totalSets: Int = 0,
         val currentExerciseIndex: Int = 0,
-        val workoutScore: Float = 0f,
+        val formScore: Float = 0f,
         val tiltXScore: Float = 0f,
         val tiltZScore: Float = 0f,
         val weight: Float = 0f,
+        val repDetails: List<RepPerformance> = emptyList(),
         val notes: String? = null,
         val feedback: WorkoutFeedback? = null,
         val showFeedback: Boolean = false
