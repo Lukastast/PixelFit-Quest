@@ -2,29 +2,20 @@ package com.pixelfitquest.feature.workout
 
 import android.content.Context
 import android.content.pm.ActivityInfo
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.view.WindowManager
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -33,11 +24,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -50,35 +39,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.pixelfitquest.R
-import com.pixelfitquest.ui.navigation.HOME_SCREEN
-import com.pixelfitquest.feature.workout.model.enums.WorkoutFeedback
-import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.components.atoms.CharacterIdleAnimation
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.feature.workout.model.WorkoutPhase
+import com.pixelfitquest.feature.workout.model.enums.WorkoutFeedback
+import com.pixelfitquest.feature.workout.sensor.SensorSession
+import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
+import com.pixelfitquest.ui.navigation.HOME_SCREEN
 import com.pixelfitquest.ui.theme.determination
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutScreen(
     plan: WorkoutPlan,
     templateName: String = "workout",
     openScreen: (String) -> Unit,
     navController: NavController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val viewModel: WorkoutViewModel = hiltViewModel()
     val state by viewModel.workoutState.collectAsState()
     val context = LocalContext.current
     val activity = LocalActivity.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val coroutineScope = rememberCoroutineScope()
 
     val characterData by viewModel.characterData.collectAsState()
     var currentFeedback by remember { mutableStateOf<WorkoutFeedback?>(null) }
@@ -94,11 +82,10 @@ fun WorkoutScreen(
             countdownNumber = 3
             repeat(3) { i ->
                 delay(1000L)
-                countdownNumber = 3 - i - 1  // 3 → 2 → 1 → 0
+                countdownNumber = 3 - i - 1
             }
-            countdownNumber = null
-            delay(300L)
             countdownNumber = -1
+            viewModel.onCountdownFinished()
             delay(1000L)
             countdownNumber = null
         }
@@ -106,17 +93,15 @@ fun WorkoutScreen(
 
     LaunchedEffect(Unit) {
         viewModel.feedbackEvent.collect { feedback ->
-
             if (animState.isRunning) {
                 animState.snapTo(1f)
                 animState.animateTo(0f)
             }
-
             currentFeedback = feedback
             animState.snapTo(0f)
             animState.animateTo(
                 targetValue = 1f,
-                animationSpec = spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = 500f)
+                animationSpec = spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = 500f),
             )
             delay(300L)
             animState.animateTo(0f)
@@ -126,12 +111,10 @@ fun WorkoutScreen(
 
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { workoutId ->
-                navController.navigate("workout_resume/$workoutId") {
-                    popUpTo(HOME_SCREEN) {
-                        inclusive = false
-                    }
-                    launchSingleTop = true
-                }
+            navController.navigate("workout_resume/$workoutId") {
+                popUpTo(HOME_SCREEN) { inclusive = false }
+                launchSingleTop = true
+            }
         }
     }
 
@@ -152,63 +135,148 @@ fun WorkoutScreen(
     }
 
     DisposableEffect(Unit) {
-
         activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-
+        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         onDispose {
-
+            activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
     }
 
-
     DisposableEffect(context, lifecycleOwner) {
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        if (accelerometer == null ) {
-            viewModel.setError(context.getString(R.string.no_accelerometer_error))
-
-            return@DisposableEffect onDispose {}
-        }
-
-
-        val listener = object : SensorEventListener {
-            override fun onSensorChanged(event: SensorEvent) {
-                when (event.sensor.type) {
-                    Sensor.TYPE_ACCELEROMETER -> {
-                        val accelData = floatArrayOf(event.values[0], event.values[1], event.values[2])
-                        viewModel.onSensorDataUpdated(accelData, event.timestamp)
-                    }
-                }
+        val session = SensorSession(
+            sensorManager = sensorManager,
+            onSample = viewModel::onImuSample,
+            onMissingAccelerometer = {
+                viewModel.setError(context.getString(R.string.no_accelerometer_error))
+            },
+        )
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> session.register()
+                Lifecycle.Event.ON_STOP -> session.unregister()
+                else -> Unit
             }
-
-            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
-
-        coroutineScope.launch {
-            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
-             }
-        }
-
+        lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
-            sensorManager.unregisterListener(listener)
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            session.unregister()
         }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-
         Image(
             painter = painterResource(id = R.drawable.gym_background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds
+            contentScale = ContentScale.FillBounds,
         )
+
+        Row(
+            modifier = Modifier
+                .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                .align(Alignment.TopCenter),
+        ) {
+            val status = when (state.phase) {
+                WorkoutPhase.Recording -> stringResource(
+                    R.string.workout_status_recording,
+                    state.currentSetNumber,
+                    currentSets,
+                    currentWeight,
+                    state.recordingSeconds,
+                )
+                WorkoutPhase.Countdown -> stringResource(
+                    R.string.workout_status_countdown,
+                    state.currentSetNumber,
+                    currentSets,
+                )
+                WorkoutPhase.Reviewing -> stringResource(
+                    R.string.workout_status_review,
+                    state.currentSetNumber,
+                    currentSets,
+                )
+                WorkoutPhase.Idle -> stringResource(
+                    R.string.workout_status_idle,
+                    state.currentSetNumber,
+                    currentSets,
+                    currentWeight,
+                )
+            }
+            Text(
+                text = status,
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 10.dp),
+            )
+        }
+
+        if (state.phase != WorkoutPhase.Reviewing) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 32.dp),
+            ) {
+                when (state.phase) {
+                    WorkoutPhase.Recording -> PixelArtButton(
+                        onClick = { viewModel.finishSet() },
+                        imageRes = R.drawable.pause_button_unclicked,
+                        pressedRes = R.drawable.pause_button_clicked,
+                        modifier = Modifier.size(80.dp, 80.dp),
+                    )
+                    WorkoutPhase.Idle -> PixelArtButton(
+                        onClick = { viewModel.startSet() },
+                        imageRes = R.drawable.play_button_unclicked,
+                        pressedRes = R.drawable.play_button_clicked,
+                        modifier = Modifier.size(80.dp, 80.dp),
+                    )
+                    else -> Box(Modifier.size(80.dp, 80.dp))
+                }
+
+                Box(modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp)) {
+                    Text(
+                        text = currentExercise.replace("_", " "),
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 12.dp, vertical = 4.dp),
+                    )
+                }
+                PixelArtButton(
+                    onClick = {
+                        viewModel.stopWorkout()
+                        openScreen("workout_customization")
+                    },
+                    imageRes = R.drawable.stop_button_unclicked,
+                    pressedRes = R.drawable.stop_button_clicked,
+                    modifier = Modifier.size(80.dp, 80.dp),
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            contentAlignment = Alignment.BottomCenter,
+        ) {
+            CharacterIdleAnimation(
+                modifier = Modifier.size(120.dp),
+                gender = characterData.gender,
+                variant = characterData.variant,
+                isAnimating = true,
+            )
+        }
+
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             countdownNumber?.let { number ->
                 val text = if (number >= 0) "$number" else stringResource(R.string.workout_go)
                 val color = if (number >= 0) Color.Yellow else Color.Green
-
                 Text(
                     text = text,
                     fontSize = 120.sp,
@@ -218,110 +286,8 @@ fun WorkoutScreen(
                     modifier = Modifier
                         .scale(1.2f)
                         .padding(bottom = 10.dp)
-                        .graphicsLayer {
-                            alpha = 0.9f
-                        }
-                        .background(
-                            color = Color.Black.copy(alpha = 0.4f),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        .padding(horizontal = 48.dp, vertical = 12.dp)
-                )
-            }
-        }
-
-        Row( modifier = Modifier
-            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-            .align(Alignment.TopCenter)
-        ) {
-            Text(
-                text = stringResource(R.string.workout_status, state.currentSetNumber, currentSets, state.reps, currentWeight),
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .background(
-                        color = Color.Black.copy(alpha = 0.7f),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .padding(horizontal = 10.dp)
-            )
-        }
-
-        Row( modifier = Modifier
-            .align(Alignment.TopCenter)
-            .padding(top = 32.dp)) {
-
-            if (state.isSetActive) {
-                PixelArtButton(
-                    onClick = { viewModel.finishSet() },
-                    imageRes = R.drawable.pause_button_unclicked,
-                    pressedRes = R.drawable.pause_button_clicked,
-                    modifier = Modifier.size(80.dp, 80.dp)
-                )
-            } else {
-                PixelArtButton(
-                    onClick = { viewModel.startSet()  },
-                    imageRes = R.drawable.play_button_unclicked,
-                    pressedRes = R.drawable.play_button_clicked,
-                    modifier = Modifier.size(80.dp, 80.dp)
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .padding(top = 24.dp, start = 16.dp, end = 16.dp)
-            ) {
-                Text(
-                    text = currentExercise.replace("_", " "),
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    modifier = Modifier
-                        .background(
-                            color = Color.Black.copy(alpha = 0.7f),
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 4.dp)
-                )
-            }
-            PixelArtButton(
-                onClick = { openScreen("workout_customization") },
-                imageRes = R.drawable.stop_button_unclicked,
-                pressedRes = R.drawable.stop_button_clicked,
-                modifier = Modifier
-                    .size(80.dp, 80.dp)
-
-            )
-        }
-        Box(
-            modifier = Modifier.fillMaxSize()
-                .padding(32.dp),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-
-            CharacterIdleAnimation(
-                modifier = Modifier
-                    .size(120.dp),
-                gender = characterData.gender,
-                variant = characterData.variant,
-                isAnimating = true
-            )
-        }
-
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            countdownNumber?.let { number ->
-                val text = if (number >= 0) "$number" else stringResource(R.string.workout_go)
-                val color = if (number >= 0) Color.Yellow else Color.Green
-
-                Text(
-                    text = text,
-                    fontSize = 120.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = color,
-                    fontFamily = determination,
-                    modifier = Modifier
-                        .scale(animState.value * 1.5f)
-                        .alpha(animState.value)
+                        .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(24.dp))
+                        .padding(horizontal = 48.dp, vertical = 12.dp),
                 )
             }
 
@@ -331,53 +297,45 @@ fun WorkoutScreen(
                     fontFamily = determination,
                     fontSize = 48.sp,
                     color = feedback.color,
-                    modifier = Modifier
-                        .graphicsLayer {
-                            scaleX = animState.value * feedback.scale
-                            scaleY = animState.value * feedback.scale
-                            alpha = animState.value
-                        }
+                    modifier = Modifier.graphicsLayer {
+                        scaleX = animState.value * feedback.scale
+                        scaleY = animState.value * feedback.scale
+                        alpha = animState.value
+                    },
                 )
             }
         }
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.CenterEnd
-        ) {
-            Card(
+
+        if (state.phase == WorkoutPhase.Recording) {
+            Box(
                 modifier = Modifier
-                    .padding(end = 8.dp)
-                    .widthIn(max = 150.dp),
-                        colors = CardDefaults.cardColors(
-                        containerColor = Color.Black.copy(alpha = 0.6f)
-                        ),
-                shape = RoundedCornerShape(8.dp)
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 12.dp)
+                    .background(Color(0xCC1B5E20), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.rom_score_label, state.romScore.toInt(), state.avgRomScore.toInt()),
-                        color = Color.White,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = stringResource(R.string.tilt_x_score_label, state.tiltXScore.toInt(), state.avgTiltXScore.toInt()),
-                        color = Color.White,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = stringResource(R.string.tilt_z_score_label, state.tiltZScore.toInt(), state.avgTiltZScore.toInt()),
-                        color = Color.White,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.workout_recording_badge),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                )
+            }
+        }
+
+        state.review?.let { review ->
+            if (state.phase == WorkoutPhase.Reviewing) {
+                SetReviewOverlay(
+                    review = review,
+                    onAcceptCandidate = viewModel::acceptCandidate,
+                    onRemove = viewModel::removeRep,
+                    onMerge = viewModel::mergeWithNext,
+                    onAdd = viewModel::addRep,
+                    onAdjustRom = viewModel::adjustRom,
+                    onSetRom = viewModel::setRom,
+                    onRedo = viewModel::redoSet,
+                    onConfirm = viewModel::confirmSet,
+                )
             }
         }
     }

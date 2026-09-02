@@ -284,6 +284,17 @@ fun WorkoutResumeScreen(
                                             }
                                         }
 
+                                        if (set.repRecords.isNotEmpty()) {
+                                            Text(
+                                                text = set.repRecords.joinToString("  ") { rec ->
+                                                    "R${rec.index + 1}:${rec.formScore.toInt()}"
+                                                },
+                                                fontSize = 11.sp,
+                                                color = Color.White.copy(alpha = 0.8f),
+                                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                            )
+                                        }
+
 
                                         Row(
                                             modifier = Modifier.fillMaxWidth()

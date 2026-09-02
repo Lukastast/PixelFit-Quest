@@ -84,13 +84,28 @@
 
     <!-- Workout Screen -->
     <string name="workout_go">GO!</string>
-    <string name="workout_status">Set: %1$d / %2$d, Reps: %3$d, Weight: %4$.1f Kg</string>
-    <string name="rom_score_label">ROM Score: \n%1$d / 100 \navg = %2$d</string>
-    <string name="tilt_x_score_label">X Tilt Score: \n-100 / %1$d / 100 \navg = %2$d</string>
-    <string name="tilt_z_score_label">Z Tilt Score: \n-100 / %1$d / 100 \navg = %2$d</string>
+    <string name="workout_status_idle">Set: %1$d / %2$d · tap play · %3$.1f Kg</string>
+    <string name="workout_status_countdown">Set: %1$d / %2$d · get ready</string>
+    <string name="workout_status_recording">Set: %1$d / %2$d · recording · %3$.1f Kg · %4$.0fs</string>
+    <string name="workout_status_review">Set: %1$d / %2$d · review</string>
+    <string name="workout_recording_badge">RECORDING</string>
     <string name="no_plan_error">No workout plan provided—cannot start tracking</string>
     <string name="invalid_plan_error">Error: Invalid workout plan. Returning to customization...</string>
     <string name="no_accelerometer_error">No accelerometer sensor found</string>
+    <string name="set_review_title">Set %1$d · %2$s</string>
+    <string name="set_review_count">%1$d reps accepted</string>
+    <string name="set_review_form">Form %1$d/100</string>
+    <string name="set_review_samples">%1$d samples</string>
+    <string name="set_review_rep_index">Rep %1$d</string>
+    <string name="set_review_rep_meta">ecc %1$.1fs · con %2$.1fs · stab %3$d</string>
+    <string name="set_review_rom_label">ROM</string>
+    <string name="set_review_rom_percent">%1$d%%</string>
+    <string name="set_review_accept">Accept</string>
+    <string name="set_review_remove">Remove</string>
+    <string name="set_review_merge">Merge next</string>
+    <string name="set_review_add">Add rep</string>
+    <string name="set_review_redo">Redo set</string>
+    <string name="set_review_confirm">Confirm</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
