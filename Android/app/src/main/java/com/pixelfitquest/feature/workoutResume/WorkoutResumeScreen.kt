@@ -150,7 +150,7 @@ fun WorkoutResumeScreen(
                         ) {
                             items(exercisesWithSets) { item ->
                                 val exercise = item.exercise
-                                val avgRom = item.avgWorkoutScore
+                                val avgRom = item.avgFormScore.toInt()
                                 val avgZTilt = item.sets.map { it.zTiltScore }.average().toInt()
                                 val avgXTilt = item.sets.map { it.xTiltScore }.average().toInt()
 
@@ -247,13 +247,13 @@ fun WorkoutResumeScreen(
                                             ) {
                                                 Text(stringResource(R.string.set_score_title), fontSize = 12.sp, color = Color.Gray)
                                                 Text(
-                                                    text = stringResource(R.string.score_out_of_100, set.workoutScore.toInt()),
+                                                    text = stringResource(R.string.score_out_of_100, set.formScore.toInt()),
                                                     fontSize = 16.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = when {
-                                                        set.workoutScore >= 90 -> Color.Green
-                                                        set.workoutScore >= 70 -> Color.Yellow
-                                                        set.workoutScore >= 50 -> Color(0xFFFFA500)
+                                                        set.formScore >= 90 -> Color.Green
+                                                        set.formScore >= 70 -> Color.Yellow
+                                                        set.formScore >= 50 -> Color(0xFFFFA500)
                                                         else -> Color.Red
                                                     }
                                                 )
@@ -282,6 +282,17 @@ fun WorkoutResumeScreen(
                                                 Text(stringResource(R.string.kg_label), fontSize = 12.sp, color = Color.Gray)
                                                 Text("${set.weight.toInt()}", fontSize = 14.sp, fontWeight = FontWeight.Medium)
                                             }
+                                        }
+
+                                        if (set.repRecords.isNotEmpty()) {
+                                            Text(
+                                                text = set.repRecords.joinToString("  ") { rec ->
+                                                    "R${rec.index + 1}:${rec.formScore.toInt()}"
+                                                },
+                                                fontSize = 11.sp,
+                                                color = Color.White.copy(alpha = 0.8f),
+                                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                            )
                                         }
 
 

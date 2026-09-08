@@ -41,18 +41,12 @@ fun SplashScreen(
 
 
     LaunchedEffect(Unit) {
-        viewModel.checkAuthState { isAuthenticated ->
+        viewModel.resolveStart { route ->
             delay(1000)
             visible = false
             delay(500)
-            if (isAuthenticated) {
-                navController.navigate("home") {
-                    popUpTo(SPLASH_SCREEN) { inclusive = true }
-                }
-            } else {
-                navController.navigate("signup") {
-                    popUpTo(SPLASH_SCREEN) { inclusive = true }
-                }
+            navController.navigate(route) {
+                popUpTo(SPLASH_SCREEN) { inclusive = true }
             }
         }
     }

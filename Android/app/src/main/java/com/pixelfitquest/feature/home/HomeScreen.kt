@@ -73,7 +73,7 @@ fun HomeScreen(
 
     LaunchedEffect(Unit) {
         Log.d("HomeScreen", "Initializing HomeScreen")
-        viewModel.initialize(restartApp, activity)
+        viewModel.initialize(activity)
     }
 
     val userData by viewModel.userData.collectAsState()
@@ -128,6 +128,7 @@ fun HomeScreen(
     val stepGoal by viewModel.stepGoal.collectAsState()
     val rank by viewModel.rank.collectAsState()
     val totalUsers by viewModel.totalUsers.collectAsState()
+    val leaderboardLocked by viewModel.leaderboardLocked.collectAsState()
     val dailyMissions by viewModel.dailyMissions.collectAsState()
     val completedMissions by viewModel.completedMissions.collectAsState()
     val achievements by viewModel.achievements.collectAsState()
@@ -307,18 +308,33 @@ fun HomeScreen(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(
-                            text = ordinal(rank),
-                            fontSize = 16.sp,
-                            color = Color.White,
-                            fontWeight = MaterialTheme.typography.titleMedium.fontWeight
-                        )
-                        Text(
-                            text = stringResource(R.string.total_users_count, totalUsers),
-                            fontSize = 16.sp,
-                            color = Color.White,
-                            fontWeight = MaterialTheme.typography.titleMedium.fontWeight
-                        )
+                        if (leaderboardLocked) {
+                            Text(
+                                text = stringResource(R.string.leaderboard_pro_badge),
+                                fontSize = 16.sp,
+                                color = Color.White,
+                                fontWeight = MaterialTheme.typography.titleMedium.fontWeight
+                            )
+                            Text(
+                                text = stringResource(R.string.leaderboard_pro_hint),
+                                fontSize = 12.sp,
+                                color = Color.White,
+                                fontWeight = MaterialTheme.typography.titleMedium.fontWeight
+                            )
+                        } else {
+                            Text(
+                                text = ordinal(rank),
+                                fontSize = 16.sp,
+                                color = Color.White,
+                                fontWeight = MaterialTheme.typography.titleMedium.fontWeight
+                            )
+                            Text(
+                                text = stringResource(R.string.total_users_count, totalUsers),
+                                fontSize = 16.sp,
+                                color = Color.White,
+                                fontWeight = MaterialTheme.typography.titleMedium.fontWeight
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.width(16.dp))

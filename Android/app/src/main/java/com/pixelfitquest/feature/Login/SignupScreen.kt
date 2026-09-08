@@ -21,14 +21,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -39,9 +37,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.components.molecules.AuthenticationButton
-import com.pixelfitquest.components.molecules.launchCredManBottomSheet
 import com.pixelfitquest.helpers.AutoSizeText
+import com.pixelfitquest.ui.navigation.HOME_SCREEN
 import com.pixelfitquest.ui.navigation.LOGIN_SCREEN
+import com.pixelfitquest.ui.navigation.SIGNUP_SCREEN
 import com.pixelfitquest.firebase.service.AuthState
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.ui.theme.PixelFitQuestTheme
@@ -54,18 +53,10 @@ fun SignupScreen(
     modifier: Modifier = Modifier,
     viewModel: SignupViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-
     val email = viewModel.email.collectAsState()
     val password = viewModel.password.collectAsState()
     val confirmPassword = viewModel.confirmPassword.collectAsState()
     val authState = viewModel.authState.collectAsState().value
-
-    LaunchedEffect(Unit) {
-        launchCredManBottomSheet(context) { credential ->
-            viewModel.onSignUpWithGoogle(credential, openAndPopUp)
-        }
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -268,6 +259,19 @@ fun SignupScreen(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        TextButton(
+            onClick = { openAndPopUp(HOME_SCREEN, SIGNUP_SCREEN) },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 28.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.continue_without_account),
+                fontSize = 16.sp,
+                color = Color.White
+            )
         }
     }
 }

@@ -8,7 +8,7 @@ import com.pixelfitquest.feature.Login.ext.isValidEmail
 import com.pixelfitquest.feature.Login.ext.isValidPassword
 import com.pixelfitquest.helpers.AuthErrorMapper
 import com.pixelfitquest.helpers.ERROR_TAG
-import com.pixelfitquest.ui.navigation.INTRO_SCREEN
+import com.pixelfitquest.ui.navigation.HOME_SCREEN
 import com.pixelfitquest.ui.navigation.SIGNUP_SCREEN
 import com.pixelfitquest.helpers.UNEXPECTED_CREDENTIAL
 import com.pixelfitquest.firebase.service.AccountService
@@ -92,7 +92,7 @@ class SignupViewModel @Inject constructor(
 
             accountService.createAccountWithEmail(_email.value, _password.value)
             _authState.value = AuthState.Success
-            openAndPopUp(INTRO_SCREEN, SIGNUP_SCREEN)
+            openAndPopUp(HOME_SCREEN, SIGNUP_SCREEN)
         }
     }
 
@@ -108,7 +108,7 @@ class SignupViewModel @Inject constructor(
                 val googleIdTokenCredential = GoogleIdTokenCredential.Companion.createFrom(credential.data)
                 accountService.signInWithGoogle(googleIdTokenCredential.idToken)
                 _authState.value = AuthState.Success
-                openAndPopUp(INTRO_SCREEN, SIGNUP_SCREEN)
+                openAndPopUp(HOME_SCREEN, SIGNUP_SCREEN)
             } else {
                 Log.e(ERROR_TAG, UNEXPECTED_CREDENTIAL)
                 _authState.value = AuthState.Error("Unexpected credential type")

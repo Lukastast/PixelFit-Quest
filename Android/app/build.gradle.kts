@@ -89,8 +89,10 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation(libs.hilt.android)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.hilt.common)
     ksp(libs.hilt.android.compiler)
+    ksp(libs.androidx.room.compiler)
     ksp(libs.kotlin.metadata.jvm)
 
     // --- Other Utilities ---
@@ -104,4 +106,6 @@ dependencies {
     // --- Debug dependencies ---
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    testImplementation("junit:junit:4.13.2")
 }

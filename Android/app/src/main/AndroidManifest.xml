@@ -4,6 +4,9 @@
     <uses-feature
         android:name="android.hardware.sensor.accelerometer"
         android:required="true" />
+    <uses-feature
+        android:name="android.hardware.sensor.gyroscope"
+        android:required="false" />
 
     <attribution
         android:tag="workout_tracking"
@@ -23,6 +26,16 @@
         android:theme="@style/Theme.PixelFitQuest">
 
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.export"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/export_file_paths" />
+        </provider>
 
         <activity
             android:name="com.pixelfitquest.MainActivity"
