@@ -146,17 +146,32 @@ private fun SetReviewActions(
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            text = stringResource(R.string.set_review_form, review.meanFormScore.toInt()),
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
-        )
-        Text(
-            text = stringResource(R.string.set_review_samples, review.sampleCount),
-            color = Color.Gray,
-            fontSize = 12.sp,
-        )
+        val logOnly = review.analysis.flags.contains("log_only")
+        if (logOnly) {
+            Text(
+                text = stringResource(R.string.set_review_log_only_title),
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+            )
+            Text(
+                text = stringResource(R.string.set_review_log_only_hint),
+                color = Color.Gray,
+                fontSize = 12.sp,
+            )
+        } else {
+            Text(
+                text = stringResource(R.string.set_review_form, review.meanFormScore.toInt()),
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+            )
+            Text(
+                text = stringResource(R.string.set_review_samples, review.sampleCount),
+                color = Color.Gray,
+                fontSize = 12.sp,
+            )
+        }
         if (stacked) {
             Spacer(Modifier.height(4.dp))
             OverlayAction(

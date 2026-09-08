@@ -97,6 +97,7 @@
     <!-- Workout Screen -->
     <string name="workout_go">GO!</string>
     <string name="workout_status_idle">Set: %1$d / %2$d · tap play · %3$.1f Kg</string>
+    <string name="workout_status_idle_log">Set: %1$d / %2$d · tap play to log · %3$.1f Kg</string>
     <string name="workout_status_countdown">Set: %1$d / %2$d · get ready</string>
     <string name="workout_status_recording">Set: %1$d / %2$d · recording · %3$.1f Kg · %4$.0fs</string>
     <string name="workout_status_review">Set: %1$d / %2$d · review</string>
@@ -189,4 +190,16 @@
     <string name="edit_template_desc">Edit Template</string>
     <string name="delete_template_desc">Delete Template</string>
     <string name="no_templates_msg">No templates yet. Name &amp; save one to get started!</string>
+    <string name="exercise_search_hint">Search lifts...</string>
+    <string name="exercise_filter_all">All</string>
+    <string name="exercise_filter_imu">IMU</string>
+    <string name="exercise_filter_log">Log-only</string>
+    <string name="exercise_filter_selected">Selected (%1$d)</string>
+    <string name="exercise_badge_imu">IMU</string>
+    <string name="exercise_badge_log">LOG</string>
+    <string name="exercise_catalog_hint">IMU lifts record form. Log-only is sets and weight until a profile ships.</string>
+    <string name="exercise_catalog_stats">%1$d lifts · %2$d IMU</string>
+    <string name="exercise_no_matches">No exercises match.</string>
+    <string name="set_review_log_only_title">Log only</string>
+    <string name="set_review_log_only_hint">No IMU profile yet - add reps to log this set.</string>
 </resources>

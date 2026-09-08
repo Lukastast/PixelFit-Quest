@@ -36,12 +36,7 @@ data class WorkoutTemplate(
 
             val planItems = (map["plan"] as? List<Map<String, Any?>>)?.mapNotNull { itemMap ->
                 val exerciseStr = itemMap["exercise"] as? String ?: return@mapNotNull null
-                val workoutType = try {
-                    val normalized = exerciseStr.uppercase().replace("-", "_")
-                    ExerciseType.valueOf(normalized)
-                } catch (e: IllegalArgumentException) {
-                    null
-                }
+                val workoutType = ExerciseType.fromStored(exerciseStr)
                 val rawSets = itemMap["sets"]
                 val sets = when (rawSets) {
                     is Int -> rawSets
