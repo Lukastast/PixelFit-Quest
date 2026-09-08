@@ -57,6 +57,14 @@
     <string name="login_title">Login</string>
     <string name="email_label">Email:</string>
     <string name="password_label">Password:</string>
+    <string name="forgot_password">Forgot password?</string>
+
+    <!-- Forgot Password Screen -->
+    <string name="forgot_password_title">Forgot Password</string>
+    <string name="forgot_password_instructions">Enter your email and we\'ll send a reset link.</string>
+    <string name="send_reset">Send Reset</string>
+    <string name="forgot_password_success">Reset link sent. Check your email (and spam folder).</string>
+    <string name="back_to_login">Back to Login</string>
 
     <!-- Signup Screen -->
     <string name="signup_title">Sign Up</string>

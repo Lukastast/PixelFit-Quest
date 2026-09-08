@@ -27,6 +27,13 @@ object AuthErrorMapper {
         "ERROR_INVALID_CREDENTIAL" to "Invalid credentials"
     )
 
+    val resetPasswordErrorMappings = mapOf(
+        "ERROR_INVALID_EMAIL" to "Invalid email",
+        "ERROR_USER_NOT_FOUND" to "No account found with this email",
+        "ERROR_USER_DISABLED" to "Account disabled",
+        "ERROR_TOO_MANY_REQUESTS" to "Too many attempts. Try again later"
+    )
+
     fun mapError(
         e: Throwable,
         mappings: Map<String, String>,

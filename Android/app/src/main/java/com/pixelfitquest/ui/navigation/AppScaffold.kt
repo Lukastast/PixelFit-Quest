@@ -56,6 +56,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
+import com.pixelfitquest.feature.Login.ForgotPasswordScreen
 import com.pixelfitquest.feature.Login.LoginScreen
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.feature.customization.CustomizationScreen
@@ -344,6 +345,12 @@ fun NavGraphBuilder.pixelFitGraph(
     composable(LOGIN_SCREEN) {
         LoginScreen(
             openScreen = { route -> appState.navigate(route) },
+            openAndPopUp = { route, popUp -> appState.navigateAndPopUp(route, popUp) }
+        )
+    }
+
+    composable(FORGOT_PASSWORD_SCREEN) {
+        ForgotPasswordScreen(
             openAndPopUp = { route, popUp -> appState.navigateAndPopUp(route, popUp) }
         )
     }

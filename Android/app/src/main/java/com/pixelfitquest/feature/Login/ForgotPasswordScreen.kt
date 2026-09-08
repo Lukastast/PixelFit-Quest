@@ -4,8 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -14,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -22,52 +21,41 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.pixelfitquest.ui.navigation.FORGOT_PASSWORD_SCREEN
-import com.pixelfitquest.ui.navigation.SIGNUP_SCREEN
 import com.pixelfitquest.R
-import com.pixelfitquest.components.molecules.AuthenticationButton
-import com.pixelfitquest.components.molecules.launchCredManBottomSheet
-import com.pixelfitquest.firebase.service.AuthState
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.firebase.service.AuthState
+import com.pixelfitquest.helpers.AutoSizeText
+import com.pixelfitquest.ui.navigation.FORGOT_PASSWORD_SCREEN
+import com.pixelfitquest.ui.navigation.LOGIN_SCREEN
 import com.pixelfitquest.ui.theme.PixelFitQuestTheme
+import com.pixelfitquest.ui.theme.VitalGreen
 import com.pixelfitquest.ui.theme.typography
 
 @Composable
-fun LoginScreen(
-    openScreen: (String) -> Unit,
+fun ForgotPasswordScreen(
     openAndPopUp: (String, String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: LoginViewModel = hiltViewModel()
+    viewModel: ForgotPasswordViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-
     val email = viewModel.email.collectAsState()
-    val password = viewModel.password.collectAsState()
     val authState = viewModel.authState.collectAsState().value
 
-    LaunchedEffect(Unit) {
-        launchCredManBottomSheet(context) { credential ->
-            viewModel.onLogInWithGoogle(credential, openAndPopUp)
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         Image(
             painter = painterResource(R.drawable.logsigninbackground),
             contentDescription = null,
@@ -94,18 +82,26 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            AutoSizeText(
+                text = stringResource(R.string.forgot_password_title),
+                style = typography.titleLarge.copy(color = Color.White),
+                modifier = Modifier.padding(bottom = 8.dp),
+                maxFontSize = 32.sp,
+                minFontSize = 22.sp
+            )
+
             Text(
-                text = stringResource(R.string.login_title),
-                style = typography.titleLarge,
+                text = stringResource(R.string.forgot_password_instructions),
+                style = typography.labelLarge,
                 color = Color.White,
-                modifier = Modifier.padding(bottom = 8.dp)
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 12.dp)
             )
 
             Text(
                 text = stringResource(R.string.email_label),
                 style = typography.labelLarge,
-                modifier = Modifier
-                    .align(Alignment.Start)
+                modifier = Modifier.align(Alignment.Start)
             )
 
             Box(
@@ -124,7 +120,14 @@ fun LoginScreen(
                     singleLine = true,
                     value = email.value,
                     onValueChange = { viewModel.updateEmail(it) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    enabled = authState !is AuthState.Loading,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { viewModel.onSendResetClick() }
+                    ),
                     modifier = Modifier.fillMaxHeight().fillMaxWidth(0.96f),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
@@ -136,105 +139,61 @@ fun LoginScreen(
                         disabledIndicatorColor = Color.Transparent,
                         errorIndicatorColor = Color.Transparent,
                         focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black
+                        unfocusedTextColor = Color.Black,
+                        disabledTextColor = Color.Black
                     )
                 )
             }
 
-            Text(
-                text = stringResource(R.string.password_label),
-                style = typography.labelLarge,
-                modifier = Modifier
-                    .align(Alignment.Start)
-            )
-
-            Box(
-                modifier = Modifier
-                    .width(280.dp)
-                    .height(60.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.inputfield),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.FillBounds
-                )
-                TextField(
-                    singleLine = true,
-                    value = password.value,
-                    onValueChange = { viewModel.updatePassword(it) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    modifier = Modifier.fillMaxHeight().fillMaxWidth(0.96f),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                        errorContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent,
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black
-                    )
-                )
-            }
-
-            TextButton(
-                onClick = { openScreen(FORGOT_PASSWORD_SCREEN) },
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.forgot_password),
-                    fontSize = 14.sp,
-                    color = Color.White
-                )
-            }
+            Spacer(modifier = Modifier.height(8.dp))
 
             if (authState is AuthState.Error) {
                 Text(
                     text = authState.message,
                     style = typography.labelLarge,
                     color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
 
-            if (authState is AuthState.Loading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            if (authState is AuthState.Success) {
+                Text(
+                    text = stringResource(R.string.forgot_password_success),
+                    style = typography.labelLarge,
+                    color = VitalGreen,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
             }
 
-            TextButton(onClick = { openScreen(SIGNUP_SCREEN) }) {
-                Text(text = stringResource(R.string.sign_up_description), fontSize = 16.sp, color = Color.White)
+            TextButton(
+                onClick = { openAndPopUp(LOGIN_SCREEN, FORGOT_PASSWORD_SCREEN) }
+            ) {
+                Text(
+                    text = stringResource(R.string.back_to_login),
+                    fontSize = 16.sp,
+                    color = Color.White
+                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
+            if (authState is AuthState.Loading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            } else {
                 PixelArtButton(
-                    onClick = { viewModel.onLogInClick(openAndPopUp) },
+                    onClick = { viewModel.onSendResetClick() },
                     imageRes = R.drawable.button_unclicked,
                     pressedRes = R.drawable.button_clicked,
-                    modifier = Modifier.weight(1f).height(59.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(59.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.log_in),
+                        text = stringResource(R.string.send_reset),
                         fontSize = 16.sp
                     )
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                AuthenticationButton(
-                    buttonText = R.string.login_with_google,
-                    modifier = Modifier.weight(1f).height(59.dp)
-                ) { credential ->
-                    viewModel.onLogInWithGoogle(credential, openAndPopUp)
                 }
             }
 
@@ -250,10 +209,9 @@ fun LoginScreen(
     backgroundColor = 0xFFFFFFFF
 )
 @Composable
-fun LoginScreenPreview() {
+fun ForgotPasswordScreenPreview() {
     PixelFitQuestTheme {
-        LoginScreen(
-            openScreen = {},
+        ForgotPasswordScreen(
             openAndPopUp = { _, _ -> }
         )
     }
