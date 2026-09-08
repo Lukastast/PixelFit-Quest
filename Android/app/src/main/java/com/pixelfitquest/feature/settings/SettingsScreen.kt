@@ -1,5 +1,6 @@
 package com.pixelfitquest.feature.settings
 
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,14 +32,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.health.connect.client.PermissionController
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.components.molecules.ExitAppCard
+import com.pixelfitquest.components.molecules.HealthConnectCard
 import com.pixelfitquest.components.molecules.RemoveAccountCard
 import com.pixelfitquest.components.molecules.SettingsActionCard
 import com.pixelfitquest.components.molecules.VolumeCard
 import com.pixelfitquest.components.molecules.launchCredManButtonUI
 import com.pixelfitquest.firebase.model.User
+import com.pixelfitquest.health.HealthConnectIntents
+import com.pixelfitquest.health.HealthConnectStatus
 import com.pixelfitquest.ui.theme.typography
 import kotlinx.coroutines.launch
 
@@ -51,10 +57,21 @@ fun SettingsScreen(
     val userSettings by viewModel.userData.collectAsState(initial = null)
     val musicVolume = userSettings?.musicVolume ?: 50
     val signedIn = user.id.isNotBlank()
+    val healthStatus by viewModel.healthStatus.collectAsState()
+    val healthGranted by viewModel.healthPermissionsGranted.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val healthPermissionContract = remember {
+        PermissionController.createRequestPermissionResultContract()
+    }
+    val healthPermissionLauncher = rememberLauncherForActivityResult(
+        contract = healthPermissionContract
+    ) { granted ->
+        viewModel.onHealthPermissionsResult(granted)
+    }
 
     LaunchedEffect(Unit) {
+        viewModel.refreshHealthStatus()
         onScreenReady()
     }
 
@@ -137,6 +154,30 @@ fun SettingsScreen(
             VolumeCard(
                 musicVolume = musicVolume,
                 onVolumeChange = { viewModel.setMusicVolume(it) }
+            )
+
+            Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+
+            HealthConnectCard(
+                status = healthStatus,
+                permissionsGranted = healthGranted,
+                onClick = {
+                    when (healthStatus) {
+                        HealthConnectStatus.AVAILABLE -> {
+                            if (healthGranted) {
+                                runCatching { HealthConnectIntents.openHealthConnectSettings(context) }
+                            } else {
+                                runCatching {
+                                    healthPermissionLauncher.launch(viewModel.healthPermissions)
+                                }
+                            }
+                        }
+                        HealthConnectStatus.UPDATE_REQUIRED -> {
+                            HealthConnectIntents.openPlayStore(context)
+                        }
+                        HealthConnectStatus.UNAVAILABLE -> Unit
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))

@@ -101,7 +101,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.gson)
-    implementation(files("libs/samsung-health.aar"))
+    implementation(libs.androidx.health.connect.client)
 
     // --- Debug dependencies ---
     debugImplementation(libs.androidx.compose.ui.tooling)
