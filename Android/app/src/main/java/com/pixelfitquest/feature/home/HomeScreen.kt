@@ -52,11 +52,15 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.pixelfitquest.R
 import com.pixelfitquest.components.molecules.WorkoutCard
+import com.pixelfitquest.feature.levels.HomeThemeBackdrop
+import com.pixelfitquest.feature.levels.LevelUpDialog
+import com.pixelfitquest.feature.levels.LevelsViewModel
 import com.pixelfitquest.feature.streak.WeeklyStreakDialog
 import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
 import com.pixelfitquest.health.HealthConnectIntents
 import com.pixelfitquest.health.HealthConnectStatus
 import com.pixelfitquest.ui.navigation.ACHIEVEMENTS_SCREEN
+import com.pixelfitquest.ui.navigation.LEVELS_SCREEN
 import com.pixelfitquest.ui.navigation.PROGRESS_SCREEN
 import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
@@ -74,6 +78,7 @@ fun HomeScreen(
     navController: NavController,
     viewModel: HomeViewModel = hiltViewModel(),
     weeklyStreakViewModel: WeeklyStreakViewModel = hiltViewModel(),
+    levelsViewModel: LevelsViewModel = hiltViewModel(),
     onScreenReady: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -123,6 +128,14 @@ fun HomeScreen(
     val userData by viewModel.userData.collectAsState()
     val workouts by viewModel.workouts.collectAsState()
 
+    val levelsState by levelsViewModel.uiState.collectAsState()
+
+    LaunchedEffect(userData?.level, userData?.exp) {
+        val data = userData ?: return@LaunchedEffect
+        levelsViewModel.importRemoteIfEmpty(data.level, data.exp)
+    }
+
+
 
     val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
     var showTutorial by remember { mutableStateOf(false) }
@@ -165,11 +178,9 @@ fun HomeScreen(
         return
     }
 
-    val level = userData?.level ?: 0
+    val level = levelsState.progress.level
     val coins = userData?.coins ?: 0
-    val exp = userData?.exp ?: 0
     val streak = weeklyStreak.currentStreakWeeks
-    val maxExp by viewModel.currentMaxExp.collectAsState()
     val healthMetrics by viewModel.healthMetrics.collectAsState()
     val todaySteps = healthMetrics.steps
     val stepGoal = healthMetrics.stepGoal
@@ -189,11 +200,7 @@ fun HomeScreen(
     }
 
     val displayLevel = if (level >= 30) stringResource(R.string.max_level) else level.toString()
-    val progressIndex = if (maxExp > 0) {
-        ((exp.toFloat() / maxExp) * 5f).toInt().coerceIn(0, 5)
-    } else {
-        0
-    }
+    val progressIndex = levelsState.progress.xpBarIndex
 
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     dateFormat.timeZone = TimeZone.getTimeZone("UTC")
@@ -211,6 +218,8 @@ fun HomeScreen(
     val spacing = MaterialTheme.spacing
 
     Box(modifier = Modifier.fillMaxSize()) {
+        HomeThemeBackdrop(themeId = levelsState.equipped.homeThemeId)
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -272,10 +281,15 @@ fun HomeScreen(
                 Text(
                     text = stringResource(R.string.level_display, displayLevel),
                     fontSize = 14.sp,
-                    color = Color.White
+                    color = Color.White,
+                    modifier = Modifier.clickable {
+                        navController.navigate(LEVELS_SCREEN)
+                    }
                 )
                 Box(
-                    modifier = Modifier.size(width = spacing.scale(80), height = spacing.md),
+                    modifier = Modifier
+                        .size(width = spacing.scale(80), height = spacing.md)
+                        .clickable { navController.navigate(LEVELS_SCREEN) },
                     contentAlignment = Alignment.Center
                 ) {
                     val xpPainter = when (progressIndex) {
@@ -606,6 +620,17 @@ fun HomeScreen(
                 snapshot = weeklyStreak,
                 onDismiss = { showStreakDialog = false },
                 onTargetChange = { weeklyStreakViewModel.setTargetSessionsPerWeek(it) }
+            )
+        }
+
+        levelsState.pendingLevelUp?.let { pending ->
+            LevelUpDialog(
+                result = pending,
+                onDismiss = { levelsViewModel.dismissLevelUp() },
+                onOpenRewards = {
+                    levelsViewModel.dismissLevelUp()
+                    navController.navigate(LEVELS_SCREEN)
+                },
             )
         }
     }

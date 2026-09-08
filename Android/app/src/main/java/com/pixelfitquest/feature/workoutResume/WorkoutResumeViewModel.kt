@@ -11,6 +11,7 @@ import com.pixelfitquest.feature.workoutResume.model.WorkoutSummary
 import com.pixelfitquest.feature.streak.data.WeeklyStreakRepository
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
+import com.pixelfitquest.feature.levels.cosmetics.LocalXpPort
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +25,7 @@ class WorkoutResumeViewModel @Inject constructor(
     private val workoutRepository: WorkoutRepository,
     private val userRepository: UserRepository,
     private val weeklyStreakRepository: WeeklyStreakRepository,
+    private val localXpPort: LocalXpPort,
 ) : ViewModel() {
 
     private val _userData = MutableStateFlow<UserData?>(null)
@@ -163,10 +165,16 @@ class WorkoutResumeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
+                localXpPort.awardXp(amount, "workout")
+                Log.d("ResumeVM", "Added $amount local XP")
+            } catch (e: Exception) {
+                Log.w("ResumeVM", "Local XP award failed", e)
+            }
+            try {
                 userRepository.updateExp(amount)
                 Log.d("ResumeVM", "Added $amount XP")
             } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to update XP"
+                Log.w("ResumeVM", "Cloud XP skipped (offline/no account)", e)
             }
         }
     }

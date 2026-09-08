@@ -24,6 +24,8 @@ import com.pixelfitquest.components.atoms.IdleAnimation
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.components.atoms.PixelCharacterMotion
 import com.pixelfitquest.components.atoms.SpriteSheetPlayer
+import com.pixelfitquest.feature.levels.LevelsViewModel
+import com.pixelfitquest.feature.levels.cosmetics.AvatarSkinBridge
 import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.feature.settings.SettingsViewModel
@@ -31,15 +33,25 @@ import com.pixelfitquest.feature.settings.SettingsViewModel
 @Composable
 fun CustomizationScreen(
     viewModel: CustomizationViewModel = hiltViewModel(),
-    settingsViewModel: SettingsViewModel = hiltViewModel()
+    settingsViewModel: SettingsViewModel = hiltViewModel(),
+    levelsViewModel: LevelsViewModel = hiltViewModel(),
 ) {
     val characterData by viewModel.characterData.collectAsState()
     val userData by settingsViewModel.userData.collectAsState()
+    val levelsState by levelsViewModel.uiState.collectAsState()
+    val unlockedSkinIds = remember(levelsState.items) {
+        levelsState.items
+            .filter { it.unlocked }
+            .map { it.definition.id }
+            .toSet()
+    }
 
     val gender = characterData.gender
     val fitnessVariant = if (gender == "female") "female_fitness" else "male_fitness"
     val premiumVariant = if (gender == "female") "female_premium" else "male_premium"
-    val variants = remember(gender) { listOf("basic", fitnessVariant, premiumVariant) }
+    val variants = remember(gender) {
+        listOf("basic", fitnessVariant, AvatarSkinBridge.VARIANT_SHADOW, premiumVariant)
+    }
 
     var currentVariantIndex by remember { mutableIntStateOf(0) }
 
@@ -50,17 +62,15 @@ fun CustomizationScreen(
     }
 
     val currentVariant = variants[currentVariantIndex]
-    val isUnlocked = characterData.unlockedVariants.contains(currentVariant)
     val isPremium = currentVariant == premiumVariant
     val isFitness = currentVariant == fitnessVariant
+    val isShadow = currentVariant == AvatarSkinBridge.VARIANT_SHADOW
+    val unlockedByLevel = AvatarSkinBridge.isUnlockedByLevel(currentVariant, unlockedSkinIds)
+    val isUnlocked = characterData.unlockedVariants.contains(currentVariant) || unlockedByLevel
+    val levelRequired = AvatarSkinBridge.unlockLevel(currentVariant)
 
-    // Logic to determine which sprite key to pass to IdleAnimation
-    val displaySprite = remember(currentVariant, gender, isUnlocked, isPremium) {
-        when {
-            currentVariant == "basic" -> gender
-            isPremium || !isUnlocked -> if (gender == "female") "locked_woman" else "locked_male"
-            else -> "fitness_character_${if (gender == "female") "woman" else "male"}_idle"
-        }
+    val displaySprite = remember(currentVariant, gender, isUnlocked, isPremium, isShadow) {
+        AvatarSkinBridge.spriteKey(currentVariant, gender, isUnlocked)
     }
 
     val spacing = MaterialTheme.spacing
@@ -106,6 +116,15 @@ fun CustomizationScreen(
                         modifier = Modifier.padding(top = spacing.xs)
                     )
                 }
+                if (isShadow) {
+                    Text(
+                        text = stringResource(R.string.levels_shadow_skin),
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        style = typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
 
                 VariantCarousel(
                     spriteKey = displaySprite,
@@ -118,7 +137,11 @@ fun CustomizationScreen(
                 ActionButtons(
                     isPremium = isPremium,
                     isUnlocked = isUnlocked,
-                    onSelect = { viewModel.updateVariant(currentVariant) },
+                    lockedLevel = if (!isUnlocked && isShadow) levelRequired else null,
+                    onSelect = {
+                        viewModel.updateVariant(currentVariant)
+                        levelsViewModel.equipByAvatarVariant(currentVariant)
+                    },
                     onBuy = { viewModel.buyVariant(currentVariant, 100) }
                 )
             }
@@ -283,6 +306,7 @@ private fun CapeHeroWalkPreview() {
 private fun ActionButtons(
     isPremium: Boolean,
     isUnlocked: Boolean,
+    lockedLevel: Int? = null,
     onSelect: () -> Unit,
     onBuy: () -> Unit,
     price: Int = 100
@@ -298,6 +322,11 @@ private fun ActionButtons(
         isUnlocked -> {
             PixelArtButton(onClick = onSelect, imageRes = R.drawable.button_unclicked, pressedRes = R.drawable.button_clicked, modifier = modifier) {
                 Text(stringResource(R.string.select))
+            }
+        }
+        lockedLevel != null && lockedLevel > 1 -> {
+            PixelArtButton(onClick = {}, imageRes = R.drawable.button_unclicked, pressedRes = R.drawable.button_unclicked, modifier = modifier) {
+                Text(stringResource(R.string.levels_locked_level, lockedLevel))
             }
         }
         else -> {
