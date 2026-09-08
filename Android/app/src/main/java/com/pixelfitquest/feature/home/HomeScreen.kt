@@ -23,8 +23,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -33,7 +31,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,7 +44,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.health.connect.client.PermissionController
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -60,10 +56,10 @@ import com.pixelfitquest.feature.streak.WeeklyStreakDialog
 import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
 import com.pixelfitquest.health.HealthConnectIntents
 import com.pixelfitquest.health.HealthConnectStatus
+import com.pixelfitquest.ui.navigation.ACHIEVEMENTS_SCREEN
 import com.pixelfitquest.ui.navigation.PROGRESS_SCREEN
 import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
@@ -183,10 +179,6 @@ fun HomeScreen(
     val leaderboardLocked by viewModel.leaderboardLocked.collectAsState()
     val dailyMissions by viewModel.dailyMissions.collectAsState()
     val completedMissions by viewModel.completedMissions.collectAsState()
-    val achievements by viewModel.achievements.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
-    var showAchievements by remember { mutableStateOf(false) }
     val progressEntryLabel = stringResource(R.string.progress_home_entry)
 
     LaunchedEffect(Unit) {
@@ -423,7 +415,7 @@ fun HomeScreen(
                     contentDescription = stringResource(R.string.achievements_button_desc),
                     modifier = Modifier
                         .size(spacing.barLg)
-                        .clickable { showAchievements = true }
+                        .clickable { navController.navigate(ACHIEVEMENTS_SCREEN) }
                 )
             }
         }
@@ -616,75 +608,6 @@ fun HomeScreen(
                 onTargetChange = { weeklyStreakViewModel.setTargetSessionsPerWeek(it) }
             )
         }
-
-        if (showAchievements) {
-            Dialog(onDismissRequest = { showAchievements = false }) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.92f)
-                        .height(spacing.scale(200))
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.questloginboard_wider),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.FillBounds
-                    )
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(spacing.md),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = stringResource(R.string.achievements_title),
-                            fontSize = 18.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(spacing.xs))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            achievements.forEach { (ach, isUnlocked) ->
-                                val icon = if (isUnlocked) ach.unlockedIcon else ach.lockedIcon
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Image(
-                                        painter = painterResource(id = icon),
-                                        contentDescription = ach.name,
-                                        modifier = Modifier
-                                            .size(spacing.barMd)
-                                            .padding(spacing.xs)
-                                            .clickable {
-                                                coroutineScope.launch {
-                                                    snackbarHostState.currentSnackbarData?.dismiss()
-                                                    snackbarHostState.showSnackbar(ach.description)
-                                                }
-                                            }
-                                    )
-                                    Text(
-                                        text = ach.name,
-                                        fontSize = 10.sp,
-                                        color = Color.White,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
     }
 }
 

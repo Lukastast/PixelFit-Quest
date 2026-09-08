@@ -115,6 +115,19 @@
     <string name="coins_reward_desc">Coins reward</string>
     <string name="exp_label">EXP</string>
     <string name="achievements_title">Achievements</string>
+    <string name="achievements_progress_count">%1$d / %2$d unlocked</string>
+    <string name="achievements_category_all">All</string>
+    <string name="achievements_category_workouts">Workouts</string>
+    <string name="achievements_category_streak">Streak</string>
+    <string name="achievements_category_steps">Steps</string>
+    <string name="achievements_category_volume">Volume</string>
+    <string name="achievements_category_milestones">Milestones</string>
+    <string name="achievements_reward_coins">+%1$d</string>
+    <string name="achievements_reward_xp">+%1$d XP</string>
+    <string name="achievements_locked">Locked</string>
+    <string name="achievements_unlocked">Unlocked</string>
+    <string name="achievements_progress_value">%1$d / %2$d</string>
+    <string name="achievements_reward_pending">Prize pending on this device</string>
 
     <!-- Workout Screen -->
     <string name="workout_go">GO!</string>
