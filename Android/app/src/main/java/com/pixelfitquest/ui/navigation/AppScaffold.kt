@@ -76,12 +76,10 @@ fun AppScaffold() {
     val appState = rememberAppState(snackbarHostState)
     val navController = appState.navController
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-    val isUserLoggedIn = appState.currentUser != null
-
     val globalSettingsViewModel: GlobalSettingsViewModel = hiltViewModel()
     val userSettings by globalSettingsViewModel.userRepository.getUserData().collectAsState(initial = null)
 
-    val hasBottomBar = isUserLoggedIn && currentRoute in listOf(
+    val hasBottomBar = currentRoute in listOf(
         HOME_SCREEN,
         WORKOUT_SCREEN,
         CUSTOMIZATION_SCREEN,
@@ -246,7 +244,7 @@ fun AppScaffold() {
                                     Check exercises to select them, adjust sets and weights, give a name to save as template, then tap "Start Workout" to earn coins and exp.
                                     
                                     SETTINGS  
-                                    Adjust music volume, sign out or delete your account.  """.trimIndent()
+                                    Adjust music volume, optionally sign in with Google, export your log, or view Backup & sync (Pro).  """.trimIndent()
                                     showTutorial = true
                                 }
                             }

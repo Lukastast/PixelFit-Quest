@@ -6,7 +6,7 @@
     <string name="confirm_password">Confirm password</string>
     <string name="sign_in">Sign in</string>
     <string name="log_in">Log in</string>
-    <string name="login_with_google" />
+    <string name="login_with_google">Google</string>
     <string name="attribution_workout_tracking">Workout Tracking &amp; Form Analysis</string>
     <string name="no_accounts_error">No Google accounts found on this device</string>
     <string name="sign_up">Sign up</string>
@@ -14,7 +14,7 @@
     <string name="login_description">Already have an account? Click here to Login!</string>
     <string name="sign_out">Sign out</string>
     <string name="sign_out_title">Sign out?</string>
-    <string name="sign_out_description">You will have to sign in again.</string>
+    <string name="sign_out_description">You\'ll stay in the app as a guest. Workouts on this phone are kept.</string>
     <string name="delete_account">Delete</string>
     <string name="delete_account_title">Delete account?</string>
     <string name="delete_account_description">You will lose all your notes and your account will be deleted. This action is irreversible.</string>
@@ -26,7 +26,7 @@
     <string name="profile_provider">Account provider: %1$s</string>
     <string name="update">Update</string>
     <string name="or">or</string>
-    <string name="sign_up_with_google" />
+    <string name="sign_up_with_google">Google</string>
     <string name="link_google_account">Link Google account</string>
     <string name="link_google_description">Link your Google account to enable seamless sign-in</string>
     <string name="link_google_title">Link Google account?</string>
@@ -109,6 +109,19 @@
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
+    <string name="continue_without_account">Continue without account</string>
+    <string name="guest_profile_title">Playing offline (guest)</string>
+    <string name="guest_profile_subtitle">Workouts stay on this phone</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_in_with_google_subtitle">Optional. Does not turn on cloud sync.</string>
+    <string name="backup_sync_pro_title">Backup &amp; sync (Pro)</string>
+    <string name="backup_sync_pro_subtitle">Cloud backup, multi-device, leaderboards</string>
+    <string name="export_json_title">Export JSON</string>
+    <string name="export_json_subtitle">Free local backup, no account needed</string>
+    <string name="export_csv_title">Export CSV</string>
+    <string name="export_csv_subtitle">Share your workout log</string>
+    <string name="leaderboard_pro_badge">PRO</string>
+    <string name="leaderboard_pro_hint">Leaderboard</string>
 
     <!-- Workout Resume Screen -->
     <string name="resume_title">Resume</string>

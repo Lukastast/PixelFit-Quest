@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.pixelfitquest.ui.navigation.SPLASH_SCREEN
 import com.pixelfitquest.feature.home.model.Achievement
 import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.feature.home.model.achievementsList
@@ -14,6 +13,7 @@ import com.pixelfitquest.firebase.service.AccountService
 import com.pixelfitquest.feature.workout.model.Workout
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
+import com.pixelfitquest.local.CloudSyncPolicy
 import com.pixelfitquest.viewmodel.PixelFitViewModel
 import com.samsung.android.sdk.health.data.HealthDataService
 import com.samsung.android.sdk.health.data.HealthDataStore
@@ -46,6 +46,7 @@ class HomeViewModel @Inject constructor(
     private val accountService: AccountService,
     private val userRepository: UserRepository,
     private val workoutRepository: WorkoutRepository,
+    private val cloudSyncPolicy: CloudSyncPolicy,
     @ApplicationContext private val context: Context
 ) : PixelFitViewModel() {
     private val _userData = MutableStateFlow<UserData?>(null)
@@ -84,6 +85,9 @@ class HomeViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _leaderboardLocked = MutableStateFlow(true)
+    val leaderboardLocked: StateFlow<Boolean> = _leaderboardLocked.asStateFlow()
+
     private var healthDataStore: HealthDataStore? = null
 
     private val stepPermissions = setOf(
@@ -91,29 +95,22 @@ class HomeViewModel @Inject constructor(
         Permission.Companion.of(DataTypes.Companion.STEPS_GOAL, AccessType.READ)
     )
 
-    fun initialize(restartApp: (String) -> Unit, activity: Activity?) {
-        launchCatching {
-            accountService.currentUser.collect { user ->
-                if (user == null) {
-                    restartApp(SPLASH_SCREEN)
-                }
-            }
-        }
-
+    fun initialize(activity: Activity?) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
+                _leaderboardLocked.value = !cloudSyncPolicy.isLeaderboardEnabled()
 
-                userRepository.loadProgressionConfig()
+                val data = userRepository.fetchUserDataOnce() ?: UserData()
+                _userData.value = data
+                updateMaxExp(data)
 
                 loadUserData()
-
-                userData.first { it != null }
-
                 fetchCompletedWorkouts()
-                fetchLeaderboard()
+                if (cloudSyncPolicy.isLeaderboardEnabled()) {
+                    fetchLeaderboard()
+                }
                 generateDailyMissions()
-
                 initializeHealthConnection(activity)
 
                 _isLoading.value = false
@@ -123,6 +120,24 @@ class HomeViewModel @Inject constructor(
                 Log.e("HomeVM", "Initialize error", e)
             }
         }
+        viewModelScope.launch {
+            try {
+                userRepository.loadProgressionConfig()
+                _userData.value?.let { updateMaxExp(it) }
+            } catch (e: Exception) {
+                Log.w("HomeVM", "Progression config unavailable; using defaults", e)
+            }
+        }
+    }
+
+    private fun updateMaxExp(data: UserData) {
+        val nextLevel = data.level + 1
+        val maxLevel = userRepository.getMaxLevel()
+        _currentMaxExp.value = if (nextLevel > maxLevel) {
+            userRepository.getExpRequiredForLevel(maxLevel)
+        } else {
+            userRepository.getExpRequiredForLevel(nextLevel)
+        }
     }
 
     private fun loadUserData() {
@@ -131,14 +146,7 @@ class HomeViewModel @Inject constructor(
                 userRepository.getUserData().collect { data ->
                     _userData.value = data
                     if (data != null) {
-                        val nextLevel = data.level + 1
-                        val maxLevel = userRepository.getMaxLevel()
-                        val max = if (nextLevel > maxLevel) {
-                            userRepository.getExpRequiredForLevel(maxLevel)
-                        } else {
-                            userRepository.getExpRequiredForLevel(nextLevel)
-                        }
-                        _currentMaxExp.value = max
+                        updateMaxExp(data)
                     } else {
                         _currentMaxExp.value = 100
                     }
