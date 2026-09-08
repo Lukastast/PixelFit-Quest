@@ -8,6 +8,7 @@ import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.feature.workout.model.ExerciseWithSets
 import com.pixelfitquest.feature.workout.model.Workout
 import com.pixelfitquest.feature.workoutResume.model.WorkoutSummary
+import com.pixelfitquest.feature.streak.data.WeeklyStreakRepository
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +22,8 @@ import javax.inject.Inject
 class WorkoutResumeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val workoutRepository: WorkoutRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val weeklyStreakRepository: WeeklyStreakRepository,
 ) : ViewModel() {
 
     private val _userData = MutableStateFlow<UserData?>(null)
@@ -100,6 +102,7 @@ class WorkoutResumeViewModel @Inject constructor(
                     awardRewards(_summary.value)
                     workoutRepository.updateWorkout(workoutId, mapOf("rewardsAwarded" to true))
                 }
+                grantPendingStreakXp()
 
             } catch (e: Exception) {
                 Log.e("WorkoutResumeVM", "Failed to load exercises/sets", e)
@@ -142,6 +145,18 @@ class WorkoutResumeViewModel @Inject constructor(
     private fun awardRewards(summary: WorkoutSummary) {
         addXp(summary.totalXp)
         addCoins(summary.totalCoins)
+    }
+
+    private fun grantPendingStreakXp() {
+        viewModelScope.launch {
+            try {
+                weeklyStreakRepository.withConsumedPendingXp { amount ->
+                    userRepository.updateExp(amount)
+                }
+            } catch (e: Exception) {
+                Log.i("ResumeVM", "Streak XP kept on device until account is available")
+            }
+        }
     }
 
     private fun addXp(amount: Int) {

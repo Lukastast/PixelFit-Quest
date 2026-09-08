@@ -237,7 +237,7 @@ fun AppScaffold() {
                                     Welcome to PixelFit Quest!
 
                                     HOME SCREEN  
-                                    View your level, coins, exp and streak at the top. Track daily steps for rewards, check your rank and achievements with the trophy icon, resume past workouts, and complete daily missions for extra coins/exp.
+                                    View your level, coins, exp and weekly streak at the top. Tap the flame to set how many sessions you want each week. Track daily steps for rewards, check your rank and achievements with the trophy icon, resume past workouts, and complete daily missions for extra coins/exp.
                                     
                                     CUSTOMIZATION  
                                     Choose your character's gender and cloths that can be purchased with coins to equip and set your height for accurate tracking.
@@ -246,7 +246,7 @@ fun AppScaffold() {
                                     Check exercises to select them, adjust sets and weights, give a name to save as template, then tap "Start Workout" to earn coins and exp.
                                     
                                     SETTINGS  
-                                    Adjust music volume, optionally sign in with Google, export your log, or view Backup & sync (Pro).
+                                    Adjust music volume, set your weekly session goal, optionally sign in with Google, export your log, or view Backup & sync (Pro).
                                     
                                     GYM PROGRESS  
                                     Open Gym progress from Home to see working weight over time. Sample lifts are labeled until you finish workouts on this phone.  """.trimIndent()

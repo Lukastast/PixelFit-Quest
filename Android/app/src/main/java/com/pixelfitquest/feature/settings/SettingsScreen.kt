@@ -42,11 +42,13 @@ import com.pixelfitquest.components.molecules.LandscapeWorkoutCard
 import com.pixelfitquest.components.molecules.RemoveAccountCard
 import com.pixelfitquest.components.molecules.SettingsActionCard
 import com.pixelfitquest.components.molecules.VolumeCard
-import com.pixelfitquest.ui.navigation.BODY_METRICS_SCREEN
 import com.pixelfitquest.components.molecules.launchCredManButtonUI
+import com.pixelfitquest.feature.streak.WeeklyGoalCard
+import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
 import com.pixelfitquest.firebase.model.User
 import com.pixelfitquest.health.HealthConnectIntents
 import com.pixelfitquest.health.HealthConnectStatus
+import com.pixelfitquest.ui.navigation.BODY_METRICS_SCREEN
 import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 import kotlinx.coroutines.launch
@@ -56,6 +58,7 @@ fun SettingsScreen(
     restartApp: (String) -> Unit,
     openScreen: (String) -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
+    weeklyStreakViewModel: WeeklyStreakViewModel = hiltViewModel(),
     onScreenReady: () -> Unit = {}
 ) {
     val user by viewModel.user.collectAsState(initial = User())
@@ -65,6 +68,7 @@ fun SettingsScreen(
     val healthStatus by viewModel.healthStatus.collectAsState()
     val healthGranted by viewModel.healthPermissionsGranted.collectAsState()
     val workoutLandscapeEnabled by viewModel.workoutLandscapeEnabled.collectAsState()
+    val weeklyStreak by weeklyStreakViewModel.snapshot.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val healthPermissionContract = remember {
@@ -190,6 +194,11 @@ fun SettingsScreen(
             )
 
             Spacer(modifier = Modifier.height(spacing.md))
+
+            WeeklyGoalCard(
+                targetSessions = weeklyStreak.targetSessionsPerWeek,
+                onTargetChange = { weeklyStreakViewModel.setTargetSessionsPerWeek(it) }
+            )
 
             Spacer(modifier = Modifier.height(spacing.md))
             LandscapeWorkoutCard(

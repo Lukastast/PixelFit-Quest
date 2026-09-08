@@ -35,6 +35,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +51,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.feature.streak.WeeklyStreakBonusBanner
+import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
 import com.pixelfitquest.feature.workout.model.enums.displayName
 import com.pixelfitquest.ui.navigation.PROGRESS_SCREEN
 import com.pixelfitquest.ui.theme.LocalSpacing
@@ -60,11 +63,13 @@ import com.pixelfitquest.ui.theme.spacing
 fun WorkoutResumeScreen(
     openScreen: (String) -> Unit,
     viewModel: WorkoutResumeViewModel,
+    weeklyStreakViewModel: WeeklyStreakViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
     val summary by viewModel.summary.collectAsState()
     val exercisesWithSets by viewModel.exercisesWithSets.collectAsState()
     val spacing = MaterialTheme.spacing
+    val weeklyStreak by weeklyStreakViewModel.snapshot.collectAsState()
 
     Scaffold(
         topBar = {
@@ -135,6 +140,9 @@ fun WorkoutResumeScreen(
                                 )
                             }
                         }
+
+                        Spacer(Modifier.height(spacing.xs))
+                        WeeklyStreakBonusBanner(snapshot = weeklyStreak)
 
                         Spacer(Modifier.height(spacing.scale(20)))
 

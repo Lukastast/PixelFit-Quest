@@ -7,6 +7,7 @@ import com.pixelfitquest.feature.home.model.achievementsList
 import com.pixelfitquest.feature.home.model.missionsPool
 import com.pixelfitquest.feature.home.model.rewardsPool
 import com.pixelfitquest.feature.workout.model.Workout
+import com.pixelfitquest.feature.streak.data.WeeklyStreakRepository
 import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
@@ -40,6 +41,7 @@ class HomeViewModel @Inject constructor(
     private val workoutRepository: WorkoutRepository,
     private val cloudSyncPolicy: CloudSyncPolicy,
     private val healthRepository: HealthRepository,
+    private val weeklyStreakRepository: WeeklyStreakRepository,
 ) : PixelFitViewModel() {
     private val _userData = MutableStateFlow<UserData?>(null)
     val userData: StateFlow<UserData?> = _userData.asStateFlow()
@@ -103,6 +105,11 @@ class HomeViewModel @Inject constructor(
                 updateMaxExp(data)
 
                 loadUserData()
+
+                userData.first { it != null }
+                grantPendingStreakXp()
+                weeklyStreakRepository.reconcile()
+
                 fetchCompletedWorkouts()
                 if (cloudSyncPolicy.isLeaderboardEnabled()) {
                     fetchLeaderboard()
@@ -178,23 +185,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun incrementStreak() {
-        viewModelScope.launch {
-            try {
-                userRepository.updateStreak(increment = true)
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to update streak"
+    private suspend fun grantPendingStreakXp() {
+        try {
+            weeklyStreakRepository.withConsumedPendingXp { amount ->
+                userRepository.updateExp(amount)
             }
-        }
-    }
-
-    fun resetStreak() {
-        viewModelScope.launch {
-            try {
-                userRepository.updateStreak(reset = true)
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to reset streak"
-            }
+        } catch (e: Exception) {
+            Log.i("HomeVM", "Streak XP kept on device until account is available")
         }
     }
 
@@ -269,6 +266,26 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun incrementStreak() {
+        viewModelScope.launch {
+            try {
+                userRepository.updateStreak(increment = true)
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to update streak"
+            }
+        }
+    }
+
+    fun resetStreak() {
+        viewModelScope.launch {
+            try {
+                userRepository.updateStreak(reset = true)
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to reset streak"
+            }
+        }
+    }
+
     fun completeWorkout(workout: Workout) {
         viewModelScope.launch {
             try {
@@ -280,10 +297,16 @@ class HomeViewModel @Inject constructor(
                 dateFormat.timeZone = TimeZone.getTimeZone("UTC")
                 val today = dateFormat.format(Date())
                 val lastStreakUpdateDate = userRepository.getUserField("last_streak_update_date") as? String ?: ""
-
                 if (lastStreakUpdateDate != today) {
                     incrementStreak()
                     userRepository.updateUserData(mapOf("last_streak_update_date" to today))
+                }
+
+                try {
+                    weeklyStreakRepository.recordCompletedSession(workout.id)
+                    grantPendingStreakXp()
+                } catch (e: Exception) {
+                    Log.i("HomeVM", "Weekly streak record failed", e)
                 }
                 fetchCompletedWorkouts()
             } catch (e: Exception) {
