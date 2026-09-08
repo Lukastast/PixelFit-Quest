@@ -43,6 +43,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -56,6 +58,7 @@ import com.pixelfitquest.R
 import com.pixelfitquest.components.molecules.WorkoutCard
 import com.pixelfitquest.health.HealthConnectIntents
 import com.pixelfitquest.health.HealthConnectStatus
+import com.pixelfitquest.ui.navigation.PROGRESS_SCREEN
 import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -179,6 +182,7 @@ fun HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     var showAchievements by remember { mutableStateOf(false) }
+    val progressEntryLabel = stringResource(R.string.progress_home_entry)
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -416,28 +420,60 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(spacing.workoutRow),
+                .height(spacing.workoutRow)
+                .padding(horizontal = spacing.md),
             contentAlignment = Alignment.Center
         ) {
-            if (workouts.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.no_workouts_yet),
-                    color = Color.White.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
-                )
-            } else {
-                LazyRow(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.spacedBy(spacing.sm, Alignment.CenterHorizontally),
+            Column(modifier = Modifier.fillMaxSize()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { navController.navigate(PROGRESS_SCREEN) }
+                        .padding(bottom = spacing.xs)
+                        .semantics { contentDescription = progressEntryLabel },
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items(workouts) { workout ->
-                        WorkoutCard(
-                            workout = workout,
-                            onClick = {
-                                navController.navigate("workout_resume/${workout.id}")
-                            }
+                    Text(
+                        text = stringResource(R.string.progress_home_entry),
+                        color = Color(0xFFFFD700),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = ">",
+                        color = Color(0xFFFFD700),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (workouts.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.no_workouts_yet),
+                            color = Color.White.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center
                         )
+                    } else {
+                        LazyRow(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.spacedBy(spacing.sm, Alignment.CenterHorizontally),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            items(workouts) { workout ->
+                                WorkoutCard(
+                                    workout = workout,
+                                    onClick = {
+                                        navController.navigate("workout_resume/${workout.id}")
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }

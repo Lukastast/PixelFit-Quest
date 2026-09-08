@@ -202,4 +202,26 @@
     <string name="exercise_no_matches">No exercises match.</string>
     <string name="set_review_log_only_title">Log only</string>
     <string name="set_review_log_only_hint">No IMU profile yet - add reps to log this set.</string>
+
+    <!-- Progress / gym charts -->
+    <string name="progress_title">Gym Progress</string>
+    <string name="progress_home_entry">Gym progress</string>
+    <string name="progress_resume_cta">View gym progress</string>
+    <string name="progress_sample_banner">SAMPLE DATA — finish workouts on this phone to replace these demo lifts. No account needed.</string>
+    <string name="progress_source_local">On this device</string>
+    <string name="progress_source_workout_log">From saved workouts</string>
+    <string name="progress_source_sample">Sample data</string>
+    <string name="progress_weight_chart_title">Working weight</string>
+    <string name="progress_weight_chart_desc">Working weight over time for %1$s, %2$d sessions</string>
+    <string name="progress_volume_chart_title">Session volume</string>
+    <string name="progress_volume_chart_desc">Session volume (weight × reps) over time</string>
+    <string name="progress_rom_chart_title">ROM quality</string>
+    <string name="progress_stability_chart_title">Stability quality</string>
+    <string name="progress_quality_stub">Coming soon</string>
+    <string name="progress_stat_latest">Latest %1$s kg</string>
+    <string name="progress_stat_delta">%1$s kg vs first</string>
+    <string name="progress_stat_sessions">%1$d sessions</string>
+    <string name="progress_empty_chart">No working weights logged for this lift yet.</string>
+    <string name="progress_empty_volume">No volume yet — complete a set to plot this lift.</string>
+    <string name="progress_no_exercises">No chartable lifts yet. Finish a workout to start a history.</string>
 </resources>
