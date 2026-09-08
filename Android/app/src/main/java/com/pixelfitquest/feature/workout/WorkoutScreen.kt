@@ -38,9 +38,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.CharacterIdleAnimation
@@ -66,7 +63,18 @@ fun WorkoutScreen(
     val state by viewModel.workoutState.collectAsState()
     val context = LocalContext.current
     val activity = LocalActivity.current
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val sensorManager = remember {
+        context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    }
+    val session = remember(sensorManager) {
+        SensorSession(
+            sensorManager = sensorManager,
+            onAccelTick = viewModel::onRecordingTick,
+            onMissingAccelerometer = {
+                viewModel.setError(context.getString(R.string.no_accelerometer_error))
+            },
+        )
+    }
 
     val characterData by viewModel.characterData.collectAsState()
     var currentFeedback by remember { mutableStateOf<WorkoutFeedback?>(null) }
@@ -143,27 +151,17 @@ fun WorkoutScreen(
         }
     }
 
-    DisposableEffect(context, lifecycleOwner) {
-        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        val session = SensorSession(
-            sensorManager = sensorManager,
-            onSample = viewModel::onImuSample,
-            onMissingAccelerometer = {
-                viewModel.setError(context.getString(R.string.no_accelerometer_error))
-            },
-        )
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_START -> session.register()
-                Lifecycle.Event.ON_STOP -> session.unregister()
-                else -> Unit
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
+    LaunchedEffect(state.phase) {
+        if (state.phase == WorkoutPhase.Recording) {
+            session.clear()
+            session.register()
+        } else {
             session.unregister()
         }
+    }
+
+    DisposableEffect(session) {
+        onDispose { session.unregister() }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -223,7 +221,11 @@ fun WorkoutScreen(
             ) {
                 when (state.phase) {
                     WorkoutPhase.Recording -> PixelArtButton(
-                        onClick = { viewModel.finishSet() },
+                        onClick = {
+                            val recorded = session.snapshotInterpolated()
+                            session.unregister()
+                            viewModel.finishSet(recorded)
+                        },
                         imageRes = R.drawable.pause_button_unclicked,
                         pressedRes = R.drawable.pause_button_clicked,
                         modifier = Modifier.size(80.dp, 80.dp),

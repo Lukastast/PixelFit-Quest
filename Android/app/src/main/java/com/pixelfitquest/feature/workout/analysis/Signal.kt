@@ -1,5 +1,6 @@
 package com.pixelfitquest.feature.workout.analysis
 
+import com.pixelfitquest.feature.workout.sensor.BarCalibration
 import com.pixelfitquest.feature.workout.sensor.ImuSample
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -34,13 +35,16 @@ internal data class PreparedSignals(
     val verticalAccel: FloatArray,
     val tiltX: FloatArray,
     val tiltZ: FloatArray,
+    val roll: FloatArray,
+    val yaw: FloatArray,
     val still: BooleanArray,
     val usedRotationVector: Boolean,
+    val usedGyro: Boolean,
 )
 
 internal object Signal {
     fun dtSeconds(prevNanos: Long, nanos: Long): Float {
-        val dt = (nanos - prevNanos) / 1_000_000_000f
+        val dt = abs(nanos - prevNanos) / 1_000_000_000f
         return dt.coerceIn(0.001f, 0.08f)
     }
 
@@ -81,6 +85,44 @@ internal object Signal {
             out[i] = sum / (to - from + 1)
         }
         return out
+    }
+
+    fun filtfilt(values: FloatArray, window: Int): FloatArray {
+        if (values.size < 3) return values.copyOf()
+        val fwd = causalMa(values, window)
+        return reverseInPlace(causalMa(reverseCopy(fwd), window))
+    }
+
+    private fun causalMa(values: FloatArray, window: Int): FloatArray {
+        val w = window.coerceAtLeast(1)
+        val out = FloatArray(values.size)
+        var sum = 0f
+        for (i in values.indices) {
+            sum += values[i]
+            if (i >= w) sum -= values[i - w]
+            val n = if (i + 1 < w) i + 1 else w
+            out[i] = sum / n
+        }
+        return out
+    }
+
+    private fun reverseCopy(values: FloatArray): FloatArray {
+        val out = FloatArray(values.size)
+        for (i in values.indices) out[i] = values[values.lastIndex - i]
+        return out
+    }
+
+    private fun reverseInPlace(values: FloatArray): FloatArray {
+        var i = 0
+        var j = values.lastIndex
+        while (i < j) {
+            val tmp = values[i]
+            values[i] = values[j]
+            values[j] = tmp
+            i++
+            j--
+        }
+        return values
     }
 
     fun extrema(values: FloatArray, tNanos: LongArray): List<Extremum> {
@@ -145,118 +187,107 @@ internal object Signal {
         return FloatArray(n) { i -> ((x[i] - mx) * c + (y[i] - my) * s).toFloat() }
     }
 
-    fun integrateZupt(
+    fun stillMask(
+        samples: List<ImuSample>,
+        linUp: FloatArray,
+        tNanos: LongArray,
+    ): BooleanArray {
+        val n = samples.size
+        val still = BooleanArray(n)
+        if (n == 0) return still
+        val medianDt = if (n < 2) 0.02f else dtSeconds(tNanos[0], tNanos[1])
+        val win = ((0.22f / medianDt.coerceAtLeast(0.002f)).toInt()).coerceIn(7, 61)
+        val magDev = FloatArray(n)
+        val gyroMag = FloatArray(n)
+        for (i in 0 until n) {
+            val s = samples[i]
+            val mag = sqrt(s.ax * s.ax + s.ay * s.ay + s.az * s.az)
+            magDev[i] = abs(mag - GRAVITY)
+            gyroMag[i] = s.gyroMagnitude
+        }
+        val rmsLin = rollingRms(linUp, win)
+        val meanDev = smooth(magDev, win)
+        val meanGyro = smooth(gyroMag, win)
+        val hasGyro = samples.any { it.hasGyro && it.gyroMagnitude > 1e-4f }
+        for (i in 0 until n) {
+            val accelQuiet = rmsLin[i] < 0.22f && meanDev[i] < 0.50f
+            val gyroQuiet = !hasGyro || meanGyro[i] < 0.18f
+            still[i] = accelQuiet && gyroQuiet
+        }
+        return still
+    }
+
+    fun integrateZuptSmoothed(
         accel: FloatArray,
         dt: FloatArray,
+        tNanos: LongArray,
         still: BooleanArray,
     ): FloatArray {
         val n = accel.size
-        val s = FloatArray(n)
-        var v = 0f
-        var pos = 0f
-        for (i in 0 until n) {
-            if (still[i]) {
-                v = 0f
-            } else {
-                val a0 = if (i == 0) accel[i] else accel[i - 1]
-                v += 0.5f * (a0 + accel[i]) * dt[i]
+        if (n == 0) return floatArrayOf()
+        val nodes = stillNodes(still, tNanos)
+        val v = FloatArray(n)
+        val p = FloatArray(n)
+        val ends = if (nodes.size >= 2) nodes else intArrayOf(0, n - 1)
+        for (k in 0 until ends.size - 1) {
+            val i0 = ends[k]
+            val i1 = ends[k + 1]
+            v[i0] = 0f
+            for (i in i0 + 1..i1) {
+                v[i] = v[i - 1] + 0.5f * (accel[i - 1] + accel[i]) * dt[i]
             }
-            pos += v * dt[i]
-            s[i] = pos
+            val vErr = v[i1]
+            val span = (tNanos[i1] - tNanos[i0]).coerceAtLeast(1L)
+            for (i in i0..i1) {
+                val alpha = (tNanos[i] - tNanos[i0]).toFloat() / span
+                v[i] -= alpha * vErr
+            }
+            v[i1] = 0f
+            for (i in i0 + 1..i1) {
+                p[i] = p[i - 1] + 0.5f * (v[i - 1] + v[i]) * dt[i]
+            }
         }
-        return s
+        if (ends.last() < n - 1) {
+            val i0 = ends.last()
+            v[i0] = 0f
+            for (i in i0 + 1 until n) {
+                v[i] = v[i - 1] + 0.5f * (accel[i - 1] + accel[i]) * dt[i]
+                p[i] = p[i - 1] + 0.5f * (v[i - 1] + v[i]) * dt[i]
+            }
+        }
+        val medianDt = if (n < 2) 0.02f else dtSeconds(tNanos[0], tNanos[n - 1]) / (n - 1)
+        val win = ((0.12f / medianDt.coerceAtLeast(0.002f)).toInt()).coerceIn(5, 51)
+        return filtfilt(p, win)
     }
 
-    fun prepare(samples: List<ImuSample>, motion: PrimaryMotion): PreparedSignals {
+    fun prepare(
+        samples: List<ImuSample>,
+        motion: PrimaryMotion,
+        calibration: BarCalibration? = null,
+    ): PreparedSignals {
         val n = samples.size
         val tNanos = LongArray(n) { samples[it].tNanos }
         val dt = FloatArray(n)
-        dt[0] = 0.02f
-        for (i in 1 until n) dt[i] = dtSeconds(samples[i - 1].tNanos, samples[i].tNanos)
+        dt[0] = if (n > 1) dtSeconds(tNanos[0], tNanos[1]) else 0.02f
+        for (i in 1 until n) dt[i] = dtSeconds(tNanos[i - 1], tNanos[i])
 
-        val usedRv = samples.count { it.hasRotationVector } > n / 2
-        val linUp = FloatArray(n)
-        val linX = FloatArray(n)
-        val linY = FloatArray(n)
-        val tiltX = FloatArray(n)
-        val tiltZ = FloatArray(n)
-        val pitch = FloatArray(n)
-        val still = BooleanArray(n)
-        val accelMagDev = FloatArray(n)
+        val attitude = Attitude.estimate(samples, calibration)
+        val linUp = FloatArray(n) { attitude.linWorld[it][2] }
+        val linX = FloatArray(n) { attitude.linWorld[it][0] }
+        val linY = FloatArray(n) { attitude.linWorld[it][1] }
 
-        var gx = 0f
-        var gy = 0f
-        var gz = GRAVITY
-        val gAlpha = 0.02f
-
-        for (i in 0 until n) {
-            val s = samples[i]
-            val accel = floatArrayOf(s.ax, s.ay, s.az)
-            val mag = sqrt(s.ax * s.ax + s.ay * s.ay + s.az * s.az)
-            accelMagDev[i] = abs(mag - GRAVITY)
-
-            val gyroMag = s.gyroMagnitude
-            val linWorld: FloatArray
-            if (s.hasRotationVector) {
-                val r = rotationMatrix(s.qx!!, s.qy!!, s.qz!!, s.qw!!)
-                val gDevice = transposeMul(r, floatArrayOf(0f, 0f, GRAVITY))
-                val linDevice = floatArrayOf(
-                    s.ax - gDevice[0],
-                    s.ay - gDevice[1],
-                    s.az - gDevice[2],
-                )
-                linWorld = mulMatVec(r, linDevice)
-                tiltX[i] = atan2(gDevice[0], gDevice[2])
-                tiltZ[i] = atan2(gDevice[1], gDevice[2])
-                pitch[i] = atan2(-gDevice[0], gDevice[2])
-            } else {
-                if (s.hasGyro) {
-                    val ox = s.gx!!
-                    val oy = s.gy!!
-                    val oz = s.gz!!
-                    val cx = oy * gz - oz * gy
-                    val cy = oz * gx - ox * gz
-                    val cz = ox * gy - oy * gx
-                    gx -= cx * dt[i]
-                    gy -= cy * dt[i]
-                    gz -= cz * dt[i]
-                }
-                gx = gx * (1f - gAlpha) + accel[0] * gAlpha
-                gy = gy * (1f - gAlpha) + accel[1] * gAlpha
-                gz = gz * (1f - gAlpha) + accel[2] * gAlpha
-                val gMag = sqrt(gx * gx + gy * gy + gz * gz).coerceAtLeast(1e-3f)
-                val ux = gx / gMag
-                val uy = gy / gMag
-                val uz = gz / gMag
-                val linDevX = s.ax - gx
-                val linDevY = s.ay - gy
-                val linDevZ = s.az - gz
-                val up = linDevX * ux + linDevY * uy + linDevZ * uz
-                linWorld = floatArrayOf(linDevX, linDevY, up)
-                tiltX[i] = atan2(gx, gz)
-                tiltZ[i] = atan2(gy, gz)
-                pitch[i] = atan2(-gx, gz)
-            }
-
-            linX[i] = linWorld[0]
-            linY[i] = linWorld[1]
-            linUp[i] = linWorld[2]
-
-            val accelStill = accelMagDev[i] < 0.45f
-            val gyroStill = !s.hasGyro || gyroMag < 0.22f
-            still[i] = accelStill && gyroStill
-        }
-
-        val vertical = integrateZupt(linUp, dt, still)
-        val hx = integrateZupt(linX, dt, still)
-        val hy = integrateZupt(linY, dt, still)
+        val still = stillMask(samples, linUp, tNanos)
+        val vertical = integrateZuptSmoothed(linUp, dt, tNanos, still)
+        val hx = integrateZuptSmoothed(linX, dt, tNanos, still)
+        val hy = integrateZuptSmoothed(linY, dt, tNanos, still)
         val horizontal = principalProjection(hx, hy)
-        val smoothedPitch = smooth(pitch, 7)
+        val medianDt = dt.average().toFloat().coerceAtLeast(0.002f)
+        val win = ((0.12f / medianDt).toInt()).coerceIn(5, 51)
 
         val primary = when (motion) {
-            PrimaryMotion.VERTICAL_VS_GRAVITY -> smooth(vertical, 7)
-            PrimaryMotion.HORIZONTAL_IN_BAR_FRAME -> smooth(horizontal, 7)
-            PrimaryMotion.PITCH_ABOUT_ELBOW -> smoothedPitch
+            PrimaryMotion.VERTICAL_VS_GRAVITY -> vertical
+            PrimaryMotion.HORIZONTAL_IN_BAR_FRAME -> filtfilt(horizontal, win)
+            PrimaryMotion.PITCH_ABOUT_ELBOW -> smooth(attitude.pitch, (win / 2).coerceAtLeast(3))
         }
 
         return PreparedSignals(
@@ -264,10 +295,13 @@ internal object Signal {
             dt = dt,
             primary = primary,
             verticalAccel = linUp,
-            tiltX = tiltX,
-            tiltZ = tiltZ,
+            tiltX = attitude.roll,
+            tiltZ = attitude.pitch,
+            roll = attitude.roll,
+            yaw = attitude.yaw,
             still = still,
-            usedRotationVector = usedRv,
+            usedRotationVector = attitude.usedRotationVector,
+            usedGyro = attitude.usedGyro,
         )
     }
 
@@ -312,8 +346,8 @@ internal object Signal {
             if (trailingMid != null) {
                 val returnTravel = abs(primary.last() - trailingMid.value)
                 val downTravel = abs(trailingMid.value - lastBoundary.value)
-                if (downTravel >= profile.minAmplitude * 0.7f &&
-                    returnTravel < profile.minAmplitude * 0.35f
+                if (downTravel >= profile.minAmplitude * 0.5f &&
+                    returnTravel < profile.minAmplitude * 0.5f
                 ) {
                     cycles += RawCycle(
                         startIndex = lastBoundary.index,
@@ -360,4 +394,39 @@ internal object Signal {
         }
         return out
     }
+
+    private fun stillNodes(still: BooleanArray, tNanos: LongArray): IntArray {
+        val nodes = ArrayList<Int>()
+        var i = 0
+        val minNs = 150_000_000L
+        while (i < still.size) {
+            if (!still[i]) {
+                i++
+                continue
+            }
+            var j = i
+            while (j < still.size && still[j]) j++
+            val dur = tNanos[(j - 1).coerceAtLeast(0)] - tNanos[i]
+            if (dur >= minNs && (j - i) >= 6) {
+                nodes += (i + j - 1) / 2
+            }
+            i = j
+        }
+        return nodes.toIntArray()
+    }
+
+    private fun rollingRms(values: FloatArray, window: Int): FloatArray {
+        val out = FloatArray(values.size)
+        val half = window / 2
+        for (i in values.indices) {
+            val from = (i - half).coerceAtLeast(0)
+            val to = (i + half).coerceAtMost(values.lastIndex)
+            var acc = 0f
+            val count = to - from + 1
+            for (j in from..to) acc += values[j] * values[j]
+            out[i] = sqrt(acc / count)
+        }
+        return out
+    }
+
 }

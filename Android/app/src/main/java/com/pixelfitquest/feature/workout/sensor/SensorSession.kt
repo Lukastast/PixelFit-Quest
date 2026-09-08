@@ -7,12 +7,12 @@ import android.hardware.SensorManager
 import kotlin.math.sqrt
 
 /**
- * Record-only IMU session. Merges accel (required) with last gyro / rotation
- * vector. Does not analyze samples.
+ * Record-only phone IMU. Buffers raw timestamped streams at SENSOR_DELAY_FASTEST
+ * and interpolates onto the accel timeline at snapshot. Does not analyze.
  */
 class SensorSession(
     private val sensorManager: SensorManager,
-    private val onSample: (ImuSample) -> Unit,
+    private val onAccelTick: (count: Int, firstNanos: Long, lastNanos: Long) -> Unit = { _, _, _ -> },
     private val onMissingAccelerometer: () -> Unit = {},
 ) : SensorEventListener {
 
@@ -20,42 +20,74 @@ class SensorSession(
         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private val gyroscope: Sensor? =
         sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+            ?: sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED)
     private val rotationVector: Sensor? =
         sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+            ?: sensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR)
+    private val linearAccel: Sensor? =
+        sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
 
-    @Volatile private var lastGx: Float? = null
-    @Volatile private var lastGy: Float? = null
-    @Volatile private var lastGz: Float? = null
-    @Volatile private var lastQx: Float? = null
-    @Volatile private var lastQy: Float? = null
-    @Volatile private var lastQz: Float? = null
-    @Volatile private var lastQw: Float? = null
+    private val lock = Any()
+    private val accel = ArrayList<TimedVec3>(4096)
+    private val gyro = ArrayList<TimedVec3>(4096)
+    private val rotation = ArrayList<TimedQuat>(4096)
+    private val linear = ArrayList<TimedVec3>(2048)
+
+    @Volatile private var registered = false
 
     val hasAccelerometer: Boolean get() = accelerometer != null
 
+    fun clear() {
+        synchronized(lock) {
+            accel.clear()
+            gyro.clear()
+            rotation.clear()
+            linear.clear()
+        }
+    }
+
     fun register() {
-        val accel = accelerometer
-        if (accel == null) {
+        if (registered) return
+        val accelSensor = accelerometer
+        if (accelSensor == null) {
             onMissingAccelerometer()
             return
         }
-        sensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_GAME)
-        gyroscope?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
-        rotationVector?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
+        val rate = SensorManager.SENSOR_DELAY_FASTEST
+        sensorManager.registerListener(this, accelSensor, rate)
+        gyroscope?.let { sensorManager.registerListener(this, it, rate) }
+        rotationVector?.let { sensorManager.registerListener(this, it, rate) }
+        linearAccel?.let { sensorManager.registerListener(this, it, rate) }
+        registered = true
     }
 
     fun unregister() {
+        if (!registered) return
         sensorManager.unregisterListener(this)
+        registered = false
+    }
+
+    fun snapshotInterpolated(): List<ImuSample> {
+        val trace = synchronized(lock) {
+            ImuTrace(
+                accel = accel.toList(),
+                gyro = gyro.toList(),
+                rotation = rotation.toList(),
+                linearAccel = linear.toList(),
+            )
+        }
+        return ImuInterpolate.ontoAccel(trace)
     }
 
     override fun onSensorChanged(event: SensorEvent) {
+        val t = event.timestamp
         when (event.sensor.type) {
-            Sensor.TYPE_GYROSCOPE -> {
-                lastGx = event.values[0]
-                lastGy = event.values[1]
-                lastGz = event.values[2]
+            Sensor.TYPE_GYROSCOPE, Sensor.TYPE_GYROSCOPE_UNCALIBRATED -> {
+                synchronized(lock) {
+                    gyro += TimedVec3(t, event.values[0], event.values[1], event.values[2])
+                }
             }
-            Sensor.TYPE_ROTATION_VECTOR -> {
+            Sensor.TYPE_ROTATION_VECTOR, Sensor.TYPE_GAME_ROTATION_VECTOR -> {
                 val x = event.values[0]
                 val y = event.values[1]
                 val z = event.values[2]
@@ -65,27 +97,26 @@ class SensorSession(
                     val mag2 = x * x + y * y + z * z
                     if (mag2 <= 1f) sqrt(1f - mag2) else 0f
                 }
-                lastQx = x
-                lastQy = y
-                lastQz = z
-                lastQw = w
+                synchronized(lock) {
+                    rotation += TimedQuat(t, x, y, z, w)
+                }
+            }
+            Sensor.TYPE_LINEAR_ACCELERATION -> {
+                synchronized(lock) {
+                    linear += TimedVec3(t, event.values[0], event.values[1], event.values[2])
+                }
             }
             Sensor.TYPE_ACCELEROMETER -> {
-                onSample(
-                    ImuSample(
-                        tNanos = event.timestamp,
-                        ax = event.values[0],
-                        ay = event.values[1],
-                        az = event.values[2],
-                        gx = lastGx,
-                        gy = lastGy,
-                        gz = lastGz,
-                        qx = lastQx,
-                        qy = lastQy,
-                        qz = lastQz,
-                        qw = lastQw,
-                    )
-                )
+                val count: Int
+                val first: Long
+                val last: Long
+                synchronized(lock) {
+                    accel += TimedVec3(t, event.values[0], event.values[1], event.values[2])
+                    count = accel.size
+                    first = accel.first().tNanos
+                    last = t
+                }
+                onAccelTick(count, first, last)
             }
         }
     }

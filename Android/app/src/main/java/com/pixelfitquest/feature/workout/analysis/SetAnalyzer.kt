@@ -1,9 +1,11 @@
 package com.pixelfitquest.feature.workout.analysis
 
+import com.pixelfitquest.feature.workout.sensor.BarCalibration
 import com.pixelfitquest.feature.workout.sensor.ImuSample
 import javax.inject.Inject
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.sqrt
 
 class SetAnalyzer @Inject constructor() {
 
@@ -11,6 +13,7 @@ class SetAnalyzer @Inject constructor() {
         samples: List<ImuSample>,
         profile: ExerciseProfile,
         user: AnalyzerUser,
+        calibration: BarCalibration? = null,
     ): SetAnalysis {
         if (samples.size < 15) {
             return SetAnalysis(
@@ -20,7 +23,7 @@ class SetAnalyzer @Inject constructor() {
             )
         }
 
-        val prepared = Signal.prepare(samples, profile.primaryMotion)
+        val prepared = Signal.prepare(samples, profile.primaryMotion, calibration)
         val cycles = Signal.segmentCycles(prepared.primary, prepared.tNanos, profile)
         val typical = theoreticalAmplitude(profile, user)
 
@@ -33,6 +36,7 @@ class SetAnalyzer @Inject constructor() {
         val mean = if (accepted.isEmpty()) 0f else accepted.map { it.formScore }.average().toFloat()
         val flags = mutableListOf<String>()
         if (!prepared.usedRotationVector) flags += "no_rotation_vector"
+        if (!prepared.usedGyro) flags += "no_gyro"
         if (accepted.size >= 4) {
             val first = accepted.take(accepted.size / 2).map { it.formScore }.average()
             val lastTwo = accepted.takeLast(2).map { it.formScore }.average()
@@ -95,29 +99,15 @@ class SetAnalyzer @Inject constructor() {
             ((cycle.amplitude / typical) * 100f).coerceIn(0f, 100f)
         } else 0f
 
-        val tiltSlice = cycle.startIndex..cycle.endIndex
-        var tiltRms = 0f
-        var tiltXMean = 0f
-        var tiltZMean = 0f
-        var n = 0
-        for (i in tiltSlice) {
-            tiltXMean += prepared.tiltX[i]
-            tiltZMean += prepared.tiltZ[i]
-            n++
+        val concentric = if (profile.eccentricFirst) {
+            cycle.extremumIndex..cycle.endIndex
+        } else {
+            cycle.startIndex..cycle.extremumIndex
         }
-        if (n > 0) {
-            tiltXMean /= n
-            tiltZMean /= n
-            var acc = 0f
-            for (i in tiltSlice) {
-                val dx = prepared.tiltX[i] - tiltXMean
-                val dz = prepared.tiltZ[i] - tiltZMean
-                acc += dx * dx + dz * dz
-            }
-            tiltRms = kotlin.math.sqrt(acc / n)
-        }
-        val pathDeviation = tiltRms
-        val stabilityScore = (100f - tiltRms * 180f / Math.PI.toFloat() * 3f).coerceIn(0f, 100f)
+        val (pathDeviation, stabilityScore) = stabilityDuring(
+            prepared,
+            concentric,
+        )
 
         val ratio = eccentricMs.toFloat() / concentricMs.toFloat()
         val tempoScore = when {
@@ -168,5 +158,40 @@ class SetAnalyzer @Inject constructor() {
             confidence = confidence,
             accepted = accepted,
         )
+    }
+
+    private fun stabilityDuring(
+        prepared: PreparedSignals,
+        concentric: IntRange,
+    ): Pair<Float, Float> {
+        val start = concentric.first.coerceIn(0, prepared.roll.lastIndex)
+        val end = concentric.last.coerceIn(0, prepared.roll.lastIndex)
+        if (end < start) return 0f to 100f
+        val refRoll = prepared.roll[0]
+        val refYaw = prepared.yaw[0]
+        var acc = 0.0
+        var n = 0
+        if (prepared.usedGyro || prepared.usedRotationVector) {
+            for (i in start..end) {
+                val dRoll = prepared.roll[i] - refRoll
+                val dYaw = prepared.yaw[i] - refYaw
+                acc += dRoll * dRoll + dYaw * dYaw
+                n++
+            }
+            val rmsRad = if (n == 0) 0f else sqrt(acc / n).toFloat()
+            val rmsDeg = rmsRad * 180f / Math.PI.toFloat()
+            val score = (100f - 4f * rmsDeg).coerceIn(0f, 100f)
+            return rmsRad to score
+        }
+        var tiltAcc = 0.0
+        for (i in start..end) {
+            val dx = prepared.tiltX[i] - prepared.tiltX[0]
+            val dz = prepared.tiltZ[i] - prepared.tiltZ[0]
+            tiltAcc += dx * dx + dz * dz
+            n++
+        }
+        val rms = if (n == 0) 0f else sqrt(tiltAcc / n).toFloat()
+        val score = (100f - rms * 180f / Math.PI.toFloat() * 3f).coerceIn(0f, 100f)
+        return rms to score
     }
 }

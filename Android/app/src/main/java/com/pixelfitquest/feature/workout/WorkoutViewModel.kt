@@ -161,22 +161,20 @@ class WorkoutViewModel @Inject constructor(
         )
     }
 
-    fun onImuSample(sample: ImuSample) {
+    fun onRecordingTick(count: Int, firstNanos: Long, lastNanos: Long) {
         if (_workoutState.value.phase != WorkoutPhase.Recording) return
-        samples += sample
-        val seconds = if (samples.size < 2) 0f else {
-            (samples.last().tNanos - samples.first().tNanos) / 1_000_000_000f
-        }
-        if (samples.size % 5 == 0) {
-            _workoutState.value = _workoutState.value.copy(
-                sampleCount = samples.size,
-                recordingSeconds = seconds,
-            )
-        }
+        if (count % 8 != 0) return
+        val seconds = if (count < 2) 0f else (lastNanos - firstNanos) / 1_000_000_000f
+        _workoutState.value = _workoutState.value.copy(
+            sampleCount = count,
+            recordingSeconds = seconds,
+        )
     }
 
-    fun finishSet() {
+    fun finishSet(recorded: List<ImuSample>) {
         if (_workoutState.value.phase != WorkoutPhase.Recording) return
+        samples.clear()
+        samples.addAll(recorded)
         val type = currentExerciseType ?: return
         val profile = ExerciseProfiles.forType(type)
         val user = _userData.value

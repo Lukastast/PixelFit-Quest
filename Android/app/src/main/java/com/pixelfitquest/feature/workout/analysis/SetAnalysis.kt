@@ -1,6 +1,6 @@
 package com.pixelfitquest.feature.workout.analysis
 
-const val ANALYSIS_VERSION = 1
+const val ANALYSIS_VERSION = 2
 
 data class AnalyzerUser(
     val heightCm: Int,

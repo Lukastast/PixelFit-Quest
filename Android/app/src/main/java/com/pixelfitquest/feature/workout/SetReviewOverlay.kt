@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.workout.analysis.DetectedRep
-import com.pixelfitquest.feature.workout.analysis.RomUnit
 import com.pixelfitquest.feature.workout.model.SetReviewState
 import com.pixelfitquest.ui.theme.determination
 
@@ -139,14 +138,6 @@ private fun RepRow(
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
             )
-            Spacer(Modifier.width(8.dp))
-            if (!rep.isManual) {
-                Text(
-                    text = romLabel(rep),
-                    color = Color.White,
-                    fontSize = 12.sp,
-                )
-            }
             Spacer(Modifier.weight(1f))
             Text(
                 text = stringResource(R.string.score_out_of_100, rep.formScore.toInt()),
@@ -269,11 +260,6 @@ private fun TextLink(label: String, color: Color, onClick: () -> Unit) {
             .clickable(onClick = onClick)
             .padding(top = 4.dp, end = 4.dp),
     )
-}
-
-private fun romLabel(rep: DetectedRep): String = when (rep.romUnit) {
-    RomUnit.METERS -> "%.0f cm".format(rep.romEstimate * 100f)
-    RomUnit.RADIANS -> "%.0f°".format(Math.toDegrees(rep.romEstimate.toDouble()))
 }
 
 private fun gradeColor(score: Float): Color = when {
