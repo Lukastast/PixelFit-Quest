@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -42,7 +44,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.health.connect.client.PermissionController
@@ -55,6 +56,7 @@ import com.pixelfitquest.R
 import com.pixelfitquest.components.molecules.WorkoutCard
 import com.pixelfitquest.health.HealthConnectIntents
 import com.pixelfitquest.health.HealthConnectStatus
+import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -152,7 +154,7 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 CircularProgressIndicator(color = Color.White)
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.md))
                 Text(stringResource(R.string.loading), color = Color.White, fontSize = 16.sp)
             }
         }
@@ -205,13 +207,21 @@ fun HomeScreen(
         }
     }
 
+    val spacing = MaterialTheme.spacing
+
     Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = spacing.screen, vertical = spacing.md),
+            verticalArrangement = Arrangement.spacedBy(spacing.xs),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
         Box(
             modifier = Modifier
-                .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                .height(60.dp)
+                .height(spacing.barSm)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.info_background),
@@ -230,9 +240,9 @@ fun HomeScreen(
                     Image(
                         painter = painterResource(id = R.drawable.coin),
                         contentDescription = stringResource(R.string.coin_icon_desc),
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(spacing.scale(20))
                     )
-                    Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+                    Spacer(modifier = Modifier.padding(horizontal = spacing.xxs))
                     Text(
                         text = stringResource(R.string.coins_count, coins),
                         fontSize = 14.sp,
@@ -243,9 +253,9 @@ fun HomeScreen(
                     Image(
                         painter = painterResource(id = R.drawable.streak),
                         contentDescription = stringResource(R.string.streak_icon_desc),
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(spacing.scale(20))
                     )
-                    Spacer(modifier = Modifier.padding(horizontal = 2.dp))
+                    Spacer(modifier = Modifier.padding(horizontal = spacing.xxxs))
                     Text(
                         text = "$streak",
                         fontSize = 14.sp,
@@ -258,7 +268,7 @@ fun HomeScreen(
                     color = Color.White
                 )
                 Box(
-                    modifier = Modifier.size(width = 80.dp, height = 16.dp),
+                    modifier = Modifier.size(width = spacing.scale(80), height = spacing.md),
                     contentAlignment = Alignment.Center
                 ) {
                     val xpPainter = when (progressIndex) {
@@ -281,10 +291,8 @@ fun HomeScreen(
 
         Box(
             modifier = Modifier
-                .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = 84.dp, start = 16.dp, end = 16.dp)
-                .height(80.dp)
+                .height(spacing.barMd)
                 .clickable {
                     when (healthStatus) {
                         HealthConnectStatus.AVAILABLE -> {
@@ -336,10 +344,8 @@ fun HomeScreen(
 
         Box(
             modifier = Modifier
-                .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = 172.dp, start = 16.dp, end = 16.dp)
-                .height(100.dp)
+                .height(spacing.barLg)
         ) {
             Row(
                 modifier = Modifier.fillMaxSize(),
@@ -348,7 +354,7 @@ fun HomeScreen(
             ) {
                 Box(
                     modifier = Modifier
-                        .width(150.dp)
+                        .width(spacing.scale(150))
                         .fillMaxHeight()
                 ) {
                     val rankBackground = when (rank) {
@@ -396,12 +402,12 @@ fun HomeScreen(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(spacing.md))
                 Image(
                     painter = painterResource(id = R.drawable.achievement_button),
                     contentDescription = stringResource(R.string.achievements_button_desc),
                     modifier = Modifier
-                        .size(100.dp)
+                        .size(spacing.barLg)
                         .clickable { showAchievements = true }
                 )
             }
@@ -409,10 +415,8 @@ fun HomeScreen(
 
         Box(
             modifier = Modifier
-                .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = 280.dp, start = 16.dp, end = 16.dp)
-                .height(140.dp),
+                .height(spacing.workoutRow),
             contentAlignment = Alignment.Center
         ) {
             if (workouts.isEmpty()) {
@@ -424,7 +428,7 @@ fun HomeScreen(
             } else {
                 LazyRow(
                     modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.spacedBy(spacing.sm, Alignment.CenterHorizontally),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     items(workouts) { workout ->
@@ -441,10 +445,8 @@ fun HomeScreen(
 
         Box(
             modifier = Modifier
-                .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = 428.dp, start = 16.dp, end = 16.dp)
-                .height(250.dp)
+                .height(spacing.missions)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.questloginboard_wider),
@@ -455,7 +457,7 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(spacing.md),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -465,7 +467,7 @@ fun HomeScreen(
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(spacing.xs))
                 dailyMissions.forEach { (mission, reward) ->
                     val isCompleted = completedMissions.contains(mission)
                     val effectiveCompleted = isCompleted || when {
@@ -501,7 +503,7 @@ fun HomeScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 6.dp),
+                            .padding(vertical = spacing.scale(6)),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -536,13 +538,13 @@ fun HomeScreen(
                                 fontWeight = FontWeight.Bold
                             )
 
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(spacing.xs))
 
                             if (isCoins) {
                                 Image(
                                     painter = painterResource(id = R.drawable.coin),
                                     contentDescription = stringResource(R.string.coins_reward_desc),
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(spacing.md)
                                 )
                             } else if (isExp) {
                                 Text(
@@ -558,12 +560,14 @@ fun HomeScreen(
             }
         }
 
+        }
+
         if (showAchievements) {
             Dialog(onDismissRequest = { showAchievements = false }) {
                 Box(
                     modifier = Modifier
-                        .width(400.dp)
-                        .height(200.dp)
+                        .fillMaxWidth(0.92f)
+                        .height(spacing.scale(200))
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.questloginboard_wider),
@@ -574,7 +578,7 @@ fun HomeScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp),
+                            .padding(spacing.md),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -584,7 +588,7 @@ fun HomeScreen(
                             color = Color.White,
                             fontWeight = FontWeight.Bold
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(spacing.xs))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -599,8 +603,8 @@ fun HomeScreen(
                                         painter = painterResource(id = icon),
                                         contentDescription = ach.name,
                                         modifier = Modifier
-                                            .size(80.dp)
-                                            .padding(8.dp)
+                                            .size(spacing.barMd)
+                                            .padding(spacing.xs)
                                             .clickable {
                                                 coroutineScope.launch {
                                                     snackbarHostState.currentSnackbarData?.dismiss()

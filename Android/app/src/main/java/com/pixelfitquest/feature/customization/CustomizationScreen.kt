@@ -24,6 +24,7 @@ import com.pixelfitquest.components.atoms.IdleAnimation
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.components.atoms.PixelCharacterMotion
 import com.pixelfitquest.components.atoms.SpriteSheetPlayer
+import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.feature.settings.SettingsViewModel
 
@@ -62,19 +63,21 @@ fun CustomizationScreen(
         }
     }
 
+    val spacing = MaterialTheme.spacing
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 16.dp),
+            .padding(vertical = spacing.md),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(spacing.md)
     ) {
         // Character Customization Section
         CustomizationCard {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(spacing.md),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -83,9 +86,9 @@ fun CustomizationScreen(
                     color = Color.White
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(spacing.md))
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(spacing.xs)) {
                     GenderToggleButton(stringResource(R.string.male), isSelected = gender == "male") {
                         viewModel.updateGender("male")
                     }
@@ -100,7 +103,7 @@ fun CustomizationScreen(
                         color = Color.White,
                         fontSize = 12.sp,
                         style = typography.bodyMedium,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = spacing.xs)
                     )
                 }
 
@@ -110,7 +113,7 @@ fun CustomizationScreen(
                     onNext = { currentVariantIndex = (currentVariantIndex + 1) % variants.size }
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(spacing.xs))
 
                 ActionButtons(
                     isPremium = isPremium,
@@ -159,7 +162,7 @@ private fun GenderToggleButton(text: String, isSelected: Boolean, onClick: () ->
         onClick = onClick,
         imageRes = if (isSelected) R.drawable.button_clicked else R.drawable.button_unclicked,
         pressedRes = R.drawable.button_clicked,
-        modifier = Modifier.size(80.dp, 40.dp)
+        modifier = Modifier.size(MaterialTheme.spacing.scale(80), MaterialTheme.spacing.scale(40))
     ) {
         Text(text)
     }
@@ -171,6 +174,7 @@ private fun VariantCarousel(spriteKey: String, onPrevious: () -> Unit, onNext: (
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
+        val spacing = MaterialTheme.spacing
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
@@ -180,39 +184,39 @@ private fun VariantCarousel(spriteKey: String, onPrevious: () -> Unit, onNext: (
                 onClick = onPrevious,
                 imageRes = R.drawable.unclicked_customization_button_left,
                 pressedRes = R.drawable.clicked_customization_button_left,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(spacing.scale(40))
             ) {}
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(spacing.md))
 
             IdleAnimation(
                 modifier = Modifier
-                    .size(120.dp)
-                    .offset(x = (-18).dp),
+                    .size(spacing.scale(120))
+                    .offset(x = spacing.scale(-18)),
                 gender = spriteKey,
                 isAnimating = true
             )
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(spacing.md))
 
             PixelArtButton(
                 onClick = onNext,
                 imageRes = R.drawable.unclicked_customization_button_right,
                 pressedRes = R.drawable.clicked_customization_button_right,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(spacing.scale(40))
             ) {}
         }
 
         // Hybrid bob+slide preview (#141) — IdleAnimation kept above; flag toggles prototype.
         if (SHOW_BOB_SLIDE_PREVIEW) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(spacing.xs))
             Text(
                 text = "Bob+slide preview",
                 color = Color.White.copy(alpha = 0.8f),
                 fontSize = 10.sp
             )
             BobSlideCharacterPreview(spriteKey = spriteKey)
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(spacing.xs))
             Text(
                 text = "Cape Hero walk (Gemini)",
                 color = Color.White.copy(alpha = 0.8f),
@@ -283,7 +287,8 @@ private fun ActionButtons(
     onBuy: () -> Unit,
     price: Int = 100
 ) {
-    val modifier = Modifier.size(200.dp, 60.dp)
+    val spacing = MaterialTheme.spacing
+    val modifier = Modifier.size(spacing.scale(200), spacing.buttonHeight)
     when {
         isPremium -> {
             PixelArtButton(onClick = {}, imageRes = R.drawable.button_unclicked, pressedRes = R.drawable.button_unclicked, modifier = modifier) {
@@ -299,7 +304,7 @@ private fun ActionButtons(
             PixelArtButton(onClick = onBuy, imageRes = R.drawable.button_unclicked, pressedRes = R.drawable.button_clicked, modifier = modifier) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("$price ")
-                    Image(painter = painterResource(R.drawable.coin), contentDescription = null, modifier = Modifier.size(16.dp))
+                    Image(painter = painterResource(R.drawable.coin), contentDescription = null, modifier = Modifier.size(MaterialTheme.spacing.md))
                     Text(stringResource(R.string.coins_label))
                 }
             }
@@ -312,11 +317,12 @@ private fun HeightSettingsCard(currentHeight: Int?, onSave: (Int) -> Unit) {
     var heightInput by remember { mutableStateOf("") }
     LaunchedEffect(currentHeight) { heightInput = currentHeight?.toString() ?: "" }
 
+    val spacing = MaterialTheme.spacing
     CustomizationCard {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(spacing.md),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -326,11 +332,11 @@ private fun HeightSettingsCard(currentHeight: Int?, onSave: (Int) -> Unit) {
                 fontSize = 18.sp
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(spacing.md))
 
             Text(text = stringResource(R.string.enter_height_hint), color = Color.White, fontSize = 12.sp)
 
-            Box(modifier = Modifier.size(200.dp, 60.dp), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.size(spacing.scale(200), spacing.inputHeight), contentAlignment = Alignment.Center) {
                 Image(
                     painter = painterResource(R.drawable.inputfield),
                     contentDescription = null,
@@ -354,7 +360,7 @@ private fun HeightSettingsCard(currentHeight: Int?, onSave: (Int) -> Unit) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(spacing.md))
 
             PixelArtButton(
                 onClick = {
@@ -362,7 +368,7 @@ private fun HeightSettingsCard(currentHeight: Int?, onSave: (Int) -> Unit) {
                 },
                 imageRes = R.drawable.button_unclicked,
                 pressedRes = R.drawable.button_clicked,
-                modifier = Modifier.size(220.dp, 60.dp)
+                modifier = Modifier.size(spacing.scale(220), spacing.buttonHeight)
             ) {
                 Text(stringResource(R.string.set_height), fontSize = 14.sp)
             }

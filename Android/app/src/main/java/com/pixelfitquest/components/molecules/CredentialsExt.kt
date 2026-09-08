@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.credentials.Credential
 import androidx.credentials.CredentialManager
@@ -26,6 +25,7 @@ import com.pixelfitquest.R
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.ui.theme.LocalSpacing
 import kotlinx.coroutines.launch
 
 @Composable
@@ -55,7 +55,7 @@ fun AuthenticationButton(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.google_g),
-                modifier = Modifier.padding(horizontal = 8.dp),
+                modifier = Modifier.padding(horizontal = LocalSpacing.current.xs),
                 contentDescription = "Google logo"
             )
             Text(

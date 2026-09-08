@@ -30,10 +30,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.ui.theme.LocalSpacing
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,12 +42,13 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
     var newDisplayName by remember { mutableStateOf(displayName) }
 
     val cardTitle = displayName.ifBlank { stringResource(R.string.profile_name) }
+    val spacing = LocalSpacing.current
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
-            .padding(32.dp, 0.dp, 32.dp, 8.dp)
+            .height(spacing.cardHeight)
+            .padding(start = spacing.xl, end = spacing.xl, bottom = spacing.xs)
             .clickable {
                 newDisplayName = displayName
                 showDisplayNameDialog = true
@@ -64,7 +65,7 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(spacing.md)
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -91,21 +92,21 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
                 Image(
                     painter = painterResource(R.drawable.questloginboard),
                     contentDescription = "Dialog Background",
-                    modifier = Modifier.height(250.dp).width(500.dp),
+                    modifier = Modifier.fillMaxWidth(0.9f).height(spacing.dialogHeight),
                     contentScale = ContentScale.FillBounds
                 )
                 Column(
                     modifier = Modifier
-                        .padding(32.dp)
+                        .padding(spacing.xl)
                         .fillMaxWidth(0.95f)
-                        .heightIn(max = 300.dp)
+                        .heightIn(max = spacing.scale(300))
                 ) {
                     Text(stringResource(R.string.profile_name), color = Color.White)
 
                     Box(
                         modifier = Modifier
-                            .width(280.dp)
-                            .height(60.dp),
+                            .fillMaxWidth()
+                            .height(spacing.inputHeight),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
@@ -139,7 +140,7 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
                             onClick = { showDisplayNameDialog = false },
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier.height(50.dp).width(130.dp)
+                            modifier = Modifier.height(spacing.scale(50)).width(spacing.buttonWidthSm)
                         ) {
                             Text(
                                 text = stringResource(R.string.cancel),
@@ -153,7 +154,7 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
                             },
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier.height(50.dp).width(130.dp)
+                            modifier = Modifier.height(spacing.scale(50)).width(spacing.buttonWidthSm)
                         ) {
                             Text(
                                 text = stringResource(R.string.update),

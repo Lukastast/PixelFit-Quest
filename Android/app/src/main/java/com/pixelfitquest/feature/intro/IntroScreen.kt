@@ -33,13 +33,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.intro.model.Slide
 import com.pixelfitquest.feature.intro.IntroViewModel
+import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
 
 @Composable
@@ -73,6 +73,7 @@ fun IntroScreen(
             enter = fadeIn(animationSpec = tween(durationMillis = transitionDurationMs.toInt())),
             exit = fadeOut(animationSpec = tween(durationMillis = transitionDurationMs.toInt()))
         ) {
+            val spacing = MaterialTheme.spacing
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -84,18 +85,18 @@ fun IntroScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                Spacer(modifier = Modifier.height(150.dp))
+                Spacer(modifier = Modifier.height(spacing.scale(150)))
 
 
                 Image(
                     painter = painterResource(id = slides[currentSlide].imageRes),
                     contentDescription = stringResource(slides[currentSlide].textRes),
                     modifier = Modifier
-                        .size(300.dp, 200.dp),
+                        .size(spacing.scale(300), spacing.scale(200)),
                     contentScale = ContentScale.Fit
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(spacing.md))
 
 
                 TypewriterText(
@@ -106,7 +107,7 @@ fun IntroScreen(
                     },
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .padding(spacing.md),
                     textAlign = TextAlign.Center,
                     color = Color.White,
                     style = MaterialTheme.typography.bodyLarge
@@ -117,7 +118,7 @@ fun IntroScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(MaterialTheme.spacing.md),
             contentAlignment = Alignment.BottomEnd
         ) {
             IconButton(
@@ -127,7 +128,7 @@ fun IntroScreen(
                     imageVector = Icons.Default.SkipNext,
                     contentDescription = stringResource(R.string.skip_intro),
                     tint = Color.White,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(MaterialTheme.spacing.xxl)
                 )
             }
         }

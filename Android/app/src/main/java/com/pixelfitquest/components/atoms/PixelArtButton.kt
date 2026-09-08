@@ -20,7 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
+import com.pixelfitquest.ui.theme.LocalSpacing
 import kotlinx.coroutines.delay
 
 @Composable
@@ -51,7 +51,7 @@ fun PixelArtButton(
                 isPressed = true
                 onClick()
             }
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(LocalSpacing.current.cornerXs))
     ) {
         Image(
             painter = painterResource(id = if (isPressed) pressedRes else imageRes),

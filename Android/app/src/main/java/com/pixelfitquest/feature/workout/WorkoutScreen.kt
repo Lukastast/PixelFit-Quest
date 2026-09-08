@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -33,7 +34,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -49,6 +49,7 @@ import com.pixelfitquest.feature.workout.sensor.SensorSession
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.ui.navigation.HOME_SCREEN
 import com.pixelfitquest.ui.theme.determination
+import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
@@ -168,10 +169,12 @@ fun WorkoutScreen(
         onDispose { session.unregister() }
     }
 
+    val spacing = MaterialTheme.spacing
+
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val landscape = maxWidth > maxHeight
-        val buttonSize = if (landscape) 64.dp else 80.dp
-        val characterSize = if (landscape) 72.dp else 120.dp
+        val buttonSize = if (landscape) spacing.scale(64) else spacing.barMd
+        val characterSize = if (landscape) spacing.scale(72) else spacing.scale(120)
 
         Image(
             painter = painterResource(id = R.drawable.gym_background),
@@ -182,7 +185,7 @@ fun WorkoutScreen(
 
         Row(
             modifier = Modifier
-                .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                .padding(top = spacing.md, start = spacing.md, end = spacing.md)
                 .align(Alignment.TopCenter),
         ) {
             val status = when (state.phase) {
@@ -216,8 +219,8 @@ fun WorkoutScreen(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 10.dp),
+                    .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(spacing.cornerSm))
+                    .padding(horizontal = spacing.scale(10)),
             )
         }
 
@@ -225,7 +228,7 @@ fun WorkoutScreen(
             Row(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = 32.dp),
+                    .padding(top = spacing.xl),
             ) {
                 when (state.phase) {
                     WorkoutPhase.Recording -> PixelArtButton(
@@ -247,12 +250,12 @@ fun WorkoutScreen(
                     else -> Box(Modifier.size(buttonSize))
                 }
 
-                Box(modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp)) {
+                Box(modifier = Modifier.padding(top = spacing.lg, start = spacing.md, end = spacing.md)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
-                            .padding(horizontal = 12.dp, vertical = 4.dp),
+                            .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(spacing.cornerSm))
+                            .padding(horizontal = spacing.sm, vertical = spacing.xxs),
                     ) {
                         Text(
                             text = currentExercise,
@@ -266,7 +269,7 @@ fun WorkoutScreen(
                             color = if (currentImu) Color(0xFFA5D6A7) else Color(0xFFBDBDBD),
                             fontWeight = FontWeight.Bold,
                             fontSize = 11.sp,
-                            modifier = Modifier.padding(start = 8.dp),
+                            modifier = Modifier.padding(start = spacing.xs),
                         )
                     }
                 }
@@ -285,7 +288,7 @@ fun WorkoutScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(32.dp),
+                .padding(spacing.xl),
             contentAlignment = Alignment.BottomCenter,
         ) {
             CharacterIdleAnimation(
@@ -308,9 +311,9 @@ fun WorkoutScreen(
                     fontFamily = determination,
                     modifier = Modifier
                         .scale(1.2f)
-                        .padding(bottom = 10.dp)
-                        .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(24.dp))
-                        .padding(horizontal = 48.dp, vertical = 12.dp),
+                        .padding(bottom = spacing.scale(10))
+                        .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(spacing.lg))
+                        .padding(horizontal = spacing.xxl, vertical = spacing.sm),
                 )
             }
 
@@ -333,9 +336,9 @@ fun WorkoutScreen(
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .padding(end = 12.dp)
-                    .background(Color(0xCC1B5E20), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                    .padding(end = spacing.sm)
+                    .background(Color(0xCC1B5E20), RoundedCornerShape(spacing.cornerSm))
+                    .padding(horizontal = spacing.scale(10), vertical = spacing.xs),
             ) {
                 Text(
                     text = stringResource(R.string.workout_recording_badge),

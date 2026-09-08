@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -58,6 +59,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 import kotlinx.coroutines.launch
 
@@ -102,6 +104,7 @@ fun WorkoutCustomizationScreen(
     val templates by viewModel.templates.collectAsState()
 
     var selectedTemplateId by remember { mutableStateOf<String?>(null) }
+    val spacing = MaterialTheme.spacing
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -139,7 +142,7 @@ fun WorkoutCustomizationScreen(
                             },
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier.width(200.dp).height(60.dp)
+                            modifier = Modifier.width(spacing.scale(200)).height(spacing.buttonHeight)
                         ) {
                             Text(
                                 if (uiState.editMode) stringResource(R.string.update_template) else stringResource(R.string.save_as_template)
@@ -156,13 +159,13 @@ fun WorkoutCustomizationScreen(
                         },
                         imageRes = R.drawable.button_unclicked,
                         pressedRes = R.drawable.button_clicked,
-                        modifier = Modifier.width(250.dp).height(60.dp)
+                        modifier = Modifier.width(spacing.scale(250)).height(spacing.buttonHeight)
                     ) {
                         Text(stringResource(R.string.start_workout))
                     }
 
                     if (uiState.isSaving) {
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(spacing.xs))
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
                 }
@@ -180,8 +183,8 @@ fun WorkoutCustomizationScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
-                        .padding(horizontal = 16.dp)
+                        .height(spacing.scale(50))
+                        .padding(horizontal = spacing.md)
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.info_background),
@@ -198,14 +201,14 @@ fun WorkoutCustomizationScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.padding(top = 8.dp))
+                Spacer(modifier = Modifier.padding(top = spacing.xs))
 
                 if (uiState.editMode || uiState.selections.isNotEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(100.dp)
-                            .padding(horizontal = 16.dp),
+                            .height(spacing.barLg)
+                            .padding(horizontal = spacing.md),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
@@ -217,7 +220,7 @@ fun WorkoutCustomizationScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(8.dp),
+                                .padding(spacing.xs),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
@@ -226,12 +229,12 @@ fun WorkoutCustomizationScreen(
                                 color = Color.White
                             )
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(spacing.xs))
 
                             Box(
                                 modifier = Modifier
-                                    .width(280.dp)
-                                    .height(60.dp),
+                                    .fillMaxWidth(0.85f)
+                                    .height(spacing.inputHeight),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
@@ -266,10 +269,10 @@ fun WorkoutCustomizationScreen(
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(spacing.md))
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(spacing.md))
 
                 val exercisesListState = rememberLazyListState()
 
@@ -285,12 +288,12 @@ fun WorkoutCustomizationScreen(
                 )
 
                 if (templates.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(spacing.md))
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(50.dp)
-                            .padding(horizontal = 16.dp)
+                            .height(spacing.scale(50))
+                            .padding(horizontal = spacing.md)
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.info_background),
@@ -307,7 +310,7 @@ fun WorkoutCustomizationScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.padding(top = 8.dp))
+                    Spacer(modifier = Modifier.padding(top = spacing.xs))
 
                     val templatesListState = rememberLazyListState()
 
@@ -315,11 +318,11 @@ fun WorkoutCustomizationScreen(
                         state = templatesListState,
                         modifier = Modifier
                             .weight(1f)
-                            .padding(horizontal = 16.dp)
-                            .padding(end = 16.dp)
-                            .padding(bottom = 16.dp)
-                            .simpleVerticalScrollbar(templatesListState),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                            .padding(horizontal = spacing.md)
+                            .padding(end = spacing.md)
+                            .padding(bottom = spacing.md)
+                            .simpleVerticalScrollbar(templatesListState, width = spacing.xs),
+                        verticalArrangement = Arrangement.spacedBy(spacing.xs)
                     ) {
                         items(templates, key = { it.id }) { template ->
                             val totalSets =
@@ -331,7 +334,7 @@ fun WorkoutCustomizationScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(72.dp)
+                                    .height(spacing.scale(72))
                             ) {
                                 Image(
                                     painter = painterResource(id = R.drawable.info_background_wider_workout),
@@ -414,7 +417,7 @@ fun WorkoutCustomizationScreen(
                         color = Color.White,
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
-                            .padding(16.dp)
+                            .padding(spacing.md)
                     )
                 }
 

@@ -22,19 +22,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import com.pixelfitquest.R
+import com.pixelfitquest.ui.theme.LocalSpacing
 
 @Composable
 fun VolumeCard(
     musicVolume: Int,
     onVolumeChange: (Int) -> Unit
 ) {
+    val spacing = LocalSpacing.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
-            .padding(32.dp, 0.dp, 32.dp, 8.dp)
+            .height(spacing.cardHeight)
+            .padding(start = spacing.xl, end = spacing.xl, bottom = spacing.xs)
     ) {
         // Background image
         Image(
@@ -49,7 +50,7 @@ fun VolumeCard(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(spacing.md)
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -59,14 +60,14 @@ fun VolumeCard(
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(spacing.xs)
             ) {
                 IconButton(
                     onClick = {
                         val newVolume = (musicVolume - 10).coerceAtLeast(0)
                         onVolumeChange(newVolume)
                     },
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(spacing.lg)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Remove,
@@ -83,7 +84,7 @@ fun VolumeCard(
                         val newVolume = (musicVolume + 10).coerceAtMost(100)
                         onVolumeChange(newVolume)
                     },
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(spacing.lg)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
