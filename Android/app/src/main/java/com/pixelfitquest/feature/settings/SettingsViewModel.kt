@@ -1,6 +1,7 @@
 package com.pixelfitquest.feature.settings
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.credentials.Credential
 import androidx.credentials.CustomCredential
@@ -14,6 +15,7 @@ import com.pixelfitquest.firebase.model.User
 import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.firebase.service.AccountService
 import com.pixelfitquest.firebase.repository.UserRepository
+import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationPrefs
 import com.pixelfitquest.health.HealthConnectStatus
 import com.pixelfitquest.health.HealthPermissions
 import com.pixelfitquest.health.HealthRepository
@@ -21,6 +23,7 @@ import com.pixelfitquest.local.CloudBackup
 import com.pixelfitquest.local.export.LocalExportService
 import com.pixelfitquest.viewmodel.PixelFitViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,11 +37,18 @@ class SettingsViewModel @Inject constructor(
     private val localExportService: LocalExportService,
     private val cloudBackup: CloudBackup,
     private val healthRepository: HealthRepository,
+    @ApplicationContext context: Context,
 ) : PixelFitViewModel() {
+
+    private val prefs: SharedPreferences =
+        context.getSharedPreferences(WorkoutOrientationPrefs.PREFS_NAME, Context.MODE_PRIVATE)
 
     private val _user = MutableStateFlow(User())
     private val _userData = MutableStateFlow<UserData?>(null)
     val userData: StateFlow<UserData?> = _userData.asStateFlow()
+
+    private val _workoutLandscapeEnabled = MutableStateFlow(WorkoutOrientationPrefs.isEnabled(prefs))
+    val workoutLandscapeEnabled: StateFlow<Boolean> = _workoutLandscapeEnabled.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -200,6 +210,11 @@ class SettingsViewModel @Inject constructor(
                 _error.value = e.message ?: "Failed to update music volume"
             }
         }
+    }
+
+    fun setWorkoutLandscapeEnabled(enabled: Boolean) {
+        WorkoutOrientationPrefs.setEnabled(prefs, enabled)
+        _workoutLandscapeEnabled.value = enabled
     }
 
 }

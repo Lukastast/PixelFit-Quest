@@ -38,6 +38,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.components.molecules.ExitAppCard
 import com.pixelfitquest.components.molecules.HealthConnectCard
+import com.pixelfitquest.components.molecules.LandscapeWorkoutCard
 import com.pixelfitquest.components.molecules.RemoveAccountCard
 import com.pixelfitquest.components.molecules.SettingsActionCard
 import com.pixelfitquest.components.molecules.VolumeCard
@@ -62,6 +63,7 @@ fun SettingsScreen(
     val signedIn = user.id.isNotBlank()
     val healthStatus by viewModel.healthStatus.collectAsState()
     val healthGranted by viewModel.healthPermissionsGranted.collectAsState()
+    val workoutLandscapeEnabled by viewModel.workoutLandscapeEnabled.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val healthPermissionContract = remember {
@@ -181,6 +183,13 @@ fun SettingsScreen(
                         HealthConnectStatus.UNAVAILABLE -> Unit
                     }
                 }
+            )
+
+            Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+
+            LandscapeWorkoutCard(
+                enabled = workoutLandscapeEnabled,
+                onToggle = { viewModel.setWorkoutLandscapeEnabled(it) }
             )
 
             Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))

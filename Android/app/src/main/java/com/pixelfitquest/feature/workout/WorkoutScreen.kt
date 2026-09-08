@@ -1,16 +1,14 @@
 package com.pixelfitquest.feature.workout
 
 import android.content.Context
-import android.content.pm.ActivityInfo
 import android.hardware.SensorManager
-import android.view.WindowManager
-import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -44,6 +42,8 @@ import com.pixelfitquest.components.atoms.CharacterIdleAnimation
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.feature.workout.model.WorkoutPhase
 import com.pixelfitquest.feature.workout.model.enums.WorkoutFeedback
+import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationLock
+import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationPrefs
 import com.pixelfitquest.feature.workout.sensor.SensorSession
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.ui.navigation.HOME_SCREEN
@@ -62,7 +62,11 @@ fun WorkoutScreen(
     val viewModel: WorkoutViewModel = hiltViewModel()
     val state by viewModel.workoutState.collectAsState()
     val context = LocalContext.current
-    val activity = LocalActivity.current
+    val landscapeEnabled = remember {
+        WorkoutOrientationPrefs.isEnabled(
+            context.getSharedPreferences(WorkoutOrientationPrefs.PREFS_NAME, Context.MODE_PRIVATE),
+        )
+    }
     val sensorManager = remember {
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     }
@@ -142,14 +146,10 @@ fun WorkoutScreen(
         return
     }
 
-    DisposableEffect(Unit) {
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        onDispose {
-            activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        }
-    }
+    WorkoutOrientationLock(
+        phase = state.phase,
+        landscapeEnabled = landscapeEnabled,
+    )
 
     LaunchedEffect(state.phase) {
         if (state.phase == WorkoutPhase.Recording) {
@@ -164,7 +164,11 @@ fun WorkoutScreen(
         onDispose { session.unregister() }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val landscape = maxWidth > maxHeight
+        val buttonSize = if (landscape) 64.dp else 80.dp
+        val characterSize = if (landscape) 72.dp else 120.dp
+
         Image(
             painter = painterResource(id = R.drawable.gym_background),
             contentDescription = null,
@@ -228,15 +232,15 @@ fun WorkoutScreen(
                         },
                         imageRes = R.drawable.pause_button_unclicked,
                         pressedRes = R.drawable.pause_button_clicked,
-                        modifier = Modifier.size(80.dp, 80.dp),
+                        modifier = Modifier.size(buttonSize),
                     )
                     WorkoutPhase.Idle -> PixelArtButton(
                         onClick = { viewModel.startSet() },
                         imageRes = R.drawable.play_button_unclicked,
                         pressedRes = R.drawable.play_button_clicked,
-                        modifier = Modifier.size(80.dp, 80.dp),
+                        modifier = Modifier.size(buttonSize),
                     )
-                    else -> Box(Modifier.size(80.dp, 80.dp))
+                    else -> Box(Modifier.size(buttonSize))
                 }
 
                 Box(modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp)) {
@@ -256,7 +260,7 @@ fun WorkoutScreen(
                     },
                     imageRes = R.drawable.stop_button_unclicked,
                     pressedRes = R.drawable.stop_button_clicked,
-                    modifier = Modifier.size(80.dp, 80.dp),
+                    modifier = Modifier.size(buttonSize),
                 )
             }
         }
@@ -268,7 +272,7 @@ fun WorkoutScreen(
             contentAlignment = Alignment.BottomCenter,
         ) {
             CharacterIdleAnimation(
-                modifier = Modifier.size(120.dp),
+                modifier = Modifier.size(characterSize),
                 gender = characterData.gender,
                 variant = characterData.variant,
                 isAnimating = true,
@@ -281,7 +285,7 @@ fun WorkoutScreen(
                 val color = if (number >= 0) Color.Yellow else Color.Green
                 Text(
                     text = text,
-                    fontSize = 120.sp,
+                    fontSize = if (landscape) 72.sp else 120.sp,
                     fontWeight = FontWeight.Bold,
                     color = color,
                     fontFamily = determination,
