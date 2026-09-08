@@ -13,3 +13,12 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Signing secrets — never commit
+*.jks
+*.keystore
+*.p12
+pixelfit-upload.jks
+keystore.properties
+key.properties
+secrets.properties
