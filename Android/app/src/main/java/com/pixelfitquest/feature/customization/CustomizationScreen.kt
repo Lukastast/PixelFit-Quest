@@ -18,8 +18,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.res.imageResource
 import com.pixelfitquest.components.atoms.IdleAnimation
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.components.atoms.PixelCharacterMotion
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.feature.settings.SettingsViewModel
 
@@ -163,37 +166,91 @@ private fun GenderToggleButton(text: String, isSelected: Boolean, onClick: () ->
 
 @Composable
 private fun VariantCarousel(spriteKey: String, onPrevious: () -> Unit, onNext: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
-        PixelArtButton(
-            onClick = onPrevious,
-            imageRes = R.drawable.unclicked_customization_button_left,
-            pressedRes = R.drawable.clicked_customization_button_left,
-            modifier = Modifier.size(40.dp)
-        ) {}
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            PixelArtButton(
+                onClick = onPrevious,
+                imageRes = R.drawable.unclicked_customization_button_left,
+                pressedRes = R.drawable.clicked_customization_button_left,
+                modifier = Modifier.size(40.dp)
+            ) {}
 
-        Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-        IdleAnimation(
-            modifier = Modifier
-                .size(120.dp)
-                .offset(x = (-18).dp),
-            gender = spriteKey,
-            isAnimating = true
-        )
+            IdleAnimation(
+                modifier = Modifier
+                    .size(120.dp)
+                    .offset(x = (-18).dp),
+                gender = spriteKey,
+                isAnimating = true
+            )
 
-        Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-        PixelArtButton(
-            onClick = onNext,
-            imageRes = R.drawable.unclicked_customization_button_right,
-            pressedRes = R.drawable.clicked_customization_button_right,
-            modifier = Modifier.size(40.dp)
-        ) {}
+            PixelArtButton(
+                onClick = onNext,
+                imageRes = R.drawable.unclicked_customization_button_right,
+                pressedRes = R.drawable.clicked_customization_button_right,
+                modifier = Modifier.size(40.dp)
+            ) {}
+        }
+
+        // Hybrid bob+slide preview (#141) — IdleAnimation kept above; flag toggles prototype.
+        if (SHOW_BOB_SLIDE_PREVIEW) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Bob+slide preview",
+                color = Color.White.copy(alpha = 0.8f),
+                fontSize = 10.sp
+            )
+            BobSlideCharacterPreview(spriteKey = spriteKey)
+        }
     }
+}
+
+/** Temporary in-app flag for the hybrid motion prototype. */
+private const val SHOW_BOB_SLIDE_PREVIEW = true
+
+private fun idleSpriteResId(spriteKey: String): Int = when (spriteKey) {
+    "male" -> R.drawable.character_male_idle
+    "female" -> R.drawable.character_woman_idle
+    "character_male_idle" -> R.drawable.character_male_idle
+    "character_woman_idle" -> R.drawable.character_woman_idle
+    "locked_male" -> R.drawable.locked_male_character_idle
+    "locked_woman" -> R.drawable.locked_woman_character_idle
+    "fitness_character_male_idle" -> R.drawable.fitness_character_male_idle
+    "fitness_character_woman_idle" -> R.drawable.fitness_character_woman_idle
+    else -> R.drawable.character_woman_idle
+}
+
+@Composable
+private fun BobSlideCharacterPreview(spriteKey: String) {
+    // Reuse existing idle sheet; motion uses frame 0 only (no walk strip).
+    val sheet = ImageBitmap.imageResource(idleSpriteResId(spriteKey))
+    val frameCount = 13
+    val frameWidth = sheet.width.toFloat() / frameCount
+    val frameHeight = sheet.height.toFloat()
+
+    PixelCharacterMotion(
+        bitmap = sheet,
+        modifier = Modifier
+            .size(96.dp)
+            .offset(x = (-12).dp),
+        bobAmplitudeDp = 4.dp,
+        bobDurationMs = 900,
+        walkEnabled = true,
+        walkSpeed = 1f,
+        walkAmplitudeDp = 12.dp,
+        frameWidthPx = frameWidth,
+        frameHeightPx = frameHeight,
+    )
 }
 
 @Composable
