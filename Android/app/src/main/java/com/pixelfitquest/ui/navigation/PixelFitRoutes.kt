@@ -7,6 +7,7 @@ const val WORKOUT_RESUME_SCREEN = "workout_resume"
 const val SPLASH_SCREEN = "SplashScreen"
 const val INTRO_SCREEN = "intro"
 const val WORKOUT_CUSTOMIZATION_SCREEN = "workout_customization"
+const val BODY_METRICS_SCREEN = "body_metrics"
 
 const val HAS_SEEN_INTRO = "has_Seen_Intro"
 

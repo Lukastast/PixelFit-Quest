@@ -60,6 +60,7 @@ import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.feature.customization.CustomizationScreen
 import com.pixelfitquest.feature.home.HomeScreen
 import com.pixelfitquest.feature.intro.IntroScreen
+import com.pixelfitquest.feature.bodyMetrics.BodyMetricsScreen
 import com.pixelfitquest.feature.settings.SettingsScreen
 import com.pixelfitquest.feature.splash.SplashScreen
 import com.pixelfitquest.feature.workoutBuilder.WorkoutCustomizationScreen
@@ -392,7 +393,14 @@ fun NavGraphBuilder.pixelFitGraph(
 
     composable(SETTINGS_SCREEN) {
         SettingsScreen(
-            restartApp = { route -> appState.clearAndNavigate(route) }
+            restartApp = { route -> appState.clearAndNavigate(route) },
+            openScreen = { route -> appState.navigate(route) }
+        )
+    }
+
+    composable(BODY_METRICS_SCREEN) {
+        BodyMetricsScreen(
+            onBack = { appState.popUp() }
         )
     }
 }

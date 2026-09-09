@@ -132,6 +132,16 @@
     <string name="export_json_subtitle">Free local backup, no account needed</string>
     <string name="export_csv_title">Export CSV</string>
     <string name="export_csv_subtitle">Share your workout log</string>
+
+    <!-- Body Metrics Screen -->
+    <string name="body_metrics_title">Body measurements</string>
+    <string name="body_metrics_card_title">Body measurements</string>
+    <string name="body_metrics_card_subtitle">Height and arm length for IMU tracking</string>
+    <string name="body_metrics_help">Arm length improves tracking for lat pulldown, bicep curl, and tricep extension. Height is used across IMU analysis.</string>
+    <string name="current_arm_length">Current arm length: %1$s cm</string>
+    <string name="enter_arm_length_hint">Enter arm length in cm (e.g., 68)</string>
+    <string name="arm_length_label">Arm length (cm)</string>
+    <string name="body_metrics_save">Save</string>
     <string name="leaderboard_pro_badge">PRO</string>
     <string name="leaderboard_pro_hint">Leaderboard</string>
 

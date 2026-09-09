@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +41,7 @@ import com.pixelfitquest.components.molecules.HealthConnectCard
 import com.pixelfitquest.components.molecules.RemoveAccountCard
 import com.pixelfitquest.components.molecules.SettingsActionCard
 import com.pixelfitquest.components.molecules.VolumeCard
+import com.pixelfitquest.ui.navigation.BODY_METRICS_SCREEN
 import com.pixelfitquest.components.molecules.launchCredManButtonUI
 import com.pixelfitquest.firebase.model.User
 import com.pixelfitquest.health.HealthConnectIntents
@@ -50,6 +52,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(
     restartApp: (String) -> Unit,
+    openScreen: (String) -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
     onScreenReady: () -> Unit = {}
 ) {
@@ -179,6 +182,16 @@ fun SettingsScreen(
                     }
                 }
             )
+
+            Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+
+            SettingsActionCard(
+                title = stringResource(R.string.body_metrics_card_title),
+                subtitle = stringResource(R.string.body_metrics_card_subtitle),
+                icon = Icons.Filled.Person,
+            ) {
+                openScreen(BODY_METRICS_SCREEN)
+            }
 
             Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
 
