@@ -23,6 +23,7 @@ import androidx.compose.ui.res.imageResource
 import com.pixelfitquest.components.atoms.IdleAnimation
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.components.atoms.PixelCharacterMotion
+import com.pixelfitquest.components.atoms.SpriteSheetPlayer
 import com.pixelfitquest.ui.theme.typography
 import com.pixelfitquest.feature.settings.SettingsViewModel
 
@@ -211,6 +212,13 @@ private fun VariantCarousel(spriteKey: String, onPrevious: () -> Unit, onNext: (
                 fontSize = 10.sp
             )
             BobSlideCharacterPreview(spriteKey = spriteKey)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Cape Hero walk (Gemini)",
+                color = Color.White.copy(alpha = 0.8f),
+                fontSize = 10.sp
+            )
+            CapeHeroWalkPreview()
         }
     }
 }
