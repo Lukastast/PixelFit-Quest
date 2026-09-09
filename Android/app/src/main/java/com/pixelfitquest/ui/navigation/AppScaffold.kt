@@ -56,13 +56,11 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
-import com.pixelfitquest.feature.Login.LoginScreen
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.feature.customization.CustomizationScreen
 import com.pixelfitquest.feature.home.HomeScreen
 import com.pixelfitquest.feature.intro.IntroScreen
 import com.pixelfitquest.feature.settings.SettingsScreen
-import com.pixelfitquest.feature.Login.SignupScreen
 import com.pixelfitquest.feature.splash.SplashScreen
 import com.pixelfitquest.feature.workoutBuilder.WorkoutCustomizationScreen
 import com.pixelfitquest.feature.workoutResume.WorkoutResumeScreen
@@ -329,20 +327,6 @@ fun NavGraphBuilder.pixelFitGraph(
     composable(SPLASH_SCREEN) {
         SplashScreen(
             navController = appState.navController
-        )
-    }
-
-    composable(SIGNUP_SCREEN) {
-        SignupScreen(
-            openScreen = { route -> appState.navigate(route) },
-            openAndPopUp = { route, popUp -> appState.navigateAndPopUp(route, popUp) }
-        )
-    }
-
-    composable(LOGIN_SCREEN) {
-        LoginScreen(
-            openScreen = { route -> appState.navigate(route) },
-            openAndPopUp = { route, popUp -> appState.navigateAndPopUp(route, popUp) }
         )
     }
 
