@@ -7,20 +7,28 @@ import com.pixelfitquest.feature.streak.model.StreakClock
 import com.pixelfitquest.feature.streak.model.WeeklyStreakEvaluator
 import com.pixelfitquest.feature.streak.model.WeeklyStreakSnapshot
 import com.pixelfitquest.feature.streak.model.WeeklyStreakState
+import com.pixelfitquest.local.LocalPixelFitStore
+import com.pixelfitquest.local.UserProgression
+import com.pixelfitquest.local.db.PixelFitDatabase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class WeeklyStreakRepository @Inject constructor(
-    private val database: StreakDatabase,
+    private val database: PixelFitDatabase,
     private val dao: WeeklyStreakDao,
     private val clock: StreakClock,
+    private val localStore: LocalPixelFitStore,
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeSnapshot(): Flow<WeeklyStreakSnapshot> {
@@ -71,7 +79,7 @@ class WeeklyStreakRepository @Inject constructor(
                 duplicateSession = false,
             )
         }
-        return database.withTransaction {
+        val result = database.withTransaction {
             val sessionWeek = WeeklyStreakEvaluator.weekStartDate(atMillis, clock.zone())
             val inserted = dao.insertSession(
                 WeeklySessionEntity(
@@ -91,6 +99,40 @@ class WeeklyStreakRepository @Inject constructor(
                 xpAwarded = if (duplicate) 0 else mutation.xpAwarded,
                 newlyUnlockedSkins = if (duplicate) emptyList() else mutation.newlyUnlockedSkins,
                 duplicateSession = duplicate,
+            )
+        }
+        if (!result.duplicateSession) {
+            alignProfileDailyStreak(atMillis)
+        }
+        return result
+    }
+
+    /**
+     * Keep [UserProfileEntity.streak] / lastActivityDate / lastStreakUpdateDate coherent
+     * with workout completion via [UserProgression.applyStreak] (daily continuity).
+     * Weekly goal state stays in WeeklyStreakStateEntity on the same pixelfit.db.
+     */
+    private suspend fun alignProfileDailyStreak(atMillis: Long) {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val today = dateFormat.format(Date(atMillis))
+        val yesterday = dateFormat.format(Date(atMillis - MILLIS_PER_DAY))
+        localStore.replaceProfile { current ->
+            if (current.lastStreakUpdateDate == today) {
+                return@replaceProfile current
+            }
+            val result = UserProgression.applyStreak(
+                currentStreak = current.streak,
+                lastActivityDate = current.lastActivityDate,
+                today = today,
+                yesterday = yesterday,
+                increment = true,
+                reset = false,
+            )
+            current.copy(
+                streak = result.streak,
+                lastActivityDate = result.lastActivityDate,
+                lastStreakUpdateDate = today,
             )
         }
     }
@@ -139,6 +181,7 @@ class WeeklyStreakRepository @Inject constructor(
 
     companion object {
         private const val TAG = "WeeklyStreakRepo"
+        private const val MILLIS_PER_DAY = 24L * 60L * 60L * 1000L
 
         fun logFailure(message: String, error: Throwable) {
             Log.w(TAG, message, error)

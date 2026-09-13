@@ -607,6 +607,8 @@ fun HomeScreen(
             }
         }
 
+        }
+
         if (showStreakDialog) {
             WeeklyStreakDialog(
                 snapshot = weeklyStreak,

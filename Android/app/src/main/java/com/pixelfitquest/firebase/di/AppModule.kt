@@ -8,6 +8,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.PersistentCacheSettings
 import com.pixelfitquest.feature.progress.data.LiftHistoryDao
+import com.pixelfitquest.feature.streak.data.WeeklyStreakDao
+import com.pixelfitquest.feature.streak.model.StreakClock
+import com.pixelfitquest.feature.streak.model.SystemStreakClock
 import com.pixelfitquest.local.CloudSyncPolicy
 import com.pixelfitquest.local.StubCloudSyncPolicy
 import com.pixelfitquest.local.db.PixelFitDatabase
@@ -63,4 +66,11 @@ object AppModule {
 
     @Provides
     fun provideLiftHistoryDao(db: PixelFitDatabase): LiftHistoryDao = db.liftHistoryDao()
+
+    @Provides
+    fun provideWeeklyStreakDao(db: PixelFitDatabase): WeeklyStreakDao = db.weeklyStreakDao()
+
+    @Provides
+    @Singleton
+    fun provideStreakClock(): StreakClock = SystemStreakClock()
 }
