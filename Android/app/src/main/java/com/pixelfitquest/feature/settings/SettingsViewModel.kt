@@ -20,7 +20,6 @@ import com.pixelfitquest.health.HealthConnectStatus
 import com.pixelfitquest.health.HealthPermissions
 import com.pixelfitquest.health.HealthRepository
 import com.pixelfitquest.local.CloudBackup
-import com.pixelfitquest.local.export.LocalExportService
 import com.pixelfitquest.viewmodel.PixelFitViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -34,7 +33,6 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val accountService: AccountService,
     private val userRepository: UserRepository,
-    private val localExportService: LocalExportService,
     private val cloudBackup: CloudBackup,
     private val healthRepository: HealthRepository,
     @ApplicationContext context: Context,
@@ -145,27 +143,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun exportJson(context: Context) {
-        viewModelScope.launch {
-            try {
-                localExportService.shareJson(context)
-            } catch (e: Exception) {
-                Log.e(ERROR_TAG, "JSON export failed", e)
-                SnackbarManager.showMessage(e.message ?: "JSON export failed")
-            }
-        }
-    }
-
-    fun exportCsv(context: Context) {
-        viewModelScope.launch {
-            try {
-                localExportService.shareCsv(context)
-            } catch (e: Exception) {
-                Log.e(ERROR_TAG, "CSV export failed", e)
-                SnackbarManager.showMessage(e.message ?: "CSV export failed")
-            }
-        }
-    }
 
     fun getProfilePictureModel(): Any? {
         val url = user.value.profilePictureUrl

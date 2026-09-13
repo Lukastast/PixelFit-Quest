@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +40,7 @@ import com.pixelfitquest.components.molecules.HealthConnectCard
 import com.pixelfitquest.components.molecules.LandscapeWorkoutCard
 import com.pixelfitquest.components.molecules.RemoveAccountCard
 import com.pixelfitquest.components.molecules.SettingsActionCard
+import com.pixelfitquest.local.export.ui.LocalExportCard
 import com.pixelfitquest.components.molecules.VolumeCard
 import com.pixelfitquest.components.molecules.launchCredManButtonUI
 import com.pixelfitquest.feature.streak.WeeklyGoalCard
@@ -243,23 +243,7 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(spacing.md))
 
-            SettingsActionCard(
-                title = stringResource(R.string.export_json_title),
-                subtitle = stringResource(R.string.export_json_subtitle),
-                icon = Icons.Filled.Share,
-            ) {
-                viewModel.exportJson(context)
-            }
-
-            Spacer(modifier = Modifier.height(spacing.md))
-
-            SettingsActionCard(
-                title = stringResource(R.string.export_csv_title),
-                subtitle = stringResource(R.string.export_csv_subtitle),
-                icon = Icons.Filled.Share,
-            ) {
-                viewModel.exportCsv(context)
-            }
+            LocalExportCard()
 
             if (signedIn) {
                 Spacer(modifier = Modifier.height(spacing.md))
