@@ -185,10 +185,22 @@
     <string name="sign_in_with_google_subtitle">Optional. Does not turn on cloud sync.</string>
     <string name="backup_sync_pro_title">Backup &amp; sync (Pro)</string>
     <string name="backup_sync_pro_subtitle">Cloud backup, multi-device, leaderboards</string>
-    <string name="export_json_title">Export JSON</string>
-    <string name="export_json_subtitle">Free local backup, no account needed</string>
-    <string name="export_csv_title">Export CSV</string>
-    <string name="export_csv_subtitle">Share your workout log</string>
+    <string name="export_card_title">Export workout log</string>
+    <string name="export_card_subtitle">Free local backup · JSON / CSV · no account</string>
+    <string name="export_dialog_title">Export workout log</string>
+    <string name="export_dialog_subtitle">Free · this phone · no account needed</string>
+    <string name="export_counts">Workouts: %1$d · Sets: %2$d</string>
+    <string name="export_format_json">JSON</string>
+    <string name="export_format_csv">CSV</string>
+    <string name="export_format_both">JSON + CSV</string>
+    <string name="export_action_share">Share</string>
+    <string name="export_action_save">Save file</string>
+    <string name="export_share_title">Share workout log</string>
+    <string name="export_share_subject">PixelFit workout log</string>
+    <string name="export_share_ready">Ready to share %1$d file(s)</string>
+    <string name="export_preparing">Preparing…</string>
+    <string name="export_saved">Workout log saved</string>
+    <string name="export_failed">Export failed</string>
 
     <!-- Body Metrics Screen -->
     <string name="body_metrics_title">Body measurements</string>
