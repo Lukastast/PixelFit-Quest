@@ -23,6 +23,7 @@ import com.pixelfitquest.feature.workout.sensor.ImuSample
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.feature.progress.data.LiftHistoryDao
 import com.pixelfitquest.feature.progress.data.toLiftHistoryEntity
+import com.pixelfitquest.feature.streak.data.WeeklyStreakRepository
 import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
@@ -37,11 +38,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.time.Instant
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
 import java.util.UUID
 import javax.inject.Inject
 
@@ -49,6 +46,7 @@ import javax.inject.Inject
 class WorkoutViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val workoutRepository: WorkoutRepository,
+    private val weeklyStreakRepository: WeeklyStreakRepository,
     private val setAnalyzer: SetAnalyzer,
     private val liftHistoryDao: LiftHistoryDao,
 ) : PixelFitViewModel() {
@@ -480,22 +478,20 @@ class WorkoutViewModel @Inject constructor(
         )
         launchCatching {
             workoutRepository.saveWorkout(workout)
-            updateDailyStreak()
+            recordWeeklyStreak(workout.id)
             stopWorkout()
             _navigationEvent.emit(workoutId)
         }
     }
 
-    private fun updateDailyStreak() {
-        launchCatching {
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-            dateFormat.timeZone = TimeZone.getTimeZone("UTC")
-            val today = dateFormat.format(Date())
-            val lastStreakUpdateDate = userRepository.getUserField("last_streak_update_date") as? String ?: ""
-            if (lastStreakUpdateDate != today) {
-                userRepository.updateStreak(increment = true)
-                userRepository.updateUserData(mapOf("last_streak_update_date" to today))
+    private suspend fun recordWeeklyStreak(completedWorkoutId: String) {
+        try {
+            weeklyStreakRepository.recordCompletedSession(completedWorkoutId)
+            weeklyStreakRepository.withConsumedPendingXp { amount ->
+                userRepository.updateExp(amount)
             }
+        } catch (e: Exception) {
+            Log.i("WorkoutVM", "Weekly streak XP kept on device until account is available", e)
         }
     }
 

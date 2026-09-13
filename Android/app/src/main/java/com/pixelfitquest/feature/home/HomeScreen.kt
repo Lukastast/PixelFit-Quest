@@ -56,6 +56,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.pixelfitquest.R
 import com.pixelfitquest.components.molecules.WorkoutCard
+import com.pixelfitquest.feature.streak.WeeklyStreakDialog
+import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
 import com.pixelfitquest.health.HealthConnectIntents
 import com.pixelfitquest.health.HealthConnectStatus
 import com.pixelfitquest.ui.navigation.PROGRESS_SCREEN
@@ -75,6 +77,7 @@ fun HomeScreen(
     restartApp: (String) -> Unit,
     navController: NavController,
     viewModel: HomeViewModel = hiltViewModel(),
+    weeklyStreakViewModel: WeeklyStreakViewModel = hiltViewModel(),
     onScreenReady: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -127,6 +130,8 @@ fun HomeScreen(
 
     val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
     var showTutorial by remember { mutableStateOf(false) }
+    val weeklyStreak by weeklyStreakViewModel.snapshot.collectAsState()
+    var showStreakDialog by remember { mutableStateOf(false) }
 
 
     LaunchedEffect(isLoading) {
@@ -167,7 +172,7 @@ fun HomeScreen(
     val level = userData?.level ?: 0
     val coins = userData?.coins ?: 0
     val exp = userData?.exp ?: 0
-    val streak = userData?.streak ?: 0
+    val streak = weeklyStreak.currentStreakWeeks
     val maxExp by viewModel.currentMaxExp.collectAsState()
     val healthMetrics by viewModel.healthMetrics.collectAsState()
     val todaySteps = healthMetrics.steps
@@ -253,10 +258,16 @@ fun HomeScreen(
                         color = Color.White
                     )
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { showStreakDialog = true }
+                ) {
                     Image(
                         painter = painterResource(id = R.drawable.streak),
-                        contentDescription = stringResource(R.string.streak_icon_desc),
+                        contentDescription = stringResource(
+                            R.string.weekly_streak_hud_desc,
+                            streak
+                        ),
                         modifier = Modifier.size(spacing.scale(20))
                     )
                     Spacer(modifier = Modifier.padding(horizontal = spacing.xxxs))
@@ -596,6 +607,14 @@ fun HomeScreen(
             }
         }
 
+        }
+
+        if (showStreakDialog) {
+            WeeklyStreakDialog(
+                snapshot = weeklyStreak,
+                onDismiss = { showStreakDialog = false },
+                onTargetChange = { weeklyStreakViewModel.setTargetSessionsPerWeek(it) }
+            )
         }
 
         if (showAchievements) {
