@@ -57,6 +57,7 @@ import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.feature.customization.CustomizationScreen
+import com.pixelfitquest.feature.achievements.AchievementsScreen
 import com.pixelfitquest.feature.home.HomeScreen
 import com.pixelfitquest.feature.intro.IntroScreen
 import com.pixelfitquest.feature.bodyMetrics.BodyMetricsScreen
@@ -343,6 +344,12 @@ fun NavGraphBuilder.pixelFitGraph(
             restartApp = { route -> appState.clearAndNavigate(route) },
             navController = appState.navController,
             onScreenReady = { onScreenReady(HOME_SCREEN) }
+        )
+    }
+
+    composable(ACHIEVEMENTS_SCREEN) {
+        AchievementsScreen(
+            onBack = { appState.popUp() }
         )
     }
 

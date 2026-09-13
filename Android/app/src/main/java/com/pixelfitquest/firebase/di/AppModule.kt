@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.PersistentCacheSettings
+import com.pixelfitquest.feature.achievements.data.AchievementDao
 import com.pixelfitquest.feature.progress.data.LiftHistoryDao
 import com.pixelfitquest.feature.streak.data.WeeklyStreakDao
 import com.pixelfitquest.feature.streak.model.StreakClock
@@ -69,6 +70,9 @@ object AppModule {
 
     @Provides
     fun provideWeeklyStreakDao(db: PixelFitDatabase): WeeklyStreakDao = db.weeklyStreakDao()
+
+    @Provides
+    fun provideAchievementDao(db: PixelFitDatabase): AchievementDao = db.achievementDao()
 
     @Provides
     @Singleton

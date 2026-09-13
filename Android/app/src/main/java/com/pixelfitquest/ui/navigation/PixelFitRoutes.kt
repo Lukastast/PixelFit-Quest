@@ -13,3 +13,4 @@ const val HAS_SEEN_INTRO = "has_Seen_Intro"
 
 const val ACCOUNT_CENTER_SCREEN = "AccountCenterScreen"
 const val PROGRESS_SCREEN = "progress"
+const val ACHIEVEMENTS_SCREEN = "achievements"
