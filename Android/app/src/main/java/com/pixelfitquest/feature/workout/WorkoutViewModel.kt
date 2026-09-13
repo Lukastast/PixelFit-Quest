@@ -93,6 +93,7 @@ class WorkoutViewModel @Inject constructor(
     }
 
     fun startWorkoutFromPlan(plan: WorkoutPlan, templateName: String? = null) {
+        if (_workoutState.value.isTracking) return
         workoutName = templateName?.takeIf { it.isNotBlank() }
             ?.lowercase()
             ?.replace(" ", "_")

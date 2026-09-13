@@ -121,6 +121,9 @@
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
+    <string name="settings_landscape_title">Lay-flat workout</string>
+    <string name="settings_landscape_on">ON</string>
+    <string name="settings_landscape_off">OFF</string>
     <string name="continue_without_account">Continue without account</string>
     <string name="guest_profile_title">Playing offline (guest)</string>
     <string name="guest_profile_subtitle">Workouts stay on this phone</string>

@@ -3,6 +3,7 @@ package com.pixelfitquest.feature.workout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -42,19 +44,14 @@ fun SetReviewOverlay(
     onRedo: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    Row(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.82f))
             .padding(12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .weight(1.4f)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
+        val landscape = maxWidth > maxHeight
+        val listContent: LazyListScope.() -> Unit = {
             item {
                 Text(
                     text = stringResource(
@@ -86,30 +83,125 @@ fun SetReviewOverlay(
             }
         }
 
-        Column(
-            modifier = Modifier
-                .width(180.dp)
-                .fillMaxHeight()
-                .background(Color(0xFF1A1A1A), RoundedCornerShape(12.dp))
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.set_review_form, review.meanFormScore.toInt()),
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-            )
-            Text(
-                text = stringResource(R.string.set_review_samples, review.sampleCount),
-                color = Color.Gray,
-                fontSize = 12.sp,
-            )
+        if (landscape) {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1.4f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    content = listContent,
+                )
+                SetReviewActions(
+                    review = review,
+                    onAdd = onAdd,
+                    onRedo = onRedo,
+                    onConfirm = onConfirm,
+                    modifier = Modifier
+                        .width(180.dp)
+                        .fillMaxHeight(),
+                    stacked = true,
+                )
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    content = listContent,
+                )
+                SetReviewActions(
+                    review = review,
+                    onAdd = onAdd,
+                    onRedo = onRedo,
+                    onConfirm = onConfirm,
+                    modifier = Modifier.fillMaxWidth(),
+                    stacked = false,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SetReviewActions(
+    review: SetReviewState,
+    onAdd: () -> Unit,
+    onRedo: () -> Unit,
+    onConfirm: () -> Unit,
+    modifier: Modifier = Modifier,
+    stacked: Boolean,
+) {
+    Column(
+        modifier = modifier
+            .background(Color(0xFF1A1A1A), RoundedCornerShape(12.dp))
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.set_review_form, review.meanFormScore.toInt()),
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+        )
+        Text(
+            text = stringResource(R.string.set_review_samples, review.sampleCount),
+            color = Color.Gray,
+            fontSize = 12.sp,
+        )
+        if (stacked) {
             Spacer(Modifier.height(4.dp))
-            OverlayAction(stringResource(R.string.set_review_add), Color(0xFF2E7D32), onAdd)
-            OverlayAction(stringResource(R.string.set_review_redo), Color(0xFF8A6A2F), onRedo)
+            OverlayAction(
+                stringResource(R.string.set_review_add),
+                Color(0xFF2E7D32),
+                onAdd,
+                Modifier.fillMaxWidth(),
+            )
+            OverlayAction(
+                stringResource(R.string.set_review_redo),
+                Color(0xFF8A6A2F),
+                onRedo,
+                Modifier.fillMaxWidth(),
+            )
             Spacer(Modifier.weight(1f))
-            OverlayAction(stringResource(R.string.set_review_confirm), Color(0xFF1565C0), onConfirm)
+            OverlayAction(
+                stringResource(R.string.set_review_confirm),
+                Color(0xFF1565C0),
+                onConfirm,
+                Modifier.fillMaxWidth(),
+            )
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                OverlayAction(
+                    stringResource(R.string.set_review_add),
+                    Color(0xFF2E7D32),
+                    onAdd,
+                    Modifier.weight(1f),
+                )
+                OverlayAction(
+                    stringResource(R.string.set_review_redo),
+                    Color(0xFF8A6A2F),
+                    onRedo,
+                    Modifier.weight(1f),
+                )
+                OverlayAction(
+                    stringResource(R.string.set_review_confirm),
+                    Color(0xFF1565C0),
+                    onConfirm,
+                    Modifier.weight(1f),
+                )
+            }
         }
     }
 }
@@ -234,14 +326,18 @@ private fun RomChip(
 }
 
 @Composable
-private fun OverlayAction(label: String, color: Color, onClick: () -> Unit) {
+private fun OverlayAction(
+    label: String,
+    color: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Text(
         text = label,
         color = Color.White,
         fontFamily = determination,
         fontWeight = FontWeight.Bold,
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .background(color, RoundedCornerShape(8.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 10.dp),
