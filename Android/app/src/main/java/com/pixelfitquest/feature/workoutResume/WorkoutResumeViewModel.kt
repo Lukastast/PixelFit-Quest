@@ -4,6 +4,9 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pixelfitquest.feature.healthbonuses.SessionBonusService
+import com.pixelfitquest.feature.healthbonuses.model.SessionBonus
+import com.pixelfitquest.feature.healthbonuses.model.SessionBonusUiState
 import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.feature.workout.model.ExerciseWithSets
 import com.pixelfitquest.feature.workout.model.Workout
@@ -26,6 +29,7 @@ class WorkoutResumeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val weeklyStreakRepository: WeeklyStreakRepository,
     private val localXpPort: LocalXpPort,
+    private val sessionBonusService: SessionBonusService,
 ) : ViewModel() {
 
     private val _userData = MutableStateFlow<UserData?>(null)
@@ -38,6 +42,8 @@ class WorkoutResumeViewModel @Inject constructor(
     val error: StateFlow<String?> = _error.asStateFlow()
     private val _exercisesWithSets = MutableStateFlow<List<ExerciseWithSets>>(emptyList())
     val exercisesWithSets: StateFlow<List<ExerciseWithSets>> = _exercisesWithSets.asStateFlow()
+    private val _bonusUi = MutableStateFlow(SessionBonusUiState())
+    val bonusUi: StateFlow<SessionBonusUiState> = _bonusUi.asStateFlow()
 
     init {
         if (workoutId.isNotBlank()) {
@@ -59,7 +65,11 @@ class WorkoutResumeViewModel @Inject constructor(
     }
     private fun loadWorkoutData() {
         viewModelScope.launch {
-            val workout = workoutRepository.getWorkout(workoutId) ?: return@launch
+            val workout = workoutRepository.getWorkout(workoutId)
+            if (workout == null) {
+                resolveHealthBonuses()
+                return@launch
+            }
             loadExercisesAndSets(workout)
         }
     }
@@ -109,6 +119,52 @@ class WorkoutResumeViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("WorkoutResumeVM", "Failed to load exercises/sets", e)
                 _exercisesWithSets.value = emptyList()
+            }
+            resolveHealthBonuses()
+        }
+    }
+
+    private suspend fun resolveHealthBonuses() {
+        try {
+            val resolution = sessionBonusService.resolveForWorkout(workoutId)
+            _bonusUi.value = SessionBonusUiState(
+                loaded = true,
+                snapshot = resolution.snapshot,
+                bonuses = resolution.bonuses,
+            )
+            if (resolution.isNewAward) {
+                awardHealthBonuses(resolution.bonuses)
+            }
+        } catch (e: Exception) {
+            Log.w("WorkoutResumeVM", "Health session bonuses skipped", e)
+            _bonusUi.value = SessionBonusUiState(loaded = true)
+        }
+    }
+
+    private fun awardHealthBonuses(bonuses: List<SessionBonus>) {
+        val xp = bonuses.sumOf { it.xp }
+        val coins = bonuses.sumOf { it.coins }
+        if (xp > 0) {
+            viewModelScope.launch {
+                try {
+                    // Single wallet: user_profile via LevelsRepository / UserProgression
+                    localXpPort.awardXp(xp, "health_bonus")
+                    Log.d("ResumeVM", "Added $xp health-bonus XP")
+                } catch (e: Exception) {
+                    Log.w("ResumeVM", "Health-bonus XP award failed", e)
+                }
+            }
+        }
+        if (coins > 0) {
+            viewModelScope.launch {
+                try {
+                    // Room SoT via UserRepository → LocalPixelFitStore user_profile coins
+                    val current = userRepository.fetchUserDataOnce() ?: return@launch
+                    userRepository.updateUserData(mapOf("coins" to current.coins + coins))
+                    Log.d("ResumeVM", "Added $coins health-bonus coins")
+                } catch (e: Exception) {
+                    Log.w("ResumeVM", "Health-bonus coins not saved", e)
+                }
             }
         }
     }
@@ -178,7 +234,9 @@ class WorkoutResumeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
-                val current = _userData.value ?: return@launch
+                val current = userRepository.fetchUserDataOnce()
+                    ?: _userData.value
+                    ?: return@launch
                 userRepository.updateUserData(mapOf("coins" to current.coins + amount))
                 Log.d("ResumeVM", "Added $amount Coins")
             } catch (e: Exception) {

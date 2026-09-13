@@ -108,6 +108,23 @@
     <string name="health_connect_rationale_title">Health data on this phone</string>
     <string name="health_connect_rationale_body">PixelFit Quest reads today\'s step count and heart rate from Health Connect on this device. Those numbers power the home steps card and daily walk missions.\n\nHealth Connect is on-device. PixelFit does not upload these metrics, and you do not need a cloud account for them. Workouts still start if you deny access.\n\nA later update may write finished strength sessions to Health Connect so other apps can see them. That write path is not active yet.</string>
     <string name="health_connect_rationale_close">Close</string>
+
+    <!-- Health training bonuses (motivational extras, not medical) -->
+    <string name="health_bonus_section_title">Session health extras</string>
+    <string name="health_bonus_disclaimer">Motivational extras only — not medical advice.</string>
+    <string name="health_bonus_none">No extra health bonuses this session.</string>
+    <string name="health_bonus_total">Extras +%1$d XP · +%2$d coins</string>
+    <string name="health_bonus_sleep_title">Good-sleep bonus</string>
+    <string name="health_bonus_sleep_body">A solid rest was logged. Extra XP for showing up ready.</string>
+    <string name="health_bonus_steps_title">Daily step-goal bonus</string>
+    <string name="health_bonus_steps_body">You hit today\'s step goal. Nice work staying active.</string>
+    <string name="health_bonus_run_title">On-the-move bonus</string>
+    <string name="health_bonus_run_body">Running or distance was logged today. Extra coins for the session.</string>
+    <string name="health_bonus_energy_title">Energy bonus</string>
+    <string name="health_bonus_energy_body">Your device logged a strong energy score. Keep the quest going.</string>
+    <string name="health_bonus_source_on_device">From Health Connect on this device</string>
+    <string name="health_bonus_source_unavailable">No Health Connect metrics available yet.</string>
+
     <string name="total_users_count">/ %1$d users</string>
     <string name="achievements_button_desc">Achievements</string>
     <string name="no_workouts_yet">No completed workouts yet</string>
