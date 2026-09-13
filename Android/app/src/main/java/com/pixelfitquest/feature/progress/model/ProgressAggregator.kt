@@ -52,13 +52,13 @@ object ProgressAggregator {
 object ProgressSourceResolver {
     fun resolve(
         local: List<LiftSetRecord>,
-        remote: List<LiftSetRecord>,
+        workoutLog: List<LiftSetRecord>,
     ): ProgressLoad {
         if (local.isNotEmpty()) {
             return ProgressLoad(local, ProgressDataSource.LOCAL)
         }
-        if (remote.isNotEmpty()) {
-            return ProgressLoad(remote, ProgressDataSource.WORKOUT_LOG)
+        if (workoutLog.isNotEmpty()) {
+            return ProgressLoad(workoutLog, ProgressDataSource.WORKOUT_LOG)
         }
         return ProgressLoad(SampleProgressData.records(), ProgressDataSource.SAMPLE)
     }

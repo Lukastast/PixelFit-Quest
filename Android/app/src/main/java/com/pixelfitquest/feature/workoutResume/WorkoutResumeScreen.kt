@@ -178,7 +178,7 @@ fun WorkoutResumeScreen(
                     pressedRes = R.drawable.button_clicked,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(spacing.scale(56)),
                 ) {
                     Text(
                         text = stringResource(R.string.progress_resume_cta),
