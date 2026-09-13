@@ -59,6 +59,7 @@ import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.feature.customization.CustomizationScreen
 import com.pixelfitquest.feature.achievements.AchievementsScreen
 import com.pixelfitquest.feature.home.HomeScreen
+import com.pixelfitquest.feature.levels.LevelsScreen
 import com.pixelfitquest.feature.intro.IntroScreen
 import com.pixelfitquest.feature.bodyMetrics.BodyMetricsScreen
 import com.pixelfitquest.feature.settings.SettingsScreen
@@ -349,6 +350,12 @@ fun NavGraphBuilder.pixelFitGraph(
 
     composable(ACHIEVEMENTS_SCREEN) {
         AchievementsScreen(
+            onBack = { appState.popUp() }
+        )
+    }
+
+    composable(LEVELS_SCREEN) {
+        LevelsScreen(
             onBack = { appState.popUp() }
         )
     }

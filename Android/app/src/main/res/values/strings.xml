@@ -129,6 +129,24 @@
     <string name="achievements_progress_value">%1$d / %2$d</string>
     <string name="achievements_reward_pending">Prize pending on this device</string>
 
+    <!-- Levels / cosmetics -->
+    <string name="levels_header_level">Level %1$s</string>
+    <string name="levels_progress_count">%1$d / %2$d cosmetics</string>
+    <string name="levels_filter_all">All</string>
+    <string name="levels_filter_home">Home</string>
+    <string name="levels_filter_skins">Skins</string>
+    <string name="levels_filter_titles">Titles</string>
+    <string name="levels_unlocked">Unlocked</string>
+    <string name="levels_equipped">Equipped</string>
+    <string name="levels_equip">Equip</string>
+    <string name="levels_locked_level">Lv %1$d</string>
+    <string name="levels_level_up_title">Level up!</string>
+    <string name="levels_level_up_body">You reached level %1$d</string>
+    <string name="levels_unlocked_header">New cosmetics</string>
+    <string name="levels_view_rewards">View rewards</string>
+    <string name="levels_later">Later</string>
+    <string name="levels_shadow_skin">Shadow</string>
+
     <!-- Workout Screen -->
     <string name="workout_go">GO!</string>
     <string name="workout_status_idle">Set: %1$d / %2$d · tap play · %3$.1f Kg</string>

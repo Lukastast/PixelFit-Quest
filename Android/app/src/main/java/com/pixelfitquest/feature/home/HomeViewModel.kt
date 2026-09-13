@@ -11,6 +11,7 @@ import com.pixelfitquest.feature.streak.data.WeeklyStreakRepository
 import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
+import com.pixelfitquest.feature.levels.cosmetics.LocalXpPort
 import com.pixelfitquest.firebase.service.AccountService
 import com.pixelfitquest.health.HealthConnectStatus
 import com.pixelfitquest.health.HealthMetrics
@@ -42,6 +43,7 @@ class HomeViewModel @Inject constructor(
     private val cloudSyncPolicy: CloudSyncPolicy,
     private val healthRepository: HealthRepository,
     private val weeklyStreakRepository: WeeklyStreakRepository,
+    private val localXpPort: LocalXpPort,
 ) : PixelFitViewModel() {
     private val _userData = MutableStateFlow<UserData?>(null)
     val userData: StateFlow<UserData?> = _userData.asStateFlow()
@@ -178,9 +180,10 @@ class HomeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
-                userRepository.updateExp(amount)
+                // Single wallet: user_profile via LevelsRepository / UserProgression
+                localXpPort.awardXp(amount, "home")
             } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to update exp"
+                Log.w("HomeVM", "XP award failed", e)
             }
         }
     }
@@ -188,7 +191,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun grantPendingStreakXp() {
         try {
             weeklyStreakRepository.withConsumedPendingXp { amount ->
-                userRepository.updateExp(amount)
+                localXpPort.awardXp(amount, "streak")
             }
         } catch (e: Exception) {
             Log.i("HomeVM", "Streak XP kept on device until account is available")

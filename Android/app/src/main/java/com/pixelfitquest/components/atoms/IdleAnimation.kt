@@ -73,6 +73,10 @@ fun CharacterIdleAnimation(
     val spriteSheetId = when (variant) {
         "male_fitness" -> R.drawable.fitness_character_male_idle
         "female_fitness" -> R.drawable.fitness_character_woman_idle
+        "shadow", "locked_male", "locked_woman" -> {
+            if (gender == "male") R.drawable.locked_male_character_idle
+            else R.drawable.locked_woman_character_idle
+        }
         else -> {
             if (gender == "male") R.drawable.character_male_idle
             else R.drawable.character_woman_idle
