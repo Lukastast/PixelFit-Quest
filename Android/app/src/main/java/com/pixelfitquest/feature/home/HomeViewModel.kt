@@ -1,40 +1,32 @@
 package com.pixelfitquest.feature.home
 
-import android.app.Activity
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.feature.home.model.Achievement
-import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.feature.home.model.achievementsList
 import com.pixelfitquest.feature.home.model.missionsPool
 import com.pixelfitquest.feature.home.model.rewardsPool
-import com.pixelfitquest.firebase.service.AccountService
 import com.pixelfitquest.feature.workout.model.Workout
+import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
+import com.pixelfitquest.firebase.service.AccountService
+import com.pixelfitquest.health.HealthConnectStatus
+import com.pixelfitquest.health.HealthMetrics
+import com.pixelfitquest.health.HealthPermissions
+import com.pixelfitquest.health.HealthRepository
+import com.pixelfitquest.health.HealthRewards
 import com.pixelfitquest.local.CloudSyncPolicy
 import com.pixelfitquest.viewmodel.PixelFitViewModel
-import com.samsung.android.sdk.health.data.HealthDataService
-import com.samsung.android.sdk.health.data.HealthDataStore
-import com.samsung.android.sdk.health.data.error.HealthDataException
-import com.samsung.android.sdk.health.data.permission.AccessType
-import com.samsung.android.sdk.health.data.permission.Permission
-import com.samsung.android.sdk.health.data.request.DataType
-import com.samsung.android.sdk.health.data.request.DataTypes
-import com.samsung.android.sdk.health.data.request.LocalDateFilter
-import com.samsung.android.sdk.health.data.request.LocalTimeFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -47,7 +39,7 @@ class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val workoutRepository: WorkoutRepository,
     private val cloudSyncPolicy: CloudSyncPolicy,
-    @ApplicationContext private val context: Context
+    private val healthRepository: HealthRepository,
 ) : PixelFitViewModel() {
     private val _userData = MutableStateFlow<UserData?>(null)
     val userData: StateFlow<UserData?> = _userData.asStateFlow()
@@ -61,11 +53,21 @@ class HomeViewModel @Inject constructor(
     private val _workouts = MutableStateFlow<List<Workout>>(emptyList())
     val workouts: StateFlow<List<Workout>> = _workouts.asStateFlow()
 
-    private val _todaySteps = MutableStateFlow(0L)
-    val todaySteps: StateFlow<Long> = _todaySteps.asStateFlow()
+    private val _healthMetrics = MutableStateFlow(HealthMetrics.EMPTY)
+    val healthMetrics: StateFlow<HealthMetrics> = _healthMetrics.asStateFlow()
 
-    private val _stepGoal = MutableStateFlow(0)
-    val stepGoal: StateFlow<Int> = _stepGoal.asStateFlow()
+    private val _healthStatus = MutableStateFlow(HealthConnectStatus.UNAVAILABLE)
+    val healthStatus: StateFlow<HealthConnectStatus> = _healthStatus.asStateFlow()
+
+    private val _healthPermissionsGranted = MutableStateFlow(false)
+    val healthPermissionsGranted: StateFlow<Boolean> = _healthPermissionsGranted.asStateFlow()
+
+    private val _healthReady = MutableStateFlow(false)
+    val healthReady: StateFlow<Boolean> = _healthReady.asStateFlow()
+
+    val healthPermissions: Set<String> = HealthPermissions.required()
+
+    private val healthAwardMutex = Mutex()
 
     private val _rank = MutableStateFlow(0)
     val rank: StateFlow<Int> = _rank.asStateFlow()
@@ -88,14 +90,9 @@ class HomeViewModel @Inject constructor(
     private val _leaderboardLocked = MutableStateFlow(true)
     val leaderboardLocked: StateFlow<Boolean> = _leaderboardLocked.asStateFlow()
 
-    private var healthDataStore: HealthDataStore? = null
+    fun initialize() {
+        refreshHealthMetrics()
 
-    private val stepPermissions = setOf(
-        Permission.Companion.of(DataTypes.Companion.STEPS, AccessType.READ),
-        Permission.Companion.of(DataTypes.Companion.STEPS_GOAL, AccessType.READ)
-    )
-
-    fun initialize(activity: Activity?) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
@@ -111,7 +108,7 @@ class HomeViewModel @Inject constructor(
                     fetchLeaderboard()
                 }
                 generateDailyMissions()
-                initializeHealthConnection(activity)
+                refreshHealthMetrics()
 
                 _isLoading.value = false
             } catch (e: Exception) {
@@ -216,83 +213,44 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun initializeHealthConnection(activity: Activity?) {
-        healthDataStore = activity?.let { HealthDataService.getStore(it) }
-        viewModelScope.launch {
-            activity?.let { requestPermissionsAndFetchSteps(it) }
-        }
+    fun onHealthPermissionsResult(granted: Set<String>) {
+        _healthPermissionsGranted.value = HealthPermissions.hasStepsRead(granted)
+        viewModelScope.launch { refreshHealthMetrics() }
     }
 
-    private suspend fun requestPermissionsAndFetchSteps(activity: Activity) {
-        val store = healthDataStore ?: return
-        try {
-            val granted = store.getGrantedPermissions(stepPermissions)
-            Log.d("HomeVM", "Granted perms: $granted")
-            val missing = stepPermissions - granted
-            if (missing.isNotEmpty()) {
-                val newlyGranted = store.requestPermissions(missing, activity)
-                if (newlyGranted.size < missing.size) {
-                    Log.w("HomeVM", "Partial permissions granted: ${missing.size - newlyGranted.size} denied")
-                    _error.value = "Partial steps access granted—some features limited"
+    fun refreshHealthMetrics() {
+        viewModelScope.launch {
+            try {
+                _healthStatus.value = healthRepository.availability()
+                val granted = healthRepository.grantedPermissions()
+                _healthPermissionsGranted.value = HealthPermissions.hasStepsRead(granted)
+                if (_healthStatus.value == HealthConnectStatus.AVAILABLE) {
+                    _healthMetrics.value = healthRepository.readTodayMetrics()
+                    checkAndAwardStepsReward()
+                    checkMissionsCompletion()
                 }
+            } catch (e: Exception) {
+                Log.e("HomeVM", "Health Connect refresh failed", e)
+            } finally {
+                _healthReady.value = true
             }
-            fetchStepsData(store)
-        } catch (e: HealthDataException) {
-            Log.e("HomeVM", "Permission request failed", e)
-            _error.value = "Permission error: ${e.message}"
         }
     }
 
     private suspend fun checkAndAwardStepsReward() {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
-        val today = dateFormat.format(Date())
-        val lastRewardDate = userRepository.getUserField("last_steps_reward_date") as? String ?: ""
-        if (_todaySteps.value >= _stepGoal.value.toLong() && lastRewardDate != today) {
-            addExp(50)
-            addCoins(10)
-            userRepository.updateUserData(mapOf("last_steps_reward_date" to today))
-            Log.d("HomeVM", "Awarded +50 EXP and +10 coins for steps goal on $today")
-        }
-    }
-
-    private suspend fun fetchStepsData(store: HealthDataStore) {
-        try {
-            val now = LocalDateTime.now(ZoneId.systemDefault())
-            val startOfDay = now.withHour(0).withMinute(0).withSecond(0).withNano(0)
-            val endOfDay = now
-            Log.d("HomeVM", "Fetching for range: $startOfDay to $endOfDay")
-
-            val stepFilter = LocalTimeFilter.Companion.of(startOfDay, endOfDay)
-            val stepRequest = DataType.StepsType.TOTAL.requestBuilder
-                .setLocalTimeFilter(stepFilter)
-                .build()
-            val stepResult = store.aggregateData(stepRequest)
-            Log.d("HomeVM", "Steps result size: ${stepResult.dataList.size}")
-
-            val totalSteps = stepResult.dataList.sumOf { it.value ?: 0L }
-            _todaySteps.value = totalSteps
-
-            val today = LocalDate.now(ZoneId.systemDefault())
-            val tomorrow = today.plusDays(1)
-            val goalFilter = LocalDateFilter.Companion.of(today, tomorrow)
-            val goalRequest = DataType.StepsGoalType.LAST.requestBuilder
-                .setLocalDateFilter(goalFilter)
-                .build()
-            val goalResult = store.aggregateData(goalRequest)
-            Log.d("HomeVM", "Goal result size: ${goalResult.dataList.size}")
-
-            val goal = goalResult.dataList.firstOrNull()?.value ?: 0
-            _stepGoal.value = goal
-
-            val progressPercent = if (_stepGoal.value > 0) ((_todaySteps.value * 100) / _stepGoal.value).toInt() else 0
-
-            checkAndAwardStepsReward()
-            checkMissionsCompletion()
-            Log.d("HomeVM", "Fetched steps: $totalSteps / Goal: $goal")
-        } catch (e: HealthDataException) {
-            Log.e("HomeVM", "Fetch failed", e)
-            _error.value = "Steps fetch error: ${e.message}"
+        healthAwardMutex.withLock {
+            if (_userData.value == null) return
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+            val today = dateFormat.format(Date())
+            val lastRewardDate = userRepository.getUserField("last_steps_reward_date") as? String ?: ""
+            val metrics = _healthMetrics.value
+            if (HealthRewards.shouldAwardDailyGoal(metrics.steps, metrics.stepGoal, lastRewardDate, today)) {
+                addExp(50)
+                addCoins(10)
+                userRepository.updateUserData(mapOf("last_steps_reward_date" to today))
+                Log.d("HomeVM", "Awarded +50 EXP and +10 coins for steps goal on $today")
+            }
         }
     }
 
@@ -308,15 +266,6 @@ class HomeViewModel @Inject constructor(
                 _error.value = "Failed to load workout history"
                 Log.e("HomeVM", "Error loading workouts", e)
             }
-        }
-    }
-
-    fun refreshSteps(activity: Activity?) {
-        val store = healthDataStore
-        if (store != null) {
-            viewModelScope.launch { fetchStepsData(store) }
-        } else {
-            initializeHealthConnection(activity)
         }
     }
 
@@ -369,11 +318,12 @@ class HomeViewModel @Inject constructor(
         val currentCompleted = mutableSetOf<String>()
 
         val todaysWorkouts = _workouts.value.count { it.date == today }
+        val todaySteps = _healthMetrics.value.steps
 
         for ((mission, reward) in _dailyMissions.value) {
             if (mission.startsWith("Walk")) {
                 val target = mission.split(" ")[1].toLongOrNull() ?: continue
-                if (_todaySteps.value >= target) {
+                if (todaySteps >= target) {
                     currentCompleted.add(mission)
                 }
             } else if (mission.startsWith("Complete")) {

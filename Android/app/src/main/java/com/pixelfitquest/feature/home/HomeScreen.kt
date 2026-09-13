@@ -2,7 +2,7 @@ package com.pixelfitquest.feature.home
 
 import android.content.Context
 import android.util.Log
-import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +25,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,10 +45,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.health.connect.client.PermissionController
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.pixelfitquest.R
 import com.pixelfitquest.components.molecules.WorkoutCard
+import com.pixelfitquest.health.HealthConnectIntents
+import com.pixelfitquest.health.HealthConnectStatus
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -65,15 +72,48 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onScreenReady: () -> Unit = {}
 ) {
-    val activity = LocalActivity.current
     val context = LocalContext.current
-
-
     val isLoading by viewModel.isLoading.collectAsState()
+    val healthStatus by viewModel.healthStatus.collectAsState()
+    val healthPermissionsGranted by viewModel.healthPermissionsGranted.collectAsState()
+    val healthReady by viewModel.healthReady.collectAsState()
+    var askedHealthPermissions by remember { mutableStateOf(false) }
+
+    val healthPermissionContract = remember {
+        PermissionController.createRequestPermissionResultContract()
+    }
+    val healthPermissionLauncher = rememberLauncherForActivityResult(
+        contract = healthPermissionContract
+    ) { granted ->
+        viewModel.onHealthPermissionsResult(granted)
+    }
 
     LaunchedEffect(Unit) {
         Log.d("HomeScreen", "Initializing HomeScreen")
-        viewModel.initialize(activity)
+        viewModel.initialize()
+    }
+
+    LaunchedEffect(healthReady, healthStatus, healthPermissionsGranted) {
+        if (
+            healthReady &&
+            !askedHealthPermissions &&
+            healthStatus == HealthConnectStatus.AVAILABLE &&
+            !healthPermissionsGranted
+        ) {
+            askedHealthPermissions = true
+            runCatching { healthPermissionLauncher.launch(viewModel.healthPermissions) }
+        }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshHealthMetrics()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     val userData by viewModel.userData.collectAsState()
@@ -124,8 +164,10 @@ fun HomeScreen(
     val exp = userData?.exp ?: 0
     val streak = userData?.streak ?: 0
     val maxExp by viewModel.currentMaxExp.collectAsState()
-    val todaySteps by viewModel.todaySteps.collectAsState()
-    val stepGoal by viewModel.stepGoal.collectAsState()
+    val healthMetrics by viewModel.healthMetrics.collectAsState()
+    val todaySteps = healthMetrics.steps
+    val stepGoal = healthMetrics.stepGoal
+    val heartRateBpm = healthMetrics.heartRateBpm
     val rank by viewModel.rank.collectAsState()
     val totalUsers by viewModel.totalUsers.collectAsState()
     val leaderboardLocked by viewModel.leaderboardLocked.collectAsState()
@@ -139,7 +181,7 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         while (true) {
             delay(30000L)
-            viewModel.refreshSteps(activity)
+            viewModel.refreshHealthMetrics()
         }
     }
 
@@ -243,6 +285,23 @@ fun HomeScreen(
                 .fillMaxWidth()
                 .padding(top = 84.dp, start = 16.dp, end = 16.dp)
                 .height(80.dp)
+                .clickable {
+                    when (healthStatus) {
+                        HealthConnectStatus.AVAILABLE -> {
+                            if (healthPermissionsGranted) {
+                                viewModel.refreshHealthMetrics()
+                            } else {
+                                runCatching {
+                                    healthPermissionLauncher.launch(viewModel.healthPermissions)
+                                }
+                            }
+                        }
+                        HealthConnectStatus.UPDATE_REQUIRED -> {
+                            HealthConnectIntents.openPlayStore(context)
+                        }
+                        HealthConnectStatus.UNAVAILABLE -> Unit
+                    }
+                }
         ) {
             Image(
                 painter = painterResource(id = R.drawable.info_background_higher),
@@ -268,7 +327,7 @@ fun HomeScreen(
                     fontWeight = MaterialTheme.typography.titleMedium.fontWeight
                 )
                 Text(
-                    text = stringResource(R.string.steps_reward_hint),
+                    text = stepsSubtitle(healthStatus, healthPermissionsGranted, heartRateBpm),
                     fontSize = 12.sp,
                     color = Color.White
                 )
@@ -567,6 +626,26 @@ fun HomeScreen(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
+    }
+}
+
+@Composable
+private fun stepsSubtitle(
+    healthStatus: HealthConnectStatus,
+    permissionsGranted: Boolean,
+    heartRateBpm: Long?,
+): String {
+    return when {
+        healthStatus == HealthConnectStatus.UNAVAILABLE ->
+            stringResource(R.string.health_connect_unavailable_hint)
+        healthStatus == HealthConnectStatus.UPDATE_REQUIRED ->
+            stringResource(R.string.health_connect_update_hint)
+        !permissionsGranted ->
+            stringResource(R.string.health_connect_grant_hint)
+        heartRateBpm != null && heartRateBpm > 0L ->
+            stringResource(R.string.steps_hr_reward_hint, heartRateBpm)
+        else ->
+            stringResource(R.string.steps_reward_hint)
     }
 }
 
