@@ -4,6 +4,9 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.pixelfitquest.feature.achievements.data.AchievementDao
 import com.pixelfitquest.feature.achievements.data.AchievementProgressEntity
+import com.pixelfitquest.feature.levels.data.LevelStateEntity
+import com.pixelfitquest.feature.levels.data.LevelsDao
+import com.pixelfitquest.feature.levels.data.UnlockedCosmeticEntity
 import com.pixelfitquest.feature.progress.data.LiftHistoryDao
 import com.pixelfitquest.feature.progress.data.LiftHistoryEntity
 import com.pixelfitquest.feature.streak.data.WeeklySessionEntity
@@ -29,8 +32,10 @@ import com.pixelfitquest.local.db.entity.UserProfileEntity
         WeeklySessionEntity::class,
         WeeklyStreakStateEntity::class,
         AchievementProgressEntity::class,
+        LevelStateEntity::class,
+        UnlockedCosmeticEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class PixelFitDatabase : RoomDatabase() {
@@ -40,4 +45,5 @@ abstract class PixelFitDatabase : RoomDatabase() {
     abstract fun liftHistoryDao(): LiftHistoryDao
     abstract fun weeklyStreakDao(): WeeklyStreakDao
     abstract fun achievementDao(): AchievementDao
+    abstract fun levelsDao(): LevelsDao
 }

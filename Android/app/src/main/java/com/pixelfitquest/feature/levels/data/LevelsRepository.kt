@@ -13,10 +13,10 @@ import com.pixelfitquest.feature.levels.model.LevelUpResult
 import com.pixelfitquest.feature.levels.model.LevelsPersistedState
 import com.pixelfitquest.feature.levels.model.LevelsSnapshot
 import com.pixelfitquest.feature.levels.progression.CosmeticUnlocker
-import com.pixelfitquest.feature.levels.progression.LevelCurve
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -26,8 +26,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Local XP, level, and cosmetic unlocks. Room/phone is source of truth.
- * Do not add Firestore or Pro leaderboards here.
+ * Cosmetics + XP. XP/level SoT is user_profile via [ProfileXpSource].
+ * Cosmetics rows live on pixelfit.db (level_state / unlocked_cosmetic).
  */
 interface LevelsRepository : LocalXpPort, HomeThemePort, CharacterSkinPort {
     fun observeSnapshot(): Flow<LevelsSnapshot>
@@ -44,6 +44,7 @@ interface LevelsRepository : LocalXpPort, HomeThemePort, CharacterSkinPort {
 @Singleton
 class DefaultLevelsRepository @Inject constructor(
     private val store: LevelsStore,
+    private val xpSource: ProfileXpSource,
     private val cloudMirror: CloudProgressMirror,
 ) : LevelsRepository {
     private val mutex = Mutex()
@@ -51,7 +52,12 @@ class DefaultLevelsRepository @Inject constructor(
 
     override fun observeSnapshot(): Flow<LevelsSnapshot> = flow {
         ensureBaseline()
-        store.observe().map { persisted -> toSnapshot(persisted) }.collect { emit(it) }
+        combine(
+            xpSource.observeProgress(),
+            store.observe(),
+        ) { progress, cosmetics ->
+            toSnapshot(progress, withBaseline(cosmetics, progress.level))
+        }.collect { emit(it) }
     }
 
     override fun observeProgress(): Flow<LevelProgress> =
@@ -76,16 +82,14 @@ class DefaultLevelsRepository @Inject constructor(
     override fun observePendingLevelUp(): Flow<LevelUpResult?> = pendingLevelUp.asStateFlow()
 
     override suspend fun awardXp(amount: Int, reason: String): LevelUpResult {
-        if (amount <= 0) {
-            val current = toSnapshot(store.load()).progress
-            return LevelUpResult(current, current, emptyList())
-        }
         return mutex.withLock {
-            val loaded = withBaseline(store.load())
-            val previous = LevelCurve.progressFromTotalXp(loaded.totalXp)
-            val newTotal = (loaded.totalXp + amount).coerceAtMost(LevelCurve.maxTotalXp())
-            val current = LevelCurve.progressFromTotalXp(newTotal)
-            val newly = CosmeticUnlocker.newlyUnlocked(previous.level, current.level)
+            val (previous, current) = xpSource.award(amount)
+            val newly = if (amount <= 0) {
+                emptyList()
+            } else {
+                CosmeticUnlocker.newlyUnlocked(previous.level, current.level)
+            }
+            val loaded = withBaseline(store.load(), current.level)
             val stamp = System.currentTimeMillis()
             val unlockedAt = loaded.unlockedAtEpochMs.toMutableMap()
             newly.forEach { def ->
@@ -95,7 +99,6 @@ class DefaultLevelsRepository @Inject constructor(
                 newly.map { it.id } +
                 CosmeticUnlocker.unlockedIds(current.level)
             val saved = loaded.copy(
-                totalXp = newTotal,
                 unlockedIds = unlockedIds,
                 unlockedAtEpochMs = unlockedAt,
             )
@@ -114,7 +117,8 @@ class DefaultLevelsRepository @Inject constructor(
     }
 
     override suspend fun equipCosmetic(id: String): Boolean = mutex.withLock {
-        val loaded = withBaseline(store.load())
+        val progress = xpSource.loadProgress()
+        val loaded = withBaseline(store.load(), progress.level)
         val definition = CosmeticCatalog.byId(id) ?: return@withLock false
         if (id !in loaded.unlockedIds) return@withLock false
         val next = when (definition.kind) {
@@ -130,10 +134,10 @@ class DefaultLevelsRepository @Inject constructor(
 
     override suspend fun importRemoteIfEmpty(remoteLevel: Int, remoteXpIntoLevel: Int) {
         mutex.withLock {
-            val loaded = store.load()
-            if (loaded.totalXp > 0) return@withLock
-            val total = LevelCurve.totalXpFromRemote(remoteLevel, remoteXpIntoLevel)
-            store.save(withBaseline(loaded.copy(totalXp = total)))
+            val seeded = xpSource.seedIfEmpty(remoteLevel, remoteXpIntoLevel)
+            if (!seeded) return@withLock
+            val progress = xpSource.loadProgress()
+            store.save(withBaseline(store.load(), progress.level))
         }
     }
 
@@ -143,17 +147,17 @@ class DefaultLevelsRepository @Inject constructor(
 
     private suspend fun ensureBaseline() {
         mutex.withLock {
+            val progress = xpSource.loadProgress()
             val loaded = store.load()
-            val next = withBaseline(loaded)
+            val next = withBaseline(loaded, progress.level)
             if (next != loaded) {
                 store.save(next)
             }
         }
     }
 
-    private fun withBaseline(state: LevelsPersistedState): LevelsPersistedState {
-        val progress = LevelCurve.progressFromTotalXp(state.totalXp)
-        val required = CosmeticUnlocker.unlockedIds(progress.level)
+    private fun withBaseline(state: LevelsPersistedState, level: Int): LevelsPersistedState {
+        val required = CosmeticUnlocker.unlockedIds(level)
         val stamp = System.currentTimeMillis()
         val unlockedAt = state.unlockedAtEpochMs.toMutableMap()
         required.forEach { id ->
@@ -189,8 +193,7 @@ class DefaultLevelsRepository @Inject constructor(
         defaultId: String,
     ): String = if (current in unlocked) current else defaultId
 
-    private fun toSnapshot(state: LevelsPersistedState): LevelsSnapshot {
-        val progress = LevelCurve.progressFromTotalXp(state.totalXp)
+    private fun toSnapshot(progress: LevelProgress, state: LevelsPersistedState): LevelsSnapshot {
         val equipped = EquippedCosmetics(
             homeThemeId = state.equippedHomeThemeId,
             characterSkinId = state.equippedCharacterSkinId,

@@ -1,24 +1,26 @@
 package com.pixelfitquest.feature.levels.data
 
 import androidx.room.Dao
-import androidx.room.Database
 import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
-import androidx.room.RoomDatabase
 import com.pixelfitquest.feature.levels.model.CosmeticCatalog
 import com.pixelfitquest.feature.levels.model.LevelsPersistedState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import javax.inject.Inject
+import javax.inject.Singleton
 
+/**
+ * Equipped cosmetics only. XP/level live on [com.pixelfitquest.local.db.entity.UserProfileEntity].
+ */
 @Entity(tableName = "level_state")
 data class LevelStateEntity(
     @PrimaryKey val id: Int = 1,
-    val totalXp: Int = 0,
     val equippedHomeThemeId: String = CosmeticCatalog.DEFAULT_HOME_ID,
     val equippedCharacterSkinId: String = CosmeticCatalog.DEFAULT_SKIN_ID,
     val equippedTitleId: String = CosmeticCatalog.DEFAULT_TITLE_ID,
@@ -51,22 +53,18 @@ interface LevelsDao {
     suspend fun upsertUnlocks(items: List<UnlockedCosmeticEntity>)
 }
 
-@Database(
-    entities = [LevelStateEntity::class, UnlockedCosmeticEntity::class],
-    version = 1,
-    exportSchema = false,
-)
-abstract class LevelsDatabase : RoomDatabase() {
-    abstract fun levelsDao(): LevelsDao
-}
-
+/**
+ * Cosmetics equip + unlock rows. [totalXp] on [LevelsPersistedState] is not persisted here —
+ * repository fills it from user_profile in memory via LevelCurve.
+ */
 interface LevelsStore {
     fun observe(): Flow<LevelsPersistedState>
     suspend fun load(): LevelsPersistedState
     suspend fun save(state: LevelsPersistedState)
 }
 
-class RoomLevelsStore(
+@Singleton
+class RoomLevelsStore @Inject constructor(
     private val dao: LevelsDao,
 ) : LevelsStore {
     override fun observe(): Flow<LevelsPersistedState> = combine(
@@ -81,7 +79,6 @@ class RoomLevelsStore(
         dao.upsertState(
             LevelStateEntity(
                 id = 1,
-                totalXp = state.totalXp,
                 equippedHomeThemeId = state.equippedHomeThemeId,
                 equippedCharacterSkinId = state.equippedCharacterSkinId,
                 equippedTitleId = state.equippedTitleId,
@@ -116,7 +113,7 @@ private fun merge(
 ): LevelsPersistedState {
     val entity = state ?: LevelStateEntity()
     return LevelsPersistedState(
-        totalXp = entity.totalXp,
+        totalXp = 0,
         equippedHomeThemeId = entity.equippedHomeThemeId,
         equippedCharacterSkinId = entity.equippedCharacterSkinId,
         equippedTitleId = entity.equippedTitleId,

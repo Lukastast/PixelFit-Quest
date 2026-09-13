@@ -180,14 +180,10 @@ class HomeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
+                // Single wallet: user_profile via LevelsRepository / UserProgression
                 localXpPort.awardXp(amount, "home")
             } catch (e: Exception) {
-                Log.w("HomeVM", "Local XP award failed", e)
-            }
-            try {
-                userRepository.updateExp(amount)
-            } catch (e: Exception) {
-                Log.w("HomeVM", "Cloud XP skipped (offline/no account)", e)
+                Log.w("HomeVM", "XP award failed", e)
             }
         }
     }
@@ -195,7 +191,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun grantPendingStreakXp() {
         try {
             weeklyStreakRepository.withConsumedPendingXp { amount ->
-                userRepository.updateExp(amount)
+                localXpPort.awardXp(amount, "streak")
             }
         } catch (e: Exception) {
             Log.i("HomeVM", "Streak XP kept on device until account is available")

@@ -153,7 +153,7 @@ class WorkoutResumeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 weeklyStreakRepository.withConsumedPendingXp { amount ->
-                    userRepository.updateExp(amount)
+                    localXpPort.awardXp(amount, "streak")
                 }
             } catch (e: Exception) {
                 Log.i("ResumeVM", "Streak XP kept on device until account is available")
@@ -165,16 +165,11 @@ class WorkoutResumeViewModel @Inject constructor(
         if (amount <= 0) return
         viewModelScope.launch {
             try {
+                // Single wallet: user_profile via LevelsRepository / UserProgression
                 localXpPort.awardXp(amount, "workout")
-                Log.d("ResumeVM", "Added $amount local XP")
-            } catch (e: Exception) {
-                Log.w("ResumeVM", "Local XP award failed", e)
-            }
-            try {
-                userRepository.updateExp(amount)
                 Log.d("ResumeVM", "Added $amount XP")
             } catch (e: Exception) {
-                Log.w("ResumeVM", "Cloud XP skipped (offline/no account)", e)
+                Log.w("ResumeVM", "XP award failed", e)
             }
         }
     }

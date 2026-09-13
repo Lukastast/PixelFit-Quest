@@ -11,8 +11,9 @@ import org.junit.Test
 
 class LevelsRepositoryTest {
 
-    private fun repo(): DefaultLevelsRepository = DefaultLevelsRepository(
+    private fun repo(initialTotalXp: Int = 0): DefaultLevelsRepository = DefaultLevelsRepository(
         store = InMemoryLevelsStore(),
+        xpSource = InMemoryProfileXpSource(initialTotalXp),
         cloudMirror = NoOpCloudProgressMirror(),
     )
 
@@ -67,6 +68,7 @@ class LevelsRepositoryTest {
         var mirrored = false
         val repository = DefaultLevelsRepository(
             store = InMemoryLevelsStore(),
+            xpSource = InMemoryProfileXpSource(),
             cloudMirror = object : com.pixelfitquest.feature.levels.cosmetics.CloudProgressMirror {
                 override suspend fun mirror(progress: com.pixelfitquest.feature.levels.model.LevelProgress) {
                     mirrored = true
@@ -75,6 +77,22 @@ class LevelsRepositoryTest {
         )
         repository.awardXp(50, "mirror")
         assertTrue(mirrored)
+    }
+
+    @Test
+    fun awardXp_usesSingleWallet() = runBlocking {
+        val xp = InMemoryProfileXpSource()
+        val repository = DefaultLevelsRepository(
+            store = InMemoryLevelsStore(),
+            xpSource = xp,
+            cloudMirror = NoOpCloudProgressMirror(),
+        )
+        repository.awardXp(50, "a")
+        repository.awardXp(50, "b")
+        val progress = xp.loadProgress()
+        assertEquals(2, progress.level)
+        assertEquals(0, progress.xpIntoLevel)
+        assertEquals(100, progress.totalXp)
     }
 }
 

@@ -60,6 +60,7 @@ data class LevelsSnapshot(
     val items: List<CosmeticItem> = emptyList(),
 )
 
+/** Cosmetics rows only; [totalXp] is unused at rest (XP lives on user_profile). */
 data class LevelsPersistedState(
     val totalXp: Int = 0,
     val equippedHomeThemeId: String = CosmeticCatalog.DEFAULT_HOME_ID,
