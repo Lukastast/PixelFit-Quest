@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.Button
@@ -25,10 +24,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.pixelfitquest.R
 import com.pixelfitquest.firebase.model.User
+import com.pixelfitquest.ui.theme.LocalSpacing
 
 @Composable
 fun GoogleLinkCard(
@@ -37,6 +36,7 @@ fun GoogleLinkCard(
     modifier: Modifier = Modifier
 ) {
     var showLinkDialog by remember { mutableStateOf(false) }
+    val spacing = LocalSpacing.current
 
     AccountCenterCard(
         stringResource(R.string.link_google_account),
@@ -57,14 +57,14 @@ fun GoogleLinkCard(
                 Image(
                     painter = painterResource(R.drawable.questloginboard),
                     contentDescription = "Dialog Background",
-                    modifier = Modifier.height(250.dp).width(500.dp),
+                    modifier = Modifier.fillMaxWidth(0.9f).height(spacing.dialogHeight),
                     contentScale = ContentScale.FillBounds
                 )
                 Column(
                     modifier = Modifier
-                        .padding(32.dp)
+                        .padding(spacing.xl)
                         .fillMaxWidth(0.95f)
-                        .heightIn(max = 300.dp)
+                        .heightIn(max = spacing.scale(300))
                 ) {
                     Text(stringResource(R.string.link_google_title), color = Color.White)
                     Text(stringResource(R.string.link_google_description), color = Color.White)

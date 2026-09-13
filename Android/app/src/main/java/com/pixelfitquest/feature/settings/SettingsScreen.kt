@@ -17,6 +17,7 @@ import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,7 +33,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.health.connect.client.PermissionController
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
@@ -47,6 +47,7 @@ import com.pixelfitquest.components.molecules.launchCredManButtonUI
 import com.pixelfitquest.firebase.model.User
 import com.pixelfitquest.health.HealthConnectIntents
 import com.pixelfitquest.health.HealthConnectStatus
+import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 import kotlinx.coroutines.launch
 
@@ -80,20 +81,22 @@ fun SettingsScreen(
         onScreenReady()
     }
 
+    val spacing = MaterialTheme.spacing
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(spacing.screen),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
-                    .padding(horizontal = 16.dp)
+                    .height(spacing.scale(50))
+                    .padding(horizontal = spacing.md)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.info_background),
@@ -109,13 +112,14 @@ fun SettingsScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+            Spacer(modifier = Modifier.height(spacing.md))
+            Spacer(modifier = Modifier.height(spacing.md))
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.dp)
-                    .padding(16.dp, 0.dp, 16.dp, 8.dp)
+                    .height(spacing.cardHeight)
+                    .padding(spacing.md, spacing.xxxs, spacing.md, spacing.xs)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.info_background_higher),
@@ -126,7 +130,7 @@ fun SettingsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .padding(spacing.md),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -154,14 +158,14 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+            Spacer(modifier = Modifier.height(spacing.md))
 
             VolumeCard(
                 musicVolume = musicVolume,
                 onVolumeChange = { viewModel.setMusicVolume(it) }
             )
 
-            Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+            Spacer(modifier = Modifier.height(spacing.md))
 
             HealthConnectCard(
                 status = healthStatus,
@@ -185,14 +189,15 @@ fun SettingsScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+            Spacer(modifier = Modifier.height(spacing.md))
 
+            Spacer(modifier = Modifier.height(spacing.md))
             LandscapeWorkoutCard(
                 enabled = workoutLandscapeEnabled,
                 onToggle = { viewModel.setWorkoutLandscapeEnabled(it) }
             )
 
-            Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+            Spacer(modifier = Modifier.height(spacing.md))
 
             SettingsActionCard(
                 title = stringResource(R.string.body_metrics_card_title),
@@ -202,7 +207,7 @@ fun SettingsScreen(
                 openScreen(BODY_METRICS_SCREEN)
             }
 
-            Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+            Spacer(modifier = Modifier.height(spacing.md))
 
             if (!signedIn) {
                 SettingsActionCard(
@@ -216,7 +221,7 @@ fun SettingsScreen(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+                Spacer(modifier = Modifier.height(spacing.md))
             }
 
             SettingsActionCard(
@@ -227,7 +232,7 @@ fun SettingsScreen(
                 viewModel.onBackupSyncClick()
             }
 
-            Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+            Spacer(modifier = Modifier.height(spacing.md))
 
             SettingsActionCard(
                 title = stringResource(R.string.export_json_title),
@@ -237,7 +242,7 @@ fun SettingsScreen(
                 viewModel.exportJson(context)
             }
 
-            Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+            Spacer(modifier = Modifier.height(spacing.md))
 
             SettingsActionCard(
                 title = stringResource(R.string.export_csv_title),
@@ -248,13 +253,13 @@ fun SettingsScreen(
             }
 
             if (signedIn) {
-                Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+                Spacer(modifier = Modifier.height(spacing.md))
                 ExitAppCard { viewModel.onSignOutClick(restartApp) }
-                Spacer(modifier = Modifier.fillMaxWidth().padding(8.dp))
+                Spacer(modifier = Modifier.height(spacing.md))
                 RemoveAccountCard { viewModel.onDeleteAccountClick(restartApp) }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(spacing.lg))
         }
     }
 }

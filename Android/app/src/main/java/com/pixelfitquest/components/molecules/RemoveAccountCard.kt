@@ -26,22 +26,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.ui.theme.LocalSpacing
 
 @Composable
 fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
     var showRemoveAccDialog by remember { mutableStateOf(false) }
 
     val cardTitle = stringResource(R.string.delete_account)
+    val spacing = LocalSpacing.current
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
-            .padding(32.dp, 0.dp, 32.dp, 8.dp)
+            .height(spacing.cardHeight)
+            .padding(start = spacing.xl, end = spacing.xl, bottom = spacing.xs)
             .clickable {
                 showRemoveAccDialog = true
             }
@@ -57,7 +58,7 @@ fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(spacing.md)
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -84,14 +85,14 @@ fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
                 Image(
                     painter = painterResource(R.drawable.questloginboard),
                     contentDescription = "Dialog Background",
-                    modifier = Modifier.height(250.dp).width(500.dp),
+                    modifier = Modifier.fillMaxWidth(0.9f).height(spacing.dialogHeight),
                     contentScale = ContentScale.FillBounds
                 )
                 Column(
                     modifier = Modifier
-                        .padding(32.dp)
+                        .padding(spacing.xl)
                         .fillMaxWidth(0.95f)
-                        .heightIn(max = 300.dp)
+                        .heightIn(max = spacing.scale(300))
                 ) {
                     Text(stringResource(R.string.delete_account_title), color = Color.White)
                     Text(stringResource(R.string.delete_account_description), color = Color.White)
@@ -100,7 +101,7 @@ fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
                             onClick = { showRemoveAccDialog = false },
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier.height(50.dp).width(130.dp)
+                            modifier = Modifier.height(spacing.scale(50)).width(spacing.buttonWidthSm)
                         ) {
                             Text(stringResource(R.string.cancel), color = Color.Black)
                         }
@@ -111,7 +112,7 @@ fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
                             },
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier.height(50.dp).width(130.dp)
+                            modifier = Modifier.height(spacing.scale(50)).width(spacing.buttonWidthSm)
                         ) {
                             Text(stringResource(R.string.delete_account), color = Color.Black)
                         }

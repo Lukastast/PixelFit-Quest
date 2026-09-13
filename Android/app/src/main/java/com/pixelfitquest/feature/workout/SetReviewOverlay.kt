@@ -25,11 +25,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.workout.analysis.DetectedRep
 import com.pixelfitquest.feature.workout.model.SetReviewState
+import com.pixelfitquest.ui.theme.LocalSpacing
 import com.pixelfitquest.ui.theme.determination
 
 @Composable
@@ -44,11 +44,12 @@ fun SetReviewOverlay(
     onRedo: () -> Unit,
     onConfirm: () -> Unit,
 ) {
+    val spacing = LocalSpacing.current
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.82f))
-            .padding(12.dp),
+            .padding(spacing.sm),
     ) {
         val landscape = maxWidth > maxHeight
         val listContent: LazyListScope.() -> Unit = {
@@ -86,13 +87,13 @@ fun SetReviewOverlay(
         if (landscape) {
             Row(
                 modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(spacing.sm),
             ) {
                 LazyColumn(
                     modifier = Modifier
                         .weight(1.4f)
                         .fillMaxHeight(),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(spacing.scale(6)),
                     content = listContent,
                 )
                 SetReviewActions(
@@ -101,7 +102,7 @@ fun SetReviewOverlay(
                     onRedo = onRedo,
                     onConfirm = onConfirm,
                     modifier = Modifier
-                        .width(180.dp)
+                        .width(spacing.scale(180))
                         .fillMaxHeight(),
                     stacked = true,
                 )
@@ -109,13 +110,13 @@ fun SetReviewOverlay(
         } else {
             Column(
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(spacing.sm),
             ) {
                 LazyColumn(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(spacing.scale(6)),
                     content = listContent,
                 )
                 SetReviewActions(
@@ -140,11 +141,12 @@ private fun SetReviewActions(
     modifier: Modifier = Modifier,
     stacked: Boolean,
 ) {
+    val spacing = LocalSpacing.current
     Column(
         modifier = modifier
-            .background(Color(0xFF1A1A1A), RoundedCornerShape(12.dp))
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .background(Color(0xFF1A1A1A), RoundedCornerShape(spacing.cornerMd))
+            .padding(spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(spacing.xs),
     ) {
         val logOnly = review.analysis.flags.contains("log_only")
         if (logOnly) {
@@ -173,7 +175,7 @@ private fun SetReviewActions(
             )
         }
         if (stacked) {
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(spacing.xxs))
             OverlayAction(
                 stringResource(R.string.set_review_add),
                 Color(0xFF2E7D32),
@@ -196,7 +198,7 @@ private fun SetReviewActions(
         } else {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(spacing.xs),
             ) {
                 OverlayAction(
                     stringResource(R.string.set_review_add),
@@ -231,12 +233,13 @@ private fun RepRow(
     onAdjustRom: (Int) -> Unit,
     onSetRom: (Int) -> Unit,
 ) {
+    val spacing = LocalSpacing.current
     val bg = if (rep.accepted) Color(0xFF2A3A4A) else Color(0xFF4A2A2A)
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(bg, RoundedCornerShape(8.dp))
-            .padding(8.dp),
+            .background(bg, RoundedCornerShape(spacing.cornerSm))
+            .padding(spacing.xs),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -277,7 +280,7 @@ private fun RepRow(
                 fontSize = 11.sp,
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(spacing.scale(10))) {
             if (!rep.accepted) {
                 TextLink(stringResource(R.string.set_review_accept), Color(0xFF81C784), onAccept)
             }
@@ -295,10 +298,11 @@ private fun RomOverrideRow(
     onAdjust: (Int) -> Unit,
     onSet: (Int) -> Unit,
 ) {
+    val spacing = LocalSpacing.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        modifier = Modifier.padding(top = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(spacing.scale(6)),
+        modifier = Modifier.padding(top = spacing.xxs),
     ) {
         Text(
             text = stringResource(R.string.set_review_rom_label),
@@ -313,7 +317,7 @@ private fun RomOverrideRow(
             fontSize = 13.sp,
         )
         RomChip("+", onClick = { onAdjust(10) })
-        Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(spacing.xxs))
         RomChip("50%", selected = percent == 50, onClick = { onSet(50) })
         RomChip("100%", selected = percent == 100, onClick = { onSet(100) })
     }
@@ -333,10 +337,10 @@ private fun RomChip(
         modifier = Modifier
             .background(
                 if (selected) Color(0xFF1565C0) else Color(0xFF3A4A5A),
-                RoundedCornerShape(6.dp),
+                RoundedCornerShape(LocalSpacing.current.scale(6)),
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = LocalSpacing.current.xs, vertical = LocalSpacing.current.xxs),
     )
 }
 
@@ -353,9 +357,9 @@ private fun OverlayAction(
         fontFamily = determination,
         fontWeight = FontWeight.Bold,
         modifier = modifier
-            .background(color, RoundedCornerShape(8.dp))
+            .background(color, RoundedCornerShape(LocalSpacing.current.cornerSm))
             .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
+            .padding(vertical = LocalSpacing.current.scale(10)),
         textAlign = TextAlign.Center,
     )
 }
@@ -369,7 +373,7 @@ private fun TextLink(label: String, color: Color, onClick: () -> Unit) {
         fontWeight = FontWeight.Bold,
         modifier = Modifier
             .clickable(onClick = onClick)
-            .padding(top = 4.dp, end = 4.dp),
+            .padding(top = LocalSpacing.current.xxs, end = LocalSpacing.current.xxs),
     )
 }
 

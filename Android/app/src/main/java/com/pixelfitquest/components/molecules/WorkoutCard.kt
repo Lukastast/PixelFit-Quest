@@ -19,9 +19,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
+import com.pixelfitquest.ui.theme.LocalSpacing
 import com.pixelfitquest.feature.workout.model.Workout
 import java.time.Instant
 import java.time.ZoneId
@@ -32,19 +32,20 @@ fun WorkoutCard(
     workout: Workout,
     onClick: () -> Unit
 ) {
+    val spacing = LocalSpacing.current
     Box(
         modifier = Modifier.clickable(onClick = onClick)
     ) {
         Image(
             painter = painterResource(id = R.drawable.fourth_and_more),
             contentDescription = null,
-            modifier = Modifier.size(120.dp, 140.dp),
+            modifier = Modifier.size(spacing.scale(120), spacing.workoutRow),
             contentScale = ContentScale.Fit
         )
         Column(
             modifier = Modifier
                 .matchParentSize()
-                .padding(12.dp),
+                .padding(spacing.sm),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -57,7 +58,7 @@ fun WorkoutCard(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(spacing.xxs))
             Text(
                 text = workout.date.formatDate(),
                 color = Color.White.copy(alpha = 0.9f),

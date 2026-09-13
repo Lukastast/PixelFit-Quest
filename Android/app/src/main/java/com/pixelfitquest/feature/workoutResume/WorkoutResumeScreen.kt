@@ -28,6 +28,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -46,10 +47,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.workout.model.enums.displayName
+import com.pixelfitquest.ui.theme.LocalSpacing
+import com.pixelfitquest.ui.theme.spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,6 +62,7 @@ fun WorkoutResumeScreen(
 ) {
     val summary by viewModel.summary.collectAsState()
     val exercisesWithSets by viewModel.exercisesWithSets.collectAsState()
+    val spacing = MaterialTheme.spacing
 
     Scaffold(
         topBar = {
@@ -88,30 +91,30 @@ fun WorkoutResumeScreen(
                     contentScale = ContentScale.Crop
                 )
                 .padding(paddingValues),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(16.dp)
+            verticalArrangement = Arrangement.spacedBy(spacing.xs),
+            contentPadding = PaddingValues(spacing.md)
         ) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(spacing.md),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A))
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(spacing.md)) {
                         Text(
                             stringResource(R.string.session_complete),
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(spacing.xs))
 
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(24.dp),
+                            horizontalArrangement = Arrangement.spacedBy(spacing.lg),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Spacer(Modifier.width(6.dp))
+                                Spacer(Modifier.width(spacing.scale(6)))
                                 Text(
                                     stringResource(R.string.xp_reward, summary.totalXp),
                                     fontSize = 18.sp,
@@ -120,8 +123,8 @@ fun WorkoutResumeScreen(
                                 )
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Image(painterResource(R.drawable.coin), null, Modifier.size(28.dp))
-                                Spacer(Modifier.width(6.dp))
+                                Image(painterResource(R.drawable.coin), null, Modifier.size(spacing.scale(28)))
+                                Spacer(Modifier.width(spacing.scale(6)))
                                 Text(
                                     stringResource(R.string.coins_reward, summary.totalCoins),
                                     fontSize = 18.sp,
@@ -131,7 +134,7 @@ fun WorkoutResumeScreen(
                             }
                         }
 
-                        Spacer(Modifier.height(20.dp))
+                        Spacer(Modifier.height(spacing.scale(20)))
 
                         Text(
                             text = stringResource(R.string.exercise_feedback_title),
@@ -140,13 +143,13 @@ fun WorkoutResumeScreen(
                             color = Color.White.copy(alpha = 0.9f)
                         )
 
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(spacing.xs))
 
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(max = 400.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                                .heightIn(max = spacing.scale(400)),
+                            verticalArrangement = Arrangement.spacedBy(spacing.sm)
                         ) {
                             items(exercisesWithSets) { item ->
                                 val exercise = item.exercise
@@ -172,12 +175,12 @@ fun WorkoutResumeScreen(
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(spacing.cornerMd),
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFF8A9AA8))
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(spacing.md)
                     ) {
                         Text(
                             text = exercise.type.displayName(),
@@ -188,17 +191,17 @@ fun WorkoutResumeScreen(
                             text = stringResource(R.string.sets_completed_count, sets.size),
                             fontSize = 14.sp,
                             color = Color.DarkGray,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            modifier = Modifier.padding(bottom = spacing.xs)
                         )
 
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(spacing.xs),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             sets.forEach { set ->
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = RoundedCornerShape(spacing.cornerSm),
                                     colors = CardDefaults.cardColors(
                                         containerColor = Color(0xFF566474)
                                     )
@@ -207,7 +210,7 @@ fun WorkoutResumeScreen(
 
                                         Row(
                                             modifier = Modifier.fillMaxWidth()
-                                                .padding(16.dp),
+                                                .padding(spacing.md),
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
 
@@ -220,7 +223,7 @@ fun WorkoutResumeScreen(
 
                                         }
 
-                                        Spacer(modifier = Modifier.size(4.dp))
+                                        Spacer(modifier = Modifier.size(spacing.xxs))
 
                                         Row(modifier = Modifier.fillMaxWidth(),
                                             verticalAlignment = Alignment.CenterVertically
@@ -260,7 +263,7 @@ fun WorkoutResumeScreen(
                                             }
                                         }
 
-                                        Spacer(modifier = Modifier.size(4.dp))
+                                        Spacer(modifier = Modifier.size(spacing.xxs))
 
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
@@ -291,14 +294,14 @@ fun WorkoutResumeScreen(
                                                 },
                                                 fontSize = 11.sp,
                                                 color = Color.White.copy(alpha = 0.8f),
-                                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                                modifier = Modifier.padding(horizontal = spacing.md, vertical = spacing.xxs),
                                             )
                                         }
 
 
                                         Row(
                                             modifier = Modifier.fillMaxWidth()
-                                                    .padding(start = 16.dp, end = 16.dp),
+                                                    .padding(start = spacing.md, end = spacing.md),
                                             horizontalArrangement = Arrangement.SpaceEvenly
                                         ) {
 
@@ -306,7 +309,7 @@ fun WorkoutResumeScreen(
 
                                                 Text(stringResource(R.string.x_tilt_score_title), fontSize = 12.sp, color = Color.Gray)
 
-                                                Spacer(modifier = Modifier.height(6.dp))
+                                                Spacer(modifier = Modifier.height(spacing.scale(6)))
 
                                                 TiltScoreBar(set.xTiltScore)
                                                 Text(
@@ -317,7 +320,7 @@ fun WorkoutResumeScreen(
                                                 )
                                                 Text(stringResource(R.string.z_tilt_score_title), fontSize = 12.sp, color = Color.Gray)
 
-                                                Spacer(modifier = Modifier.height(6.dp))
+                                                Spacer(modifier = Modifier.height(spacing.scale(6)))
 
                                                 TiltScoreBar(set.zTiltScore)
                                                 Text(
@@ -334,7 +337,7 @@ fun WorkoutResumeScreen(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.size(8.dp))
+                Spacer(modifier = Modifier.size(spacing.xs))
             }
 
 
@@ -362,14 +365,15 @@ fun TiltScoreBar(
     tilt: Float,
     modifier: Modifier = Modifier
         .fillMaxWidth()
-        .height(14.dp)
+        .height(LocalSpacing.current.scale(14))
 ) {
+    val spacing = LocalSpacing.current
     val clamped = tilt.coerceIn(-100f, 100f)
     val positionFraction = (clamped + 100f) / 200f
 
     BoxWithConstraints(
         modifier = modifier
-            .clip(RoundedCornerShape(7.dp))
+            .clip(RoundedCornerShape(spacing.scale(7)))
     ) {
 
         Box(
@@ -391,10 +395,10 @@ fun TiltScoreBar(
         Box(
             modifier = Modifier
                 .offset { IntOffset(markerX - 6, 0) }
-                .size(12.dp)
+                .size(spacing.sm)
                 .clip(CircleShape)
                 .background(Color.White)
-                .border(2.dp, Color.Black.copy(alpha = 0.6f), CircleShape)
+                .border(spacing.xxxs, Color.Black.copy(alpha = 0.6f), CircleShape)
         )
     }
 }
@@ -406,11 +410,12 @@ fun TiltScoreBar(
         avgZTiltScore: Int,
         avgXTiltScore: Int
     ) {
+        val spacing = LocalSpacing.current
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
-                .padding(12.dp)
+                .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(spacing.cornerMd))
+                .padding(spacing.sm)
         ) {
             Text(
                 text = exerciseName,
@@ -419,7 +424,7 @@ fun TiltScoreBar(
                 fontSize = 15.sp
             )
 
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(spacing.scale(6)))
 
             if (avgRomScore < 90) {
                 FeedbackLine(
@@ -475,8 +480,8 @@ fun TiltScoreBar(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             icon?.let {
-                Image(painter = it, contentDescription = null, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(6.dp))
+                Image(painter = it, contentDescription = null, modifier = Modifier.size(LocalSpacing.current.scale(20)))
+                Spacer(Modifier.width(LocalSpacing.current.scale(6)))
             }
             Text(text, color = color, fontSize = 13.sp)
         }

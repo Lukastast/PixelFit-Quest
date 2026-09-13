@@ -40,7 +40,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -68,6 +67,7 @@ import com.pixelfitquest.feature.workoutResume.WorkoutResumeScreen
 import com.pixelfitquest.feature.workout.WorkoutScreen
 import com.pixelfitquest.viewmodel.GlobalSettingsViewModel
 import com.pixelfitquest.feature.workoutResume.WorkoutResumeViewModel
+import com.pixelfitquest.ui.theme.spacing
 
 @Composable
 fun AppScaffold() {
@@ -131,10 +131,11 @@ fun AppScaffold() {
                             BottomNavItem.WorkoutCustomization
                         )
 
+                        val spacing = MaterialTheme.spacing
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(80.dp),
+                                .height(spacing.navBar),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             items.forEach { item ->
@@ -142,7 +143,7 @@ fun AppScaffold() {
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     modifier = Modifier
-                                        .height(80.dp)
+                                        .height(spacing.navBar)
                                         .clickable(
                                             interactionSource = interactionSource,
                                             indication = null,
@@ -157,7 +158,7 @@ fun AppScaffold() {
                                         ),
                                         contentDescription = item.label,
                                         tint = Color.Unspecified,
-                                        modifier = Modifier.size(72.dp),
+                                        modifier = Modifier.size(spacing.navIcon),
                                     )
                                 }
                             }
@@ -259,12 +260,13 @@ fun AppScaffold() {
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.7f))
             ) {
+                val spacing = MaterialTheme.spacing
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.Center)
-                        .padding(horizontal = 32.dp)
-                        .padding(top = 30.dp),
+                        .padding(horizontal = spacing.xl)
+                        .padding(top = spacing.scale(30)),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
@@ -284,8 +286,8 @@ fun AppScaffold() {
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(bottom = 32.dp, end = 32.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                        .padding(bottom = spacing.xl, end = spacing.xl)
+                        .clip(RoundedCornerShape(spacing.cornerSm))
                         .background(Color.White.copy(alpha = 0.9f))
                         .clickable {
                             if (tutorialComplete) {
@@ -300,7 +302,7 @@ fun AppScaffold() {
                                 skipTypewriter = true
                             }
                         }
-                        .padding(horizontal = 24.dp, vertical = 12.dp)
+                        .padding(horizontal = spacing.lg, vertical = spacing.sm)
                 ) {
                     Text(
                         text = if (tutorialComplete) "START" else "SKIP",
