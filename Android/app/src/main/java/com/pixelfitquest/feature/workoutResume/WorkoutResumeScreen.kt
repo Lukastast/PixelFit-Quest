@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.feature.healthbonuses.ui.SessionBonusesCard
 import com.pixelfitquest.feature.streak.WeeklyStreakBonusBanner
 import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
 import com.pixelfitquest.feature.workout.model.enums.displayName
@@ -68,6 +69,7 @@ fun WorkoutResumeScreen(
 ) {
     val summary by viewModel.summary.collectAsState()
     val exercisesWithSets by viewModel.exercisesWithSets.collectAsState()
+    val bonusUi by viewModel.bonusUi.collectAsState()
     val spacing = MaterialTheme.spacing
     val weeklyStreak by weeklyStreakViewModel.snapshot.collectAsState()
 
@@ -176,6 +178,15 @@ fun WorkoutResumeScreen(
                             }
                         }
                     }
+                }
+            }
+
+            if (bonusUi.loaded) {
+                item {
+                    SessionBonusesCard(
+                        bonuses = bonusUi.bonuses,
+                        snapshot = bonusUi.snapshot,
+                    )
                 }
             }
 
