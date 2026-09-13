@@ -32,7 +32,7 @@ data class Exercise(
             val id = map["id"] as? String ?: return null
             val workoutId = map["workoutId"] as? String ?: return null
             val typeStr = map["type"] as? String ?: map["profileId"] as? String
-            val parsedType = ExerciseType.entries.find { it.type == typeStr } ?: ExerciseType.BENCH_PRESS
+            val parsedType = typeStr?.let { ExerciseType.fromStored(it) } ?: ExerciseType.BENCH_PRESS
             val profileId = map["profileId"] as? String ?: parsedType.type
             return Exercise(
                 id = id,

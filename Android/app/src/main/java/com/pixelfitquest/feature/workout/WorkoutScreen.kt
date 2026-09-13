@@ -40,6 +40,7 @@ import androidx.navigation.NavController
 import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.CharacterIdleAnimation
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.feature.workout.catalog.ExerciseCatalog
 import com.pixelfitquest.feature.workout.model.WorkoutPhase
 import com.pixelfitquest.feature.workout.model.enums.WorkoutFeedback
 import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationLock
@@ -85,9 +86,12 @@ fun WorkoutScreen(
     val animState = remember { Animatable(0f) }
     var countdownNumber by remember { mutableStateOf<Int?>(null) }
 
-    val currentExercise = plan.items.getOrNull(state.currentExerciseIndex)?.exercise?.name ?: "Unknown"
-    val currentSets = plan.items.getOrNull(state.currentExerciseIndex)?.sets ?: 0
-    val currentWeight = plan.items.getOrNull(state.currentExerciseIndex)?.weight ?: 0.0
+    val currentItem = plan.items.getOrNull(state.currentExerciseIndex)
+    val currentDefinition = currentItem?.exercise?.let { ExerciseCatalog.definition(it) }
+    val currentExercise = currentDefinition?.displayName ?: "Unknown"
+    val currentImu = currentDefinition?.imuSupported == true
+    val currentSets = currentItem?.sets ?: 0
+    val currentWeight = currentItem?.weight ?: 0.0
 
     LaunchedEffect(Unit) {
         viewModel.countdownEvent.collectLatest {
@@ -200,7 +204,7 @@ fun WorkoutScreen(
                     currentSets,
                 )
                 WorkoutPhase.Idle -> stringResource(
-                    R.string.workout_status_idle,
+                    if (currentImu) R.string.workout_status_idle else R.string.workout_status_idle_log,
                     state.currentSetNumber,
                     currentSets,
                     currentWeight,
@@ -244,14 +248,27 @@ fun WorkoutScreen(
                 }
 
                 Box(modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp)) {
-                    Text(
-                        text = currentExercise.replace("_", " "),
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
                             .padding(horizontal = 12.dp, vertical = 4.dp),
-                    )
+                    ) {
+                        Text(
+                            text = currentExercise,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        )
+                        Text(
+                            text = stringResource(
+                                if (currentImu) R.string.exercise_badge_imu else R.string.exercise_badge_log,
+                            ),
+                            color = if (currentImu) Color(0xFFA5D6A7) else Color(0xFFBDBDBD),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
                 }
                 PixelArtButton(
                     onClick = {

@@ -7,7 +7,9 @@ import com.pixelfitquest.feature.workout.analysis.AnalyzerUser
 import com.pixelfitquest.feature.workout.analysis.DetectedRep
 import com.pixelfitquest.feature.workout.analysis.ExerciseProfiles
 import com.pixelfitquest.feature.workout.analysis.RomUnit
+import com.pixelfitquest.feature.workout.analysis.SetAnalysis
 import com.pixelfitquest.feature.workout.analysis.SetAnalyzer
+import com.pixelfitquest.feature.workout.catalog.ExerciseCatalog
 import com.pixelfitquest.feature.workout.model.Exercise
 import com.pixelfitquest.feature.workout.model.RepRecord
 import com.pixelfitquest.feature.workout.model.SetReviewState
@@ -142,6 +144,12 @@ class WorkoutViewModel @Inject constructor(
     fun startSet() {
         if (_workoutState.value.phase != WorkoutPhase.Idle) return
         ensureExerciseSaved()
+        val type = currentExerciseType ?: return
+        if (!ExerciseCatalog.hasImuSupport(type)) {
+            samples.clear()
+            showLogOnlyReview(sampleCount = 0)
+            return
+        }
         samples.clear()
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Countdown,
@@ -177,6 +185,10 @@ class WorkoutViewModel @Inject constructor(
         samples.clear()
         samples.addAll(recorded)
         val type = currentExerciseType ?: return
+        if (!ExerciseCatalog.hasImuSupport(type)) {
+            showLogOnlyReview(sampleCount = samples.size)
+            return
+        }
         val profile = ExerciseProfiles.forType(type)
         val user = _userData.value
         val analysis = setAnalyzer.analyzeSet(
@@ -192,7 +204,7 @@ class WorkoutViewModel @Inject constructor(
             reps = analysis.reps,
             sampleCount = samples.size,
             setNumber = currentSetNumber,
-            exerciseName = profile.displayName,
+            exerciseName = ExerciseCatalog.definition(type).displayName,
         )
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Reviewing,
@@ -369,7 +381,7 @@ class WorkoutViewModel @Inject constructor(
             id = currentExerciseId(),
             workoutId = workoutId,
             type = type,
-            profileId = ExerciseProfiles.forType(type).id,
+            profileId = type.type,
             totalSets = item.sets,
             weight = item.weight,
         )
@@ -431,7 +443,7 @@ class WorkoutViewModel @Inject constructor(
             id = currentExerciseId(),
             workoutId = workoutId,
             type = type,
-            profileId = ExerciseProfiles.forType(type).id,
+            profileId = type.type,
             totalSets = item.sets,
             weight = item.weight,
             avgFormScore = avgForm,
@@ -473,6 +485,31 @@ class WorkoutViewModel @Inject constructor(
                 userRepository.updateUserData(mapOf("last_streak_update_date" to today))
             }
         }
+    }
+
+    /**
+     * Log-only lifts skip IMU analysis. Do not fall back to another exercise's
+     * profile — that would invent form scores. User adds reps on the review overlay.
+     */
+    private fun showLogOnlyReview(sampleCount: Int) {
+        val type = currentExerciseType ?: return
+        val review = SetReviewState(
+            analysis = SetAnalysis(
+                reps = emptyList(),
+                meanFormScore = 0f,
+                flags = listOf("log_only"),
+            ),
+            reps = emptyList(),
+            sampleCount = sampleCount,
+            setNumber = currentSetNumber,
+            exerciseName = ExerciseCatalog.definition(type).displayName,
+        )
+        _workoutState.value = _workoutState.value.copy(
+            phase = WorkoutPhase.Reviewing,
+            sampleCount = sampleCount,
+            recordingSeconds = 0f,
+            review = review,
+        )
     }
 
     private fun triggerSetFeedback(score: Float) {

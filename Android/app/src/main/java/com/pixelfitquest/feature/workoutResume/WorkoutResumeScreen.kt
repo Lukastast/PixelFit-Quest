@@ -180,7 +180,7 @@ fun WorkoutResumeScreen(
                         modifier = Modifier.padding(16.dp)
                     ) {
                         Text(
-                            text = exercise.type.name.replace("_", " "),
+                            text = exercise.type.displayName(),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                         )
