@@ -1,3 +1,6 @@
+import java.io.File
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +9,66 @@ plugins {
     alias(libs.plugins.google.services)
     alias(libs.plugins.ksp)
 }
+
+// Release signing is read from Android/local.properties (gitignored) or the environment.
+// Never commit pixelfit-upload.jks or passwords. See SIGNING.md.
+val localProperties = Properties().apply {
+    val localFile = rootProject.file("local.properties")
+    if (localFile.exists()) {
+        localFile.inputStream().use { load(it) }
+    }
+}
+
+fun signingProp(name: String): String? {
+    val envKeys = buildList {
+        add(name)
+        when (name) {
+            "storeFile" -> addAll(listOf("STORE_FILE", "PIXELFIT_STORE_FILE", "RELEASE_STORE_FILE"))
+            "storePassword" -> addAll(listOf("STORE_PASSWORD", "PIXELFIT_STORE_PASSWORD", "RELEASE_STORE_PASSWORD"))
+            "keyAlias" -> addAll(listOf("KEY_ALIAS", "PIXELFIT_KEY_ALIAS", "RELEASE_KEY_ALIAS"))
+            "keyPassword" -> addAll(listOf("KEY_PASSWORD", "PIXELFIT_KEY_PASSWORD", "RELEASE_KEY_PASSWORD"))
+        }
+    }
+    for (key in envKeys) {
+        System.getenv(key)?.trim()?.takeIf { it.isNotEmpty() }?.let { return it }
+    }
+    for (key in envKeys) {
+        localProperties.getProperty(key)?.trim()?.takeIf { it.isNotEmpty() }?.let { return it }
+    }
+    return null
+}
+
+fun resolveStoreFile(path: String): File {
+    val given = File(path)
+    if (given.isAbsolute) return given
+    val candidates = listOf(
+        file(path),
+        rootProject.file(path),
+        rootProject.file("../$path"),
+    )
+    return candidates.firstOrNull { it.exists() } ?: file(path)
+}
+
+val releaseStoreFile = signingProp("storeFile")
+val releaseStorePassword = signingProp("storePassword")
+val releaseKeyAlias = signingProp("keyAlias")
+val releaseKeyPassword = signingProp("keyPassword")
+val releaseSigningValues = listOf(
+    "storeFile" to releaseStoreFile,
+    "storePassword" to releaseStorePassword,
+    "keyAlias" to releaseKeyAlias,
+    "keyPassword" to releaseKeyPassword,
+)
+val presentSigningKeys = releaseSigningValues.filter { !it.second.isNullOrBlank() }.map { it.first }
+val missingSigningKeys = releaseSigningValues.filter { it.second.isNullOrBlank() }.map { it.first }
+if (presentSigningKeys.isNotEmpty() && missingSigningKeys.isNotEmpty()) {
+    throw GradleException(
+        "Incomplete release signing. Have: ${presentSigningKeys.joinToString()}. " +
+            "Missing: ${missingSigningKeys.joinToString()}. " +
+            "Set storeFile, storePassword, keyAlias, and keyPassword in local.properties or the environment. See SIGNING.md."
+    )
+}
+val hasReleaseSigning = missingSigningKeys.isEmpty()
 
 android {
     namespace = "com.pixelfitquest"
@@ -22,8 +85,31 @@ android {
         proguardFiles("proguard-rules.pro")
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                val keystore = resolveStoreFile(releaseStoreFile!!)
+                if (!keystore.exists()) {
+                    throw GradleException(
+                        "Release keystore not found at '$releaseStoreFile' " +
+                            "(resolved to ${keystore.absolutePath}). See SIGNING.md."
+                    )
+                }
+                storeFile = keystore
+                storePassword = releaseStorePassword!!
+                keyAlias = releaseKeyAlias!!
+                keyPassword = releaseKeyPassword!!
+                enableV1Signing = true
+                enableV2Signing = true
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

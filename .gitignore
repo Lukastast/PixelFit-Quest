@@ -1,0 +1,9 @@
+# Signing secrets — never commit keystores or passwords
+*.jks
+*.keystore
+*.p12
+pixelfit-upload.jks
+**/local.properties
+keystore.properties
+key.properties
+secrets.properties
