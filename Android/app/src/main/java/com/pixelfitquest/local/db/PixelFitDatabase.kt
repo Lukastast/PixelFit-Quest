@@ -2,6 +2,8 @@ package com.pixelfitquest.local.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.pixelfitquest.feature.progress.data.LiftHistoryDao
+import com.pixelfitquest.feature.progress.data.LiftHistoryEntity
 import com.pixelfitquest.local.db.dao.TemplateDao
 import com.pixelfitquest.local.db.dao.UserProfileDao
 import com.pixelfitquest.local.db.dao.WorkoutDao
@@ -18,12 +20,14 @@ import com.pixelfitquest.local.db.entity.UserProfileEntity
         LocalExerciseEntity::class,
         LocalSetEntity::class,
         LocalTemplateEntity::class,
+        LiftHistoryEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class PixelFitDatabase : RoomDatabase() {
     abstract fun userProfileDao(): UserProfileDao
     abstract fun workoutDao(): WorkoutDao
     abstract fun templateDao(): TemplateDao
+    abstract fun liftHistoryDao(): LiftHistoryDao
 }

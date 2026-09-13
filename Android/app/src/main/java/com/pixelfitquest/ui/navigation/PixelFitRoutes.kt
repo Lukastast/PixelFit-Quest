@@ -12,3 +12,4 @@ const val BODY_METRICS_SCREEN = "body_metrics"
 const val HAS_SEEN_INTRO = "has_Seen_Intro"
 
 const val ACCOUNT_CENTER_SCREEN = "AccountCenterScreen"
+const val PROGRESS_SCREEN = "progress"

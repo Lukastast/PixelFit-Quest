@@ -21,6 +21,8 @@ import com.pixelfitquest.feature.workout.model.enums.ExerciseType
 import com.pixelfitquest.feature.workout.model.enums.WorkoutFeedback
 import com.pixelfitquest.feature.workout.sensor.ImuSample
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
+import com.pixelfitquest.feature.progress.data.LiftHistoryDao
+import com.pixelfitquest.feature.progress.data.toLiftHistoryEntity
 import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
@@ -48,6 +50,7 @@ class WorkoutViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val workoutRepository: WorkoutRepository,
     private val setAnalyzer: SetAnalyzer,
+    private val liftHistoryDao: LiftHistoryDao,
 ) : PixelFitViewModel() {
 
     private val _workoutState = MutableStateFlow(WorkoutState())
@@ -430,7 +433,16 @@ class WorkoutViewModel @Inject constructor(
         exerciseSetCount += 1
         exerciseVolume += weight * accepted.size
         launchCatching {
-            workoutRepository.saveSet(set)
+            try {
+                liftHistoryDao.insert(set.toLiftHistoryEntity(type))
+            } catch (e: Exception) {
+                Log.w("WorkoutVM", "Local lift history save skipped", e)
+            }
+            try {
+                workoutRepository.saveSet(set)
+            } catch (e: Exception) {
+                Log.w("WorkoutVM", "Cloud set save skipped", e)
+            }
         }
     }
 

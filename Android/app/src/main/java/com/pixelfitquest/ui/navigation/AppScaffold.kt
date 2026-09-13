@@ -64,6 +64,7 @@ import com.pixelfitquest.feature.settings.SettingsScreen
 import com.pixelfitquest.feature.splash.SplashScreen
 import com.pixelfitquest.feature.workoutBuilder.WorkoutCustomizationScreen
 import com.pixelfitquest.feature.workoutResume.WorkoutResumeScreen
+import com.pixelfitquest.feature.progress.ProgressScreen
 import com.pixelfitquest.feature.workout.WorkoutScreen
 import com.pixelfitquest.viewmodel.GlobalSettingsViewModel
 import com.pixelfitquest.feature.workoutResume.WorkoutResumeViewModel
@@ -83,7 +84,8 @@ fun AppScaffold() {
         WORKOUT_SCREEN,
         CUSTOMIZATION_SCREEN,
         SETTINGS_SCREEN,
-        WORKOUT_CUSTOMIZATION_SCREEN
+        WORKOUT_CUSTOMIZATION_SCREEN,
+        PROGRESS_SCREEN,
     )
 
     var settingsLoaded by remember { mutableStateOf(false) }
@@ -244,7 +246,10 @@ fun AppScaffold() {
                                     Check exercises to select them, adjust sets and weights, give a name to save as template, then tap "Start Workout" to earn coins and exp.
                                     
                                     SETTINGS  
-                                    Adjust music volume, optionally sign in with Google, export your log, or view Backup & sync (Pro).  """.trimIndent()
+                                    Adjust music volume, optionally sign in with Google, export your log, or view Backup & sync (Pro).
+                                    
+                                    GYM PROGRESS  
+                                    Open Gym progress from Home to see working weight over time. Sample lifts are labeled until you finish workouts on this phone.  """.trimIndent()
                                     showTutorial = true
                                 }
                             }
@@ -403,6 +408,13 @@ fun NavGraphBuilder.pixelFitGraph(
     composable(BODY_METRICS_SCREEN) {
         BodyMetricsScreen(
             onBack = { appState.popUp() }
+        )
+    }
+
+    composable(PROGRESS_SCREEN) {
+        ProgressScreen(
+            onBack = { appState.popUp() },
+            onScreenReady = { onScreenReady(PROGRESS_SCREEN) }
         )
     }
 }

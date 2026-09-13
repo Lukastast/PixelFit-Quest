@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.PersistentCacheSettings
+import com.pixelfitquest.feature.progress.data.LiftHistoryDao
 import com.pixelfitquest.local.CloudSyncPolicy
 import com.pixelfitquest.local.StubCloudSyncPolicy
 import com.pixelfitquest.local.db.PixelFitDatabase
@@ -55,6 +56,11 @@ object AppModule {
             context,
             PixelFitDatabase::class.java,
             "pixelfit.db",
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
+
+    @Provides
+    fun provideLiftHistoryDao(db: PixelFitDatabase): LiftHistoryDao = db.liftHistoryDao()
 }

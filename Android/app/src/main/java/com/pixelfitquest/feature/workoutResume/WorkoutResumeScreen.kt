@@ -49,7 +49,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
+import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.feature.workout.model.enums.displayName
+import com.pixelfitquest.ui.navigation.PROGRESS_SCREEN
 import com.pixelfitquest.ui.theme.LocalSpacing
 import com.pixelfitquest.ui.theme.spacing
 
@@ -166,6 +168,24 @@ fun WorkoutResumeScreen(
                             }
                         }
                     }
+                }
+            }
+
+            item {
+                PixelArtButton(
+                    onClick = { openScreen(PROGRESS_SCREEN) },
+                    imageRes = R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(spacing.scale(56)),
+                ) {
+                    Text(
+                        text = stringResource(R.string.progress_resume_cta),
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
                 }
             }
 
