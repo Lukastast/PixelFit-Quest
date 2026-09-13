@@ -261,6 +261,20 @@ private fun BobSlideCharacterPreview(spriteKey: String) {
     )
 }
 
+/** Gemini Cape Hero 8-frame walk strip preview (matches former cape_hero.json). */
+@Composable
+private fun CapeHeroWalkPreview() {
+    val sheet = ImageBitmap.imageResource(R.drawable.cape_hero_walk)
+    SpriteSheetPlayer(
+        sheet = sheet,
+        frameCount = 8,
+        fps = 10,
+        modifier = Modifier
+            .size(96.dp)
+            .offset(x = (-12).dp),
+    )
+}
+
 @Composable
 private fun ActionButtons(
     isPremium: Boolean,
