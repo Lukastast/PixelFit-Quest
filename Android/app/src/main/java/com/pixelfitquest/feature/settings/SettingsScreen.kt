@@ -15,7 +15,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.CloudOff
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,7 +47,6 @@ import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
 import com.pixelfitquest.firebase.model.User
 import com.pixelfitquest.health.HealthConnectIntents
 import com.pixelfitquest.health.HealthConnectStatus
-import com.pixelfitquest.ui.navigation.BODY_METRICS_SCREEN
 import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 import kotlinx.coroutines.launch
@@ -56,7 +54,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(
     restartApp: (String) -> Unit,
-    openScreen: (String) -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
     weeklyStreakViewModel: WeeklyStreakViewModel = hiltViewModel(),
     onScreenReady: () -> Unit = {}
@@ -205,16 +202,6 @@ fun SettingsScreen(
                 enabled = workoutLandscapeEnabled,
                 onToggle = { viewModel.setWorkoutLandscapeEnabled(it) }
             )
-
-            Spacer(modifier = Modifier.height(spacing.md))
-
-            SettingsActionCard(
-                title = stringResource(R.string.body_metrics_card_title),
-                subtitle = stringResource(R.string.body_metrics_card_subtitle),
-                icon = Icons.Filled.Person,
-            ) {
-                openScreen(BODY_METRICS_SCREEN)
-            }
 
             Spacer(modifier = Modifier.height(spacing.md))
 

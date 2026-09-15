@@ -34,6 +34,12 @@
 
     <!-- Customization Screen -->
     <string name="choose_character">Choose Your Character</string>
+    <string name="customization_tab_character">Character</string>
+    <string name="customization_tab_stats">Stats</string>
+    <string name="stats_title">Your stats</string>
+    <string name="height_label">Height</string>
+    <string name="stats_arm_length">Arm length</string>
+    <string name="metric_cm_value">%1$s: %2$d cm</string>
     <string name="male">Male</string>
     <string name="female">Female</string>
     <string name="fitness_bonus">+2 coins &amp; +2 exp per reward</string>
