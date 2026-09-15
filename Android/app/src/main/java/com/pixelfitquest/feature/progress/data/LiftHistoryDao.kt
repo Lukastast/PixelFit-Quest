@@ -15,4 +15,7 @@ interface LiftHistoryDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<LiftHistoryEntity>)
+
+    @Query("DELETE FROM lift_history WHERE workoutId = :workoutId")
+    suspend fun deleteByWorkoutId(workoutId: String)
 }

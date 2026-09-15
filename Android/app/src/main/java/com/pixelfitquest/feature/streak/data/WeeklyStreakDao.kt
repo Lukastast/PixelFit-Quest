@@ -20,6 +20,9 @@ interface WeeklyStreakDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSession(session: WeeklySessionEntity): Long
 
+    @Query("DELETE FROM weekly_sessions WHERE workoutId = :workoutId")
+    suspend fun deleteSession(workoutId: String)
+
     @Query("SELECT COUNT(*) FROM weekly_sessions WHERE weekStartIso = :weekStartIso")
     suspend fun countSessionsInWeek(weekStartIso: String): Int
 

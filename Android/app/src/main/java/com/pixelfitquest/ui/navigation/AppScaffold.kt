@@ -370,6 +370,11 @@ fun NavGraphBuilder.pixelFitGraph(
 
         WorkoutResumeScreen(
             openScreen = { route -> appState.navigate(route) },
+            onWorkoutDeleted = {
+                if (!appState.navController.popBackStack(HOME_SCREEN, inclusive = false)) {
+                    appState.clearAndNavigate(HOME_SCREEN)
+                }
+            },
             viewModel = viewModel,
         )
     }

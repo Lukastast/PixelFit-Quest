@@ -248,6 +248,10 @@
     <string name="z_tilt_score_title">Z Tilt Score</string>
     <string name="score_out_of_100">%1$d/100</string>
     <string name="no_exercises_completed">No exercises completed yet.</string>
+    <string name="delete_workout">Delete workout</string>
+    <string name="delete_workout_title">Delete this workout?</string>
+    <string name="delete_workout_description">This session will be removed from your log and gym progress. XP and coins already earned stay.</string>
+    <string name="delete_workout_confirm">Delete</string>
     <string name="feedback_rom_low">Go deeper — full range = max gains!</string>
     <string name="feedback_rom_perfect">Perfect range! 🎯</string>
     <string name="feedback_tilt_right">Pushing more to the right</string>

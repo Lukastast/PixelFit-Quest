@@ -30,6 +30,7 @@ class LocalPixelFitStore @Inject constructor(
     private val userDao = db.userProfileDao()
     private val workoutDao = db.workoutDao()
     private val templateDao = db.templateDao()
+    private val liftHistoryDao = db.liftHistoryDao()
     private val profileMutex = Mutex()
 
     suspend fun ensureProfile(): UserProfileEntity = profileMutex.withLock {
@@ -153,6 +154,7 @@ class LocalPixelFitStore @Inject constructor(
         workoutDao.deleteSets(workoutId)
         workoutDao.deleteExercises(workoutId)
         workoutDao.deleteWorkout(workoutId)
+        liftHistoryDao.deleteByWorkoutId(workoutId)
     }
 
     suspend fun updateWorkout(workoutId: String, updates: Map<String, Any>) {

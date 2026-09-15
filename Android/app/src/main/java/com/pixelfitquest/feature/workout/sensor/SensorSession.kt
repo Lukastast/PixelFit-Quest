@@ -53,12 +53,29 @@ class SensorSession(
             onMissingAccelerometer()
             return
         }
-        val rate = SensorManager.SENSOR_DELAY_FASTEST
-        sensorManager.registerListener(this, accelSensor, rate)
-        gyroscope?.let { sensorManager.registerListener(this, it, rate) }
-        rotationVector?.let { sensorManager.registerListener(this, it, rate) }
-        linearAccel?.let { sensorManager.registerListener(this, it, rate) }
-        registered = true
+        // FASTEST is 0 µs. API 31+ throws SecurityException without HIGH_SAMPLING_RATE_SENSORS.
+        // 5000 µs (200 Hz) is the fastest rate allowed without that permission.
+        val rates = intArrayOf(
+            SensorManager.SENSOR_DELAY_FASTEST,
+            MAX_RATE_WITHOUT_HIGH_SAMPLING_US,
+            SensorManager.SENSOR_DELAY_GAME,
+        )
+        for (rate in rates) {
+            try {
+                registerAll(accelSensor, rate)
+                registered = true
+                return
+            } catch (_: SecurityException) {
+                sensorManager.unregisterListener(this)
+            }
+        }
+    }
+
+    private fun registerAll(accelSensor: Sensor, samplingPeriodUs: Int) {
+        sensorManager.registerListener(this, accelSensor, samplingPeriodUs)
+        gyroscope?.let { sensorManager.registerListener(this, it, samplingPeriodUs) }
+        rotationVector?.let { sensorManager.registerListener(this, it, samplingPeriodUs) }
+        linearAccel?.let { sensorManager.registerListener(this, it, samplingPeriodUs) }
     }
 
     fun unregister() {
@@ -122,4 +139,9 @@ class SensorSession(
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+
+    companion object {
+        /** Fastest sampling period allowed on API 31+ without HIGH_SAMPLING_RATE_SENSORS. */
+        private const val MAX_RATE_WITHOUT_HIGH_SAMPLING_US = 5_000
+    }
 }

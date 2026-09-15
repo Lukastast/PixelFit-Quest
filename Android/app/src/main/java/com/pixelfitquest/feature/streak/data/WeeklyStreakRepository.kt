@@ -107,6 +107,11 @@ class WeeklyStreakRepository @Inject constructor(
         return result
     }
 
+    suspend fun forgetSession(workoutId: String) {
+        if (workoutId.isBlank()) return
+        dao.deleteSession(workoutId)
+    }
+
     /**
      * Keep [UserProfileEntity.streak] / lastActivityDate / lastStreakUpdateDate coherent
      * with workout completion via [UserProgression.applyStreak] (daily continuity).

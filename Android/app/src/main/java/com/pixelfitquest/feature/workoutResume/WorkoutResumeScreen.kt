@@ -33,8 +33,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +53,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.feature.healthbonuses.ui.SessionBonusesCard
@@ -63,6 +68,7 @@ import com.pixelfitquest.ui.theme.spacing
 @Composable
 fun WorkoutResumeScreen(
     openScreen: (String) -> Unit,
+    onWorkoutDeleted: () -> Unit,
     viewModel: WorkoutResumeViewModel,
     weeklyStreakViewModel: WeeklyStreakViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
@@ -70,8 +76,14 @@ fun WorkoutResumeScreen(
     val summary by viewModel.summary.collectAsState()
     val exercisesWithSets by viewModel.exercisesWithSets.collectAsState()
     val bonusUi by viewModel.bonusUi.collectAsState()
+    val isDeleting by viewModel.isDeleting.collectAsState()
     val spacing = MaterialTheme.spacing
     val weeklyStreak by weeklyStreakViewModel.snapshot.collectAsState()
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.deleted.collect { onWorkoutDeleted() }
+    }
 
     Scaffold(
         topBar = {
@@ -202,6 +214,24 @@ fun WorkoutResumeScreen(
                     Text(
                         text = stringResource(R.string.progress_resume_cta),
                         color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+
+            item {
+                PixelArtButton(
+                    onClick = { if (!isDeleting) showDeleteDialog = true },
+                    imageRes = R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(spacing.scale(56)),
+                ) {
+                    Text(
+                        text = stringResource(R.string.delete_workout),
+                        color = Color(0xFFFF8A80),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -396,6 +426,87 @@ fun WorkoutResumeScreen(
             }
         }
 
+    }
+
+    if (showDeleteDialog) {
+        DeleteWorkoutDialog(
+            onDismiss = { if (!isDeleting) showDeleteDialog = false },
+            onConfirm = {
+                showDeleteDialog = false
+                viewModel.deleteWorkout()
+            },
+        )
+    }
+}
+
+@Composable
+private fun DeleteWorkoutDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(R.drawable.questloginboard),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .height(spacing.dialogHeight),
+                contentScale = ContentScale.FillBounds
+            )
+            Column(
+                modifier = Modifier
+                    .padding(spacing.xl)
+                    .fillMaxWidth(0.95f)
+                    .heightIn(max = spacing.scale(300))
+            ) {
+                Text(
+                    text = stringResource(R.string.delete_workout_title),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+                Spacer(Modifier.height(spacing.xs))
+                Text(
+                    text = stringResource(R.string.delete_workout_description),
+                    color = Color.White
+                )
+                Spacer(Modifier.height(spacing.sm))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    PixelArtButton(
+                        onClick = onDismiss,
+                        imageRes = R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_clicked,
+                        modifier = Modifier
+                            .height(spacing.scale(50))
+                            .width(spacing.buttonWidthSm)
+                    ) {
+                        Text(stringResource(R.string.cancel), color = Color.Black)
+                    }
+                    PixelArtButton(
+                        onClick = onConfirm,
+                        imageRes = R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_clicked,
+                        modifier = Modifier
+                            .height(spacing.scale(50))
+                            .width(spacing.buttonWidthSm)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.delete_workout_confirm),
+                            color = Color(0xFFB71C1C),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

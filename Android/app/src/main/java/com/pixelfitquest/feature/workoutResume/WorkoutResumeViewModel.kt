@@ -15,9 +15,13 @@ import com.pixelfitquest.feature.streak.data.WeeklyStreakRepository
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
 import com.pixelfitquest.feature.levels.cosmetics.LocalXpPort
+import com.pixelfitquest.helpers.SnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -44,6 +48,10 @@ class WorkoutResumeViewModel @Inject constructor(
     val exercisesWithSets: StateFlow<List<ExerciseWithSets>> = _exercisesWithSets.asStateFlow()
     private val _bonusUi = MutableStateFlow(SessionBonusUiState())
     val bonusUi: StateFlow<SessionBonusUiState> = _bonusUi.asStateFlow()
+    private val _isDeleting = MutableStateFlow(false)
+    val isDeleting: StateFlow<Boolean> = _isDeleting.asStateFlow()
+    private val _deleted = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val deleted: SharedFlow<Unit> = _deleted.asSharedFlow()
 
     init {
         if (workoutId.isNotBlank()) {
@@ -226,6 +234,27 @@ class WorkoutResumeViewModel @Inject constructor(
                 Log.d("ResumeVM", "Added $amount XP")
             } catch (e: Exception) {
                 Log.w("ResumeVM", "XP award failed", e)
+            }
+        }
+    }
+
+    fun deleteWorkout() {
+        if (workoutId.isBlank() || _isDeleting.value) return
+        viewModelScope.launch {
+            _isDeleting.value = true
+            try {
+                workoutRepository.deleteWorkout(workoutId)
+                try {
+                    weeklyStreakRepository.forgetSession(workoutId)
+                } catch (e: Exception) {
+                    Log.w("WorkoutResumeVM", "Streak session not removed", e)
+                }
+                _deleted.emit(Unit)
+            } catch (e: Exception) {
+                Log.e("WorkoutResumeVM", "Failed to delete workout", e)
+                _error.value = e.message ?: "Failed to delete workout"
+                SnackbarManager.showMessage(e.message ?: "Couldn't delete this workout")
+                _isDeleting.value = false
             }
         }
     }
