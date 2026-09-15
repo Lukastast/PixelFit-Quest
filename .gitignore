@@ -7,3 +7,7 @@ pixelfit-upload.jks
 keystore.properties
 key.properties
 secrets.properties
+
+# Android Studio — local IDE state (JDK, last-run device, caches)
+.idea/
+*.iml
