@@ -1,7 +1,6 @@
 package com.pixelfitquest.ui.navigation
 
 import android.media.MediaPlayer
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -13,14 +12,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,15 +29,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -53,7 +47,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.pixelfitquest.helpers.TypewriterText
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.feature.customization.CustomizationScreen
@@ -61,7 +54,6 @@ import com.pixelfitquest.feature.achievements.AchievementsScreen
 import com.pixelfitquest.feature.home.HomeScreen
 import com.pixelfitquest.feature.levels.LevelsScreen
 import com.pixelfitquest.feature.intro.IntroScreen
-import com.pixelfitquest.feature.bodyMetrics.BodyMetricsScreen
 import com.pixelfitquest.feature.settings.SettingsScreen
 import com.pixelfitquest.feature.splash.SplashScreen
 import com.pixelfitquest.feature.workoutBuilder.WorkoutCustomizationScreen
@@ -98,23 +90,8 @@ fun AppScaffold() {
     }
 
     val context = LocalContext.current
-    val prefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
 
-    var showTutorial by remember { mutableStateOf(false) }
-    var tutorialText by remember { mutableStateOf("") }
-    var screenContentReady by remember { mutableStateOf(false) }
-    var tutorialComplete by remember { mutableStateOf(false) }
-    var skipTypewriter by remember { mutableStateOf(false) }
-
-    LaunchedEffect(currentRoute) {
-        screenContentReady = false
-        showTutorial = false
-        tutorialComplete = false
-        skipTypewriter = false
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
+    Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.background,
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -228,105 +205,14 @@ fun AppScaffold() {
                     startDestination = SPLASH_SCREEN,
                     modifier = if (hasBottomBar) Modifier.padding(innerPaddingModifier) else Modifier
                 ) {
-                    pixelFitGraph(
-                        appState = appState,
-                        onScreenReady = { screen ->
-                            screenContentReady = true
-
-                            if (screen == HOME_SCREEN) {
-                                if (prefs.getBoolean("first_time_home_screen", true)) {
-                                    tutorialText = """
-                                    Welcome to PixelFit Quest!
-
-                                    HOME SCREEN  
-                                    View your level, coins, exp and weekly streak at the top. Tap the flame to set how many sessions you want each week. Track daily steps for rewards, check your rank and achievements with the trophy icon, resume past workouts, and complete daily missions for extra coins/exp.
-                                    
-                                    CUSTOMIZATION  
-                                    Choose your character's gender and cloths that can be purchased with coins to equip and set your height for accurate tracking.
-                                    
-                                    WORKOUT CUSTOMIZATION  
-                                    Check exercises to select them, adjust sets and weights, give a name to save as template, then tap "Start Workout" to earn coins and exp.
-                                    
-                                    SETTINGS  
-                                    Adjust music volume, set your weekly session goal, optionally sign in with Google, export your log, or view Backup & sync (Pro).
-                                    
-                                    GYM PROGRESS  
-                                    Open Gym progress from Home to see working weight over time. Sample lifts are labeled until you finish workouts on this phone.  """.trimIndent()
-                                    showTutorial = true
-                                }
-                            }
-                        }
-                    )
+                    pixelFitGraph(appState = appState)
                 }
             }
         }
-
-        if (showTutorial && screenContentReady) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.7f))
-            ) {
-                val spacing = MaterialTheme.spacing
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.Center)
-                        .padding(horizontal = spacing.xl)
-                        .padding(top = spacing.scale(30)),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    TypewriterText(
-                        text = tutorialText,
-                        onComplete = {
-                            tutorialComplete = true
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                        skipToEnd = skipTypewriter
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(bottom = spacing.xl, end = spacing.xl)
-                        .clip(RoundedCornerShape(spacing.cornerSm))
-                        .background(Color.White.copy(alpha = 0.9f))
-                        .clickable {
-                            if (tutorialComplete) {
-                                prefs
-                                    .edit()
-                                    .putBoolean("first_time_home_screen", false)
-                                    .apply()
-                                showTutorial = false
-                                tutorialComplete = false
-                                skipTypewriter = false
-                            } else {
-                                skipTypewriter = true
-                            }
-                        }
-                        .padding(horizontal = spacing.lg, vertical = spacing.sm)
-                ) {
-                    Text(
-                        text = if (tutorialComplete) "START" else "SKIP",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Black,
-                        fontSize = 18.sp,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
-    }
 }
 
 fun NavGraphBuilder.pixelFitGraph(
     appState: AppState,
-    onScreenReady: (String) -> Unit
 ) {
     composable(INTRO_SCREEN) {
         IntroScreen(
@@ -344,7 +230,6 @@ fun NavGraphBuilder.pixelFitGraph(
         HomeScreen(
             restartApp = { route -> appState.clearAndNavigate(route) },
             navController = appState.navController,
-            onScreenReady = { onScreenReady(HOME_SCREEN) }
         )
     }
 
@@ -420,20 +305,12 @@ fun NavGraphBuilder.pixelFitGraph(
     composable(SETTINGS_SCREEN) {
         SettingsScreen(
             restartApp = { route -> appState.clearAndNavigate(route) },
-            openScreen = { route -> appState.navigate(route) }
-        )
-    }
-
-    composable(BODY_METRICS_SCREEN) {
-        BodyMetricsScreen(
-            onBack = { appState.popUp() }
         )
     }
 
     composable(PROGRESS_SCREEN) {
         ProgressScreen(
             onBack = { appState.popUp() },
-            onScreenReady = { onScreenReady(PROGRESS_SCREEN) }
         )
     }
 }
