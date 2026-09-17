@@ -61,4 +61,27 @@ class SpacingScaleTest {
         assertTrue(small.md.value < compact.md.value)
         assertTrue(small.screen.value < compact.screen.value)
     }
+
+    @Test
+    fun landscapeNavBarTokens_areCompactAndProportioned() {
+        val compactLandscape = PixelFitSpacing.fromWindow(800, 360)
+        assertEquals(52f, compactLandscape.navBarLandscape.value, 0.01f)
+        assertEquals(40f, compactLandscape.navIconLandscape.value, 0.01f)
+        assertEquals(80f, compactLandscape.navBar.value, 0.01f)
+        assertEquals(72f, compactLandscape.navIcon.value, 0.01f)
+
+        // Verify landscape height is compact compared to portrait (saving vertical room)
+        assertTrue("Landscape nav bar should be much shorter than portrait", compactLandscape.navBarLandscape < compactLandscape.navBar)
+        assertTrue("Landscape nav icon should be smaller than portrait", compactLandscape.navIconLandscape < compactLandscape.navIcon)
+
+        // Verify icon fits comfortably within nav bar height with clearance
+        val verticalClearance = compactLandscape.navBarLandscape - compactLandscape.navIconLandscape
+        assertTrue("Nav icon should fit comfortably with vertical clearance", verticalClearance.value >= 8f)
+
+        // Verify orientation helper methods
+        assertEquals(compactLandscape.navBarLandscape, compactLandscape.navBarHeight(isLandscape = true))
+        assertEquals(compactLandscape.navBar, compactLandscape.navBarHeight(isLandscape = false))
+        assertEquals(compactLandscape.navIconLandscape, compactLandscape.navIconSize(isLandscape = true))
+        assertEquals(compactLandscape.navIcon, compactLandscape.navIconSize(isLandscape = false))
+    }
 }

@@ -80,6 +80,8 @@ data class PixelFitSpacing(
     val buttonWidthSm: Dp,
     val navBar: Dp,
     val navIcon: Dp,
+    val navBarLandscape: Dp = (52 * scale).dp,
+    val navIconLandscape: Dp = (40 * scale).dp,
     val dialogHeight: Dp,
     val cornerXs: Dp,
     val cornerSm: Dp,
@@ -91,6 +93,10 @@ data class PixelFitSpacing(
     fun scale(dp: Int): Dp = (dp * scale).dp
 
     fun scale(dp: Float): Dp = (dp * scale).dp
+
+    fun navBarHeight(isLandscape: Boolean): Dp = if (isLandscape) navBarLandscape else navBar
+
+    fun navIconSize(isLandscape: Boolean): Dp = if (isLandscape) navIconLandscape else navIcon
 
     companion object {
         fun fromWindow(widthDp: Int, heightDp: Int): PixelFitSpacing {
@@ -121,6 +127,8 @@ data class PixelFitSpacing(
                 buttonWidthSm = s(130),
                 navBar = s(80),
                 navIcon = s(72),
+                navBarLandscape = s(52),
+                navIconLandscape = s(40),
                 dialogHeight = s(250),
                 cornerXs = s(4),
                 cornerSm = s(8),

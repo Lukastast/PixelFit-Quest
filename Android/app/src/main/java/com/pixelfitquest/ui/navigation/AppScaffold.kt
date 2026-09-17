@@ -1,5 +1,6 @@
 package com.pixelfitquest.ui.navigation
 
+import android.content.res.Configuration
 import android.media.MediaPlayer
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -7,10 +8,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,12 +35,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -93,6 +106,17 @@ fun AppScaffold() {
     }
 
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val spacing = MaterialTheme.spacing
+    val navBarHeight = spacing.navBarHeight(isLandscape)
+    val navIconSize = spacing.navIconSize(isLandscape)
+
+    val navBarInsets = WindowInsets.safeDrawing.only(
+        WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+    )
+    val bottomInset = navBarInsets.asPaddingValues().calculateBottomPadding()
+    val totalNavBarHeight = navBarHeight + bottomInset
 
     Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -100,13 +124,23 @@ fun AppScaffold() {
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             bottomBar = {
                 if (hasBottomBar) {
-                    NavigationBar(
-                        modifier = Modifier
+                    val navBarModifier = if (isLandscape) {
+                        Modifier
+                            .height(totalNavBarHeight)
+                            .navBarLandscapeBackground()
+                    } else {
+                        Modifier
+                            .height(totalNavBarHeight)
                             .paint(
                                 painter = painterResource(id = R.drawable.navbar),
                                 contentScale = ContentScale.Crop
-                            ),
-                        containerColor = Color.Transparent
+                            )
+                    }
+
+                    NavigationBar(
+                        modifier = navBarModifier,
+                        containerColor = Color.Transparent,
+                        windowInsets = navBarInsets
                     ) {
                         val items = listOf(
                             BottomNavItem.Home,
@@ -116,19 +150,20 @@ fun AppScaffold() {
                             BottomNavItem.Settings,
                         )
 
-                        val spacing = MaterialTheme.spacing
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(spacing.navBar),
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                                .height(navBarHeight),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             items.forEach { item ->
                                 val interactionSource = remember { MutableInteractionSource() }
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
                                     modifier = Modifier
-                                        .height(spacing.navBar)
+                                        .height(navBarHeight)
                                         .clickable(
                                             interactionSource = interactionSource,
                                             indication = null,
@@ -147,7 +182,7 @@ fun AppScaffold() {
                                         ),
                                         contentDescription = item.label,
                                         tint = Color.Unspecified,
-                                        modifier = Modifier.size(spacing.navIcon),
+                                        modifier = Modifier.size(navIconSize),
                                     )
                                 }
                             }
@@ -354,6 +389,70 @@ fun NavGraphBuilder.pixelFitGraph(
     composable(PROGRESS_SCREEN) {
         ProgressScreen(
             onBack = { appState.popUp() },
+        )
+    }
+}
+
+/**
+ * Renders the pixel-art stone navbar background (R.drawable.navbar) without distortion
+ * across wide landscape screens using a 3-patch technique:
+ * - Preserves the left and right decorative rounded caps with moss/vines without stretching
+ * - Seamlessly stretches the uniform stone body across the middle width
+ * - Keeps the top highlight border and bottom shadow border at their full vertical height
+ * - Eliminates transparent canvas margins from the source image
+ */
+@Composable
+private fun Modifier.navBarLandscapeBackground(): Modifier {
+    val navBarBitmap = ImageBitmap.imageResource(id = R.drawable.navbar)
+    return this.drawBehind {
+        val dstWidth = size.width.toInt()
+        val dstHeight = size.height.toInt()
+        if (dstWidth <= 0 || dstHeight <= 0) return@drawBehind
+
+        // Active content bounds within navbar.png (1200x168):
+        // Bounding box of the stone bar: x in [195..990] (width 795), y in [4..166] (height 162)
+        val srcLeft = 195
+        val srcRight = 990
+        val srcTop = 4
+        val srcBottom = 166
+        val srcHeight = srcBottom - srcTop // 162
+        val capWidth = 45 // Width of rounded corner caps with moss/vines (195..240 and 945..990)
+
+        val scaleY = dstHeight.toFloat() / srcHeight.toFloat()
+        val scaledCapWidth = (capWidth * scaleY).toInt().coerceAtMost(dstWidth / 2)
+        val centerDstWidth = (dstWidth - 2 * scaledCapWidth).coerceAtLeast(0)
+
+        // 1. Left decorative cap
+        drawImage(
+            image = navBarBitmap,
+            srcOffset = IntOffset(srcLeft, srcTop),
+            srcSize = IntSize(capWidth, srcHeight),
+            dstOffset = IntOffset(0, 0),
+            dstSize = IntSize(scaledCapWidth, dstHeight),
+            filterQuality = FilterQuality.None
+        )
+
+        // 2. Center stone bar (stretches seamlessly across the width)
+        if (centerDstWidth > 0) {
+            val centerSrcWidth = (srcRight - capWidth) - (srcLeft + capWidth)
+            drawImage(
+                image = navBarBitmap,
+                srcOffset = IntOffset(srcLeft + capWidth, srcTop),
+                srcSize = IntSize(centerSrcWidth, srcHeight),
+                dstOffset = IntOffset(scaledCapWidth, 0),
+                dstSize = IntSize(centerDstWidth, dstHeight),
+                filterQuality = FilterQuality.None
+            )
+        }
+
+        // 3. Right decorative cap
+        drawImage(
+            image = navBarBitmap,
+            srcOffset = IntOffset(srcRight - capWidth, srcTop),
+            srcSize = IntSize(capWidth, srcHeight),
+            dstOffset = IntOffset(dstWidth - scaledCapWidth, 0),
+            dstSize = IntSize(scaledCapWidth, dstHeight),
+            filterQuality = FilterQuality.None
         )
     }
 }

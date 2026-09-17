@@ -3,8 +3,14 @@ package com.pixelfitquest.feature.workout
 import android.content.Context
 import android.hardware.SensorManager
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -285,6 +291,23 @@ fun WorkoutScreen(
             }
         }
 
+        val isRecording = state.phase == WorkoutPhase.Recording
+        val workoutBob = if (isRecording) {
+            val transition = rememberInfiniteTransition(label = "workoutMotion")
+            val bob by transition.animateFloat(
+                initialValue = -10f,
+                targetValue = 10f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(500, easing = FastOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+                label = "workoutBob",
+            )
+            bob
+        } else {
+            0f
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -292,7 +315,9 @@ fun WorkoutScreen(
             contentAlignment = Alignment.BottomCenter,
         ) {
             CharacterIdleAnimation(
-                modifier = Modifier.size(characterSize),
+                modifier = Modifier
+                    .size(characterSize)
+                    .graphicsLayer { translationY = workoutBob },
                 gender = characterData.gender,
                 variant = characterData.variant,
                 isAnimating = true,

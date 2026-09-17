@@ -23,6 +23,8 @@ data class UserProfileEntity(
     val characterGender: String = "male",
     val characterVariant: String = "basic",
     val unlockedVariantsCsv: String = "basic",
+    val equippedHomeUpgrade: String = "",
+    val unlockedHomeUpgradesCsv: String = "",
 ) {
     fun toUserData(): UserData = UserData(
         height = height,
@@ -42,6 +44,11 @@ data class UserProfileEntity(
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .ifEmpty { listOf("basic") },
+        equippedHomeUpgrade = equippedHomeUpgrade.takeIf { it.isNotBlank() },
+        unlockedHomeUpgrades = unlockedHomeUpgradesCsv
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() },
     )
 
     companion object {

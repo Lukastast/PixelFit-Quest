@@ -9,11 +9,12 @@ enum class DwellingTier(
     TENT("dwelling_tent", "Campfire Tent", 5),
     SHACK("dwelling_shack", "Wooden Shack", 10),
     COTTAGE("dwelling_cottage", "Stone Cottage", 15),
-    CASTLE("dwelling_castle", "Grand Keep", 25);
+    CASTLE("dwelling_castle", "Grand Keep", 25),
+    GYM("dwelling_gym", "Iron Gym", Int.MAX_VALUE);
 
     companion object {
         fun forLevel(level: Int): DwellingTier =
-            entries.lastOrNull { level >= it.minLevel } ?: TARP
+            entries.filter { it != GYM }.lastOrNull { level >= it.minLevel } ?: TARP
     }
 }
 

@@ -41,4 +41,22 @@ class DwellingTierTest {
         pose = pose.next()
         assertEquals(CharacterPose.STANDING, pose)
     }
+
+    @Test
+    fun gymDwelling_notUnlockedViaLevelProgression() {
+        assertEquals("dwelling_gym", DwellingTier.GYM.id)
+        for (level in 1..50) {
+            org.junit.Assert.assertNotEquals(DwellingTier.GYM, DwellingTier.forLevel(level))
+        }
+    }
+
+    @Test
+    fun gymDwelling_visualsAndAnchorsConfigured() {
+        assertEquals(com.pixelfitquest.R.drawable.dwelling_gym_landscape, DwellingVisuals.landscapeBgRes(DwellingTier.GYM))
+        val standAnchor = DwellingVisuals.characterAnchor(DwellingTier.GYM, CharacterPose.STANDING, isLandscape = true)
+        val sitAnchor = DwellingVisuals.characterAnchor(DwellingTier.GYM, CharacterPose.SITTING, isLandscape = true)
+        org.junit.Assert.assertNotEquals(standAnchor, sitAnchor)
+        assertEquals(0.32f, standAnchor.first, 0.01f)
+        assertEquals(0.64f, sitAnchor.first, 0.01f)
+    }
 }

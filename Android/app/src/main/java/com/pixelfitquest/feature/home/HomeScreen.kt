@@ -154,7 +154,11 @@ fun HomeScreen(
     }
 
     val level = levelsState.progress.level
-    val dwellingTier = DwellingTier.forLevel(level)
+    val dwellingTier = if (characterData.equippedHomeUpgrade == "dwelling_gym") {
+        DwellingTier.GYM
+    } else {
+        DwellingTier.forLevel(level)
+    }
     val coins = userData?.coins ?: 0
     val streak = weeklyStreak.currentStreakWeeks
     val healthMetrics by viewModel.healthMetrics.collectAsState()

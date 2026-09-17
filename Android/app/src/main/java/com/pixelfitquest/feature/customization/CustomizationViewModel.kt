@@ -63,6 +63,8 @@ class CustomizationViewModel @Inject constructor(
         const val ARM_CM_MIN = 20
         const val ARM_CM_MAX = 120
         const val ARM_CM_DEFAULT = 70
+        const val GYM_UPGRADE_ID = "dwelling_gym"
+        const val GYM_UPGRADE_PRICE = 150
     }
 
     fun updateGender(gender: String) {
@@ -89,6 +91,30 @@ class CustomizationViewModel @Inject constructor(
                 unlockVariant(variant)
                 updateVariant(variant)
             }
+        }
+    }
+
+    fun buyHomeUpgrade(upgradeId: String = GYM_UPGRADE_ID, price: Int = GYM_UPGRADE_PRICE) {
+        viewModelScope.launch {
+            val gameData = userRepository.fetchUserDataOnce()
+            val current = _characterData.value
+            if (gameData != null && gameData.coins >= price && !current.unlockedHomeUpgrades.contains(upgradeId)) {
+                userRepository.updateUserData(mapOf("coins" to (gameData.coins - price)))
+                val newUnlocked = current.unlockedHomeUpgrades + upgradeId
+                _characterData.value = current.copy(
+                    unlockedHomeUpgrades = newUnlocked,
+                    equippedHomeUpgrade = upgradeId,
+                )
+                saveData()
+            }
+        }
+    }
+
+    fun equipHomeUpgrade(upgradeId: String?) {
+        val current = _characterData.value
+        if (upgradeId == null || current.unlockedHomeUpgrades.contains(upgradeId)) {
+            _characterData.value = current.copy(equippedHomeUpgrade = upgradeId)
+            saveData()
         }
     }
 

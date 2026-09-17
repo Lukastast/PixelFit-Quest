@@ -32,11 +32,14 @@ import com.pixelfitquest.feature.customization.CustomizationViewModel.Companion.
 import com.pixelfitquest.feature.customization.CustomizationViewModel.Companion.HEIGHT_CM_MIN
 import com.pixelfitquest.feature.levels.LevelsViewModel
 import com.pixelfitquest.feature.levels.cosmetics.AvatarSkinBridge
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 import kotlin.math.roundToInt
 
-private enum class CustomizationTab { Character, Stats }
+private enum class CustomizationTab { Character, Home, Stats }
 
 @Composable
 fun CustomizationScreen(
@@ -118,6 +121,14 @@ fun CustomizationScreen(
                 },
                 onBuy = { viewModel.buyVariant(currentVariant, 100) },
             )
+            CustomizationTab.Home -> HomeUpgradePanel(
+                coins = userData?.coins ?: 0,
+                isGymUnlocked = characterData.unlockedHomeUpgrades.contains(CustomizationViewModel.GYM_UPGRADE_ID),
+                isGymEquipped = characterData.equippedHomeUpgrade == CustomizationViewModel.GYM_UPGRADE_ID,
+                onBuyGym = { viewModel.buyHomeUpgrade(CustomizationViewModel.GYM_UPGRADE_ID, CustomizationViewModel.GYM_UPGRADE_PRICE) },
+                onEquipGym = { viewModel.equipHomeUpgrade(CustomizationViewModel.GYM_UPGRADE_ID) },
+                onEquipDefault = { viewModel.equipHomeUpgrade(null) },
+            )
             CustomizationTab.Stats -> StatsPanel(
                 heightCm = userData?.height ?: 178,
                 armLengthCm = userData?.armLength?.roundToInt() ?: ARM_CM_DEFAULT,
@@ -156,7 +167,26 @@ private fun CustomizationTabBar(
                 text = stringResource(R.string.customization_tab_character),
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
+                fontSize = 13.sp,
+            )
+        }
+        PixelArtButton(
+            onClick = { onSelect(CustomizationTab.Home) },
+            imageRes = if (selected == CustomizationTab.Home) {
+                R.drawable.button_clicked
+            } else {
+                R.drawable.button_unclicked
+            },
+            pressedRes = R.drawable.button_clicked,
+            modifier = Modifier
+                .weight(1f)
+                .height(spacing.scale(50)),
+        ) {
+            Text(
+                text = stringResource(R.string.customization_tab_home),
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
             )
         }
         PixelArtButton(
@@ -175,8 +205,129 @@ private fun CustomizationTabBar(
                 text = stringResource(R.string.customization_tab_stats),
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
+                fontSize = 13.sp,
             )
+        }
+    }
+}
+
+@Composable
+private fun HomeUpgradePanel(
+    coins: Int,
+    isGymUnlocked: Boolean,
+    isGymEquipped: Boolean,
+    onBuyGym: () -> Unit,
+    onEquipGym: () -> Unit,
+    onEquipDefault: () -> Unit,
+) {
+    val spacing = MaterialTheme.spacing
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        CustomizationCard {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(spacing.md),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.gym_upgrade_title),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontSize = 16.sp,
+                )
+
+                Spacer(modifier = Modifier.height(spacing.xs))
+
+                Text(
+                    text = stringResource(R.string.gym_upgrade_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.85f),
+                    textAlign = TextAlign.Center,
+                    fontSize = 11.sp,
+                    modifier = Modifier.padding(horizontal = spacing.sm),
+                )
+
+                Spacer(modifier = Modifier.height(spacing.sm))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.85f)
+                        .aspectRatio(16f / 9f)
+                        .clip(RoundedCornerShape(spacing.cornerSm)),
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.dwelling_gym_landscape),
+                        contentDescription = "Iron Gym Preview",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(spacing.sm))
+
+                val buttonModifier = Modifier.size(spacing.scale(200), spacing.buttonHeight)
+                if (isGymUnlocked) {
+                    if (isGymEquipped) {
+                        PixelArtButton(
+                            onClick = onEquipDefault,
+                            imageRes = R.drawable.button_unclicked,
+                            pressedRes = R.drawable.button_clicked,
+                            modifier = buttonModifier,
+                        ) {
+                            Text(stringResource(R.string.gym_upgrade_use_default), color = Color.White)
+                        }
+                        Spacer(modifier = Modifier.height(spacing.xxs))
+                        Text(
+                            text = stringResource(R.string.gym_upgrade_equipped),
+                            color = Color(0xFFFFD700),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    } else {
+                        PixelArtButton(
+                            onClick = onEquipGym,
+                            imageRes = R.drawable.button_unclicked,
+                            pressedRes = R.drawable.button_clicked,
+                            modifier = buttonModifier,
+                        ) {
+                            Text(stringResource(R.string.gym_upgrade_equip), color = Color.White)
+                        }
+                    }
+                } else {
+                    val canAfford = coins >= CustomizationViewModel.GYM_UPGRADE_PRICE
+                    PixelArtButton(
+                        onClick = { if (canAfford) onBuyGym() },
+                        imageRes = if (canAfford) R.drawable.button_unclicked else R.drawable.button_clicked,
+                        pressedRes = R.drawable.button_clicked,
+                        modifier = buttonModifier,
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("${CustomizationViewModel.GYM_UPGRADE_PRICE} ")
+                            Image(
+                                painter = painterResource(R.drawable.coin),
+                                contentDescription = null,
+                                modifier = Modifier.size(MaterialTheme.spacing.md),
+                            )
+                            Text(stringResource(R.string.coins_label))
+                        }
+                    }
+                    if (!canAfford) {
+                        Spacer(modifier = Modifier.height(spacing.xxs))
+                        Text(
+                            text = stringResource(R.string.gym_upgrade_not_enough_coins),
+                            color = Color.Red.copy(alpha = 0.85f),
+                            fontSize = 11.sp,
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -424,24 +575,6 @@ private fun VariantCarousel(spriteKey: String, onPrevious: () -> Unit, onNext: (
                 pressedRes = R.drawable.clicked_customization_button_right,
                 modifier = Modifier.size(spacing.scale(40))
             ) {}
-        }
-
-        // Hybrid bob+slide preview (#141) — IdleAnimation kept above; flag toggles prototype.
-        if (SHOW_BOB_SLIDE_PREVIEW) {
-            Spacer(modifier = Modifier.height(spacing.xs))
-            Text(
-                text = "Bob+slide preview",
-                color = Color.White.copy(alpha = 0.8f),
-                fontSize = 10.sp
-            )
-            BobSlideCharacterPreview(spriteKey = spriteKey)
-            Spacer(modifier = Modifier.height(spacing.xs))
-            Text(
-                text = "Cape Hero walk (Gemini)",
-                color = Color.White.copy(alpha = 0.8f),
-                fontSize = 10.sp
-            )
-            CapeHeroWalkPreview()
         }
     }
 }
