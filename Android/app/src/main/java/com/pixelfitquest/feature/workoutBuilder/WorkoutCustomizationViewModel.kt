@@ -1,5 +1,6 @@
 package com.pixelfitquest.feature.workoutBuilder
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.feature.customization.model.CustomizationUiState
@@ -18,8 +19,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WorkoutCustomizationViewModel @Inject constructor(
-    private val templateRepository: WorkoutTemplateRepository
+    private val templateRepository: WorkoutTemplateRepository,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
+    private val initialTemplateId: String? = savedStateHandle.get<String>("templateId")
 
     private val _uiState = MutableStateFlow(CustomizationUiState())
     val uiState: StateFlow<CustomizationUiState> = _uiState.asStateFlow()
@@ -31,6 +35,12 @@ class WorkoutCustomizationViewModel @Inject constructor(
         viewModelScope.launch {
             templateRepository.getTemplates().collectLatest { templatesList ->
                 _templates.value = templatesList
+                if (!initialTemplateId.isNullOrBlank() && _uiState.value.editingTemplateId == null) {
+                    val template = templatesList.firstOrNull { it.id == initialTemplateId }
+                    if (template != null) {
+                        loadTemplate(template)
+                    }
+                }
             }
         }
     }
@@ -112,13 +122,29 @@ class WorkoutCustomizationViewModel @Inject constructor(
                     editMode = false,
                     editingTemplateId = null,
                     selections = emptyMap(),
-                    templateName = ""
+                    templateName = "",
+                    saveSuccess = true
                 )
             } catch (e: Exception) {
                 _uiState.value = state.copy(
                     isSaving = false,
-                    error = e.message
+                    error = e.message,
+                    saveSuccess = false
                 )
+            }
+        }
+    }
+
+    fun resetSaveSuccess() {
+        _uiState.value = _uiState.value.copy(saveSuccess = false)
+    }
+
+    fun loadTemplateById(id: String) {
+        viewModelScope.launch {
+            val template = _templates.value.firstOrNull { it.id == id }
+                ?: templateRepository.fetchTemplatesOnce().firstOrNull { it.id == id }
+            if (template != null) {
+                loadTemplate(template)
             }
         }
     }

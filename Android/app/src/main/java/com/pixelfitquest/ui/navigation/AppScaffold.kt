@@ -75,16 +75,15 @@ fun AppScaffold() {
     val globalSettingsViewModel: GlobalSettingsViewModel = hiltViewModel()
     val userSettings by globalSettingsViewModel.userRepository.getUserData().collectAsState(initial = null)
 
-    val hasBottomBar = currentRoute in listOf(
-        HOME_SCREEN,
-        WORKOUTS_HISTORY_SCREEN,
-        HEALTH_CENTER_SCREEN,
-        CUSTOMIZATION_SCREEN,
-        SETTINGS_SCREEN,
-        WORKOUT_SCREEN,
-        WORKOUT_CUSTOMIZATION_SCREEN,
-        PROGRESS_SCREEN,
-    )
+    val hasBottomBar = currentRoute?.let { route ->
+        route == HOME_SCREEN ||
+        route == WORKOUTS_HISTORY_SCREEN ||
+        route == HEALTH_CENTER_SCREEN ||
+        route == CUSTOMIZATION_SCREEN ||
+        route == SETTINGS_SCREEN ||
+        route == PROGRESS_SCREEN ||
+        route.startsWith(WORKOUT_CUSTOMIZATION_SCREEN)
+    } ?: false
 
     var settingsLoaded by remember { mutableStateOf(false) }
     LaunchedEffect(userSettings) {
@@ -140,7 +139,11 @@ fun AppScaffold() {
                                 ) {
                                     Icon(
                                         painter = painterResource(
-                                            id = if (currentRoute == item.route) item.selectedIcon else item.unSelectedIcon
+                                            id = if (currentRoute == item.route || (item == BottomNavItem.Workouts && currentRoute.startsWith(WORKOUT_CUSTOMIZATION_SCREEN))) {
+                                                item.selectedIcon
+                                            } else {
+                                                item.unSelectedIcon
+                                            }
                                         ),
                                         contentDescription = item.label,
                                         tint = Color.Unspecified,
@@ -245,6 +248,14 @@ fun NavGraphBuilder.pixelFitGraph(
             },
             onStartNewWorkout = {
                 appState.navigate(WORKOUT_CUSTOMIZATION_SCREEN)
+            },
+            onEditTemplate = { templateId ->
+                appState.navigate("$WORKOUT_CUSTOMIZATION_SCREEN?templateId=$templateId")
+            },
+            onStartWorkout = { plan, templateName ->
+                val gson = Gson()
+                val planJson = gson.toJson(plan)
+                appState.navigate("$WORKOUT_SCREEN/$planJson/$templateName")
             }
         )
     }
@@ -312,12 +323,24 @@ fun NavGraphBuilder.pixelFitGraph(
         CustomizationScreen()
     }
 
-    composable(WORKOUT_CUSTOMIZATION_SCREEN) {
+    composable(
+        route = "$WORKOUT_CUSTOMIZATION_SCREEN?templateId={templateId}",
+        arguments = listOf(
+            navArgument("templateId") {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            }
+        )
+    ) {
         WorkoutCustomizationScreen(
             onStartWorkout = { plan, templateName ->
                 val gson = Gson()
                 val planJson = gson.toJson(plan)
                 appState.navigate("$WORKOUT_SCREEN/$planJson/$templateName")
+            },
+            onBack = {
+                appState.popUp()
             }
         )
     }
