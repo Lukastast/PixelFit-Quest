@@ -2,7 +2,10 @@ package com.pixelfitquest.feature.home
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.pixelfitquest.feature.customization.model.CharacterData
 import com.pixelfitquest.feature.home.model.Achievement
+import com.pixelfitquest.feature.home.model.CharacterPose
+import com.pixelfitquest.feature.home.model.TimeOfDayProvider
 import com.pixelfitquest.feature.home.model.achievementsList
 import com.pixelfitquest.feature.home.model.missionsPool
 import com.pixelfitquest.feature.home.model.rewardsPool
@@ -48,6 +51,9 @@ class HomeViewModel @Inject constructor(
     private val _userData = MutableStateFlow<UserData?>(null)
     val userData: StateFlow<UserData?> = _userData.asStateFlow()
 
+    private val _characterData = MutableStateFlow(CharacterData())
+    val characterData: StateFlow<CharacterData> = _characterData.asStateFlow()
+
     private val _currentMaxExp = MutableStateFlow(100)
     val currentMaxExp: StateFlow<Int> = _currentMaxExp.asStateFlow()
 
@@ -73,11 +79,8 @@ class HomeViewModel @Inject constructor(
 
     private val healthAwardMutex = Mutex()
 
-    private val _rank = MutableStateFlow(0)
-    val rank: StateFlow<Int> = _rank.asStateFlow()
-
-    private val _totalUsers = MutableStateFlow(0)
-    val totalUsers: StateFlow<Int> = _totalUsers.asStateFlow()
+    private val _characterPose = MutableStateFlow(TimeOfDayProvider.getDefaultPoseForCurrentTime())
+    val characterPose: StateFlow<CharacterPose> = _characterPose.asStateFlow()
 
     private val _dailyMissions = MutableStateFlow(listOf<Pair<String, String>>())
     val dailyMissions: StateFlow<List<Pair<String, String>>> = _dailyMissions.asStateFlow()
@@ -91,8 +94,13 @@ class HomeViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _leaderboardLocked = MutableStateFlow(true)
-    val leaderboardLocked: StateFlow<Boolean> = _leaderboardLocked.asStateFlow()
+    fun cyclePose() {
+        _characterPose.value = _characterPose.value.next()
+    }
+
+    fun setPose(pose: CharacterPose) {
+        _characterPose.value = pose
+    }
 
     fun initialize() {
         refreshHealthMetrics()
@@ -100,7 +108,6 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-                _leaderboardLocked.value = !cloudSyncPolicy.isLeaderboardEnabled()
 
                 val data = userRepository.fetchUserDataOnce() ?: UserData()
                 _userData.value = data
@@ -113,9 +120,6 @@ class HomeViewModel @Inject constructor(
                 weeklyStreakRepository.reconcile()
 
                 fetchCompletedWorkouts()
-                if (cloudSyncPolicy.isLeaderboardEnabled()) {
-                    fetchLeaderboard()
-                }
                 generateDailyMissions()
                 refreshHealthMetrics()
 
@@ -162,6 +166,17 @@ class HomeViewModel @Inject constructor(
                 Log.e("HomeVM", "Load user data error", e)
             }
         }
+        viewModelScope.launch {
+            try {
+                userRepository.getCharacterData().collect { data ->
+                    if (data != null) {
+                        _characterData.value = data
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w("HomeVM", "Load character data error", e)
+            }
+        }
     }
 
     fun addCoins(amount: Int) {
@@ -195,21 +210,6 @@ class HomeViewModel @Inject constructor(
             }
         } catch (e: Exception) {
             Log.i("HomeVM", "Streak XP kept on device until account is available")
-        }
-    }
-
-    private suspend fun fetchLeaderboard() {
-        try {
-            val leaderboard = userRepository.getLeaderboard()
-            val uid = accountService.currentUser.first()?.id ?: return
-            val position = leaderboard.indexOfFirst { it.first == uid } + 1
-            if (position > 0) {
-                _rank.value = position
-                _totalUsers.value = leaderboard.size
-            }
-        } catch (e: Exception) {
-            _error.value = e.message ?: "Failed to fetch leaderboard"
-            Log.e("HomeVM", "Fetch leaderboard error", e)
         }
     }
 

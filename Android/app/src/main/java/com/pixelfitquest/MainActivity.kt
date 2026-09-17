@@ -20,8 +20,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Lock to portrait
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        // Dynamic per-screen orientation (Home allows portrait + landscape)
 
         setContent {
             PixelFitQuestTheme {

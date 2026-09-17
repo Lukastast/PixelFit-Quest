@@ -59,6 +59,8 @@ import com.pixelfitquest.feature.splash.SplashScreen
 import com.pixelfitquest.feature.workoutBuilder.WorkoutCustomizationScreen
 import com.pixelfitquest.feature.workoutResume.WorkoutResumeScreen
 import com.pixelfitquest.feature.progress.ProgressScreen
+import com.pixelfitquest.feature.workouts.WorkoutsHistoryScreen
+import com.pixelfitquest.feature.health.HealthCenterScreen
 import com.pixelfitquest.feature.workout.WorkoutScreen
 import com.pixelfitquest.viewmodel.GlobalSettingsViewModel
 import com.pixelfitquest.feature.workoutResume.WorkoutResumeViewModel
@@ -75,9 +77,11 @@ fun AppScaffold() {
 
     val hasBottomBar = currentRoute in listOf(
         HOME_SCREEN,
-        WORKOUT_SCREEN,
+        WORKOUTS_HISTORY_SCREEN,
+        HEALTH_CENTER_SCREEN,
         CUSTOMIZATION_SCREEN,
         SETTINGS_SCREEN,
+        WORKOUT_SCREEN,
         WORKOUT_CUSTOMIZATION_SCREEN,
         PROGRESS_SCREEN,
     )
@@ -107,9 +111,10 @@ fun AppScaffold() {
                     ) {
                         val items = listOf(
                             BottomNavItem.Home,
-                            BottomNavItem.Settings,
+                            BottomNavItem.Workouts,
+                            BottomNavItem.HealthCenter,
                             BottomNavItem.Customization,
-                            BottomNavItem.WorkoutCustomization
+                            BottomNavItem.Settings,
                         )
 
                         val spacing = MaterialTheme.spacing
@@ -231,6 +236,21 @@ fun NavGraphBuilder.pixelFitGraph(
             restartApp = { route -> appState.clearAndNavigate(route) },
             navController = appState.navController,
         )
+    }
+
+    composable(WORKOUTS_HISTORY_SCREEN) {
+        WorkoutsHistoryScreen(
+            onWorkoutClick = { workoutId ->
+                appState.navigate("workout_resume/$workoutId")
+            },
+            onStartNewWorkout = {
+                appState.navigate(WORKOUT_CUSTOMIZATION_SCREEN)
+            }
+        )
+    }
+
+    composable(HEALTH_CENTER_SCREEN) {
+        HealthCenterScreen()
     }
 
     composable(ACHIEVEMENTS_SCREEN) {

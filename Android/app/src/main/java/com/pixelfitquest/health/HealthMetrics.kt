@@ -6,6 +6,8 @@ data class HealthMetrics(
     val steps: Long = 0L,
     val stepGoal: Int = DEFAULT_STEP_GOAL,
     val heartRateBpm: Long? = null,
+    val sleepMinutes: Long? = null,
+    val caloriesBurned: Long? = null,
 ) {
     val progressPercent: Int
         get() = if (stepGoal <= 0) {

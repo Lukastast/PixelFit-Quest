@@ -1,6 +1,6 @@
 package com.pixelfitquest.feature.home
 
-import android.content.Context
+import android.content.res.Configuration
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
@@ -16,11 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,14 +30,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.health.connect.client.PermissionController
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -51,17 +42,13 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.pixelfitquest.R
-import com.pixelfitquest.components.molecules.WorkoutCard
-import com.pixelfitquest.feature.levels.HomeThemeBackdrop
+import com.pixelfitquest.feature.home.model.DwellingTier
 import com.pixelfitquest.feature.levels.LevelUpDialog
 import com.pixelfitquest.feature.levels.LevelsViewModel
 import com.pixelfitquest.feature.streak.WeeklyStreakDialog
 import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
-import com.pixelfitquest.health.HealthConnectIntents
 import com.pixelfitquest.health.HealthConnectStatus
-import com.pixelfitquest.ui.navigation.ACHIEVEMENTS_SCREEN
 import com.pixelfitquest.ui.navigation.LEVELS_SCREEN
-import com.pixelfitquest.ui.navigation.PROGRESS_SCREEN
 import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
@@ -82,6 +69,9 @@ fun HomeScreen(
     onScreenReady: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     val isLoading by viewModel.isLoading.collectAsState()
     val healthStatus by viewModel.healthStatus.collectAsState()
     val healthPermissionsGranted by viewModel.healthPermissionsGranted.collectAsState()
@@ -126,8 +116,9 @@ fun HomeScreen(
     }
 
     val userData by viewModel.userData.collectAsState()
+    val characterData by viewModel.characterData.collectAsState()
     val workouts by viewModel.workouts.collectAsState()
-
+    val characterPose by viewModel.characterPose.collectAsState()
     val levelsState by levelsViewModel.uiState.collectAsState()
 
     LaunchedEffect(userData?.level, userData?.exp) {
@@ -135,17 +126,15 @@ fun HomeScreen(
         levelsViewModel.importRemoteIfEmpty(data.level, data.exp)
     }
 
-
-
     val weeklyStreak by weeklyStreakViewModel.snapshot.collectAsState()
     var showStreakDialog by remember { mutableStateOf(false) }
+    var showMissionsDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(isLoading) {
         if (!isLoading) {
             onScreenReady()
         }
     }
-
 
     if (isLoading) {
         Box(
@@ -165,18 +154,13 @@ fun HomeScreen(
     }
 
     val level = levelsState.progress.level
+    val dwellingTier = DwellingTier.forLevel(level)
     val coins = userData?.coins ?: 0
     val streak = weeklyStreak.currentStreakWeeks
     val healthMetrics by viewModel.healthMetrics.collectAsState()
     val todaySteps = healthMetrics.steps
-    val stepGoal = healthMetrics.stepGoal
-    val heartRateBpm = healthMetrics.heartRateBpm
-    val rank by viewModel.rank.collectAsState()
-    val totalUsers by viewModel.totalUsers.collectAsState()
-    val leaderboardLocked by viewModel.leaderboardLocked.collectAsState()
     val dailyMissions by viewModel.dailyMissions.collectAsState()
     val completedMissions by viewModel.completedMissions.collectAsState()
-    val progressEntryLabel = stringResource(R.string.progress_home_entry)
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -204,401 +188,73 @@ fun HomeScreen(
     val spacing = MaterialTheme.spacing
 
     Box(modifier = Modifier.fillMaxSize()) {
-        HomeThemeBackdrop(themeId = levelsState.equipped.homeThemeId)
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = spacing.screen, vertical = spacing.md),
-            verticalArrangement = Arrangement.spacedBy(spacing.xs),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(spacing.barSm)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.info_background),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.Center),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(id = R.drawable.coin),
-                        contentDescription = stringResource(R.string.coin_icon_desc),
-                        modifier = Modifier.size(spacing.scale(20))
-                    )
-                    Spacer(modifier = Modifier.padding(horizontal = spacing.xxs))
-                    Text(
-                        text = stringResource(R.string.coins_count, coins),
-                        fontSize = 14.sp,
-                        color = Color.White
-                    )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { showStreakDialog = true }
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.streak),
-                        contentDescription = stringResource(
-                            R.string.weekly_streak_hud_desc,
-                            streak
-                        ),
-                        modifier = Modifier.size(spacing.scale(20))
-                    )
-                    Spacer(modifier = Modifier.padding(horizontal = spacing.xxxs))
-                    Text(
-                        text = "$streak",
-                        fontSize = 14.sp,
-                        color = Color.White
-                    )
-                }
-                Text(
-                    text = stringResource(R.string.level_display, displayLevel),
-                    fontSize = 14.sp,
-                    color = Color.White,
-                    modifier = Modifier.clickable {
-                        navController.navigate(LEVELS_SCREEN)
-                    }
+        if (isLandscape) {
+            // Landscape Orientation Layout
+            Row(modifier = Modifier.fillMaxSize()) {
+                StatsHudColumn(
+                    coins = coins,
+                    streak = streak,
+                    displayLevel = displayLevel,
+                    progressIndex = progressIndex,
+                    onStreakClick = { showStreakDialog = true },
+                    onLevelClick = { navController.navigate(LEVELS_SCREEN) },
+                    onMissionsClick = { showMissionsDialog = true },
+                    modifier = Modifier.padding(start = spacing.sm, top = spacing.xs, bottom = spacing.xs)
                 )
-                Box(
+
+                DwellingScene(
+                    tier = dwellingTier,
+                    pose = characterPose,
+                    gender = characterData.gender,
+                    variant = characterData.variant,
+                    isLandscape = true,
+                    onPoseCycle = { viewModel.cyclePose() },
                     modifier = Modifier
-                        .size(width = spacing.scale(80), height = spacing.md)
-                        .clickable { navController.navigate(LEVELS_SCREEN) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    val xpPainter = when (progressIndex) {
-                        0 -> painterResource(id = R.drawable.xp_0_percent)
-                        1 -> painterResource(id = R.drawable.xp_20_percent)
-                        2 -> painterResource(id = R.drawable.xp_40_percent)
-                        3 -> painterResource(id = R.drawable.xp_60_percent)
-                        4 -> painterResource(id = R.drawable.xp_80_percent)
-                        5 -> painterResource(id = R.drawable.xp_100_percent)
-                        else -> painterResource(id = R.drawable.xp_0_percent)
-                    }
-                    Image(
-                        painter = xpPainter,
-                        contentDescription = stringResource(R.string.xp_bar_desc),
-                        modifier = Modifier.matchParentSize()
-                    )
-                }
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(spacing.barMd)
-                .clickable {
-                    when (healthStatus) {
-                        HealthConnectStatus.AVAILABLE -> {
-                            if (healthPermissionsGranted) {
-                                viewModel.refreshHealthMetrics()
-                            } else {
-                                runCatching {
-                                    healthPermissionLauncher.launch(viewModel.healthPermissions)
-                                }
-                            }
-                        }
-                        HealthConnectStatus.UPDATE_REQUIRED -> {
-                            HealthConnectIntents.openPlayStore(context)
-                        }
-                        HealthConnectStatus.UNAVAILABLE -> Unit
-                    }
-                }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.info_background_higher),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
-            )
-            Column(
-                modifier = Modifier.align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = stringResource(R.string.steps_label),
-                    fontSize = 16.sp,
-                    color = Color.White,
-                    fontWeight = MaterialTheme.typography.titleMedium.fontWeight
-                )
-                Text(
-                    text = stringResource(R.string.steps_progress, todaySteps, stepGoal),
-                    fontSize = 18.sp,
-                    color = Color.White,
-                    fontWeight = MaterialTheme.typography.titleMedium.fontWeight
-                )
-                Text(
-                    text = stepsSubtitle(healthStatus, healthPermissionsGranted, heartRateBpm),
-                    fontSize = 12.sp,
-                    color = Color.White
-                )
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(spacing.barLg)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .width(spacing.scale(150))
+                        .weight(1f)
                         .fillMaxHeight()
-                ) {
-                    val rankBackground = when (rank) {
-                        1 -> R.drawable.first_place
-                        2 -> R.drawable.second_place
-                        3 -> R.drawable.third_place
-                        else -> R.drawable.fourth_and_more
-                    }
-                    Image(
-                        painter = painterResource(id = rankBackground),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
-                    )
-                    Column(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        if (leaderboardLocked) {
-                            Text(
-                                text = stringResource(R.string.leaderboard_pro_badge),
-                                fontSize = 16.sp,
-                                color = Color.White,
-                                fontWeight = MaterialTheme.typography.titleMedium.fontWeight
-                            )
-                            Text(
-                                text = stringResource(R.string.leaderboard_pro_hint),
-                                fontSize = 12.sp,
-                                color = Color.White,
-                                fontWeight = MaterialTheme.typography.titleMedium.fontWeight
-                            )
-                        } else {
-                            Text(
-                                text = ordinal(rank),
-                                fontSize = 16.sp,
-                                color = Color.White,
-                                fontWeight = MaterialTheme.typography.titleMedium.fontWeight
-                            )
-                            Text(
-                                text = stringResource(R.string.total_users_count, totalUsers),
-                                fontSize = 16.sp,
-                                color = Color.White,
-                                fontWeight = MaterialTheme.typography.titleMedium.fontWeight
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.width(spacing.md))
-                Image(
-                    painter = painterResource(id = R.drawable.achievement_button),
-                    contentDescription = stringResource(R.string.achievements_button_desc),
-                    modifier = Modifier
-                        .size(spacing.barLg)
-                        .clickable { navController.navigate(ACHIEVEMENTS_SCREEN) }
+                        .padding(start = spacing.xs)
                 )
             }
-        }
+        } else {
+            // Portrait Orientation Layout
+            Box(modifier = Modifier.fillMaxSize()) {
+                DwellingScene(
+                    tier = dwellingTier,
+                    pose = characterPose,
+                    gender = characterData.gender,
+                    variant = characterData.variant,
+                    isLandscape = false,
+                    onPoseCycle = { viewModel.cyclePose() },
+                    modifier = Modifier.fillMaxSize()
+                )
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(spacing.workoutRow)
-                .padding(horizontal = spacing.md),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Row(
+                StatsHudBar(
+                    coins = coins,
+                    streak = streak,
+                    displayLevel = displayLevel,
+                    progressIndex = progressIndex,
+                    onStreakClick = { showStreakDialog = true },
+                    onLevelClick = { navController.navigate(LEVELS_SCREEN) },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { navController.navigate(PROGRESS_SCREEN) }
-                        .padding(bottom = spacing.xs)
-                        .semantics { contentDescription = progressEntryLabel },
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.progress_home_entry),
-                        color = Color(0xFFFFD700),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = ">",
-                        color = Color(0xFFFFD700),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                        .align(Alignment.TopCenter)
+                        .padding(horizontal = spacing.screen, vertical = spacing.md)
+                )
+
+                // Quick Missions Access Button
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
+                        .align(Alignment.BottomEnd)
+                        .padding(spacing.md)
+                        .size(spacing.quickAccessIcon)
+                        .clickable { showMissionsDialog = true }
                 ) {
-                    if (workouts.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.no_workouts_yet),
-                            color = Color.White.copy(alpha = 0.7f),
-                            textAlign = TextAlign.Center
-                        )
-                    } else {
-                        LazyRow(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.spacedBy(spacing.sm, Alignment.CenterHorizontally),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            items(workouts) { workout ->
-                                WorkoutCard(
-                                    workout = workout,
-                                    onClick = {
-                                        navController.navigate("workout_resume/${workout.id}")
-                                    }
-                                )
-                            }
-                        }
-                    }
+                    Image(
+                        painter = painterResource(id = R.drawable.achievement_button),
+                        contentDescription = "Daily Missions",
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(spacing.missions)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.questloginboard_wider),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(spacing.md),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = stringResource(R.string.daily_missions_title),
-                    fontSize = 16.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(spacing.xs))
-                dailyMissions.forEach { (mission, reward) ->
-                    val isCompleted = completedMissions.contains(mission)
-                    val effectiveCompleted = isCompleted || when {
-                        mission.startsWith("Walk") -> {
-                            val target = mission.split(" ")[1].toLongOrNull() ?: 0
-                            todaySteps >= target
-                        }
-                        mission.startsWith("Complete") -> {
-                            val target = mission.split(" ")[1].toIntOrNull() ?: 0
-                            todaysWorkouts >= target
-                        }
-                        else -> false
-                    }
-
-                    val progressText = if (effectiveCompleted) {
-                        if (mission.startsWith("Walk")) {
-                            val target = mission.split(" ")[1].toLongOrNull() ?: 0
-                            "$target / $target"
-                        } else {
-                            val target = mission.split(" ")[1].toIntOrNull() ?: 0
-                            "$target / $target"
-                        }
-                    } else {
-                        if (mission.startsWith("Walk")) {
-                            val target = mission.split(" ")[1].toLongOrNull() ?: 0
-                            "$todaySteps / $target"
-                        } else {
-                            val target = mission.split(" ")[1].toIntOrNull() ?: 0
-                            "$todaysWorkouts / $target"
-                        }
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = spacing.scale(6)),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = mission,
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-
-                        Text(
-                            text = progressText,
-                            color = if (effectiveCompleted) Color(0xFF4CAF50) else Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = if (effectiveCompleted) FontWeight.Bold else FontWeight.Normal
-                        )
-
-                        val rewardParts = reward.split(":", limit = 2).map { it.trim() }
-                        val rewardType = if (rewardParts.size == 2) rewardParts[0].lowercase() else ""
-                        val rewardAmount = if (rewardParts.size == 2) rewardParts[1].toIntOrNull() ?: 0 else 0
-
-                        val isCoins = rewardType == "coins"
-                        val isExp = rewardType == "exp"
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "+$rewardAmount",
-                                color = Color(0xFFFFD700),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-
-                            Spacer(modifier = Modifier.width(spacing.xs))
-
-                            if (isCoins) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.coin),
-                                    contentDescription = stringResource(R.string.coins_reward_desc),
-                                    modifier = Modifier.size(spacing.md)
-                                )
-                            } else if (isExp) {
-                                Text(
-                                    text = stringResource(R.string.exp_label),
-                                    color = Color(0xFFFFD700),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         }
 
         if (showStreakDialog) {
@@ -606,6 +262,16 @@ fun HomeScreen(
                 snapshot = weeklyStreak,
                 onDismiss = { showStreakDialog = false },
                 onTargetChange = { weeklyStreakViewModel.setTargetSessionsPerWeek(it) }
+            )
+        }
+
+        if (showMissionsDialog) {
+            MissionsDialog(
+                dailyMissions = dailyMissions,
+                completedMissions = completedMissions,
+                todaySteps = todaySteps,
+                todaysWorkouts = todaysWorkouts,
+                onDismiss = { showMissionsDialog = false }
             )
         }
 
@@ -620,35 +286,4 @@ fun HomeScreen(
             )
         }
     }
-}
-
-@Composable
-private fun stepsSubtitle(
-    healthStatus: HealthConnectStatus,
-    permissionsGranted: Boolean,
-    heartRateBpm: Long?,
-): String {
-    return when {
-        healthStatus == HealthConnectStatus.UNAVAILABLE ->
-            stringResource(R.string.health_connect_unavailable_hint)
-        healthStatus == HealthConnectStatus.UPDATE_REQUIRED ->
-            stringResource(R.string.health_connect_update_hint)
-        !permissionsGranted ->
-            stringResource(R.string.health_connect_grant_hint)
-        heartRateBpm != null && heartRateBpm > 0L ->
-            stringResource(R.string.steps_hr_reward_hint, heartRateBpm)
-        else ->
-            stringResource(R.string.steps_reward_hint)
-    }
-}
-
-fun ordinal(i: Int): String {
-    val suffix = when {
-        i % 100 in 11..13 -> "th"
-        i % 10 == 1 -> "st"
-        i % 10 == 2 -> "nd"
-        i % 10 == 3 -> "rd"
-        else -> "th"
-    }
-    return "$i$suffix"
 }
