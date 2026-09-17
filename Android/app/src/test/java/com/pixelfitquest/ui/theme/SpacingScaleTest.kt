@@ -33,7 +33,7 @@ class SpacingScaleTest {
         val portrait = computeSpacingScale(widthDp = 360, heightDp = 800)
         val landscape = computeSpacingScale(widthDp = 800, heightDp = 360)
         assertEquals(portrait, landscape, 0.001f)
-        assertEquals(PixelFitWidthClass.Expanded, PixelFitWidthClass.fromWidthDp(800))
+        assertEquals(PixelFitWidthClass.Medium, PixelFitWidthClass.fromWidthDp(800))
     }
 
     @Test

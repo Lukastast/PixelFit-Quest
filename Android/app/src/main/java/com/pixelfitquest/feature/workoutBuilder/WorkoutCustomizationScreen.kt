@@ -53,8 +53,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
@@ -96,18 +99,20 @@ fun Modifier.simpleVerticalScrollbar(
 @Composable
 fun WorkoutCustomizationScreen(
     onStartWorkout: (WorkoutPlan, String?) -> Unit,
+    onBack: () -> Unit = {},
     modifier: Modifier = Modifier,
     onScreenReady: () -> Unit = {}
 ) {
     val viewModel: WorkoutCustomizationViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
-    val templates by viewModel.templates.collectAsState()
 
-    var selectedTemplateId by remember { mutableStateOf<String?>(null) }
     val spacing = MaterialTheme.spacing
-
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        onScreenReady()
+    }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
@@ -117,9 +122,12 @@ fun WorkoutCustomizationScreen(
         }
     }
 
-    LaunchedEffect(uiState.isSaving, uiState.editMode, uiState.error) {
-        if (!uiState.isSaving && !uiState.editMode && uiState.error == null) {
-            selectedTemplateId = null
+    LaunchedEffect(uiState.saveSuccess) {
+        if (uiState.saveSuccess) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar("Template saved!")
+            }
+            viewModel.resetSaveSuccess()
         }
     }
 
@@ -127,46 +135,69 @@ fun WorkoutCustomizationScreen(
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.Transparent),
-                    horizontalArrangement = Arrangement.Center
+                        .background(Color.Transparent)
+                        .padding(horizontal = spacing.md, vertical = spacing.xs),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (uiState.selections.isNotEmpty() && uiState.templateName.isNotBlank()) {
+                    if (uiState.isSaving) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        Spacer(modifier = Modifier.height(spacing.xs))
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(spacing.sm, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (uiState.selections.isNotEmpty() && uiState.templateName.isNotBlank()) {
+                            PixelArtButton(
+                                onClick = {
+                                    if (!uiState.isSaving && uiState.templateName.isNotBlank()) {
+                                        viewModel.saveTemplate()
+                                    }
+                                },
+                                imageRes = R.drawable.button_unclicked,
+                                pressedRes = R.drawable.button_clicked,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(spacing.buttonHeight)
+                            ) {
+                                Text(
+                                    text = if (uiState.editMode) {
+                                        stringResource(R.string.update_template)
+                                    } else {
+                                        stringResource(R.string.save_as_template)
+                                    },
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                        }
+
                         PixelArtButton(
                             onClick = {
-                                if (!uiState.isSaving && uiState.templateName.isNotBlank()) {
-                                    viewModel.saveTemplate()
+                                viewModel.getWorkoutPlan()?.let { plan ->
+                                    val templateName = uiState.templateName.ifBlank { "Workout" }
+                                    onStartWorkout(plan, templateName)
                                 }
                             },
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier.width(spacing.scale(200)).height(spacing.buttonHeight)
+                            modifier = Modifier
+                                .weight(if (uiState.selections.isNotEmpty() && uiState.templateName.isNotBlank()) 1.2f else 1f)
+                                .height(spacing.buttonHeight)
                         ) {
                             Text(
-                                if (uiState.editMode) stringResource(R.string.update_template) else stringResource(R.string.save_as_template)
+                                text = stringResource(R.string.start_workout),
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
                             )
                         }
-                    }
-
-                    PixelArtButton(
-                        onClick = {
-                            viewModel.getWorkoutPlan()?.let { plan ->
-                                val templateName = uiState.templateName.ifBlank { "Workout" }
-                                onStartWorkout(plan, templateName)
-                            }
-                        },
-                        imageRes = R.drawable.button_unclicked,
-                        pressedRes = R.drawable.button_clicked,
-                        modifier = Modifier.width(spacing.scale(250)).height(spacing.buttonHeight)
-                    ) {
-                        Text(stringResource(R.string.start_workout))
-                    }
-
-                    if (uiState.isSaving) {
-                        Spacer(modifier = Modifier.height(spacing.xs))
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
                 }
             },
@@ -176,10 +207,9 @@ fun WorkoutCustomizationScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
+                    .padding(bottom = paddingValues.calculateBottomPadding())
             ) {
-
-
+                // Top Header Bar with Back Navigation
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -192,17 +222,35 @@ fun WorkoutCustomizationScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.FillBounds
                     )
-                    Text(
-                        text = stringResource(R.string.customize_workout_title),
-                        style = typography.bodyMedium,
-                        color = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_arrow_back),
+                                contentDescription = stringResource(R.string.back_desc),
+                                tint = Color.White,
+                            )
+                        }
+                        Text(
+                            text = if (uiState.editMode) {
+                                stringResource(R.string.edit_template_name)
+                            } else {
+                                stringResource(R.string.create_workout_title)
+                            },
+                            style = typography.bodyMedium,
+                            color = Color.White,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.width(48.dp))
+                    }
                 }
 
-                Spacer(modifier = Modifier.padding(top = spacing.xs))
+                Spacer(modifier = Modifier.height(spacing.xs))
 
+                // Template Name Input (Visible when editing or when exercises are selected)
                 if (uiState.editMode || uiState.selections.isNotEmpty()) {
                     Box(
                         modifier = Modifier
@@ -224,7 +272,11 @@ fun WorkoutCustomizationScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = if (uiState.editMode) stringResource(R.string.edit_template_name) else stringResource(R.string.template_name_label),
+                                text = if (uiState.editMode) {
+                                    stringResource(R.string.edit_template_name)
+                                } else {
+                                    stringResource(R.string.template_name_label)
+                                },
                                 style = typography.bodyMedium,
                                 color = Color.White
                             )
@@ -247,6 +299,13 @@ fun WorkoutCustomizationScreen(
                                     singleLine = true,
                                     value = uiState.templateName,
                                     onValueChange = viewModel::setTemplateName,
+                                    placeholder = {
+                                        Text(
+                                            text = stringResource(R.string.default_workout_name),
+                                            color = Color.Black.copy(alpha = 0.5f),
+                                            style = typography.bodyMedium
+                                        )
+                                    },
                                     modifier = Modifier
                                         .fillMaxHeight()
                                         .fillMaxWidth(0.96f),
@@ -269,13 +328,12 @@ fun WorkoutCustomizationScreen(
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(spacing.md))
+                    Spacer(modifier = Modifier.height(spacing.xs))
                 }
-
-                Spacer(modifier = Modifier.height(spacing.md))
 
                 val exercisesListState = rememberLazyListState()
 
+                // Exercise Catalog Picker now gets the entire remaining screen height!
                 ExerciseCatalogPicker(
                     selections = uiState.selections,
                     listState = exercisesListState,
@@ -284,143 +342,10 @@ fun WorkoutCustomizationScreen(
                     },
                     onUpdateSets = viewModel::updateSets,
                     onUpdateWeight = viewModel::updateWeight,
-                    modifier = Modifier.weight(1.5f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
                 )
-
-                if (templates.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(spacing.md))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(spacing.scale(50))
-                            .padding(horizontal = spacing.md)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.info_background),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillBounds
-                        )
-                        Text(
-                            text = stringResource(R.string.your_templates_title),
-                            style = typography.bodyMedium,
-                            color = Color.White,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.padding(top = spacing.xs))
-
-                    val templatesListState = rememberLazyListState()
-
-                    LazyColumn(
-                        state = templatesListState,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = spacing.md)
-                            .padding(end = spacing.md)
-                            .padding(bottom = spacing.md)
-                            .simpleVerticalScrollbar(templatesListState, width = spacing.xs),
-                        verticalArrangement = Arrangement.spacedBy(spacing.xs)
-                    ) {
-                        items(templates, key = { it.id }) { template ->
-                            val totalSets =
-                                template.plan.items.sumOf { (it.sets.coerceAtLeast(1)) }
-                            Log.d("TemplateUI", "Template ${template.name}: total sets = $totalSets")
-
-                            val isSelected = template.id == selectedTemplateId
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(spacing.scale(72))
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.info_background_wider_workout),
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.FillBounds
-                                )
-                                if (isSelected) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.5f))
-                                    )
-                                }
-                                ListItem(
-                                    headlineContent = { Text(template.name, color = Color.Black) },
-                                    supportingContent = {
-                                        Text(
-                                            stringResource(R.string.template_stats, template.plan.items.size, totalSets),
-                                            color = Color.Black
-                                        )
-                                    },
-                                    trailingContent = {
-                                        Row {
-                                            IconButton(
-                                                onClick = {
-                                                    if (selectedTemplateId == template.id) {
-                                                        selectedTemplateId = null
-                                                        viewModel.clearTemplate()
-                                                    } else {
-                                                        selectedTemplateId = template.id
-                                                        viewModel.loadTemplate(template)
-                                                    }
-                                                }
-                                            ) {
-                                                Icon(
-                                                    Icons.Default.Edit,
-                                                    contentDescription = stringResource(R.string.edit_template_desc),
-                                                    tint = Color.Black
-                                                )
-                                            }
-                                            IconButton(
-                                                onClick = { viewModel.deleteTemplate(template.id) }
-                                            ) {
-                                                Icon(
-                                                    Icons.Default.Delete,
-                                                    contentDescription = stringResource(R.string.delete_template_desc),
-                                                    tint = Color.Black
-                                                )
-                                            }
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = null,
-                                            onClick = {
-                                                if (selectedTemplateId == template.id) {
-                                                    selectedTemplateId = null
-                                                    viewModel.clearTemplate()
-                                                } else {
-                                                    selectedTemplateId = template.id
-                                                    viewModel.loadTemplate(template)
-                                                }
-                                            }
-                                        ),
-                                    colors = ListItemDefaults.colors(
-                                        containerColor = Color.Transparent
-                                    )
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(
-                        text = stringResource(R.string.no_templates_msg),
-                        style = typography.bodyMedium,
-                        color = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(spacing.md)
-                    )
-                }
-
             }
         }
     }

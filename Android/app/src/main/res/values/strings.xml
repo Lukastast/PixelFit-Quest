@@ -278,6 +278,17 @@
     <string name="weight_input_label">Weight:</string>
     <string name="kg_unit">Kg</string>
     <string name="your_templates_title">Your Templates</string>
+    <string name="workouts_tab_templates">Templates</string>
+    <string name="workouts_tab_history">History</string>
+    <string name="start_custom_workout">⚔ Create Custom Workout</string>
+    <string name="start_new_workout">⚔ Start New Workout</string>
+    <string name="create_workout_title">Create Workout</string>
+    <string name="choose_workout_title">Create Workout</string>
+    <string name="imu_info_title">IMU Form Tracking</string>
+    <string name="imu_info_body">%1$d lifts available (%2$d IMU-enabled).\n\nIMU lifts automatically track your reps, range of motion, and tilt balance using sensors. Log-only lifts record your sets and weight.</string>
+    <string name="create_first_template_hint">No templates yet! Build a routine to quickly launch your favorite workouts.</string>
+    <string name="create_template_button">Create Template</string>
+    <string name="start_template">Start</string>
     <string name="template_stats">Exercises: %1$d | Sets: %2$d</string>
     <string name="edit_template_desc">Edit Template</string>
     <string name="delete_template_desc">Delete Template</string>

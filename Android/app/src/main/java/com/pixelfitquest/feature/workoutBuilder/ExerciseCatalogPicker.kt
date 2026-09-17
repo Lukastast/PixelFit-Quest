@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -22,13 +23,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -72,6 +78,7 @@ fun ExerciseCatalogPicker(
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<ExerciseCategory?>(null) }
     var trackingFilter by remember { mutableStateOf(TrackingFilter.ALL) }
+    var showImuInfoDialog by remember { mutableStateOf(false) }
 
     val visible = remember(searchQuery, selectedCategory, trackingFilter, selections) {
         ExerciseCatalog.search(
@@ -84,25 +91,28 @@ fun ExerciseCatalogPicker(
     }
     val grouped = remember(visible) { ExerciseCatalog.grouped(visible) }
 
-    Column(modifier = modifier) {
-        Text(
-            text = stringResource(
-                R.string.exercise_catalog_stats,
-                ExerciseCatalog.all.size,
-                ExerciseCatalog.imuSupportedCount,
-            ),
-            style = typography.bodyMedium,
-            color = Color.White,
-            modifier = Modifier.padding(horizontal = 16.dp),
+    if (showImuInfoDialog) {
+        AlertDialog(
+            onDismissRequest = { showImuInfoDialog = false },
+            title = { Text(stringResource(R.string.imu_info_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.imu_info_body,
+                        ExerciseCatalog.all.size,
+                        ExerciseCatalog.imuSupportedCount,
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showImuInfoDialog = false }) {
+                    Text("Got it")
+                }
+            }
         )
-        Text(
-            text = stringResource(R.string.exercise_catalog_hint),
-            style = typography.bodyMedium,
-            color = Color.White.copy(alpha = 0.85f),
-            fontSize = 12.sp,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-        )
+    }
 
+    Column(modifier = modifier) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -186,6 +196,7 @@ fun ExerciseCatalogPicker(
                     trackingFilter =
                         if (trackingFilter == TrackingFilter.IMU) TrackingFilter.ALL else TrackingFilter.IMU
                 },
+                onInfoClick = { showImuInfoDialog = true }
             )
             CatalogChip(
                 label = stringResource(R.string.exercise_filter_log),
@@ -255,11 +266,10 @@ private fun CatalogChip(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
+    onInfoClick: (() -> Unit)? = null,
 ) {
-    Text(
-        text = label,
-        style = typography.bodyMedium,
-        color = if (selected) Color.Black else Color.White,
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .background(
                 if (selected) Color.White else Color.Black.copy(alpha = 0.55f),
@@ -267,7 +277,24 @@ private fun CatalogChip(
             )
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 6.dp),
-    )
+    ) {
+        Text(
+            text = label,
+            style = typography.bodyMedium,
+            color = if (selected) Color.Black else Color.White,
+        )
+        if (onInfoClick != null) {
+            Spacer(modifier = Modifier.width(6.dp))
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = "IMU Info",
+                tint = if (selected) Color.Black else Color.White.copy(alpha = 0.85f),
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable { onInfoClick() }
+            )
+        }
+    }
 }
 
 @Composable

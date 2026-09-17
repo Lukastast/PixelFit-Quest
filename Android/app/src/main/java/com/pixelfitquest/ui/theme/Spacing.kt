@@ -84,6 +84,9 @@ data class PixelFitSpacing(
     val cornerXs: Dp,
     val cornerSm: Dp,
     val cornerMd: Dp,
+    val hudBarHeight: Dp,
+    val quickAccessIcon: Dp,
+    val landscapeHudWidth: Dp,
 ) {
     fun scale(dp: Int): Dp = (dp * scale).dp
 
@@ -122,6 +125,9 @@ data class PixelFitSpacing(
                 cornerXs = s(4),
                 cornerSm = s(8),
                 cornerMd = s(12),
+                hudBarHeight = s(60),
+                quickAccessIcon = s(48),
+                landscapeHudWidth = s(110),
             )
         }
     }

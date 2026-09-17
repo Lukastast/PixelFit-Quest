@@ -10,5 +10,6 @@ data class CustomizationUiState(
     val isSaving: Boolean = false,
     val error: String? = null,
     val editMode: Boolean = false,
-    val editingTemplateId: String? = null
+    val editingTemplateId: String? = null,
+    val saveSuccess: Boolean = false
 )
