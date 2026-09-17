@@ -2,7 +2,8 @@ package com.pixelfitquest.feature.customization
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -10,34 +11,40 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.*
 import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.res.imageResource
 import com.pixelfitquest.components.atoms.IdleAnimation
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.components.atoms.PixelCharacterMotion
 import com.pixelfitquest.components.atoms.SpriteSheetPlayer
+import com.pixelfitquest.feature.customization.CustomizationViewModel.Companion.ARM_CM_DEFAULT
+import com.pixelfitquest.feature.customization.CustomizationViewModel.Companion.ARM_CM_MAX
+import com.pixelfitquest.feature.customization.CustomizationViewModel.Companion.ARM_CM_MIN
+import com.pixelfitquest.feature.customization.CustomizationViewModel.Companion.HEIGHT_CM_MAX
+import com.pixelfitquest.feature.customization.CustomizationViewModel.Companion.HEIGHT_CM_MIN
 import com.pixelfitquest.feature.levels.LevelsViewModel
 import com.pixelfitquest.feature.levels.cosmetics.AvatarSkinBridge
 import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
-import com.pixelfitquest.feature.settings.SettingsViewModel
+import kotlin.math.roundToInt
+
+private enum class CustomizationTab { Character, Stats }
 
 @Composable
 fun CustomizationScreen(
     viewModel: CustomizationViewModel = hiltViewModel(),
-    settingsViewModel: SettingsViewModel = hiltViewModel(),
     levelsViewModel: LevelsViewModel = hiltViewModel(),
 ) {
     val characterData by viewModel.characterData.collectAsState()
-    val userData by settingsViewModel.userData.collectAsState()
+    val userData by viewModel.userData.collectAsState()
     val levelsState by levelsViewModel.uiState.collectAsState()
     val unlockedSkinIds = remember(levelsState.items) {
         levelsState.items
@@ -54,8 +61,8 @@ fun CustomizationScreen(
     }
 
     var currentVariantIndex by remember { mutableIntStateOf(0) }
+    var selectedTab by remember { mutableStateOf(CustomizationTab.Character) }
 
-    // Synchronize UI index when character data or gender changes
     LaunchedEffect(characterData.variant, gender) {
         val index = variants.indexOf(characterData.variant)
         if (index != -1) currentVariantIndex = index
@@ -80,9 +87,123 @@ fun CustomizationScreen(
             .fillMaxSize()
             .padding(vertical = spacing.md),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(spacing.md)
     ) {
-        // Character Customization Section
+        CustomizationTabBar(
+            selected = selectedTab,
+            onSelect = { selectedTab = it },
+        )
+
+        Spacer(modifier = Modifier.height(spacing.md))
+
+        when (selectedTab) {
+            CustomizationTab.Character -> CharacterCustomizationPanel(
+                gender = gender,
+                displaySprite = displaySprite,
+                isPremium = isPremium,
+                isFitness = isFitness,
+                isShadow = isShadow,
+                isUnlocked = isUnlocked,
+                levelRequired = levelRequired,
+                onMale = { viewModel.updateGender("male") },
+                onFemale = { viewModel.updateGender("female") },
+                onPrevious = {
+                    currentVariantIndex = (currentVariantIndex - 1 + variants.size) % variants.size
+                },
+                onNext = {
+                    currentVariantIndex = (currentVariantIndex + 1) % variants.size
+                },
+                onSelect = {
+                    viewModel.updateVariant(currentVariant)
+                    levelsViewModel.equipByAvatarVariant(currentVariant)
+                },
+                onBuy = { viewModel.buyVariant(currentVariant, 100) },
+            )
+            CustomizationTab.Stats -> StatsPanel(
+                heightCm = userData?.height ?: 178,
+                armLengthCm = userData?.armLength?.roundToInt() ?: ARM_CM_DEFAULT,
+                onHeightChange = viewModel::setHeight,
+                onArmLengthChange = viewModel::setArmLength,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CustomizationTabBar(
+    selected: CustomizationTab,
+    onSelect: (CustomizationTab) -> Unit,
+) {
+    val spacing = MaterialTheme.spacing
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+    ) {
+        PixelArtButton(
+            onClick = { onSelect(CustomizationTab.Character) },
+            imageRes = if (selected == CustomizationTab.Character) {
+                R.drawable.button_clicked
+            } else {
+                R.drawable.button_unclicked
+            },
+            pressedRes = R.drawable.button_clicked,
+            modifier = Modifier
+                .weight(1f)
+                .height(spacing.scale(50)),
+        ) {
+            Text(
+                text = stringResource(R.string.customization_tab_character),
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+            )
+        }
+        PixelArtButton(
+            onClick = { onSelect(CustomizationTab.Stats) },
+            imageRes = if (selected == CustomizationTab.Stats) {
+                R.drawable.button_clicked
+            } else {
+                R.drawable.button_unclicked
+            },
+            pressedRes = R.drawable.button_clicked,
+            modifier = Modifier
+                .weight(1f)
+                .height(spacing.scale(50)),
+        ) {
+            Text(
+                text = stringResource(R.string.customization_tab_stats),
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CharacterCustomizationPanel(
+    gender: String,
+    displaySprite: String,
+    isPremium: Boolean,
+    isFitness: Boolean,
+    isShadow: Boolean,
+    isUnlocked: Boolean,
+    levelRequired: Int?,
+    onMale: () -> Unit,
+    onFemale: () -> Unit,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    onSelect: () -> Unit,
+    onBuy: () -> Unit,
+) {
+    val spacing = MaterialTheme.spacing
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         CustomizationCard {
             Column(
                 modifier = Modifier
@@ -99,12 +220,8 @@ fun CustomizationScreen(
                 Spacer(modifier = Modifier.height(spacing.md))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(spacing.xs)) {
-                    GenderToggleButton(stringResource(R.string.male), isSelected = gender == "male") {
-                        viewModel.updateGender("male")
-                    }
-                    GenderToggleButton(stringResource(R.string.female), isSelected = gender == "female") {
-                        viewModel.updateGender("female")
-                    }
+                    GenderToggleButton(stringResource(R.string.male), isSelected = gender == "male", onClick = onMale)
+                    GenderToggleButton(stringResource(R.string.female), isSelected = gender == "female", onClick = onFemale)
                 }
 
                 if (isUnlocked && isFitness) {
@@ -128,8 +245,8 @@ fun CustomizationScreen(
 
                 VariantCarousel(
                     spriteKey = displaySprite,
-                    onPrevious = { currentVariantIndex = (currentVariantIndex - 1 + variants.size) % variants.size },
-                    onNext = { currentVariantIndex = (currentVariantIndex + 1) % variants.size }
+                    onPrevious = onPrevious,
+                    onNext = onNext,
                 )
 
                 Spacer(modifier = Modifier.height(spacing.xs))
@@ -138,19 +255,98 @@ fun CustomizationScreen(
                     isPremium = isPremium,
                     isUnlocked = isUnlocked,
                     lockedLevel = if (!isUnlocked && isShadow) levelRequired else null,
-                    onSelect = {
-                        viewModel.updateVariant(currentVariant)
-                        levelsViewModel.equipByAvatarVariant(currentVariant)
-                    },
-                    onBuy = { viewModel.buyVariant(currentVariant, 100) }
+                    onSelect = onSelect,
+                    onBuy = onBuy,
                 )
             }
         }
+    }
+}
 
-        // User Stats / Height Section
-        HeightSettingsCard(
-            currentHeight = userData?.height,
-            onSave = { settingsViewModel.setHeight(it) }
+@Composable
+private fun StatsPanel(
+    heightCm: Int,
+    armLengthCm: Int,
+    onHeightChange: (Int) -> Unit,
+    onArmLengthChange: (Int) -> Unit,
+) {
+    val spacing = MaterialTheme.spacing
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = spacing.md),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        CustomizationCard {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(spacing.md),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = stringResource(R.string.stats_title),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(modifier = Modifier.height(spacing.md))
+                MetricSlider(
+                    label = stringResource(R.string.height_label),
+                    valueCm = heightCm.coerceIn(HEIGHT_CM_MIN, HEIGHT_CM_MAX),
+                    range = HEIGHT_CM_MIN.toFloat()..HEIGHT_CM_MAX.toFloat(),
+                    onCommit = onHeightChange,
+                )
+                Spacer(modifier = Modifier.height(spacing.lg))
+                MetricSlider(
+                    label = stringResource(R.string.stats_arm_length),
+                    valueCm = armLengthCm.coerceIn(ARM_CM_MIN, ARM_CM_MAX),
+                    range = ARM_CM_MIN.toFloat()..ARM_CM_MAX.toFloat(),
+                    onCommit = onArmLengthChange,
+                )
+                Spacer(modifier = Modifier.height(spacing.md))
+                Text(
+                    text = stringResource(R.string.body_metrics_help),
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = spacing.xs),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MetricSlider(
+    label: String,
+    valueCm: Int,
+    range: ClosedFloatingPointRange<Float>,
+    onCommit: (Int) -> Unit,
+) {
+    var sliderValue by remember { mutableFloatStateOf(valueCm.toFloat()) }
+    LaunchedEffect(valueCm) { sliderValue = valueCm.toFloat() }
+    val steps = (range.endInclusive - range.start).roundToInt() - 1
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.metric_cm_value, label, sliderValue.roundToInt()),
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+        )
+        Slider(
+            value = sliderValue,
+            onValueChange = { sliderValue = it },
+            onValueChangeFinished = { onCommit(sliderValue.roundToInt()) },
+            valueRange = range,
+            steps = steps.coerceAtLeast(0),
+            colors = SliderDefaults.colors(
+                thumbColor = Color(0xFFFFD700),
+                activeTrackColor = Color(0xFFFFD700),
+                inactiveTrackColor = Color.White.copy(alpha = 0.3f),
+            ),
         )
     }
 }
@@ -341,66 +537,4 @@ private fun ActionButtons(
     }
 }
 
-@Composable
-private fun HeightSettingsCard(currentHeight: Int?, onSave: (Int) -> Unit) {
-    var heightInput by remember { mutableStateOf("") }
-    LaunchedEffect(currentHeight) { heightInput = currentHeight?.toString() ?: "" }
 
-    val spacing = MaterialTheme.spacing
-    CustomizationCard {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(spacing.md),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = stringResource(R.string.current_height, currentHeight ?: "--"),
-                color = Color.White,
-                fontSize = 18.sp
-            )
-
-            Spacer(modifier = Modifier.height(spacing.md))
-
-            Text(text = stringResource(R.string.enter_height_hint), color = Color.White, fontSize = 12.sp)
-
-            Box(modifier = Modifier.size(spacing.scale(200), spacing.inputHeight), contentAlignment = Alignment.Center) {
-                Image(
-                    painter = painterResource(R.drawable.inputfield),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.FillBounds
-                )
-                TextField(
-                    value = heightInput,
-                    onValueChange = { if (it.length <= 3) heightInput = it.filter { c -> c.isDigit() } },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxHeight().fillMaxWidth(0.9f),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        unfocusedTextColor = Color.Black,
-                        focusedTextColor = Color.Black
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(spacing.md))
-
-            PixelArtButton(
-                onClick = {
-                    heightInput.toIntOrNull()?.let { if (it in 1..272) onSave(it) }
-                },
-                imageRes = R.drawable.button_unclicked,
-                pressedRes = R.drawable.button_clicked,
-                modifier = Modifier.size(spacing.scale(220), spacing.buttonHeight)
-            ) {
-                Text(stringResource(R.string.set_height), fontSize = 14.sp)
-            }
-        }
-    }
-}

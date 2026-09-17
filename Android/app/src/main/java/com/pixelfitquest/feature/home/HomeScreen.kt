@@ -137,26 +137,12 @@ fun HomeScreen(
 
 
 
-    val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
-    var showTutorial by remember { mutableStateOf(false) }
     val weeklyStreak by weeklyStreakViewModel.snapshot.collectAsState()
     var showStreakDialog by remember { mutableStateOf(false) }
 
-
     LaunchedEffect(isLoading) {
-        Log.d("HomeScreen", "Loading state changed: isLoading=$isLoading")
         if (!isLoading) {
-            Log.d("HomeScreen", "Screen finished loading, calling onScreenReady")
             onScreenReady()
-
-
-            val isFirstTime = prefs.getBoolean("first_time_home_screen", true)
-            Log.d("HomeScreen", "First time check: $isFirstTime")
-            if (isFirstTime) {
-                delay(300)
-                Log.d("HomeScreen", "Showing tutorial")
-                showTutorial = true
-            }
         }
     }
 
