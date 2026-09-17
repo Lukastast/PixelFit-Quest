@@ -100,11 +100,14 @@ fun Modifier.simpleVerticalScrollbar(
 fun WorkoutCustomizationScreen(
     onStartWorkout: (WorkoutPlan, String?) -> Unit,
     onBack: () -> Unit = {},
+    isTemplateMode: Boolean = false,
+    onTemplateSaved: () -> Unit = onBack,
     modifier: Modifier = Modifier,
     onScreenReady: () -> Unit = {}
 ) {
     val viewModel: WorkoutCustomizationViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
+    val inTemplateMode = isTemplateMode || uiState.isTemplateMode || uiState.editMode
 
     val spacing = MaterialTheme.spacing
     val snackbarHostState = remember { SnackbarHostState() }
@@ -128,6 +131,9 @@ fun WorkoutCustomizationScreen(
                 snackbarHostState.showSnackbar("Template saved!")
             }
             viewModel.resetSaveSuccess()
+            if (inTemplateMode) {
+                onTemplateSaved()
+            }
         }
     }
 
@@ -147,16 +153,22 @@ fun WorkoutCustomizationScreen(
                         Spacer(modifier = Modifier.height(spacing.xs))
                     }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.sm, Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (uiState.selections.isNotEmpty() && uiState.templateName.isNotBlank()) {
+                    if (inTemplateMode) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(spacing.sm, Alignment.CenterHorizontally),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             PixelArtButton(
                                 onClick = {
-                                    if (!uiState.isSaving && uiState.templateName.isNotBlank()) {
-                                        viewModel.saveTemplate()
+                                    if (uiState.selections.isEmpty()) {
+                                        coroutineScope.launch {
+                                            snackbarHostState.showSnackbar("Please select at least one exercise")
+                                        }
+                                    } else if (!uiState.isSaving) {
+                                        viewModel.saveTemplate {
+                                            onTemplateSaved()
+                                        }
                                     }
                                 },
                                 imageRes = R.drawable.button_unclicked,
@@ -169,34 +181,91 @@ fun WorkoutCustomizationScreen(
                                     text = if (uiState.editMode) {
                                         stringResource(R.string.update_template)
                                     } else {
-                                        stringResource(R.string.save_as_template)
+                                        stringResource(R.string.create_template_button)
                                     },
-                                    fontSize = 13.sp,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+
+                            PixelArtButton(
+                                onClick = {
+                                    if (uiState.selections.isEmpty()) {
+                                        coroutineScope.launch {
+                                            snackbarHostState.showSnackbar("Please select at least one exercise")
+                                        }
+                                    } else if (!uiState.isSaving) {
+                                        viewModel.saveTemplate {
+                                            viewModel.getWorkoutPlan()?.let { plan ->
+                                                val templateName = uiState.templateName.trim().ifBlank { "Custom Routine" }
+                                                onStartWorkout(plan, templateName)
+                                            }
+                                        }
+                                    }
+                                },
+                                imageRes = R.drawable.button_unclicked,
+                                pressedRes = R.drawable.button_clicked,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(spacing.buttonHeight)
+                            ) {
+                                Text(
+                                    text = "Save & Start",
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
                                 )
                             }
                         }
-
-                        PixelArtButton(
-                            onClick = {
-                                viewModel.getWorkoutPlan()?.let { plan ->
-                                    val templateName = uiState.templateName.ifBlank { "Workout" }
-                                    onStartWorkout(plan, templateName)
-                                }
-                            },
-                            imageRes = R.drawable.button_unclicked,
-                            pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier
-                                .weight(if (uiState.selections.isNotEmpty() && uiState.templateName.isNotBlank()) 1.2f else 1f)
-                                .height(spacing.buttonHeight)
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(spacing.sm, Alignment.CenterHorizontally),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = stringResource(R.string.start_workout),
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
+                            if (uiState.selections.isNotEmpty()) {
+                                PixelArtButton(
+                                    onClick = {
+                                        if (!uiState.isSaving) {
+                                            viewModel.saveTemplate()
+                                        }
+                                    },
+                                    imageRes = R.drawable.button_unclicked,
+                                    pressedRes = R.drawable.button_clicked,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(spacing.buttonHeight)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.save_as_template),
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+
+                            PixelArtButton(
+                                onClick = {
+                                    viewModel.getWorkoutPlan()?.let { plan ->
+                                        val templateName = uiState.templateName.ifBlank { "Workout" }
+                                        onStartWorkout(plan, templateName)
+                                    }
+                                },
+                                imageRes = R.drawable.button_unclicked,
+                                pressedRes = R.drawable.button_clicked,
+                                modifier = Modifier
+                                    .weight(if (uiState.selections.isNotEmpty()) 1.2f else 1f)
+                                    .height(spacing.buttonHeight)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.start_workout),
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
                 }
@@ -234,10 +303,10 @@ fun WorkoutCustomizationScreen(
                             )
                         }
                         Text(
-                            text = if (uiState.editMode) {
-                                stringResource(R.string.edit_template_name)
-                            } else {
-                                stringResource(R.string.create_workout_title)
+                            text = when {
+                                uiState.editMode -> stringResource(R.string.edit_template_name)
+                                inTemplateMode -> stringResource(R.string.create_template_button)
+                                else -> stringResource(R.string.create_workout_title)
                             },
                             style = typography.bodyMedium,
                             color = Color.White,
@@ -250,8 +319,8 @@ fun WorkoutCustomizationScreen(
 
                 Spacer(modifier = Modifier.height(spacing.xs))
 
-                // Template Name Input (Visible when editing or when exercises are selected)
-                if (uiState.editMode || uiState.selections.isNotEmpty()) {
+                // Template Name Input (Always visible in template mode, or when exercises are selected)
+                if (inTemplateMode || uiState.selections.isNotEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()

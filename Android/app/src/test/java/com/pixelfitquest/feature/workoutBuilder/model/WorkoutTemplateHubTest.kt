@@ -110,4 +110,24 @@ class WorkoutTemplateHubTest {
         state = state.copy(saveSuccess = false)
         assertFalse(state.saveSuccess)
     }
+
+    @Test
+    fun customizationUiState_templateModeFlag() {
+        val state = CustomizationUiState(isTemplateMode = true)
+        assertTrue(state.isTemplateMode)
+
+        val defaultState = CustomizationUiState()
+        assertFalse(defaultState.isTemplateMode)
+    }
+
+    @Test
+    fun templateName_defaultingLogic() {
+        val blankName = "   "
+        val resolvedName = blankName.trim().ifBlank { "Custom Routine" }
+        assertEquals("Custom Routine", resolvedName)
+
+        val validName = "Leg Day"
+        val resolvedValidName = validName.trim().ifBlank { "Custom Routine" }
+        assertEquals("Leg Day", resolvedValidName)
+    }
 }
