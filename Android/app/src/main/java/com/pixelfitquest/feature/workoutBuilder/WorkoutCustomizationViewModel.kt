@@ -24,8 +24,13 @@ class WorkoutCustomizationViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val initialTemplateId: String? = savedStateHandle.get<String>("templateId")
+    private val isTemplateArg: Boolean = savedStateHandle.get<Boolean>("isTemplate") ?: false
 
-    private val _uiState = MutableStateFlow(CustomizationUiState())
+    private val _uiState = MutableStateFlow(
+        CustomizationUiState(
+            isTemplateMode = isTemplateArg || !initialTemplateId.isNullOrBlank()
+        )
+    )
     val uiState: StateFlow<CustomizationUiState> = _uiState.asStateFlow()
 
     private val _templates = MutableStateFlow<List<WorkoutTemplate>>(emptyList())
@@ -82,25 +87,40 @@ class WorkoutCustomizationViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(templateName = name)
     }
 
-    fun saveTemplate() {
+    fun saveTemplate(onSuccess: (() -> Unit)? = null) {
         val state = _uiState.value
-        if (state.selections.isEmpty() || state.templateName.isBlank()) return
+        if (state.selections.isEmpty()) {
+            _uiState.value = state.copy(error = "Please select at least one exercise")
+            return
+        }
+
+        var name = state.templateName.trim()
 
         viewModelScope.launch {
             // Clear error and set saving true at the start of each save attempt
             _uiState.value = state.copy(isSaving = true, error = null)
 
-            // Check for duplicate name
-            val existing = templateRepository.fetchTemplateByName(state.templateName)
-            if (existing != null && existing.id != state.editingTemplateId) {
-                _uiState.value = state.copy(
-                    isSaving = false,
-                    error = "A template with this name already exists"
-                )
-                return@launch
+            if (name.isBlank()) {
+                var candidate = "Custom Routine"
+                var counter = 2
+                while (templateRepository.fetchTemplateByName(candidate) != null) {
+                    candidate = "Custom Routine $counter"
+                    counter++
+                }
+                name = candidate
+            } else {
+                // Check for duplicate name
+                val existing = templateRepository.fetchTemplateByName(name)
+                if (existing != null && existing.id != state.editingTemplateId) {
+                    _uiState.value = state.copy(
+                        isSaving = false,
+                        error = "A template with this name already exists"
+                    )
+                    return@launch
+                }
             }
 
-            val plan = WorkoutPlan(state.selections.values.toList())  // Direct toList() of items
+            val plan = WorkoutPlan(state.selections.values.toList())
 
             val id = if (state.editMode && state.editingTemplateId != null) {
                 state.editingTemplateId
@@ -110,7 +130,7 @@ class WorkoutCustomizationViewModel @Inject constructor(
 
             val template = WorkoutTemplate(
                 id = id,
-                name = state.templateName,
+                name = name,
                 plan = plan
             )
 
@@ -125,6 +145,7 @@ class WorkoutCustomizationViewModel @Inject constructor(
                     templateName = "",
                     saveSuccess = true
                 )
+                onSuccess?.invoke()
             } catch (e: Exception) {
                 _uiState.value = state.copy(
                     isSaving = false,
@@ -155,7 +176,8 @@ class WorkoutCustomizationViewModel @Inject constructor(
             selections = selections,
             templateName = template.name,
             editMode = true,
-            editingTemplateId = template.id
+            editingTemplateId = template.id,
+            isTemplateMode = true
         )
     }
 

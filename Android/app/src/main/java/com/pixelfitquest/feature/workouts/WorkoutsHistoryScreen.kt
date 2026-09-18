@@ -67,6 +67,7 @@ enum class WorkoutsTab {
 fun WorkoutsHistoryScreen(
     onWorkoutClick: (String) -> Unit,
     onStartNewWorkout: () -> Unit,
+    onCreateTemplate: () -> Unit = onStartNewWorkout,
     onEditTemplate: (String) -> Unit = {},
     onStartWorkout: (WorkoutPlan, String) -> Unit = { _, _ -> },
     viewModel: WorkoutsHistoryViewModel = hiltViewModel(),
@@ -144,9 +145,9 @@ fun WorkoutsHistoryScreen(
 
         when (selectedTab) {
             WorkoutsTab.TEMPLATES -> {
-                // Button to Start Custom Workout / Create Template
+                // Button to Create Template
                 PixelArtButton(
-                    onClick = onStartNewWorkout,
+                    onClick = onCreateTemplate,
                     imageRes = R.drawable.button_unclicked,
                     pressedRes = R.drawable.button_clicked,
                     modifier = Modifier
@@ -154,7 +155,7 @@ fun WorkoutsHistoryScreen(
                         .height(spacing.buttonHeight)
                 ) {
                     Text(
-                        text = stringResource(R.string.start_custom_workout),
+                        text = "⚔ " + stringResource(R.string.create_template_button),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White

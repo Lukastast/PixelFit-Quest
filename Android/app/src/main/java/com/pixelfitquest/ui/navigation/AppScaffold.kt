@@ -284,8 +284,11 @@ fun NavGraphBuilder.pixelFitGraph(
             onStartNewWorkout = {
                 appState.navigate(WORKOUT_CUSTOMIZATION_SCREEN)
             },
+            onCreateTemplate = {
+                appState.navigate("$WORKOUT_CUSTOMIZATION_SCREEN?isTemplate=true")
+            },
             onEditTemplate = { templateId ->
-                appState.navigate("$WORKOUT_CUSTOMIZATION_SCREEN?templateId=$templateId")
+                appState.navigate("$WORKOUT_CUSTOMIZATION_SCREEN?templateId=$templateId&isTemplate=true")
             },
             onStartWorkout = { plan, templateName ->
                 val gson = Gson()
@@ -359,22 +362,31 @@ fun NavGraphBuilder.pixelFitGraph(
     }
 
     composable(
-        route = "$WORKOUT_CUSTOMIZATION_SCREEN?templateId={templateId}",
+        route = "$WORKOUT_CUSTOMIZATION_SCREEN?templateId={templateId}&isTemplate={isTemplate}",
         arguments = listOf(
             navArgument("templateId") {
                 type = NavType.StringType
                 nullable = true
                 defaultValue = null
+            },
+            navArgument("isTemplate") {
+                type = NavType.BoolType
+                defaultValue = false
             }
         )
-    ) {
+    ) { backStackEntry ->
+        val isTemplate = backStackEntry.arguments?.getBoolean("isTemplate") ?: false
         WorkoutCustomizationScreen(
+            isTemplateMode = isTemplate,
             onStartWorkout = { plan, templateName ->
                 val gson = Gson()
                 val planJson = gson.toJson(plan)
                 appState.navigate("$WORKOUT_SCREEN/$planJson/$templateName")
             },
             onBack = {
+                appState.popUp()
+            },
+            onTemplateSaved = {
                 appState.popUp()
             }
         )
