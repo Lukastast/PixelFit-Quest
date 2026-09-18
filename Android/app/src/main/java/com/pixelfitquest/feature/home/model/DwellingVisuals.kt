@@ -32,10 +32,18 @@ object DwellingVisuals {
         isLandscape: Boolean,
     ): Pair<Float, Float> {
         if (tier == DwellingTier.GYM) {
-            return when (pose) {
-                CharacterPose.STANDING -> Pair(0.32f, 0.88f)
-                CharacterPose.SITTING -> Pair(0.64f, 0.66f)
-                CharacterPose.LYING -> Pair(0.65f, 0.63f)
+            return if (isLandscape) {
+                when (pose) {
+                    CharacterPose.STANDING -> Pair(0.32f, 0.88f)
+                    CharacterPose.SITTING -> Pair(0.64f, 0.66f)
+                    CharacterPose.LYING -> Pair(0.65f, 0.63f)
+                }
+            } else {
+                when (pose) {
+                    CharacterPose.STANDING -> Pair(0.32f, 0.88f)
+                    CharacterPose.SITTING -> Pair(0.64f, 0.66f)
+                    CharacterPose.LYING -> Pair(0.80f, 0.69f)
+                }
             }
         }
         return if (isLandscape) {
@@ -43,58 +51,58 @@ object DwellingVisuals {
                 DwellingTier.TARP -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.60f, 0.85f)
                     CharacterPose.SITTING -> Pair(0.60f, 0.88f)
-                    CharacterPose.LYING -> Pair(0.24f, 0.79f)
+                    CharacterPose.LYING -> Pair(0.19f, 0.94f)
                 }
                 DwellingTier.TENT -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.55f, 0.85f)
                     CharacterPose.SITTING -> Pair(0.55f, 0.88f)
-                    CharacterPose.LYING -> Pair(0.12f, 0.62f)
+                    CharacterPose.LYING -> Pair(0.12f, 0.70f)
                 }
                 DwellingTier.SHACK -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.58f, 0.88f)
                     CharacterPose.SITTING -> Pair(0.60f, 0.95f)
-                    CharacterPose.LYING -> Pair(0.12f, 0.63f)
+                    CharacterPose.LYING -> Pair(0.16f, 0.64f)
                 }
                 DwellingTier.COTTAGE -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.55f, 0.85f)
                     CharacterPose.SITTING -> Pair(0.55f, 0.88f)
-                    CharacterPose.LYING -> Pair(0.12f, 0.62f)
+                    CharacterPose.LYING -> Pair(0.13f, 0.70f)
                 }
                 DwellingTier.CASTLE -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.55f, 0.85f)
                     CharacterPose.SITTING -> Pair(0.55f, 0.88f)
-                    CharacterPose.LYING -> Pair(0.12f, 0.62f)
+                    CharacterPose.LYING -> Pair(0.15f, 0.63f)
                 }
-                DwellingTier.GYM -> Pair(0.50f, 0.70f)
+                DwellingTier.GYM -> Pair(0.65f, 0.63f)
             }
         } else {
             when (tier) {
                 DwellingTier.TARP -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.50f, 0.87f)
                     CharacterPose.SITTING -> Pair(0.50f, 0.87f)
-                    CharacterPose.LYING -> Pair(0.12f, 0.82f)
+                    CharacterPose.LYING -> Pair(0.12f, 0.85f)
                 }
                 DwellingTier.TENT -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.50f, 0.87f)
                     CharacterPose.SITTING -> Pair(0.50f, 0.87f)
-                    CharacterPose.LYING -> Pair(0.15f, 0.77f)
+                    CharacterPose.LYING -> Pair(0.31f, 0.80f)
                 }
                 DwellingTier.SHACK -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.50f, 0.87f)
                     CharacterPose.SITTING -> Pair(0.50f, 0.87f)
-                    CharacterPose.LYING -> Pair(0.18f, 0.69f)
+                    CharacterPose.LYING -> Pair(0.35f, 0.65f)
                 }
                 DwellingTier.COTTAGE -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.50f, 0.87f)
                     CharacterPose.SITTING -> Pair(0.50f, 0.87f)
-                    CharacterPose.LYING -> Pair(0.18f, 0.68f)
+                    CharacterPose.LYING -> Pair(0.39f, 0.66f)
                 }
                 DwellingTier.CASTLE -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.50f, 0.87f)
                     CharacterPose.SITTING -> Pair(0.50f, 0.87f)
-                    CharacterPose.LYING -> Pair(0.18f, 0.68f)
+                    CharacterPose.LYING -> Pair(0.27f, 0.66f)
                 }
-                DwellingTier.GYM -> Pair(0.50f, 0.70f)
+                DwellingTier.GYM -> Pair(0.80f, 0.69f)
             }
         }
     }
