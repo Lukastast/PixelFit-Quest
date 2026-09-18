@@ -35,7 +35,7 @@ fun SplashScreen(
             painter = painterResource(id = R.drawable.splash_image),
             contentDescription = "Splash Screen",
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds
+            contentScale = ContentScale.Crop
         )
     }
 

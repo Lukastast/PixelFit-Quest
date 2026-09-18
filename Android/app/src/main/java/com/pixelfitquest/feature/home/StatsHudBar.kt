@@ -53,7 +53,7 @@ fun StatsHudBar(
             painter = painterResource(id = R.drawable.info_background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Fit
+            contentScale = ContentScale.FillBounds
         )
         Row(
             modifier = Modifier

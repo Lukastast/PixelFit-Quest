@@ -1,7 +1,6 @@
 package com.pixelfitquest.feature.workouts
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -36,14 +34,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
@@ -53,8 +49,6 @@ import com.pixelfitquest.feature.workout.model.Workout
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutTemplate
 import com.pixelfitquest.ui.LockToPortrait
-import com.pixelfitquest.ui.theme.DarkStone
-import com.pixelfitquest.ui.theme.QuestBrown
 import com.pixelfitquest.ui.theme.RewardGold
 import com.pixelfitquest.ui.theme.spacing
 
@@ -335,7 +329,7 @@ private fun WorkoutTemplateRow(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(spacing.xxxs))
                 Text(
                     text = stringResource(R.string.template_stats, template.plan.items.size, totalSets),
                     color = Color.White.copy(alpha = 0.7f),
@@ -345,41 +339,41 @@ private fun WorkoutTemplateRow(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                horizontalArrangement = Arrangement.spacedBy(spacing.xxxs)
             ) {
                 IconButton(
                     onClick = onEdit,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(spacing.scale(36))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = stringResource(R.string.edit_template_desc),
                         tint = Color.White.copy(alpha = 0.85f),
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(spacing.scale(20))
                     )
                 }
 
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(spacing.scale(36))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = stringResource(R.string.delete_template_desc),
                         tint = Color(0xFFFF6B6B),
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(spacing.scale(20))
                     )
                 }
 
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(spacing.xxs))
 
                 PixelArtButton(
                     onClick = onStart,
                     imageRes = R.drawable.button_unclicked,
                     pressedRes = R.drawable.button_clicked,
                     modifier = Modifier
-                        .width(72.dp)
-                        .height(36.dp)
+                        .width(spacing.scale(72))
+                        .height(spacing.scale(36))
                 ) {
                     Text(
                         text = stringResource(R.string.start_template),
@@ -426,7 +420,7 @@ private fun WorkoutHistoryRow(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(spacing.xxxs))
                 Text(
                     text = workout.date.formatDate(),
                     color = Color.White.copy(alpha = 0.7f),

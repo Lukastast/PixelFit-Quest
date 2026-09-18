@@ -11,10 +11,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material3.Icon
@@ -77,47 +81,55 @@ fun IntroScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .statusBarsPadding()
+                    .navigationBarsPadding()
                     .clickable {
                         if (currentSlide < slides.size - 1) currentSlide++
                         else viewModel.onIntroComplete(navController)
                     },
-                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                Spacer(modifier = Modifier.height(spacing.scale(150)))
-
+                Spacer(modifier = Modifier.weight(0.4f))
 
                 Image(
                     painter = painterResource(id = slides[currentSlide].imageRes),
                     contentDescription = stringResource(slides[currentSlide].textRes),
                     modifier = Modifier
-                        .size(spacing.scale(300), spacing.scale(200)),
+                        .fillMaxWidth(0.85f)
+                        .aspectRatio(1.5f),
                     contentScale = ContentScale.Fit
                 )
 
                 Spacer(modifier = Modifier.height(spacing.md))
 
-
-                TypewriterText(
-                    text = stringResource(slides[currentSlide].textRes),
-                    delayMs = 100L,
-                    onComplete = {
-                        textFinished = true
-                    },
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(spacing.md),
-                    textAlign = TextAlign.Center,
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = spacing.lg, vertical = spacing.sm),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    TypewriterText(
+                        text = stringResource(slides[currentSlide].textRes),
+                        delayMs = 100L,
+                        onComplete = {
+                            textFinished = true
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(0.25f))
             }
         }
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .navigationBarsPadding()
                 .padding(MaterialTheme.spacing.md),
             contentAlignment = Alignment.BottomEnd
         ) {

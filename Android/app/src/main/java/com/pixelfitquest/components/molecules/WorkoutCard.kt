@@ -40,7 +40,7 @@ fun WorkoutCard(
             painter = painterResource(id = R.drawable.fourth_and_more),
             contentDescription = null,
             modifier = Modifier.size(spacing.scale(120), spacing.workoutRow),
-            contentScale = ContentScale.Fit
+            contentScale = ContentScale.FillBounds
         )
         Column(
             modifier = Modifier

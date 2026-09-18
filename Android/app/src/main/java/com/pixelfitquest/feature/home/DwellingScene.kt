@@ -40,7 +40,7 @@ fun DwellingScene(
             painter = painterResource(id = bgRes),
             contentDescription = tier.displayName,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds,
+            contentScale = ContentScale.Crop,
         )
 
         // Layer 2: Interactive Character in dwelling
@@ -75,7 +75,7 @@ fun DwellingScene(
                 painter = painterResource(id = furnRes),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds,
+                contentScale = ContentScale.Crop,
             )
         }
     }

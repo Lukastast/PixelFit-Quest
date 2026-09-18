@@ -51,6 +51,8 @@ import com.pixelfitquest.ui.theme.DarkStone
 import com.pixelfitquest.ui.theme.FireOrange
 import com.pixelfitquest.ui.theme.QuestBrown
 import com.pixelfitquest.ui.theme.RewardGold
+import androidx.compose.material3.MaterialTheme
+import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 
 @Composable
@@ -59,31 +61,32 @@ fun AchievementsScreen(
     viewModel: AchievementsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val spacing = MaterialTheme.spacing
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
             .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = spacing.screen, vertical = spacing.sm)
     ) {
         AchievementsHeader(
             unlockedCount = uiState.unlockedCount,
             totalCount = uiState.totalCount,
             onBack = onBack,
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(spacing.sm))
         CategoryRow(
             selected = uiState.selectedCategory,
             onSelected = viewModel::onCategorySelected,
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(spacing.sm))
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(bottom = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = spacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(spacing.sm),
         ) {
             items(
                 items = uiState.visibleItems,
@@ -97,7 +100,7 @@ fun AchievementsScreen(
             }
         }
         uiState.selectedItem?.let { selected ->
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(spacing.xs))
             AchievementDetail(item = selected)
         }
     }
@@ -109,10 +112,11 @@ private fun AchievementsHeader(
     totalCount: Int,
     onBack: () -> Unit,
 ) {
+    val spacing = MaterialTheme.spacing
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(spacing.headerHeight)
     ) {
         Image(
             painter = painterResource(id = R.drawable.info_background),
