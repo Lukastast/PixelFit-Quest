@@ -11,13 +11,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -118,9 +119,62 @@ fun AppScaffold() {
     val bottomInset = navBarInsets.asPaddingValues().calculateBottomPadding()
     val totalNavBarHeight = navBarHeight + bottomInset
 
-    Scaffold(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .paint(
+                painter = painterResource(id = R.drawable.logsigninbackground),
+                contentScale = ContentScale.Crop
+            )
+    ) {
+        val musicVolume = remember { derivedStateOf { (userSettings?.musicVolume ?: 50) / 100f } }
+
+        DisposableEffect(settingsLoaded) {
+            if (settingsLoaded && appState.mediaPlayer == null) {
+                val mediaPlayerLocal = MediaPlayer.create(context, R.raw.cavern_quest)?.apply {
+                    isLooping = true
+                    setVolume(musicVolume.value, musicVolume.value)
+                    start()
+                }
+                appState.mediaPlayer = mediaPlayerLocal
+            }
+            onDispose {
+                appState.mediaPlayer?.release()
+                appState.mediaPlayer = null
+            }
+        }
+
+        LaunchedEffect(musicVolume.value) {
+            if (settingsLoaded) {
+                appState.mediaPlayer?.setVolume(musicVolume.value, musicVolume.value)
+            }
+        }
+
+        val lifecycleOwner = LocalLifecycleOwner.current
+        DisposableEffect(lifecycleOwner) {
+            val observer = LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_PAUSE -> {
+                        appState.mediaPlayer?.pause()
+                    }
+                    Lifecycle.Event.ON_RESUME -> {
+                        if (settingsLoaded && appState.mediaPlayer != null) {
+                            appState.mediaPlayer?.start()
+                        }
+                    }
+                    else -> {}
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+            }
+        }
+
+        Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             bottomBar = {
                 if (hasBottomBar) {
@@ -191,67 +245,21 @@ fun AppScaffold() {
                 }
             }
         ) { innerPaddingModifier ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .paint(
-                        painter = painterResource(id = R.drawable.logsigninbackground),
-                        contentScale = ContentScale.Crop
-                    )
+            NavHost(
+                navController = appState.navController,
+                startDestination = SPLASH_SCREEN,
+                modifier = if (hasBottomBar && currentRoute != HOME_SCREEN) {
+                    Modifier
+                        .statusBarsPadding()
+                        .padding(bottom = innerPaddingModifier.calculateBottomPadding())
+                } else {
+                    Modifier
+                }
             ) {
-                val musicVolume = remember { derivedStateOf { (userSettings?.musicVolume ?: 50) / 100f } }
-
-                DisposableEffect(settingsLoaded) {
-                    if (settingsLoaded && appState.mediaPlayer == null) {
-                        val mediaPlayerLocal = MediaPlayer.create(context, R.raw.cavern_quest)?.apply {
-                            isLooping = true
-                            setVolume(musicVolume.value, musicVolume.value)
-                            start()
-                        }
-                        appState.mediaPlayer = mediaPlayerLocal
-                    }
-                    onDispose {
-                        appState.mediaPlayer?.release()
-                        appState.mediaPlayer = null
-                    }
-                }
-
-                LaunchedEffect(musicVolume.value) {
-                    if (settingsLoaded) {
-                        appState.mediaPlayer?.setVolume(musicVolume.value, musicVolume.value)
-                    }
-                }
-
-                val lifecycleOwner = LocalLifecycleOwner.current
-                DisposableEffect(lifecycleOwner) {
-                    val observer = LifecycleEventObserver { _, event ->
-                        when (event) {
-                            Lifecycle.Event.ON_PAUSE -> {
-                                appState.mediaPlayer?.pause()
-                            }
-                            Lifecycle.Event.ON_RESUME -> {
-                                if (settingsLoaded && appState.mediaPlayer != null) {
-                                    appState.mediaPlayer?.start()
-                                }
-                            }
-                            else -> {}
-                        }
-                    }
-                    lifecycleOwner.lifecycle.addObserver(observer)
-                    onDispose {
-                        lifecycleOwner.lifecycle.removeObserver(observer)
-                    }
-                }
-
-                NavHost(
-                    navController = appState.navController,
-                    startDestination = SPLASH_SCREEN,
-                    modifier = if (hasBottomBar) Modifier.padding(innerPaddingModifier) else Modifier
-                ) {
-                    pixelFitGraph(appState = appState)
-                }
+                pixelFitGraph(appState = appState)
             }
         }
+    }
 }
 
 fun NavGraphBuilder.pixelFitGraph(

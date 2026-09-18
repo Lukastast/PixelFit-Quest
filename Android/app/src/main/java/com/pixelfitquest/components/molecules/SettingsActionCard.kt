@@ -18,9 +18,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
+import com.pixelfitquest.ui.theme.LocalSpacing
 
 @Composable
 fun SettingsActionCard(
@@ -30,24 +30,25 @@ fun SettingsActionCard(
     subtitle: String? = null,
     onClick: () -> Unit,
 ) {
+    val spacing = LocalSpacing.current
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(if (subtitle == null) 80.dp else 96.dp)
-            .padding(32.dp, 0.dp, 32.dp, 8.dp)
+            .height(if (subtitle == null) spacing.cardHeight else spacing.cardHeight * 1.2f)
+            .padding(start = spacing.xl, end = spacing.xl, bottom = spacing.xs)
             .clickable(onClick = onClick)
     ) {
         Image(
             painter = painterResource(id = R.drawable.info_background_higher),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Fit
+            contentScale = ContentScale.FillBounds
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(horizontal = spacing.md, vertical = spacing.sm)
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = title, color = Color.White)

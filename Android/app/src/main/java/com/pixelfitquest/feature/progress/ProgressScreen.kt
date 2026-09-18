@@ -51,6 +51,8 @@ import com.pixelfitquest.ui.theme.FireOrange
 import com.pixelfitquest.ui.theme.QuestBlue
 import com.pixelfitquest.ui.theme.RewardGold
 import com.pixelfitquest.ui.theme.VitalGreen
+import androidx.compose.material3.MaterialTheme
+import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 import java.time.Instant
 import java.time.ZoneId
@@ -68,11 +70,13 @@ fun ProgressScreen(
         if (!uiState.isLoading) onScreenReady()
     }
 
+    val spacing = MaterialTheme.spacing
+
     if (uiState.isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 CircularProgressIndicator(color = Color.White)
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(spacing.md))
                 Text(stringResource(R.string.loading), color = Color.White, fontSize = 16.sp)
             }
         }
@@ -90,13 +94,13 @@ fun ProgressScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = spacing.screen, vertical = spacing.sm),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
+                .height(spacing.headerHeight),
         ) {
             Image(
                 painter = painterResource(id = R.drawable.info_background),
@@ -122,11 +126,11 @@ fun ProgressScreen(
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
                 )
-                Spacer(modifier = Modifier.size(48.dp))
+                Spacer(modifier = Modifier.size(spacing.minTouchTarget))
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(spacing.sm))
 
         Text(
             text = sourceLabel,
@@ -137,7 +141,7 @@ fun ProgressScreen(
         )
 
         if (uiState.overview.isSample) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(spacing.xs))
             Text(
                 text = stringResource(R.string.progress_sample_banner),
                 color = RewardGold,
@@ -145,9 +149,9 @@ fun ProgressScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(spacing.cornerSm))
                     .background(Color.Black.copy(alpha = 0.35f))
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .padding(horizontal = spacing.sm, vertical = spacing.xs),
             )
         }
 

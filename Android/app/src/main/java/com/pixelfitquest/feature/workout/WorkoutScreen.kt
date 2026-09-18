@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -186,12 +189,14 @@ fun WorkoutScreen(
             painter = painterResource(id = R.drawable.gym_background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds,
+            contentScale = ContentScale.Crop,
         )
 
         Row(
             modifier = Modifier
-                .padding(top = spacing.md, start = spacing.md, end = spacing.md)
+                .statusBarsPadding()
+                .displayCutoutPadding()
+                .padding(top = spacing.xs, start = spacing.md, end = spacing.md)
                 .align(Alignment.TopCenter),
         ) {
             val status = when (state.phase) {
@@ -234,7 +239,9 @@ fun WorkoutScreen(
             Row(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = spacing.xl),
+                    .statusBarsPadding()
+                    .displayCutoutPadding()
+                    .padding(top = spacing.xl + spacing.sm),
             ) {
                 when (state.phase) {
                     WorkoutPhase.Recording -> PixelArtButton(
@@ -311,7 +318,8 @@ fun WorkoutScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(spacing.xl),
+                .navigationBarsPadding()
+                .padding(bottom = spacing.lg),
             contentAlignment = Alignment.BottomCenter,
         ) {
             CharacterIdleAnimation(
@@ -361,6 +369,7 @@ fun WorkoutScreen(
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
+                    .displayCutoutPadding()
                     .padding(end = spacing.sm)
                     .background(Color(0xCC1B5E20), RoundedCornerShape(spacing.cornerSm))
                     .padding(horizontal = spacing.scale(10), vertical = spacing.xs),

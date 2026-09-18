@@ -23,34 +23,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.streak.model.MAX_WEEKLY_TARGET
 import com.pixelfitquest.feature.streak.model.MIN_WEEKLY_TARGET
+import com.pixelfitquest.ui.theme.LocalSpacing
 
 @Composable
 fun WeeklyGoalCard(
     targetSessions: Int,
     onTargetChange: (Int) -> Unit,
 ) {
+    val spacing = LocalSpacing.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
-            .padding(32.dp, 0.dp, 32.dp, 8.dp)
+            .height(spacing.cardHeight)
+            .padding(start = spacing.xl, end = spacing.xl, bottom = spacing.xs)
     ) {
         Image(
             painter = painterResource(id = R.drawable.info_background_higher),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Fit
+            contentScale = ContentScale.FillBounds
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(horizontal = spacing.md, vertical = spacing.sm)
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -65,13 +66,13 @@ fun WeeklyGoalCard(
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(spacing.xs)
             ) {
                 IconButton(
                     onClick = {
                         onTargetChange((targetSessions - 1).coerceAtLeast(MIN_WEEKLY_TARGET))
                     },
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(spacing.scale(24))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Remove,
@@ -87,7 +88,7 @@ fun WeeklyGoalCard(
                     onClick = {
                         onTargetChange((targetSessions + 1).coerceAtMost(MAX_WEEKLY_TARGET))
                     },
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(spacing.scale(24))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,

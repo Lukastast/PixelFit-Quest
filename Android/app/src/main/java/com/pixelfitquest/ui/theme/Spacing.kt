@@ -89,6 +89,8 @@ data class PixelFitSpacing(
     val hudBarHeight: Dp,
     val quickAccessIcon: Dp,
     val landscapeHudWidth: Dp,
+    val headerHeight: Dp = (50 * scale).dp,
+    val minTouchTarget: Dp = 48.dp,
 ) {
     fun scale(dp: Int): Dp = (dp * scale).dp
 
@@ -136,6 +138,8 @@ data class PixelFitSpacing(
                 hudBarHeight = s(60),
                 quickAccessIcon = s(48),
                 landscapeHudWidth = s(110),
+                headerHeight = s(50),
+                minTouchTarget = 48.dp,
             )
         }
     }

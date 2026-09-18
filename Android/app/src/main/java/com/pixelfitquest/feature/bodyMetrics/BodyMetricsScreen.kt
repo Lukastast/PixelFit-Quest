@@ -37,11 +37,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,19 +65,23 @@ fun BodyMetricsScreen(
         armLengthInput = userData?.armLength?.let { formatArmLength(it) }.orEmpty()
     }
 
+    val spacing = MaterialTheme.spacing
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = spacing.screen, vertical = spacing.sm),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
-                .padding(horizontal = 16.dp)
+                .height(spacing.headerHeight)
+                .padding(horizontal = spacing.md)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.info_background),
@@ -85,7 +92,7 @@ fun BodyMetricsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 8.dp),
+                    .padding(horizontal = spacing.xs),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -93,10 +100,10 @@ fun BodyMetricsScreen(
                     contentDescription = stringResource(R.string.back_desc),
                     tint = Color.White,
                     modifier = Modifier
-                        .size(28.dp)
+                        .size(spacing.scale(28))
                         .clickable(onClick = onBack)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(spacing.xs))
                 Text(
                     text = stringResource(R.string.body_metrics_title),
                     style = typography.bodyMedium,
@@ -104,11 +111,11 @@ fun BodyMetricsScreen(
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
                 )
-                Spacer(modifier = Modifier.width(28.dp))
+                Spacer(modifier = Modifier.width(spacing.scale(28)))
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(spacing.md))
 
         Text(
             text = stringResource(
@@ -119,7 +126,7 @@ fun BodyMetricsScreen(
             fontSize = 16.sp
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(spacing.xs))
 
         Text(
             text = stringResource(R.string.enter_height_hint),
@@ -135,7 +142,7 @@ fun BodyMetricsScreen(
             keyboardType = KeyboardType.Number,
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(spacing.md))
 
         Text(
             text = stringResource(
@@ -146,7 +153,7 @@ fun BodyMetricsScreen(
             fontSize = 16.sp
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(spacing.xs))
 
         Text(
             text = stringResource(R.string.enter_arm_length_hint),
@@ -162,17 +169,17 @@ fun BodyMetricsScreen(
             keyboardType = KeyboardType.Decimal,
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(spacing.md))
 
         Text(
             text = stringResource(R.string.body_metrics_help),
             color = Color.White.copy(alpha = 0.9f),
             fontSize = 12.sp,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 12.dp)
+            modifier = Modifier.padding(horizontal = spacing.sm)
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(spacing.lg))
 
         PixelArtButton(
             onClick = {
@@ -182,12 +189,12 @@ fun BodyMetricsScreen(
             },
             imageRes = R.drawable.button_unclicked,
             pressedRes = R.drawable.button_clicked,
-            modifier = Modifier.size(220.dp, 60.dp)
+            modifier = Modifier.size(spacing.scale(220), spacing.buttonHeight)
         ) {
             Text(stringResource(R.string.body_metrics_save), fontSize = 14.sp)
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(spacing.lg))
     }
 }
 
@@ -198,8 +205,9 @@ private fun MetricInputField(
     onValueChange: (String) -> Unit,
     keyboardType: KeyboardType,
 ) {
+    val spacing = MaterialTheme.spacing
     Box(
-        modifier = Modifier.size(200.dp, 60.dp),
+        modifier = Modifier.size(spacing.scale(200), spacing.inputHeight),
         contentAlignment = Alignment.Center
     ) {
         Image(

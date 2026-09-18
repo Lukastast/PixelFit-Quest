@@ -20,10 +20,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
 import com.pixelfitquest.health.HealthConnectStatus
+import com.pixelfitquest.ui.theme.LocalSpacing
 
 @Composable
 fun HealthConnectCard(
@@ -43,26 +43,27 @@ fun HealthConnectCard(
             stringResource(R.string.health_connect_status_unavailable)
     }
     val clickable = status != HealthConnectStatus.UNAVAILABLE
+    val spacing = LocalSpacing.current
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
-            .padding(32.dp, 0.dp, 32.dp, 8.dp)
+            .height(spacing.cardHeight)
+            .padding(start = spacing.xl, end = spacing.xl, bottom = spacing.xs)
             .clickable(enabled = clickable, onClick = onClick)
     ) {
         Image(
             painter = painterResource(id = R.drawable.info_background_higher),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Fit
+            contentScale = ContentScale.FillBounds
         )
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(horizontal = spacing.md, vertical = spacing.sm)
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(

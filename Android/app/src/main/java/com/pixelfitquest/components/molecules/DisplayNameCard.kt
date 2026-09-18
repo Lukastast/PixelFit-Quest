@@ -58,14 +58,14 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
             painter = painterResource(id = R.drawable.info_background_higher),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Fit
+            contentScale = ContentScale.FillBounds
         )
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(spacing.md)
+                .padding(horizontal = spacing.md, vertical = spacing.sm)
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(

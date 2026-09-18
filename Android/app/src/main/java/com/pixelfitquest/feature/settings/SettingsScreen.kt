@@ -114,19 +114,18 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(spacing.md))
-            Spacer(modifier = Modifier.height(spacing.md))
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(spacing.cardHeight)
-                    .padding(spacing.md, spacing.xxxs, spacing.md, spacing.xs)
+                    .padding(start = spacing.xl, end = spacing.xl, bottom = spacing.xs)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.info_background_higher),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.FillBounds
                 )
                 Column(
                     modifier = Modifier

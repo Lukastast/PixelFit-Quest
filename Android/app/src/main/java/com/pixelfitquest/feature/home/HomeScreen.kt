@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -203,7 +206,10 @@ fun HomeScreen(
                     onStreakClick = { showStreakDialog = true },
                     onLevelClick = { navController.navigate(LEVELS_SCREEN) },
                     onMissionsClick = { showMissionsDialog = true },
-                    modifier = Modifier.padding(start = spacing.sm, top = spacing.xs, bottom = spacing.xs)
+                    modifier = Modifier
+                        .statusBarsPadding()
+                        .displayCutoutPadding()
+                        .padding(start = spacing.sm, top = spacing.xs, bottom = spacing.xs)
                 )
 
                 DwellingScene(
@@ -241,14 +247,20 @@ fun HomeScreen(
                     onLevelClick = { navController.navigate(LEVELS_SCREEN) },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .padding(horizontal = spacing.screen, vertical = spacing.md)
+                        .statusBarsPadding()
+                        .displayCutoutPadding()
+                        .padding(horizontal = spacing.screen, vertical = spacing.sm)
                 )
 
                 // Quick Missions Access Button
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(spacing.md)
+                        .navigationBarsPadding()
+                        .padding(
+                            end = spacing.md,
+                            bottom = spacing.navBar + spacing.sm
+                        )
                         .size(spacing.quickAccessIcon)
                         .clickable { showMissionsDialog = true }
                 ) {

@@ -34,7 +34,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
@@ -46,6 +45,8 @@ import com.pixelfitquest.local.export.LocalExportEvent
 import com.pixelfitquest.local.export.LocalExportViewModel
 import com.pixelfitquest.local.export.PreparedExport
 
+import com.pixelfitquest.ui.theme.LocalSpacing
+
 /**
  * Settings entry: one card opens a dialog with JSON / CSV / both,
  * Share (existing FileProvider) and Save (SAF CreateDocument).
@@ -56,6 +57,7 @@ fun LocalExportCard(
     viewModel: LocalExportViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
+    val spacing = LocalSpacing.current
     val state by viewModel.state.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
     var selectedFormat by remember { mutableStateOf(ExportFormat.JSON) }
@@ -106,16 +108,17 @@ fun LocalExportCard(
                     painter = painterResource(R.drawable.questloginboard),
                     contentDescription = null,
                     modifier = Modifier
-                        .height(360.dp)
-                        .width(500.dp),
+                        .fillMaxWidth(0.95f)
+                        .height(spacing.dialogHeight),
                     contentScale = ContentScale.FillBounds
                 )
                 Column(
                     modifier = Modifier
-                        .padding(32.dp)
-                        .heightIn(max = 320.dp)
+                        .padding(spacing.xl)
+                        .fillMaxWidth(0.95f)
+                        .heightIn(max = spacing.scale(320))
                         .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(spacing.xs)
                 ) {
                     Text(stringResource(R.string.export_dialog_title), color = Color.White)
                     Text(stringResource(R.string.export_dialog_subtitle), color = Color.White)
@@ -150,14 +153,14 @@ fun LocalExportCard(
                     if (status.isNotEmpty()) {
                         Text(status, color = Color.White)
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(spacing.xs)) {
                         PixelArtButton(
                             onClick = { viewModel.share(selectedFormat) },
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
                             modifier = Modifier
-                                .height(50.dp)
-                                .width(130.dp)
+                                .height(spacing.scale(50))
+                                .width(spacing.buttonWidthSm)
                         ) {
                             Text(stringResource(R.string.export_action_share), color = Color.Black)
                         }
@@ -166,8 +169,8 @@ fun LocalExportCard(
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
                             modifier = Modifier
-                                .height(50.dp)
-                                .width(130.dp)
+                                .height(spacing.scale(50))
+                                .width(spacing.buttonWidthSm)
                         ) {
                             Text(stringResource(R.string.export_action_save), color = Color.Black)
                         }
@@ -177,8 +180,8 @@ fun LocalExportCard(
                         imageRes = R.drawable.button_unclicked,
                         pressedRes = R.drawable.button_clicked,
                         modifier = Modifier
-                            .height(50.dp)
-                            .width(130.dp)
+                            .height(spacing.scale(50))
+                            .width(spacing.buttonWidthSm)
                     ) {
                         Text(stringResource(R.string.cancel), color = Color.Black)
                     }
@@ -194,13 +197,14 @@ private fun FormatOption(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
+    val spacing = LocalSpacing.current
     Text(
         text = if (selected) "> $label" else "  $label",
         color = Color.White,
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 2.dp)
+            .padding(vertical = spacing.xxxs)
     )
 }
 
