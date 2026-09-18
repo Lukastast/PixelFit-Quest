@@ -198,9 +198,9 @@ fun AppScaffold() {
                     ) {
                         val items = listOf(
                             BottomNavItem.Home,
+                            BottomNavItem.Customization,
                             BottomNavItem.Workouts,
                             BottomNavItem.HealthCenter,
-                            BottomNavItem.Customization,
                             BottomNavItem.Settings,
                         )
 
