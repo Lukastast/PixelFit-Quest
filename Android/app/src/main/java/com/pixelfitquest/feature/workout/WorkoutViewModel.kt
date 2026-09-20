@@ -97,6 +97,10 @@ class WorkoutViewModel @Inject constructor(
 
     fun startWorkoutFromPlan(plan: WorkoutPlan, templateName: String? = null) {
         if (_workoutState.value.isTracking) return
+        if (plan.items.isEmpty()) {
+            _error.value = "Cannot start a workout with no exercises"
+            return
+        }
         workoutName = templateName?.takeIf { it.isNotBlank() }
             ?.lowercase()
             ?.replace(" ", "_")
@@ -338,11 +342,18 @@ class WorkoutViewModel @Inject constructor(
 
     fun stopWorkout() {
         samples.clear()
+        val wasTracking = _workoutState.value.isTracking
+        val shouldDiscard = wasTracking && sessionSetCount == 0
         _workoutState.value = _workoutState.value.copy(
             isTracking = false,
             phase = WorkoutPhase.Idle,
             review = null,
         )
+        if (shouldDiscard && workoutId.isNotBlank()) {
+            launchCatching {
+                workoutRepository.deleteWorkout(workoutId)
+            }
+        }
     }
 
     fun setError(message: String?) {
@@ -464,6 +475,15 @@ class WorkoutViewModel @Inject constructor(
 
     private fun finishWorkout() {
         val plan = currentPlan ?: return
+        if (plan.items.isEmpty() || sessionSetCount == 0) {
+            launchCatching {
+                if (workoutId.isNotBlank()) {
+                    workoutRepository.deleteWorkout(workoutId)
+                }
+                stopWorkout()
+            }
+            return
+        }
         val overall = if (sessionSetCount == 0) 0f else sessionFormSum / sessionSetCount
         val workout = Workout(
             id = workoutId,

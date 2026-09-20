@@ -64,6 +64,8 @@ class LocalPixelFitStore @Inject constructor(
             "streak" -> profile.streak
             "last_activity_date" -> profile.lastActivityDate
             "last_steps_reward_date" -> profile.lastStepsRewardDate
+            "last_sleep_reward_date" -> profile.lastSleepRewardDate
+            "last_weekly_heart_reward_week" -> profile.lastWeeklyHeartRewardWeek
             "last_streak_update_date" -> profile.lastStreakUpdateDate
             else -> null
         }
@@ -105,6 +107,7 @@ class LocalPixelFitStore @Inject constructor(
     }
 
     suspend fun saveWorkout(workout: Workout) {
+        if (workout.totalExercises <= 0) return
         workoutDao.upsertWorkout(
             LocalWorkoutEntity(
                 id = workout.id,
@@ -136,16 +139,27 @@ class LocalPixelFitStore @Inject constructor(
     }
 
     fun observeWorkouts(): Flow<List<Workout>> =
-        workoutDao.observeWorkouts().map { rows -> rows.mapNotNull { decodeWorkout(it.payloadJson) } }
+        workoutDao.observeWorkouts().map { rows ->
+            rows.mapNotNull { decodeWorkout(it.payloadJson) }
+                .filter { it.totalExercises > 0 }
+        }
 
-    suspend fun getAllWorkouts(): List<Workout> =
-        workoutDao.getAllWorkouts().mapNotNull { decodeWorkout(it.payloadJson) }
+    suspend fun getAllWorkouts(): List<Workout> {
+        runCatching { workoutDao.deleteWorkoutsWithoutExercises() }
+        return workoutDao.getAllWorkouts()
+            .mapNotNull { decodeWorkout(it.payloadJson) }
+            .filter { it.totalExercises > 0 }
+    }
 
-    suspend fun getWorkouts(limit: Int): List<Workout> =
-        workoutDao.getWorkouts(limit).mapNotNull { decodeWorkout(it.payloadJson) }
+    suspend fun getWorkouts(limit: Int): List<Workout> {
+        runCatching { workoutDao.deleteWorkoutsWithoutExercises() }
+        return workoutDao.getWorkouts(limit)
+            .mapNotNull { decodeWorkout(it.payloadJson) }
+            .filter { it.totalExercises > 0 }
+    }
 
     suspend fun getWorkout(id: String): Workout? =
-        workoutDao.getWorkout(id)?.let { decodeWorkout(it.payloadJson) }
+        workoutDao.getWorkout(id)?.let { decodeWorkout(it.payloadJson) }?.takeIf { it.totalExercises > 0 }
 
     suspend fun getExercises(workoutId: String): List<Exercise> =
         workoutDao.getExercises(workoutId).mapNotNull { decodeExercise(it.payloadJson) }
@@ -239,6 +253,8 @@ class LocalPixelFitStore @Inject constructor(
                 "streak" -> next.copy(streak = intValue(value, next.streak))
                 "last_activity_date" -> next.copy(lastActivityDate = value.toString())
                 "last_steps_reward_date" -> next.copy(lastStepsRewardDate = value.toString())
+                "last_sleep_reward_date" -> next.copy(lastSleepRewardDate = value.toString())
+                "last_weekly_heart_reward_week" -> next.copy(lastWeeklyHeartRewardWeek = value.toString())
                 "last_streak_update_date" -> next.copy(lastStreakUpdateDate = value.toString())
                 else -> next
             }

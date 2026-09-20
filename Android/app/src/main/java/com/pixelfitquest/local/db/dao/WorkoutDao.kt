@@ -20,14 +20,17 @@ interface WorkoutDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertSet(entity: LocalSetEntity)
 
-    @Query("SELECT * FROM workouts ORDER BY date DESC")
+    @Query("SELECT * FROM workouts WHERE id IN (SELECT DISTINCT workoutId FROM exercises) ORDER BY date DESC")
     fun observeWorkouts(): Flow<List<LocalWorkoutEntity>>
 
-    @Query("SELECT * FROM workouts ORDER BY date DESC")
+    @Query("SELECT * FROM workouts WHERE id IN (SELECT DISTINCT workoutId FROM exercises) ORDER BY date DESC")
     suspend fun getAllWorkouts(): List<LocalWorkoutEntity>
 
-    @Query("SELECT * FROM workouts ORDER BY date DESC LIMIT :limit")
+    @Query("SELECT * FROM workouts WHERE id IN (SELECT DISTINCT workoutId FROM exercises) ORDER BY date DESC LIMIT :limit")
     suspend fun getWorkouts(limit: Int): List<LocalWorkoutEntity>
+
+    @Query("DELETE FROM workouts WHERE id NOT IN (SELECT DISTINCT workoutId FROM exercises)")
+    suspend fun deleteWorkoutsWithoutExercises()
 
     @Query("SELECT * FROM workouts WHERE id = :id LIMIT 1")
     suspend fun getWorkout(id: String): LocalWorkoutEntity?

@@ -62,6 +62,7 @@ object AppModule {
             PixelFitDatabase::class.java,
             "pixelfit.db",
         )
+            .addMigrations(PixelFitDatabase.MIGRATION_6_7)
             .fallbackToDestructiveMigration()
             .build()
     }
