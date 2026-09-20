@@ -157,10 +157,14 @@ fun HomeScreen(
     }
 
     val level = levelsState.progress.level
-    val dwellingTier = if (characterData.equippedHomeUpgrade == "dwelling_gym") {
-        DwellingTier.GYM
-    } else {
-        DwellingTier.forLevel(level)
+    val dwellingTier = when (characterData.equippedHomeUpgrade) {
+        "dwelling_gym" -> DwellingTier.GYM
+        "dwelling_castle" -> DwellingTier.CASTLE
+        "dwelling_cottage" -> DwellingTier.COTTAGE
+        "dwelling_shack" -> DwellingTier.SHACK
+        "dwelling_tent" -> DwellingTier.TENT
+        "dwelling_tarp" -> DwellingTier.TARP
+        else -> DwellingTier.forLevel(level)
     }
     val coins = userData?.coins ?: 0
     val streak = weeklyStreak.currentStreakWeeks

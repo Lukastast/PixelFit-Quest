@@ -34,15 +34,15 @@ object DwellingVisuals {
         if (tier == DwellingTier.GYM) {
             return if (isLandscape) {
                 when (pose) {
-                    CharacterPose.STANDING -> Pair(0.32f, 0.88f)
+                    CharacterPose.STANDING -> Pair(0.50f, 0.88f)
                     CharacterPose.SITTING -> Pair(0.64f, 0.66f)
-                    CharacterPose.LYING -> Pair(0.65f, 0.63f)
+                    CharacterPose.LYING -> Pair(0.20f, 0.72f)
                 }
             } else {
                 when (pose) {
-                    CharacterPose.STANDING -> Pair(0.32f, 0.88f)
+                    CharacterPose.STANDING -> Pair(0.50f, 0.88f)
                     CharacterPose.SITTING -> Pair(0.64f, 0.66f)
-                    CharacterPose.LYING -> Pair(0.80f, 0.69f)
+                    CharacterPose.LYING -> Pair(0.20f, 0.72f)
                 }
             }
         }

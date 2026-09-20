@@ -35,7 +35,7 @@ import com.pixelfitquest.local.db.entity.UserProfileEntity
         LevelStateEntity::class,
         UnlockedCosmeticEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = false,
 )
 abstract class PixelFitDatabase : RoomDatabase() {
@@ -52,6 +52,15 @@ abstract class PixelFitDatabase : RoomDatabase() {
             override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE user_profile ADD COLUMN lastSleepRewardDate TEXT NOT NULL DEFAULT ''")
                 db.execSQL("ALTER TABLE user_profile ADD COLUMN lastWeeklyHeartRewardWeek TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        val MIGRATION_7_8 = object : androidx.room.migration.Migration(7, 8) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE user_profile ADD COLUMN equippedGym TEXT NOT NULL DEFAULT 'gym_standard'")
+                db.execSQL("ALTER TABLE user_profile ADD COLUMN unlockedGymsCsv TEXT NOT NULL DEFAULT 'gym_standard'")
+                db.execSQL("ALTER TABLE user_profile ADD COLUMN equippedAppBackground TEXT NOT NULL DEFAULT 'bg_classic'")
+                db.execSQL("ALTER TABLE user_profile ADD COLUMN unlockedAppBackgroundsCsv TEXT NOT NULL DEFAULT 'bg_classic,bg_ember'")
             }
         }
     }

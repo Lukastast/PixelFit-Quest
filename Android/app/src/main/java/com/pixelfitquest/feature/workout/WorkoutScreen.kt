@@ -185,8 +185,14 @@ fun WorkoutScreen(
         val buttonSize = if (landscape) spacing.scale(64) else spacing.barMd
         val characterSize = if (landscape) spacing.scale(72) else spacing.scale(120)
 
+        val gymBackgroundRes = remember(characterData.equippedGym) {
+            com.pixelfitquest.feature.customization.model.CustomizationCatalog.gymDrawable(
+                characterData.equippedGym
+            )
+        }
+
         Image(
-            painter = painterResource(id = R.drawable.gym_background),
+            painter = painterResource(id = gymBackgroundRes),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,

@@ -86,6 +86,10 @@ class LocalPixelFitStore @Inject constructor(
                 unlockedVariantsCsv = UserProfileEntity.variantsCsv(data.unlockedVariants),
                 equippedHomeUpgrade = data.equippedHomeUpgrade.orEmpty(),
                 unlockedHomeUpgradesCsv = UserProfileEntity.variantsCsv(data.unlockedHomeUpgrades),
+                equippedGym = data.equippedGym,
+                unlockedGymsCsv = UserProfileEntity.variantsCsv(data.unlockedGyms),
+                equippedAppBackground = data.equippedAppBackground,
+                unlockedAppBackgroundsCsv = UserProfileEntity.variantsCsv(data.unlockedAppBackgrounds),
             )
         }
     }

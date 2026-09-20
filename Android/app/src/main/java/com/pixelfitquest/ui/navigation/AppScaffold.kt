@@ -88,6 +88,7 @@ fun AppScaffold() {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val globalSettingsViewModel: GlobalSettingsViewModel = hiltViewModel()
     val userSettings by globalSettingsViewModel.userRepository.getUserData().collectAsState(initial = null)
+    val characterData by globalSettingsViewModel.userRepository.getCharacterData().collectAsState(initial = null)
 
     val hasBottomBar = currentRoute?.let { route ->
         route == HOME_SCREEN ||
@@ -119,11 +120,17 @@ fun AppScaffold() {
     val bottomInset = navBarInsets.asPaddingValues().calculateBottomPadding()
     val totalNavBarHeight = navBarHeight + bottomInset
 
+    val appBackgroundRes = remember(characterData?.equippedAppBackground) {
+        com.pixelfitquest.feature.customization.model.CustomizationCatalog.appBackgroundDrawable(
+            characterData?.equippedAppBackground
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .paint(
-                painter = painterResource(id = R.drawable.logsigninbackground),
+                painter = painterResource(id = appBackgroundRes),
                 contentScale = ContentScale.Crop
             )
     ) {

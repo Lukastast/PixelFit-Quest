@@ -41,17 +41,17 @@ class HomeGymUpgradeTest {
         val sit = DwellingVisuals.characterAnchor(DwellingTier.GYM, CharacterPose.SITTING, isLandscape = true)
         val lie = DwellingVisuals.characterAnchor(DwellingTier.GYM, CharacterPose.LYING, isLandscape = true)
 
-        // Standing anchor is by the weight rack on the left
-        assertEquals(0.32f, stand.first, 0.01f)
+        // Standing anchor is on the gym floor
+        assertEquals(0.50f, stand.first, 0.01f)
         assertEquals(0.88f, stand.second, 0.01f)
 
         // Sitting anchor is on top of the bench cushion on the right
         assertEquals(0.64f, sit.first, 0.01f)
         assertEquals(0.66f, sit.second, 0.01f)
 
-        // Lying/resting anchor is along the bench cushion
-        assertEquals(0.65f, lie.first, 0.01f)
-        assertEquals(0.63f, lie.second, 0.01f)
+        // Lying/resting anchor is on the new bed on the left
+        assertEquals(0.20f, lie.first, 0.01f)
+        assertEquals(0.72f, lie.second, 0.01f)
 
         assertNotEquals(stand, sit)
     }
