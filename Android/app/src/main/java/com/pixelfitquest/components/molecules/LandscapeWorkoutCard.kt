@@ -28,13 +28,13 @@ import com.pixelfitquest.ui.theme.LocalSpacing
 fun LandscapeWorkoutCard(
     enabled: Boolean,
     onToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val spacing = LocalSpacing.current
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(spacing.cardHeight)
-            .padding(start = spacing.xl, end = spacing.xl, bottom = spacing.xs)
             .clickable { onToggle(!enabled) }
     ) {
         Image(

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -55,6 +56,7 @@ import com.pixelfitquest.ui.theme.LocalSpacing
 @Composable
 fun LocalExportCard(
     viewModel: LocalExportViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val spacing = LocalSpacing.current
@@ -93,6 +95,7 @@ fun LocalExportCard(
         title = stringResource(R.string.export_card_title),
         subtitle = stringResource(R.string.export_card_subtitle),
         icon = Icons.Filled.Share,
+        modifier = modifier,
     ) {
         viewModel.refreshCounts()
         showDialog = true
@@ -101,7 +104,9 @@ fun LocalExportCard(
     if (showDialog) {
         Dialog(onDismissRequest = { showDialog = false }) {
             Box(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .widthIn(max = spacing.scale(420))
+                    .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
                 Image(

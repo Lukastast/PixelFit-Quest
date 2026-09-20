@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,13 +42,18 @@ fun StatsHudBar(
     onStreakClick: () -> Unit,
     onLevelClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isLandscape: Boolean = false,
 ) {
     val spacing = MaterialTheme.spacing
+    val barHeight = if (isLandscape) spacing.scale(42) else spacing.barSm
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .height(spacing.barSm)
+            .then(
+                if (isLandscape) Modifier.widthIn(max = spacing.scale(500))
+                else Modifier.fillMaxWidth()
+            )
+            .height(barHeight)
     ) {
         Image(
             painter = painterResource(id = R.drawable.info_background),
@@ -59,7 +65,7 @@ fun StatsHudBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.Center)
-                .padding(horizontal = spacing.sm),
+                .padding(horizontal = if (isLandscape) spacing.md else spacing.sm),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -68,12 +74,12 @@ fun StatsHudBar(
                 Image(
                     painter = painterResource(id = R.drawable.coin),
                     contentDescription = stringResource(R.string.coin_icon_desc),
-                    modifier = Modifier.size(spacing.scale(20))
+                    modifier = Modifier.size(if (isLandscape) spacing.scale(18) else spacing.scale(20))
                 )
                 Spacer(modifier = Modifier.padding(horizontal = spacing.xxs))
                 Text(
                     text = stringResource(R.string.coins_count, coins),
-                    fontSize = 14.sp,
+                    fontSize = if (isLandscape) 13.sp else 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
@@ -87,12 +93,12 @@ fun StatsHudBar(
                 Image(
                     painter = painterResource(id = R.drawable.streak),
                     contentDescription = stringResource(R.string.weekly_streak_hud_desc, streak),
-                    modifier = Modifier.size(spacing.scale(20))
+                    modifier = Modifier.size(if (isLandscape) spacing.scale(18) else spacing.scale(20))
                 )
                 Spacer(modifier = Modifier.padding(horizontal = spacing.xxxs))
                 Text(
                     text = "$streak",
-                    fontSize = 14.sp,
+                    fontSize = if (isLandscape) 13.sp else 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
@@ -101,7 +107,7 @@ fun StatsHudBar(
             // Level
             Text(
                 text = stringResource(R.string.level_display, displayLevel),
-                fontSize = 14.sp,
+                fontSize = if (isLandscape) 13.sp else 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 modifier = Modifier.clickable { onLevelClick() }
@@ -110,7 +116,10 @@ fun StatsHudBar(
             // XP Bar
             Box(
                 modifier = Modifier
-                    .size(width = spacing.scale(76), height = spacing.md)
+                    .size(
+                        width = if (isLandscape) spacing.scale(68) else spacing.scale(76),
+                        height = if (isLandscape) spacing.scale(14) else spacing.md
+                    )
                     .clickable { onLevelClick() },
                 contentAlignment = Alignment.Center
             ) {

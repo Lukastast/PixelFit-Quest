@@ -35,7 +35,6 @@ fun SettingsActionCard(
         modifier = modifier
             .fillMaxWidth()
             .height(if (subtitle == null) spacing.cardHeight else spacing.cardHeight * 1.2f)
-            .padding(start = spacing.xl, end = spacing.xl, bottom = spacing.xs)
             .clickable(onClick = onClick)
     ) {
         Image(

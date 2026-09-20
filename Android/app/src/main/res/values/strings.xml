@@ -34,8 +34,10 @@
 
     <!-- Customization Screen -->
     <string name="choose_character">Choose Your Character</string>
-    <string name="customization_tab_character">Character</string>
+    <string name="customization_tab_character">Hero</string>
     <string name="customization_tab_home">Home</string>
+    <string name="customization_tab_gym">Gym</string>
+    <string name="customization_tab_background">Theme</string>
     <string name="customization_tab_stats">Stats</string>
     <string name="gym_upgrade_title">Iron Gym Dwelling</string>
     <string name="gym_upgrade_desc">Upgrade your home to a 16-bit iron gym with weight equipment and workout bench.</string>

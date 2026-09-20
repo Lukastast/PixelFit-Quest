@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
@@ -32,17 +33,19 @@ import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.ui.theme.LocalSpacing
 
 @Composable
-fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
+fun RemoveAccountCard(
+    onRemoveAccountClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var showRemoveAccDialog by remember { mutableStateOf(false) }
 
     val cardTitle = stringResource(R.string.delete_account)
     val spacing = LocalSpacing.current
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(spacing.cardHeight)
-            .padding(start = spacing.xl, end = spacing.xl, bottom = spacing.xs)
             .clickable {
                 showRemoveAccDialog = true
             }
@@ -79,13 +82,15 @@ fun RemoveAccountCard(onRemoveAccountClick: () -> Unit) {
             onDismissRequest = { showRemoveAccDialog = false }
         ) {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .widthIn(max = spacing.scale(420))
+                    .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
                     painter = painterResource(R.drawable.questloginboard),
                     contentDescription = "Dialog Background",
-                    modifier = Modifier.fillMaxWidth(0.9f).height(spacing.dialogHeight),
+                    modifier = Modifier.fillMaxWidth(0.95f).height(spacing.dialogHeight),
                     contentScale = ContentScale.FillBounds
                 )
                 Column(

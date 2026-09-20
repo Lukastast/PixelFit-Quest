@@ -157,10 +157,14 @@ fun HomeScreen(
     }
 
     val level = levelsState.progress.level
-    val dwellingTier = if (characterData.equippedHomeUpgrade == "dwelling_gym") {
-        DwellingTier.GYM
-    } else {
-        DwellingTier.forLevel(level)
+    val dwellingTier = when (characterData.equippedHomeUpgrade) {
+        "dwelling_gym" -> DwellingTier.GYM
+        "dwelling_castle" -> DwellingTier.CASTLE
+        "dwelling_cottage" -> DwellingTier.COTTAGE
+        "dwelling_shack" -> DwellingTier.SHACK
+        "dwelling_tent" -> DwellingTier.TENT
+        "dwelling_tarp" -> DwellingTier.TARP
+        else -> DwellingTier.forLevel(level)
     }
     val coins = userData?.coins ?: 0
     val streak = weeklyStreak.currentStreakWeeks
@@ -195,82 +199,61 @@ fun HomeScreen(
     val spacing = MaterialTheme.spacing
 
     Box(modifier = Modifier.fillMaxSize()) {
-        if (isLandscape) {
-            // Landscape Orientation Layout
-            Row(modifier = Modifier.fillMaxSize()) {
-                StatsHudColumn(
-                    coins = coins,
-                    streak = streak,
-                    displayLevel = displayLevel,
-                    progressIndex = progressIndex,
-                    onStreakClick = { showStreakDialog = true },
-                    onLevelClick = { navController.navigate(LEVELS_SCREEN) },
-                    onMissionsClick = { showMissionsDialog = true },
-                    modifier = Modifier
-                        .statusBarsPadding()
-                        .displayCutoutPadding()
-                        .padding(start = spacing.sm, top = spacing.xs, bottom = spacing.xs)
-                )
+        DwellingScene(
+            tier = dwellingTier,
+            pose = characterPose,
+            gender = characterData.gender,
+            variant = characterData.variant,
+            isLandscape = isLandscape,
+            onPoseCycle = { viewModel.cyclePose() },
+            modifier = Modifier.fillMaxSize()
+        )
 
-                DwellingScene(
-                    tier = dwellingTier,
-                    pose = characterPose,
-                    gender = characterData.gender,
-                    variant = characterData.variant,
-                    isLandscape = true,
-                    onPoseCycle = { viewModel.cyclePose() },
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .padding(start = spacing.xs)
+        StatsHudBar(
+            coins = coins,
+            streak = streak,
+            displayLevel = displayLevel,
+            progressIndex = progressIndex,
+            onStreakClick = { showStreakDialog = true },
+            onLevelClick = { navController.navigate(LEVELS_SCREEN) },
+            isLandscape = isLandscape,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .displayCutoutPadding()
+                .padding(
+                    horizontal = if (isLandscape) spacing.scale(32) else spacing.screen,
+                    vertical = if (isLandscape) spacing.xs else spacing.sm
                 )
-            }
+        )
+
+        // Quick Missions Access Button
+        val missionsButtonModifier = if (isLandscape) {
+            Modifier
+                .align(Alignment.BottomStart)
+                .navigationBarsPadding()
+                .padding(start = spacing.md, bottom = spacing.md)
+                .size(spacing.scale(48))
         } else {
-            // Portrait Orientation Layout
-            Box(modifier = Modifier.fillMaxSize()) {
-                DwellingScene(
-                    tier = dwellingTier,
-                    pose = characterPose,
-                    gender = characterData.gender,
-                    variant = characterData.variant,
-                    isLandscape = false,
-                    onPoseCycle = { viewModel.cyclePose() },
-                    modifier = Modifier.fillMaxSize()
+            Modifier
+                .align(Alignment.BottomEnd)
+                .navigationBarsPadding()
+                .padding(
+                    end = spacing.md,
+                    bottom = spacing.navBar + spacing.sm
                 )
+                .size(spacing.quickAccessIcon)
+        }
 
-                StatsHudBar(
-                    coins = coins,
-                    streak = streak,
-                    displayLevel = displayLevel,
-                    progressIndex = progressIndex,
-                    onStreakClick = { showStreakDialog = true },
-                    onLevelClick = { navController.navigate(LEVELS_SCREEN) },
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .statusBarsPadding()
-                        .displayCutoutPadding()
-                        .padding(horizontal = spacing.screen, vertical = spacing.sm)
-                )
-
-                // Quick Missions Access Button
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .navigationBarsPadding()
-                        .padding(
-                            end = spacing.md,
-                            bottom = spacing.navBar + spacing.sm
-                        )
-                        .size(spacing.quickAccessIcon)
-                        .clickable { showMissionsDialog = true }
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.achievement_button),
-                        contentDescription = "Daily Missions",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
+        Box(
+            modifier = missionsButtonModifier
+                .clickable { showMissionsDialog = true }
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.achievement_button),
+                contentDescription = "Daily Missions",
+                modifier = Modifier.fillMaxSize()
+            )
         }
 
         if (showStreakDialog) {

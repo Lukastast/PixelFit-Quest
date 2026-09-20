@@ -33,13 +33,13 @@ import com.pixelfitquest.ui.theme.LocalSpacing
 fun WeeklyGoalCard(
     targetSessions: Int,
     onTargetChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val spacing = LocalSpacing.current
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(spacing.cardHeight)
-            .padding(start = spacing.xl, end = spacing.xl, bottom = spacing.xs)
     ) {
         Image(
             painter = painterResource(id = R.drawable.info_background_higher),

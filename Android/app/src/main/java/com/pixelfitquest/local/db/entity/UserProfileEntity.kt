@@ -27,6 +27,10 @@ data class UserProfileEntity(
     val unlockedVariantsCsv: String = "basic",
     val equippedHomeUpgrade: String = "",
     val unlockedHomeUpgradesCsv: String = "",
+    val equippedGym: String = "gym_standard",
+    val unlockedGymsCsv: String = "gym_standard",
+    val equippedAppBackground: String = "bg_classic",
+    val unlockedAppBackgroundsCsv: String = "bg_classic,bg_ember",
 ) {
     fun toUserData(): UserData = UserData(
         height = height,
@@ -51,6 +55,18 @@ data class UserProfileEntity(
             .split(",")
             .map { it.trim() }
             .filter { it.isNotEmpty() },
+        equippedGym = equippedGym.ifBlank { "gym_standard" },
+        unlockedGyms = unlockedGymsCsv
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .ifEmpty { listOf("gym_standard") },
+        equippedAppBackground = equippedAppBackground.ifBlank { "bg_classic" },
+        unlockedAppBackgrounds = unlockedAppBackgroundsCsv
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .ifEmpty { listOf("bg_classic", "bg_ember") },
     )
 
     companion object {

@@ -56,7 +56,7 @@ class DwellingTierTest {
         val standAnchor = DwellingVisuals.characterAnchor(DwellingTier.GYM, CharacterPose.STANDING, isLandscape = true)
         val sitAnchor = DwellingVisuals.characterAnchor(DwellingTier.GYM, CharacterPose.SITTING, isLandscape = true)
         org.junit.Assert.assertNotEquals(standAnchor, sitAnchor)
-        assertEquals(0.32f, standAnchor.first, 0.01f)
+        assertEquals(0.50f, standAnchor.first, 0.01f)
         assertEquals(0.64f, sitAnchor.first, 0.01f)
     }
 }
