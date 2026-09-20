@@ -7,8 +7,9 @@ import android.hardware.SensorManager
 import kotlin.math.sqrt
 
 /**
- * Record-only phone IMU. Buffers raw timestamped streams at SENSOR_DELAY_FASTEST
- * and interpolates onto the accel timeline at snapshot. Does not analyze.
+ * Record-only phone IMU. Prefers SENSOR_DELAY_FASTEST (requires HIGH_SAMPLING_RATE_SENSORS
+ * on API 31+), falls back to ≤200 Hz, then GAME delay. Interpolates onto the accel
+ * timeline at snapshot. Does not analyze.
  */
 class SensorSession(
     private val sensorManager: SensorManager,
@@ -35,6 +36,10 @@ class SensorSession(
 
     @Volatile private var registered = false
 
+    /** Sampling period actually used after [register], or null if not registered. */
+    @Volatile var activeSamplingPeriodUs: Int? = null
+        private set
+
     val hasAccelerometer: Boolean get() = accelerometer != null
 
     fun clear() {
@@ -53,8 +58,8 @@ class SensorSession(
             onMissingAccelerometer()
             return
         }
-        // FASTEST is 0 µs. API 31+ throws SecurityException without HIGH_SAMPLING_RATE_SENSORS.
-        // 5000 µs (200 Hz) is the fastest rate allowed without that permission.
+        // FASTEST is 0 µs. API 31+ throws SecurityException without HIGH_SAMPLING_RATE_SENSORS
+        // (declared in the manifest). 5000 µs (200 Hz) is the fastest rate allowed without it.
         val rates = intArrayOf(
             SensorManager.SENSOR_DELAY_FASTEST,
             MAX_RATE_WITHOUT_HIGH_SAMPLING_US,
@@ -64,11 +69,14 @@ class SensorSession(
             try {
                 registerAll(accelSensor, rate)
                 registered = true
+                activeSamplingPeriodUs = rate
                 return
             } catch (_: SecurityException) {
                 sensorManager.unregisterListener(this)
             }
         }
+        // All rates rejected — surface the same UX path as a missing accelerometer.
+        onMissingAccelerometer()
     }
 
     private fun registerAll(accelSensor: Sensor, samplingPeriodUs: Int) {
@@ -82,6 +90,7 @@ class SensorSession(
         if (!registered) return
         sensorManager.unregisterListener(this)
         registered = false
+        activeSamplingPeriodUs = null
     }
 
     fun snapshotInterpolated(): List<ImuSample> {
@@ -142,6 +151,6 @@ class SensorSession(
 
     companion object {
         /** Fastest sampling period allowed on API 31+ without HIGH_SAMPLING_RATE_SENSORS. */
-        private const val MAX_RATE_WITHOUT_HIGH_SAMPLING_US = 5_000
+        const val MAX_RATE_WITHOUT_HIGH_SAMPLING_US = 5_000
     }
 }

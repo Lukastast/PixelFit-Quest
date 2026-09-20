@@ -1,5 +1,6 @@
 package com.pixelfitquest.local
 
+import androidx.room.withTransaction
 import com.pixelfitquest.feature.customization.model.CharacterData
 import com.pixelfitquest.feature.workout.model.Exercise
 import com.pixelfitquest.feature.workout.model.Workout
@@ -25,7 +26,7 @@ import javax.inject.Singleton
 
 @Singleton
 class LocalPixelFitStore @Inject constructor(
-    db: PixelFitDatabase,
+    private val db: PixelFitDatabase,
 ) {
     private val userDao = db.userProfileDao()
     private val workoutDao = db.workoutDao()
@@ -153,10 +154,12 @@ class LocalPixelFitStore @Inject constructor(
         workoutDao.getSets(workoutId).mapNotNull { decodeSet(it.payloadJson, workoutId) }
 
     suspend fun deleteWorkout(workoutId: String) {
-        workoutDao.deleteSets(workoutId)
-        workoutDao.deleteExercises(workoutId)
-        workoutDao.deleteWorkout(workoutId)
-        liftHistoryDao.deleteByWorkoutId(workoutId)
+        db.withTransaction {
+            workoutDao.deleteSets(workoutId)
+            workoutDao.deleteExercises(workoutId)
+            workoutDao.deleteWorkout(workoutId)
+            liftHistoryDao.deleteByWorkoutId(workoutId)
+        }
     }
 
     suspend fun updateWorkout(workoutId: String, updates: Map<String, Any>) {

@@ -230,7 +230,9 @@ fun WorkoutResumeScreen(
                         .height(spacing.scale(56)),
                 ) {
                     Text(
-                        text = stringResource(R.string.delete_workout),
+                        text = stringResource(
+                            if (isDeleting) R.string.deleting_workout else R.string.delete_workout,
+                        ),
                         color = Color(0xFFFF8A80),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
