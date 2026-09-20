@@ -107,6 +107,7 @@ class LocalPixelFitStore @Inject constructor(
     }
 
     suspend fun saveWorkout(workout: Workout) {
+        if (workout.totalExercises <= 0) return
         workoutDao.upsertWorkout(
             LocalWorkoutEntity(
                 id = workout.id,
@@ -138,16 +139,27 @@ class LocalPixelFitStore @Inject constructor(
     }
 
     fun observeWorkouts(): Flow<List<Workout>> =
-        workoutDao.observeWorkouts().map { rows -> rows.mapNotNull { decodeWorkout(it.payloadJson) } }
+        workoutDao.observeWorkouts().map { rows ->
+            rows.mapNotNull { decodeWorkout(it.payloadJson) }
+                .filter { it.totalExercises > 0 }
+        }
 
-    suspend fun getAllWorkouts(): List<Workout> =
-        workoutDao.getAllWorkouts().mapNotNull { decodeWorkout(it.payloadJson) }
+    suspend fun getAllWorkouts(): List<Workout> {
+        runCatching { workoutDao.deleteWorkoutsWithoutExercises() }
+        return workoutDao.getAllWorkouts()
+            .mapNotNull { decodeWorkout(it.payloadJson) }
+            .filter { it.totalExercises > 0 }
+    }
 
-    suspend fun getWorkouts(limit: Int): List<Workout> =
-        workoutDao.getWorkouts(limit).mapNotNull { decodeWorkout(it.payloadJson) }
+    suspend fun getWorkouts(limit: Int): List<Workout> {
+        runCatching { workoutDao.deleteWorkoutsWithoutExercises() }
+        return workoutDao.getWorkouts(limit)
+            .mapNotNull { decodeWorkout(it.payloadJson) }
+            .filter { it.totalExercises > 0 }
+    }
 
     suspend fun getWorkout(id: String): Workout? =
-        workoutDao.getWorkout(id)?.let { decodeWorkout(it.payloadJson) }
+        workoutDao.getWorkout(id)?.let { decodeWorkout(it.payloadJson) }?.takeIf { it.totalExercises > 0 }
 
     suspend fun getExercises(workoutId: String): List<Exercise> =
         workoutDao.getExercises(workoutId).mapNotNull { decodeExercise(it.payloadJson) }

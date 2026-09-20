@@ -39,7 +39,7 @@ class WorkoutsHistoryViewModel @Inject constructor(
             _isLoading.value = true
             try {
                 workoutRepository.getWorkouts().collect { list ->
-                    _workouts.value = list.sortedByDescending { it.date }
+                    _workouts.value = list.filter { it.totalExercises > 0 }.sortedByDescending { it.date }
                     _isLoading.value = false
                 }
             } catch (e: Exception) {

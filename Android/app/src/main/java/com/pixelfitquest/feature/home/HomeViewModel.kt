@@ -307,7 +307,7 @@ class HomeViewModel @Inject constructor(
     private fun fetchCompletedWorkouts() {
         viewModelScope.launch {
             try {
-                val list = workoutRepository.getAllCompletedWorkouts()
+                val list = workoutRepository.getAllCompletedWorkouts().filter { it.totalExercises > 0 }
                 _workouts.value = list.sortedByDescending { it.date }
                 val total = list.size
                 _achievements.value = achievementsList.map { it to (total >= it.requiredWorkouts) }
