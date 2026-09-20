@@ -126,6 +126,14 @@ fun WorkoutCustomizationScreen(
         }
     }
 
+    // Navigate to workout when startWorkout() emits — handles both save-then-start and
+    // direct-start flows, so the button always works even after "Save as Template" cleared the form.
+    LaunchedEffect(Unit) {
+        viewModel.startWorkoutEvent.collect { (plan, name) ->
+            onStartWorkout(plan, name)
+        }
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         Scaffold(
             containerColor = Color.Transparent,
@@ -187,10 +195,11 @@ fun WorkoutCustomizationScreen(
                                             snackbarHostState.showSnackbar("Please select at least one exercise")
                                         }
                                     } else if (!uiState.isSaving) {
+                                        val planToStart = viewModel.getWorkoutPlan()
+                                        val nameToStart = uiState.templateName.trim().ifBlank { "Custom Routine" }
                                         viewModel.saveTemplate {
-                                            viewModel.getWorkoutPlan()?.let { plan ->
-                                                val templateName = uiState.templateName.trim().ifBlank { "Custom Routine" }
-                                                onStartWorkout(plan, templateName)
+                                            planToStart?.let { plan ->
+                                                onStartWorkout(plan, nameToStart)
                                             }
                                         }
                                     }
@@ -238,16 +247,11 @@ fun WorkoutCustomizationScreen(
                             }
 
                             PixelArtButton(
-                                onClick = {
-                                    viewModel.getWorkoutPlan()?.let { plan ->
-                                        val templateName = uiState.templateName.ifBlank { "Workout" }
-                                        onStartWorkout(plan, templateName)
-                                    }
-                                },
+                                onClick = { viewModel.startWorkout() },
                                 imageRes = R.drawable.button_unclicked,
                                 pressedRes = R.drawable.button_clicked,
                                 modifier = Modifier
-                                    .weight(if (uiState.selections.isNotEmpty()) 1.2f else 1f)
+                                    .weight(if (uiState.selections.isNotEmpty() && uiState.templateName.isNotBlank()) 1.2f else 1f)
                                     .height(spacing.buttonHeight)
                             ) {
                                 Text(

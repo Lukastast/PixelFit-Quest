@@ -141,7 +141,7 @@
     <string name="total_users_count">/ %1$d users</string>
     <string name="achievements_button_desc">Achievements</string>
     <string name="no_workouts_yet">No completed workouts yet</string>
-    <string name="daily_missions_title">Daily Missions</string>
+    <string name="daily_missions_title">Weekly Missions</string>
     <string name="coins_reward_desc">Coins reward</string>
     <string name="exp_label">EXP</string>
     <string name="achievements_title">Achievements</string>

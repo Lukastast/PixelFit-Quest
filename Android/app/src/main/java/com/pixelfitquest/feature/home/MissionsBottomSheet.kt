@@ -34,7 +34,7 @@ import com.pixelfitquest.ui.theme.spacing
 
 @Composable
 fun MissionsDialog(
-    dailyMissions: List<Pair<String, String>>,
+    weeklyMissions: List<Pair<String, String>>,
     completedMissions: Set<String>,
     todaySteps: Long,
     todaysWorkouts: Int,
@@ -86,7 +86,7 @@ fun MissionsDialog(
 
                 Spacer(modifier = Modifier.height(spacing.xs))
 
-                dailyMissions.forEach { (mission, reward) ->
+                weeklyMissions.forEach { (mission, reward) ->
                     val isCompleted = completedMissions.contains(mission)
                     val effectiveCompleted = isCompleted || when {
                         mission.startsWith("Walk") -> {

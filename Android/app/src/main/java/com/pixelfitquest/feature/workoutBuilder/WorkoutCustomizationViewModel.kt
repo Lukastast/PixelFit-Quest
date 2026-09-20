@@ -10,8 +10,11 @@ import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlanItem
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutTemplate
 import com.pixelfitquest.firebase.repository.WorkoutTemplateRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -35,6 +38,9 @@ class WorkoutCustomizationViewModel @Inject constructor(
 
     private val _templates = MutableStateFlow<List<WorkoutTemplate>>(emptyList())
     val templates: StateFlow<List<WorkoutTemplate>> = _templates.asStateFlow()
+
+    private val _startWorkoutEvent = MutableSharedFlow<Pair<WorkoutPlan, String>>(extraBufferCapacity = 1)
+    val startWorkoutEvent: SharedFlow<Pair<WorkoutPlan, String>> = _startWorkoutEvent.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -201,6 +207,44 @@ class WorkoutCustomizationViewModel @Inject constructor(
         return if (state.selections.isNotEmpty()) {
             WorkoutPlan(state.selections.values.toList())
         } else null
+    }
+
+    /**
+     * Starts the workout, auto-saving as a template first when a name has been entered.
+     * This ensures "Save as Template → Start Workout" always works even after the form
+     * has been cleared by [saveTemplate].
+     */
+    fun startWorkout() {
+        val state = _uiState.value
+        val plan = getWorkoutPlan() ?: return
+        val name = state.templateName.ifBlank { "Workout" }
+
+        if (state.templateName.isNotBlank() && state.selections.isNotEmpty()) {
+            // Auto-save the template, then start. If the name already exists, upsert it.
+            viewModelScope.launch {
+                _uiState.value = state.copy(isSaving = true, error = null)
+                try {
+                    val existing = templateRepository.fetchTemplateByName(state.templateName)
+                    val id = when {
+                        state.editMode && state.editingTemplateId != null -> state.editingTemplateId
+                        existing != null -> existing.id
+                        else -> generateId()
+                    }
+                    val template = WorkoutTemplate(id = id, name = name, plan = plan)
+                    templateRepository.saveTemplate(template)
+                    _uiState.value = state.copy(isSaving = false)
+                } catch (e: Exception) {
+                    // Save failed — still start the workout so the user isn't blocked.
+                    _uiState.value = state.copy(isSaving = false)
+                }
+                _startWorkoutEvent.emit(plan to name)
+            }
+        } else {
+            // No name entered — start without saving.
+            viewModelScope.launch {
+                _startWorkoutEvent.emit(plan to name)
+            }
+        }
     }
 
     private fun generateId(): String = "template_${System.currentTimeMillis()}"

@@ -1,5 +1,7 @@
 package com.pixelfitquest.feature.home
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.feature.customization.model.CharacterData
@@ -25,6 +27,7 @@ import com.pixelfitquest.health.HealthTime
 import com.pixelfitquest.local.CloudSyncPolicy
 import com.pixelfitquest.viewmodel.PixelFitViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,6 +36,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -48,6 +52,7 @@ class HomeViewModel @Inject constructor(
     private val healthRepository: HealthRepository,
     private val weeklyStreakRepository: WeeklyStreakRepository,
     private val localXpPort: LocalXpPort,
+    @ApplicationContext private val context: Context,
 ) : PixelFitViewModel() {
     private val _userData = MutableStateFlow<UserData?>(null)
     val userData: StateFlow<UserData?> = _userData.asStateFlow()
@@ -80,13 +85,22 @@ class HomeViewModel @Inject constructor(
 
     private val healthAwardMutex = Mutex()
 
+    private val missionPrefs: SharedPreferences =
+        context.getSharedPreferences("pixelfitquest_prefs", Context.MODE_PRIVATE)
+
     private val _characterPose = MutableStateFlow(TimeOfDayProvider.getDefaultPoseForCurrentTime())
     val characterPose: StateFlow<CharacterPose> = _characterPose.asStateFlow()
 
-    private val _dailyMissions = MutableStateFlow(listOf<Pair<String, String>>())
-    val dailyMissions: StateFlow<List<Pair<String, String>>> = _dailyMissions.asStateFlow()
+    private val _weeklyMissions = MutableStateFlow(listOf<Pair<String, String>>())
+    val weeklyMissions: StateFlow<List<Pair<String, String>>> = _weeklyMissions.asStateFlow()
 
-    private val _completedMissions = MutableStateFlow(setOf<String>())
+    private val _completedMissions = MutableStateFlow(
+        missionPrefs.getString("completed_missions_${getIsoWeekKey()}", "")
+            ?.split(",")
+            ?.filter { it.isNotBlank() }
+            ?.toSet()
+            ?: emptySet()
+    )
     val completedMissions: StateFlow<Set<String>> = _completedMissions.asStateFlow()
 
     private val _achievements = MutableStateFlow<List<Pair<Achievement, Boolean>>>(emptyList())
@@ -121,7 +135,7 @@ class HomeViewModel @Inject constructor(
                 weeklyStreakRepository.reconcile()
 
                 fetchCompletedWorkouts()
-                generateDailyMissions()
+                generateWeeklyMissions()
                 refreshHealthMetrics()
 
                 _isLoading.value = false
@@ -346,14 +360,25 @@ class HomeViewModel @Inject constructor(
         return lastWorkoutDateStr != today
     }
 
-    private fun generateDailyMissions() {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        val today = dateFormat.format(Date())
-        val seed = today.hashCode().toLong()
-        val random = Random(seed)
+    /** Returns an ISO week string like "2026-W38" used as the persistence key. */
+    private fun getIsoWeekKey(): String {
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.US)
+        cal.minimalDaysInFirstWeek = 4 // ISO 8601
+        cal.firstDayOfWeek = Calendar.MONDAY
+        val year = cal.get(Calendar.YEAR)
+        val week = cal.get(Calendar.WEEK_OF_YEAR)
+        return "$year-W${week.toString().padStart(2, '0')}"
+    }
+
+    private fun generateWeeklyMissions() {
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.US)
+        cal.minimalDaysInFirstWeek = 4
+        cal.firstDayOfWeek = Calendar.MONDAY
+        val weekSeed = cal.get(Calendar.YEAR) * 100L + cal.get(Calendar.WEEK_OF_YEAR)
+        val random = Random(weekSeed)
         val selectedMissions = missionsPool.shuffled(random).take(3)
         val selectedRewards = rewardsPool.shuffled(random).take(3)
-        _dailyMissions.value = selectedMissions.zip(selectedRewards)
+        _weeklyMissions.value = selectedMissions.zip(selectedRewards)
     }
 
     private fun checkMissionsCompletion() {
@@ -362,10 +387,11 @@ class HomeViewModel @Inject constructor(
         val today = dateFormat.format(Date())
         val currentCompleted = mutableSetOf<String>()
 
-        val todaysWorkouts = _workouts.value.count { it.date == today }
+        // Fix: use startsWith so ISO timestamps like "2026-09-18T12:00:00Z" match "2026-09-18"
+        val todaysWorkouts = _workouts.value.count { it.date.startsWith(today) }
         val todaySteps = _healthMetrics.value.steps
 
-        for ((mission, reward) in _dailyMissions.value) {
+        for ((mission, reward) in _weeklyMissions.value) {
             if (mission.startsWith("Walk")) {
                 val target = mission.split(" ")[1].toLongOrNull() ?: continue
                 if (todaySteps >= target) {
@@ -381,15 +407,23 @@ class HomeViewModel @Inject constructor(
 
         val newCompleted = currentCompleted - _completedMissions.value
         for (mission in newCompleted) {
-            val reward = _dailyMissions.value.firstOrNull { it.first == mission }?.second ?: continue
-            val (type, valueStr) = reward.split(":")
-            val amount = valueStr.toIntOrNull() ?: continue
+            val reward = _weeklyMissions.value.firstOrNull { it.first == mission }?.second ?: continue
+            val parts = reward.split(":")
+            if (parts.size < 2) continue
+            val type = parts[0].trim()
+            val amount = parts[1].trim().toIntOrNull() ?: continue
             if (type == "exp") {
                 addExp(amount)
             } else if (type == "coins") {
                 addCoins(amount)
             }
         }
+
         _completedMissions.value = currentCompleted
+
+        // Persist so missions aren't re-awarded after ViewModel recreation
+        missionPrefs.edit()
+            .putString("completed_missions_${getIsoWeekKey()}", currentCompleted.joinToString(","))
+            .apply()
     }
 }
