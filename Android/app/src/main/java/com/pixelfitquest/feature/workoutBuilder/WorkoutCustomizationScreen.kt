@@ -268,47 +268,6 @@ fun WorkoutCustomizationScreen(
                     .fillMaxSize()
                     .padding(bottom = paddingValues.calculateBottomPadding())
             ) {
-                // Top Header Bar with Back Navigation
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(spacing.scale(50))
-                        .padding(horizontal = spacing.md)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.info_background),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.FillBounds
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_arrow_back),
-                                contentDescription = stringResource(R.string.back_desc),
-                                tint = Color.White,
-                            )
-                        }
-                        Text(
-                            text = when {
-                                uiState.editMode -> stringResource(R.string.edit_template_name)
-                                inTemplateMode -> stringResource(R.string.create_template_button)
-                                else -> stringResource(R.string.create_workout_title)
-                            },
-                            style = typography.bodyMedium,
-                            color = Color.White,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.width(48.dp))
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(spacing.xs))
-
                 // Template Name Input (Always visible in template mode, or when exercises are selected)
                 if (inTemplateMode || uiState.selections.isNotEmpty()) {
                     Box(

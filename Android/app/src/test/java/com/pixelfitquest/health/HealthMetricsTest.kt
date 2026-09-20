@@ -79,6 +79,46 @@ class HealthRewardsTest {
             )
         )
     }
+
+    @Test
+    fun sleepMilestone_awardsFor7to9Hours() {
+        // 7 hours = 420 mins, 8 hours = 480 mins, 9 hours = 540 mins
+        assertTrue(HealthRewards.shouldAwardSleepMilestone(420L, "", "2026-09-20"))
+        assertTrue(HealthRewards.shouldAwardSleepMilestone(480L, "", "2026-09-20"))
+        assertTrue(HealthRewards.shouldAwardSleepMilestone(540L, "", "2026-09-20"))
+    }
+
+    @Test
+    fun sleepMilestone_doesNotAwardOutside7to9HoursOrWhenNull() {
+        assertFalse(HealthRewards.shouldAwardSleepMilestone(null, "", "2026-09-20"))
+        assertFalse(HealthRewards.shouldAwardSleepMilestone(419L, "", "2026-09-20"))
+        assertFalse(HealthRewards.shouldAwardSleepMilestone(541L, "", "2026-09-20"))
+        assertFalse(HealthRewards.shouldAwardSleepMilestone(0L, "", "2026-09-20"))
+    }
+
+    @Test
+    fun sleepMilestone_awardsOncePerDay() {
+        assertTrue(HealthRewards.shouldAwardSleepMilestone(480L, "", "2026-09-20"))
+        assertFalse(HealthRewards.shouldAwardSleepMilestone(480L, "2026-09-20", "2026-09-20"))
+    }
+
+    @Test
+    fun weeklyHeartGoal_awardsWhenPointsMeetOrExceedGoal() {
+        assertTrue(HealthRewards.shouldAwardWeeklyHeartGoal(150, 150, "", "2026-W38"))
+        assertTrue(HealthRewards.shouldAwardWeeklyHeartGoal(200, 150, "", "2026-W38"))
+    }
+
+    @Test
+    fun weeklyHeartGoal_doesNotAwardBelowGoalOrWhenGoalZero() {
+        assertFalse(HealthRewards.shouldAwardWeeklyHeartGoal(149, 150, "", "2026-W38"))
+        assertFalse(HealthRewards.shouldAwardWeeklyHeartGoal(150, 0, "", "2026-W38"))
+    }
+
+    @Test
+    fun weeklyHeartGoal_awardsOncePerWeek() {
+        assertTrue(HealthRewards.shouldAwardWeeklyHeartGoal(150, 150, "", "2026-W38"))
+        assertFalse(HealthRewards.shouldAwardWeeklyHeartGoal(150, 150, "2026-W38", "2026-W38"))
+    }
 }
 
 class HealthTimeTest {
@@ -89,6 +129,29 @@ class HealthTimeTest {
         val (start, end) = HealthTime.todayRange(clock)
         assertEquals(Instant.parse("2026-09-08T00:00:00Z"), start)
         assertEquals(Instant.parse("2026-09-08T15:30:00Z"), end)
+    }
+
+    @Test
+    fun weekRangeStartsAtMondayMidnightInClockZone() {
+        // 2026-09-20 is a Sunday, Monday of that week was 2026-09-14
+        val clock = Clock.fixed(Instant.parse("2026-09-20T12:00:00Z"), ZoneOffset.UTC)
+        val (start, end) = HealthTime.weekRange(clock)
+        assertEquals(Instant.parse("2026-09-14T00:00:00Z"), start)
+        assertEquals(Instant.parse("2026-09-20T12:00:00Z"), end)
+    }
+
+    @Test
+    fun currentWeekIsoFormat() {
+        val clock = Clock.fixed(Instant.parse("2026-09-20T12:00:00Z"), ZoneOffset.UTC)
+        assertEquals("2026-W38", HealthTime.currentWeekIso(clock))
+    }
+
+    @Test
+    fun rolling7DaysRangeSpansExactlySevenDays() {
+        val clock = Clock.fixed(Instant.parse("2026-09-20T12:00:00Z"), ZoneOffset.UTC)
+        val (start, end) = HealthTime.rolling7DaysRange(clock)
+        assertEquals(Instant.parse("2026-09-13T12:00:00Z"), start)
+        assertEquals(Instant.parse("2026-09-20T12:00:00Z"), end)
     }
 }
 
@@ -103,11 +166,27 @@ class HealthWriteResultTest {
 class HealthPermissionsTest {
 
     @Test
-    fun requiredCoversStepsHeartRateAndExerciseWrite() {
+    fun requiredCoversStepsHeartRateSleepAndExercise() {
         val required = HealthPermissions.required()
         assertTrue(required.any { it.contains("STEPS") })
         assertTrue(required.any { it.contains("HEART_RATE") })
+        assertTrue(required.any { it.contains("RESTING_HEART_RATE") })
+        assertTrue(required.any { it.contains("SLEEP") })
         assertTrue(required.any { it.contains("EXERCISE") })
-        assertTrue(required.size >= 3)
+        assertTrue(required.size >= 6)
+    }
+
+    @Test
+    fun permissionHelpersWorkAsExpected() {
+        val granted = setOf(
+            "android.permission.health.READ_STEPS",
+            "android.permission.health.READ_SLEEP",
+            "android.permission.health.READ_RESTING_HEART_RATE",
+        )
+        assertTrue(HealthPermissions.hasStepsRead(granted))
+        assertTrue(HealthPermissions.hasSleepRead(granted))
+        assertTrue(HealthPermissions.hasRestingHeartRateRead(granted))
+        assertFalse(HealthPermissions.hasHeartRateRead(granted))
+        assertFalse(HealthPermissions.hasExerciseRead(granted))
     }
 }

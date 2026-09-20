@@ -21,6 +21,7 @@ import com.pixelfitquest.health.HealthMetrics
 import com.pixelfitquest.health.HealthPermissions
 import com.pixelfitquest.health.HealthRepository
 import com.pixelfitquest.health.HealthRewards
+import com.pixelfitquest.health.HealthTime
 import com.pixelfitquest.local.CloudSyncPolicy
 import com.pixelfitquest.viewmodel.PixelFitViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -226,7 +227,7 @@ class HomeViewModel @Inject constructor(
                 _healthPermissionsGranted.value = HealthPermissions.hasStepsRead(granted)
                 if (_healthStatus.value == HealthConnectStatus.AVAILABLE) {
                     _healthMetrics.value = healthRepository.readTodayMetrics()
-                    checkAndAwardStepsReward()
+                    checkAndAwardHealthRewards()
                     checkMissionsCompletion()
                 }
             } catch (e: Exception) {
@@ -237,19 +238,46 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun checkAndAwardStepsReward() {
+    private suspend fun checkAndAwardHealthRewards() {
         healthAwardMutex.withLock {
             if (_userData.value == null) return
             val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
             dateFormat.timeZone = TimeZone.getTimeZone("UTC")
             val today = dateFormat.format(Date())
-            val lastRewardDate = userRepository.getUserField("last_steps_reward_date") as? String ?: ""
+            val currentWeek = HealthTime.currentWeekIso()
             val metrics = _healthMetrics.value
-            if (HealthRewards.shouldAwardDailyGoal(metrics.steps, metrics.stepGoal, lastRewardDate, today)) {
-                addExp(50)
-                addCoins(10)
-                userRepository.updateUserData(mapOf("last_steps_reward_date" to today))
-                Log.d("HomeVM", "Awarded +50 EXP and +10 coins for steps goal on $today")
+
+            val updates = mutableMapOf<String, Any>()
+
+            // 1. Steps Reward
+            val lastStepsRewardDate = userRepository.getUserField("last_steps_reward_date") as? String ?: ""
+            if (HealthRewards.shouldAwardDailyGoal(metrics.steps, metrics.stepGoal, lastStepsRewardDate, today)) {
+                addExp(HealthRewards.STEPS_REWARD_EXP)
+                addCoins(HealthRewards.STEPS_REWARD_COINS)
+                updates["last_steps_reward_date"] = today
+                Log.d("HomeVM", "Awarded +${HealthRewards.STEPS_REWARD_EXP} EXP and +${HealthRewards.STEPS_REWARD_COINS} coins for steps goal on $today")
+            }
+
+            // 2. Sleep Milestone Reward (7-9 hours)
+            val lastSleepRewardDate = userRepository.getUserField("last_sleep_reward_date") as? String ?: ""
+            if (HealthRewards.shouldAwardSleepMilestone(metrics.sleepMinutes, lastSleepRewardDate, today)) {
+                addExp(HealthRewards.SLEEP_REWARD_EXP)
+                addCoins(HealthRewards.SLEEP_REWARD_COINS)
+                updates["last_sleep_reward_date"] = today
+                Log.d("HomeVM", "Awarded +${HealthRewards.SLEEP_REWARD_EXP} EXP and +${HealthRewards.SLEEP_REWARD_COINS} coins for 7-9h sleep on $today")
+            }
+
+            // 3. Weekly Heart Goal Reward (>= 150 points)
+            val lastWeeklyHeartRewardWeek = userRepository.getUserField("last_weekly_heart_reward_week") as? String ?: ""
+            if (HealthRewards.shouldAwardWeeklyHeartGoal(metrics.weeklyHeartPoints, metrics.weeklyHeartGoal, lastWeeklyHeartRewardWeek, currentWeek)) {
+                addExp(HealthRewards.WEEKLY_HEART_REWARD_EXP)
+                addCoins(HealthRewards.WEEKLY_HEART_REWARD_COINS)
+                updates["last_weekly_heart_reward_week"] = currentWeek
+                Log.d("HomeVM", "Awarded +${HealthRewards.WEEKLY_HEART_REWARD_EXP} EXP and +${HealthRewards.WEEKLY_HEART_REWARD_COINS} coins for weekly heart goal on $currentWeek")
+            }
+
+            if (updates.isNotEmpty()) {
+                userRepository.updateUserData(updates)
             }
         }
     }

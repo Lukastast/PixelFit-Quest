@@ -25,7 +25,7 @@ class HealthConnectMetricsSource(
             val snapshot = HealthSnapshot(
                 steps = metrics.steps,
                 stepGoal = metrics.stepGoal,
-                sleepMinutes = null,
+                sleepMinutes = metrics.sleepMinutes?.toInt(),
                 sleepScore = null,
                 energyScore = null,
                 distanceMeters = null,

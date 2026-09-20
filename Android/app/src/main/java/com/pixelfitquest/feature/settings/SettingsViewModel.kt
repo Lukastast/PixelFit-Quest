@@ -16,9 +16,6 @@ import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.firebase.service.AccountService
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationPrefs
-import com.pixelfitquest.health.HealthConnectStatus
-import com.pixelfitquest.health.HealthPermissions
-import com.pixelfitquest.health.HealthRepository
 import com.pixelfitquest.local.CloudBackup
 import com.pixelfitquest.viewmodel.PixelFitViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,7 +31,6 @@ class SettingsViewModel @Inject constructor(
     private val accountService: AccountService,
     private val userRepository: UserRepository,
     private val cloudBackup: CloudBackup,
-    private val healthRepository: HealthRepository,
     @ApplicationContext context: Context,
 ) : PixelFitViewModel() {
 
@@ -52,14 +48,6 @@ class SettingsViewModel @Inject constructor(
     val error: StateFlow<String?> = _error.asStateFlow()
     val user: StateFlow<User> = _user.asStateFlow()
 
-    private val _healthStatus = MutableStateFlow(HealthConnectStatus.UNAVAILABLE)
-    val healthStatus: StateFlow<HealthConnectStatus> = _healthStatus.asStateFlow()
-
-    private val _healthPermissionsGranted = MutableStateFlow(false)
-    val healthPermissionsGranted: StateFlow<Boolean> = _healthPermissionsGranted.asStateFlow()
-
-    val healthPermissions: Set<String> = HealthPermissions.required()
-
     init {
         launchCatching {
             accountService.currentUser.collect { signedIn ->
@@ -67,20 +55,6 @@ class SettingsViewModel @Inject constructor(
             }
         }
         loadUserData()
-        refreshHealthStatus()
-    }
-
-    fun refreshHealthStatus() {
-        viewModelScope.launch {
-            _healthStatus.value = healthRepository.availability()
-            val granted = healthRepository.grantedPermissions()
-            _healthPermissionsGranted.value = HealthPermissions.hasStepsRead(granted)
-        }
-    }
-
-    fun onHealthPermissionsResult(granted: Set<String>) {
-        _healthPermissionsGranted.value = HealthPermissions.hasStepsRead(granted)
-        refreshHealthStatus()
     }
 
     fun onUpdateDisplayNameClick(newDisplayName: String) {
