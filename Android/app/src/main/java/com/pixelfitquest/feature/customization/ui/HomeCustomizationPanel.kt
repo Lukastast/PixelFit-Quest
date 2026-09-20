@@ -23,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
@@ -47,6 +48,7 @@ fun HomeCustomizationPanel(
     onEquipHome: (String?) -> Unit,
     onBuyHome: (String, Int) -> Unit,
     modifier: Modifier = Modifier,
+    isTwoPane: Boolean = false,
 ) {
     val spacing = MaterialTheme.spacing
     val selectedItem = remember(selectedHomeId) {
@@ -79,17 +81,10 @@ fun HomeCustomizationPanel(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = spacing.md),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        // --- Hero Dwelling Stage ---
+    @Composable
+    fun HeroStage(stageModifier: Modifier = Modifier) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 9f)
+            modifier = stageModifier
                 .clip(RoundedCornerShape(spacing.cornerMd))
                 .border(BorderStroke(2.dp, QuestBrown), RoundedCornerShape(spacing.cornerMd)),
         ) {
@@ -100,14 +95,13 @@ fun HomeCustomizationPanel(
                 contentScale = ContentScale.Crop,
             )
 
-            // Prominent Lock Banner if dwelling not unlocked
             if (!isUnlocked) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.TopCenter)
                         .background(Color(0xD92A0E0E))
-                        .padding(vertical = 4.dp),
+                        .padding(vertical = 3.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
@@ -117,59 +111,56 @@ fun HomeCustomizationPanel(
                             else -> "🔒 Locked"
                         },
                         color = Color(0xFFFF8A80),
-                        fontSize = 11.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                     )
                 }
             }
 
-            // Gradient / overlay info at the bottom of the stage
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .background(Color.Black.copy(alpha = 0.65f))
-                    .padding(horizontal = spacing.sm, vertical = spacing.xs),
+                    .padding(horizontal = spacing.sm, vertical = spacing.xxs),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column {
-                        Text(
-                            text = selectedItem.name,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                        )
-                        Text(
-                            text = selectedItem.description,
-                            color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 10.sp,
-                        )
-                    }
+                Column {
+                    Text(
+                        text = selectedItem.name,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = if (isTwoPane) 12.sp else 14.sp,
+                    )
+                    Text(
+                        text = selectedItem.description,
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = if (isTwoPane) 9.sp else 10.sp,
+                        maxLines = if (isTwoPane) 1 else 2,
+                    )
                 }
             }
         }
+    }
 
-        Spacer(modifier = Modifier.height(spacing.sm))
-
-        // --- Action Button for Selected Home ---
+    @Composable
+    fun ActionButton(
+        actionModifier: Modifier = Modifier,
+        buttonWidth: androidx.compose.ui.unit.Dp = spacing.scale(200),
+        buttonHeight: androidx.compose.ui.unit.Dp = spacing.buttonHeight,
+    ) {
         when {
             isEquipped -> {
-                Box(
-                    modifier = Modifier
-                        .size(spacing.scale(200), spacing.buttonHeight)
-                        .clip(RoundedCornerShape(spacing.cornerSm))
-                        .background(Color(0xFF2E7D32).copy(alpha = 0.8f)),
-                    contentAlignment = Alignment.Center,
+                PixelArtButton(
+                    onClick = {},
+                    imageRes = R.drawable.button_green_clicked,
+                    pressedRes = R.drawable.button_green_clicked,
+                    modifier = actionModifier.size(buttonWidth, buttonHeight),
                 ) {
                     Text(
                         text = "EQUIPPED",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
+                        fontSize = if (isTwoPane) 12.sp else 14.sp,
                     )
                 }
             }
@@ -178,7 +169,7 @@ fun HomeCustomizationPanel(
                     onClick = { onEquipHome(selectedItem.id) },
                     imageRes = R.drawable.button_unclicked,
                     pressedRes = R.drawable.button_clicked,
-                    modifier = Modifier.size(spacing.scale(200), spacing.buttonHeight),
+                    modifier = actionModifier.size(buttonWidth, buttonHeight),
                 ) {
                     Text("Equip", color = Color.White, fontWeight = FontWeight.Bold)
                 }
@@ -189,7 +180,7 @@ fun HomeCustomizationPanel(
                     onClick = { if (canAfford) onBuyHome(selectedItem.id, selectedItem.coinPrice) },
                     imageRes = if (canAfford) R.drawable.button_unclicked else R.drawable.button_clicked,
                     pressedRes = R.drawable.button_clicked,
-                    modifier = Modifier.size(spacing.scale(200), spacing.buttonHeight),
+                    modifier = actionModifier.size(buttonWidth, buttonHeight),
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("${selectedItem.coinPrice} ", color = Color.White, fontWeight = FontWeight.Bold)
@@ -207,19 +198,19 @@ fun HomeCustomizationPanel(
                     onClick = {},
                     imageRes = R.drawable.button_clicked,
                     pressedRes = R.drawable.button_clicked,
-                    modifier = Modifier.size(spacing.scale(200), spacing.buttonHeight),
+                    modifier = actionModifier.size(buttonWidth, buttonHeight),
                 ) {
-                    Text("🔒 Unlock at Level ${selectedItem.minLevel}", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+                    Text("🔒 Level ${selectedItem.minLevel}", color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp)
                 }
             }
         }
+    }
 
-        Spacer(modifier = Modifier.height(spacing.md))
-
-        // --- Home Dwelling Selection Cards ---
+    @Composable
+    fun HomeGrid(gridModifier: Modifier = Modifier, columns: GridCells = GridCells.Fixed(2)) {
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.weight(1f),
+            columns = columns,
+            modifier = gridModifier,
             horizontalArrangement = Arrangement.spacedBy(spacing.sm),
             verticalArrangement = Arrangement.spacedBy(spacing.sm),
             contentPadding = PaddingValues(bottom = spacing.md),
@@ -242,6 +233,59 @@ fun HomeCustomizationPanel(
                     onClick = { onSelectHome(item.id) },
                 )
             }
+        }
+    }
+
+    if (isTwoPane) {
+        Row(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(spacing.md),
+        ) {
+            // Left Pane (Preview & Action)
+            Column(
+                modifier = Modifier
+                    .weight(0.38f)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(spacing.sm),
+            ) {
+                HeroStage(
+                    stageModifier = Modifier
+                        .fillMaxWidth()
+                        .height(spacing.scale(145))
+                )
+                ActionButton(
+                    buttonWidth = spacing.scale(180),
+                    buttonHeight = spacing.scale(42),
+                )
+            }
+
+            // Right Pane (Items Grid)
+            HomeGrid(
+                gridModifier = Modifier
+                    .weight(0.62f)
+                    .fillMaxHeight(),
+                columns = GridCells.Adaptive(minSize = 165.dp),
+            )
+        }
+    } else {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = spacing.md),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            HeroStage(
+                stageModifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f)
+            )
+            Spacer(modifier = Modifier.height(spacing.sm))
+            ActionButton()
+            Spacer(modifier = Modifier.height(spacing.md))
+            HomeGrid(gridModifier = Modifier.weight(1f))
         }
     }
 }
@@ -291,14 +335,20 @@ private fun HomeCard(
                     color = if (!isUnlocked && !isSelected) Color.White.copy(alpha = 0.65f) else Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
                 )
+                Spacer(modifier = Modifier.width(spacing.xxs))
                 when {
-                    isEquipped -> Text("EQUIPPED", color = RewardGold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                    isUnlocked -> Text("UNLOCKED", color = Color(0xFF81C784), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    isEquipped -> Text("EQUIPPED", color = RewardGold, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    isUnlocked -> Text("UNLOCKED", color = Color(0xFF81C784), fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     item.coinPrice != null -> {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("🔒 ${item.coinPrice}", color = Color(0xFFFFD54F), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.width(2.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text("🔒 ${item.coinPrice}", color = Color(0xFFFFD54F), fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                             Image(
                                 painter = painterResource(R.drawable.coin),
                                 contentDescription = null,
@@ -306,7 +356,7 @@ private fun HomeCard(
                             )
                         }
                     }
-                    item.minLevel != null -> Text("🔒 LVL ${item.minLevel}", color = Color(0xFFFF8A80), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    item.minLevel != null -> Text("🔒 LVL ${item.minLevel}", color = Color(0xFFFF8A80), fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                 }
             }
 

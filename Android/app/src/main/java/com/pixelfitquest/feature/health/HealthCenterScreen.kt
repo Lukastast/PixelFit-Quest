@@ -52,13 +52,15 @@ import com.pixelfitquest.ui.theme.spacing
 fun HealthCenterScreen(
     viewModel: HealthCenterViewModel = hiltViewModel(),
 ) {
-    LockToPortrait()
-
     val context = LocalContext.current
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    val spacing = MaterialTheme.spacing
+    val useTwoPane = isLandscape || spacing.widthClass != com.pixelfitquest.ui.theme.PixelFitWidthClass.Compact
+
     val healthStatus by viewModel.healthStatus.collectAsState()
     val permissionsGranted by viewModel.permissionsGranted.collectAsState()
     val metrics by viewModel.healthMetrics.collectAsState()
-    val spacing = MaterialTheme.spacing
 
     val permissionContract = remember {
         PermissionController.createRequestPermissionResultContract()
@@ -80,28 +82,13 @@ fun HealthCenterScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = spacing.screen, vertical = spacing.md),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(spacing.sm)
-    ) {
-        Text(
-            text = "Health Center",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFFFFD700),
-            modifier = Modifier.padding(vertical = spacing.xs)
-        )
-
-        // Health Connect Status & Permission Card
+    @Composable
+    fun ConnectHealthCard() {
         if (healthStatus != HealthConnectStatus.AVAILABLE || !permissionsGranted) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(spacing.scale(90))
+                    .height(spacing.scale(if (useTwoPane) 75 else 90))
                     .clickable {
                         when (healthStatus) {
                             HealthConnectStatus.AVAILABLE -> {
@@ -125,7 +112,7 @@ fun HealthCenterScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(spacing.sm),
+                        .padding(if (useTwoPane) spacing.xs else spacing.sm),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
@@ -139,40 +126,48 @@ fun HealthCenterScreen(
                     }
                     Text(
                         text = "Connect Health Data",
-                        fontSize = 15.sp,
+                        fontSize = if (useTwoPane) 13.sp else 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFFFD700)
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = message,
-                        fontSize = 12.sp,
+                        fontSize = if (useTwoPane) 11.sp else 12.sp,
                         color = Color.White,
                         textAlign = TextAlign.Center
                     )
                 }
             }
         }
+    }
 
-        // Steps Progress Card
+    @Composable
+    fun StepsCard() {
         HealthMetricCard(
             title = "Daily Steps",
             valueText = "${metrics.steps} / ${metrics.stepGoal}",
             subtitle = if (metrics.steps >= metrics.stepGoal) "Goal reached! +50 EXP & +10 Coins" else "${(metrics.stepGoal - metrics.steps).coerceAtLeast(0)} steps remaining",
             badgeText = "${metrics.progressPercent}%",
-            badgeColor = if (metrics.steps >= metrics.stepGoal) Color(0xFF4CAF50) else Color(0xFFFFD700)
+            badgeColor = if (metrics.steps >= metrics.stepGoal) Color(0xFF4CAF50) else Color(0xFFFFD700),
+            isCompact = useTwoPane,
         )
+    }
 
-        // Heart Rate Card
+    @Composable
+    fun HeartRateCard() {
         HealthMetricCard(
             title = "Resting Heart Rate (7d Avg)",
             valueText = if (metrics.heartRateBpm != null && metrics.heartRateBpm!! > 0) "${metrics.heartRateBpm} BPM" else "No recent data",
             subtitle = if (metrics.heartRateBpm != null && metrics.heartRateBpm!! > 0) "7-day rolling baseline (filters outliers)" else "Wear your fitness tracker during rest and sleep",
             badgeText = "❤ Resting",
-            badgeColor = Color(0xFFE53935)
+            badgeColor = Color(0xFFE53935),
+            isCompact = useTwoPane,
         )
+    }
 
-        // Sleep Duration Card
+    @Composable
+    fun SleepCard() {
         val isOptimalSleep = metrics.sleepMinutes != null && metrics.sleepMinutes!! in 420..540
         HealthMetricCard(
             title = "Sleep Duration (7–9h Goal)",
@@ -184,10 +179,13 @@ fun HealthCenterScreen(
                 else -> "Track sleep with Health Connect to earn +50 EXP & +15 Coins"
             },
             badgeText = if (isOptimalSleep) "⭐ 7–9h Rest" else "🌙 Sleep",
-            badgeColor = if (isOptimalSleep) Color(0xFF4CAF50) else Color(0xFF5C6BC0)
+            badgeColor = if (isOptimalSleep) Color(0xFF4CAF50) else Color(0xFF5C6BC0),
+            isCompact = useTwoPane,
         )
+    }
 
-        // Weekly Heart Points Card
+    @Composable
+    fun HeartPointsCard() {
         val isHeartGoalReached = metrics.weeklyHeartPoints >= metrics.weeklyHeartGoal
         HealthMetricCard(
             title = "Weekly Heart Goal (Google Fit)",
@@ -198,13 +196,14 @@ fun HealthCenterScreen(
                 "${(metrics.weeklyHeartGoal - metrics.weeklyHeartPoints).coerceAtLeast(0)} points remaining this week"
             },
             badgeText = if (isHeartGoalReached) "❤ Goal Met" else "${metrics.weeklyHeartProgressPercent}%",
-            badgeColor = if (isHeartGoalReached) Color(0xFF4CAF50) else Color(0xFFE53935)
+            badgeColor = if (isHeartGoalReached) Color(0xFF4CAF50) else Color(0xFFE53935),
+            isCompact = useTwoPane,
         )
+    }
 
-        // Manage Health Connect Button (only shown when connected, opens Health Connect to view/revoke permissions)
+    @Composable
+    fun ManageButton() {
         if (healthStatus == HealthConnectStatus.AVAILABLE && permissionsGranted) {
-            Spacer(modifier = Modifier.height(spacing.sm))
-
             PixelArtButton(
                 onClick = {
                     runCatching { HealthConnectIntents.openHealthConnectSettings(context) }
@@ -212,17 +211,70 @@ fun HealthCenterScreen(
                 imageRes = R.drawable.button_unclicked,
                 pressedRes = R.drawable.button_clicked,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(spacing.buttonHeight)
+                    .fillMaxWidth(if (useTwoPane) 0.5f else 1f)
+                    .height(if (useTwoPane) spacing.scale(42) else spacing.buttonHeight)
             ) {
                 Text(
                     text = "Manage Health Connect",
-                    fontSize = 15.sp,
+                    fontSize = if (useTwoPane) 13.sp else 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
             }
         }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(
+                horizontal = if (useTwoPane) spacing.md else spacing.screen,
+                vertical = if (useTwoPane) spacing.xs else spacing.md
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(if (useTwoPane) spacing.xs else spacing.sm)
+    ) {
+        Text(
+            text = "Health Center",
+            fontSize = if (useTwoPane) 18.sp else 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFFFFD700),
+            modifier = Modifier.padding(vertical = if (useTwoPane) spacing.xxs else spacing.xs)
+        )
+
+        ConnectHealthCard()
+
+        if (useTwoPane) {
+            // 2-Column Responsive Layout
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(spacing.sm)
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(spacing.xs)
+                ) {
+                    StepsCard()
+                    HeartRateCard()
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(spacing.xs)
+                ) {
+                    SleepCard()
+                    HeartPointsCard()
+                }
+            }
+        } else {
+            // 1-Column Portrait Layout
+            StepsCard()
+            HeartRateCard()
+            SleepCard()
+            HeartPointsCard()
+        }
+
+        ManageButton()
     }
 }
 
@@ -233,13 +285,14 @@ private fun HealthMetricCard(
     subtitle: String,
     badgeText: String,
     badgeColor: Color,
+    isCompact: Boolean = false,
 ) {
     val spacing = MaterialTheme.spacing
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(spacing.scale(85))
+            .height(spacing.scale(if (isCompact) 72 else 85))
     ) {
         Image(
             painter = painterResource(id = R.drawable.info_background_higher),
@@ -250,7 +303,7 @@ private fun HealthMetricCard(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = spacing.md, vertical = spacing.xs),
+                .padding(horizontal = spacing.sm, vertical = spacing.xxs),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -258,20 +311,21 @@ private fun HealthMetricCard(
                 Text(
                     text = title,
                     color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 12.sp,
+                    fontSize = if (isCompact) 11.sp else 12.sp,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = valueText,
                     color = Color.White,
-                    fontSize = 16.sp,
+                    fontSize = if (isCompact) 14.sp else 16.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(1.dp))
                 Text(
                     text = subtitle,
                     color = Color.White.copy(alpha = 0.6f),
-                    fontSize = 11.sp
+                    fontSize = if (isCompact) 10.sp else 11.sp,
+                    maxLines = if (isCompact) 1 else 2,
                 )
             }
             Box(
@@ -282,7 +336,7 @@ private fun HealthMetricCard(
                 Text(
                     text = badgeText,
                     color = badgeColor,
-                    fontSize = 12.sp,
+                    fontSize = if (isCompact) 11.sp else 12.sp,
                     fontWeight = FontWeight.Bold
                 )
             }

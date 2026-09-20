@@ -20,8 +20,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
@@ -54,6 +57,7 @@ fun CharacterCustomizationPanel(
     onBuyCharacter: (String, Int) -> Unit,
     onOpenStats: () -> Unit,
     modifier: Modifier = Modifier,
+    isTwoPane: Boolean = false,
 ) {
     val spacing = MaterialTheme.spacing
     val selectedItem = remember(selectedCharacterId) {
@@ -82,122 +86,283 @@ fun CharacterCustomizationPanel(
         AvatarSkinBridge.spriteKey(resolvedVariant, gender, isUnlocked)
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = spacing.md),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    @Composable
+    fun GenderToggle(
+        modifier: Modifier = Modifier,
+        isVertical: Boolean = false,
+        buttonWidth: androidx.compose.ui.unit.Dp = spacing.scale(90),
+        buttonHeight: androidx.compose.ui.unit.Dp = spacing.scale(38),
     ) {
-        // --- Gender Toggle ---
-        Row(
-            modifier = Modifier.padding(bottom = spacing.sm),
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-        ) {
-            PixelArtButton(
-                onClick = { onSelectGender("male") },
-                imageRes = if (gender == "male") R.drawable.button_clicked else R.drawable.button_unclicked,
-                pressedRes = R.drawable.button_clicked,
-                modifier = Modifier.size(spacing.scale(90), spacing.scale(38)),
+        if (isVertical) {
+            Column(
+                modifier = modifier,
+                verticalArrangement = Arrangement.spacedBy(spacing.xxs),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(
-                    text = stringResource(R.string.male),
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                )
+                PixelArtButton(
+                    onClick = { onSelectGender("male") },
+                    imageRes = if (gender == "male") R.drawable.button_clicked else R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier.size(buttonWidth, buttonHeight),
+                ) {
+                    Text(
+                        text = stringResource(R.string.male),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                    )
+                }
+                PixelArtButton(
+                    onClick = { onSelectGender("female") },
+                    imageRes = if (gender == "female") R.drawable.button_clicked else R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier.size(buttonWidth, buttonHeight),
+                ) {
+                    Text(
+                        text = stringResource(R.string.female),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                    )
+                }
             }
-            PixelArtButton(
-                onClick = { onSelectGender("female") },
-                imageRes = if (gender == "female") R.drawable.button_clicked else R.drawable.button_unclicked,
-                pressedRes = R.drawable.button_clicked,
-                modifier = Modifier.size(spacing.scale(90), spacing.scale(38)),
+        } else {
+            Row(
+                modifier = modifier,
+                horizontalArrangement = Arrangement.spacedBy(spacing.sm),
             ) {
-                Text(
-                    text = stringResource(R.string.female),
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                )
+                PixelArtButton(
+                    onClick = { onSelectGender("male") },
+                    imageRes = if (gender == "male") R.drawable.button_clicked else R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier.size(buttonWidth, buttonHeight),
+                ) {
+                    Text(
+                        text = stringResource(R.string.male),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = if (isTwoPane) 11.sp else 13.sp,
+                    )
+                }
+                PixelArtButton(
+                    onClick = { onSelectGender("female") },
+                    imageRes = if (gender == "female") R.drawable.button_clicked else R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier.size(buttonWidth, buttonHeight),
+                ) {
+                    Text(
+                        text = stringResource(R.string.female),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = if (isTwoPane) 11.sp else 13.sp,
+                    )
+                }
             }
         }
+    }
 
-        // --- Hero Character Stage ---
+    @Composable
+    fun HeroStage(
+        modifier: Modifier = Modifier,
+        height: androidx.compose.ui.unit.Dp = if (isTwoPane) spacing.scale(165) else spacing.scale(218),
+        spriteSize: androidx.compose.ui.unit.Dp = if (isTwoPane) spacing.scale(85) else spacing.scale(88),
+    ) {
         Box(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
-                .height(spacing.scale(170))
+                .height(height)
                 .clip(RoundedCornerShape(spacing.cornerMd))
                 .background(Color.Black.copy(alpha = 0.5f))
                 .border(BorderStroke(2.dp, QuestBrown), RoundedCornerShape(spacing.cornerMd)),
             contentAlignment = Alignment.Center,
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxSize().padding(spacing.sm),
-            ) {
-                IdleAnimation(
+            if (isTwoPane) {
+                // Landscape: Inside preview box:
+                // - Title of avatar in the center
+                // - Under it: Avatar to the left and male/female buttons stacked on the right
+                Column(
                     modifier = Modifier
-                        .size(spacing.scale(95))
-                        .offset(x = spacing.scale(-12)),
-                    gender = spriteKey,
-                    isAnimating = true,
-                )
+                        .fillMaxSize()
+                        .padding(horizontal = spacing.sm, vertical = spacing.xs),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    // 1. Title centered at the top
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            Text(
+                                text = selectedItem.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
 
-                Text(
-                    text = selectedItem.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    fontSize = 16.sp,
-                )
+                            if (!isUnlocked) {
+                                Spacer(modifier = Modifier.width(spacing.xs))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(spacing.cornerXs))
+                                        .background(Color(0xD92A0E0E))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = when {
+                                            selectedItem.isPremium -> "🔒 Soon"
+                                            selectedItem.coinPrice != null -> "🔒 ${selectedItem.coinPrice}"
+                                            selectedItem.minLevel != null -> "🔒 Lvl ${selectedItem.minLevel}"
+                                            else -> "🔒 Locked"
+                                        },
+                                        color = Color(0xFFFF8A80),
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                    )
+                                }
+                            }
+                        }
 
-                selectedItem.bonusDescription?.let { bonus ->
+                        selectedItem.bonusDescription?.let { bonus ->
+                            Text(
+                                text = bonus,
+                                color = RewardGold,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+
+                    // 2. Under it: Avatar to the left and Male/Female stacked on top of each other to the right
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        // Avatar on left
+                        Box(
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            IdleAnimation(
+                                modifier = Modifier
+                                    .size(spriteSize)
+                                    .offset(x = spacing.scale(-6)),
+                                gender = spriteKey,
+                                isAnimating = true,
+                            )
+                        }
+
+                        // Male and Female stacked on top of each other on right
+                        GenderToggle(
+                            isVertical = true,
+                            buttonWidth = spacing.scale(70),
+                            buttonHeight = spacing.scale(28),
+                        )
+                    }
+                }
+            } else {
+                // Portrait: Centered sprite, name, bonus, and GenderToggle placed below avatar name
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            start = spacing.sm,
+                            end = spacing.sm,
+                            top = if (!isUnlocked) spacing.scale(30) else spacing.xs,
+                            bottom = spacing.xs,
+                        ),
+                ) {
+                    IdleAnimation(
+                        modifier = Modifier
+                            .size(spriteSize)
+                            .offset(x = spacing.scale(-8)),
+                        gender = spriteKey,
+                        isAnimating = true,
+                    )
+
+                    Spacer(modifier = Modifier.height(spacing.scale(14)))
+
                     Text(
-                        text = bonus,
-                        color = RewardGold,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
+                        text = selectedItem.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontSize = 16.sp,
+                    )
+
+                    selectedItem.bonusDescription?.let { bonus ->
+                        Text(
+                            text = bonus,
+                            color = RewardGold,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(spacing.scale(4)))
+
+                    // Male / Female toggle placed below name inside preview box
+                    GenderToggle(
+                        buttonWidth = spacing.scale(75),
+                        buttonHeight = spacing.scale(30),
                     )
                 }
-            }
 
-            // Prominent Lock Banner if character not unlocked
-            if (!isUnlocked) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.TopCenter)
-                        .background(Color(0xD92A0E0E))
-                        .padding(vertical = 4.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = when {
-                            selectedItem.isPremium -> "🔒 Coming Soon"
-                            selectedItem.coinPrice != null -> "🔒 Locked · ${selectedItem.coinPrice} Coins"
-                            selectedItem.minLevel != null -> "🔒 Locked · Level ${selectedItem.minLevel} Required"
-                            else -> "🔒 Locked"
-                        },
-                        color = Color(0xFFFF8A80),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
+                if (!isUnlocked) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.TopCenter)
+                            .background(Color(0xD92A0E0E))
+                            .padding(vertical = 3.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = when {
+                                selectedItem.isPremium -> "🔒 Coming Soon"
+                                selectedItem.coinPrice != null -> "🔒 Locked · ${selectedItem.coinPrice} Coins"
+                                selectedItem.minLevel != null -> "🔒 Locked · Level ${selectedItem.minLevel} Required"
+                                else -> "🔒 Locked"
+                            },
+                            color = Color(0xFFFF8A80),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                        )
+                    }
                 }
             }
         }
+    }
 
-        Spacer(modifier = Modifier.height(spacing.xs))
+    @Composable
+    fun BodyCalibrationCard(
+        modifier: Modifier = Modifier,
+        height: androidx.compose.ui.unit.Dp = spacing.scale(46),
+    ) {
+        val cardModifier = modifier.fillMaxWidth().height(height)
 
-        // --- Embedded Body Calibration Quick-Card ---
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = cardModifier
                 .clip(RoundedCornerShape(spacing.cornerSm))
                 .background(DarkStone.copy(alpha = 0.85f))
                 .border(BorderStroke(1.dp, QuestBrown), RoundedCornerShape(spacing.cornerSm))
                 .clickable(onClick = onOpenStats)
-                .padding(horizontal = spacing.sm, vertical = spacing.xs),
+                .padding(horizontal = spacing.xs, vertical = spacing.xxs),
+            contentAlignment = Alignment.Center
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -205,60 +370,74 @@ fun CharacterCustomizationPanel(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
+                    modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+                    horizontalArrangement = Arrangement.spacedBy(spacing.xxs),
                 ) {
-                    Text("📏", fontSize = 14.sp)
+                    Text("📏", fontSize = if (isTwoPane) 13.sp else 14.sp)
                     Column {
                         Text(
-                            text = "Body Calibration",
+                            text = "Body Stats",
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
+                            fontSize = if (isTwoPane) 11.sp else 12.sp,
+                            maxLines = 1,
                         )
                         Text(
-                            text = "Height: ${heightCm} cm · Arm: ${armLengthCm} cm",
-                            color = Color.White.copy(alpha = 0.7f),
-                            fontSize = 10.sp,
+                            text = "${heightCm} cm · Arm ${armLengthCm} cm",
+                            color = Color.White.copy(alpha = 0.85f),
+                            fontSize = if (isTwoPane) 9.sp else 9.5.sp,
+                            maxLines = 1,
                         )
                     }
                 }
+                Spacer(modifier = Modifier.width(spacing.xxs))
                 Text(
                     text = "EDIT ⚙",
                     color = RewardGold,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp,
+                    fontSize = if (isTwoPane) 9.sp else 9.5.sp,
+                    maxLines = 1,
                 )
             }
         }
+    }
 
-        Spacer(modifier = Modifier.height(spacing.xs))
+    @Composable
+    fun ActionButton(
+        modifier: Modifier = Modifier,
+        buttonWidth: androidx.compose.ui.unit.Dp? = null,
+        buttonHeight: androidx.compose.ui.unit.Dp = spacing.buttonHeight,
+    ) {
+        val btnModifier = if (buttonWidth != null) {
+            modifier.size(buttonWidth, buttonHeight)
+        } else {
+            modifier.fillMaxWidth().height(buttonHeight)
+        }
 
-        // --- Action Button for Selected Character ---
         when {
             selectedItem.isPremium -> {
                 PixelArtButton(
                     onClick = {},
                     imageRes = R.drawable.button_unclicked,
                     pressedRes = R.drawable.button_unclicked,
-                    modifier = Modifier.size(spacing.scale(200), spacing.buttonHeight),
+                    modifier = btnModifier,
                 ) {
-                    Text(stringResource(R.string.coming_soon), color = Color.White.copy(alpha = 0.6f))
+                    Text(stringResource(R.string.coming_soon), color = Color.White.copy(alpha = 0.6f), fontSize = if (isTwoPane) 11.sp else 13.sp)
                 }
             }
             isEquipped -> {
-                Box(
-                    modifier = Modifier
-                        .size(spacing.scale(200), spacing.buttonHeight)
-                        .clip(RoundedCornerShape(spacing.cornerSm))
-                        .background(Color(0xFF2E7D32).copy(alpha = 0.8f)),
-                    contentAlignment = Alignment.Center,
+                PixelArtButton(
+                    onClick = {},
+                    imageRes = R.drawable.button_green_clicked,
+                    pressedRes = R.drawable.button_green_clicked,
+                    modifier = btnModifier,
                 ) {
                     Text(
                         text = "EQUIPPED",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
+                        fontSize = if (isTwoPane) 11.sp else 13.sp,
                     )
                 }
             }
@@ -267,9 +446,9 @@ fun CharacterCustomizationPanel(
                     onClick = { onEquipCharacter(selectedItem.id) },
                     imageRes = R.drawable.button_unclicked,
                     pressedRes = R.drawable.button_clicked,
-                    modifier = Modifier.size(spacing.scale(200), spacing.buttonHeight),
+                    modifier = btnModifier,
                 ) {
-                    Text(stringResource(R.string.select), color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.select), color = Color.White, fontWeight = FontWeight.Bold, fontSize = if (isTwoPane) 12.sp else 14.sp)
                 }
             }
             selectedItem.coinPrice != null -> {
@@ -278,16 +457,20 @@ fun CharacterCustomizationPanel(
                     onClick = { if (canAfford) onBuyCharacter(selectedItem.id, selectedItem.coinPrice) },
                     imageRes = if (canAfford) R.drawable.button_unclicked else R.drawable.button_clicked,
                     pressedRes = R.drawable.button_clicked,
-                    modifier = Modifier.size(spacing.scale(200), spacing.buttonHeight),
+                    modifier = btnModifier,
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("${selectedItem.coinPrice} ", color = Color.White, fontWeight = FontWeight.Bold)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(horizontal = spacing.xxs),
+                    ) {
+                        Text("${selectedItem.coinPrice} ", color = Color.White, fontWeight = FontWeight.Bold, fontSize = if (isTwoPane) 12.sp else 14.sp)
                         Image(
                             painter = painterResource(R.drawable.coin),
                             contentDescription = null,
-                            modifier = Modifier.size(spacing.md),
+                            modifier = Modifier.size(if (isTwoPane) 14.dp else spacing.md),
                         )
-                        Text(stringResource(R.string.coins_label), color = Color.White)
+                        Text(" " + stringResource(R.string.coins_label), color = Color.White, fontSize = if (isTwoPane) 11.sp else 13.sp)
                     }
                 }
             }
@@ -296,19 +479,19 @@ fun CharacterCustomizationPanel(
                     onClick = {},
                     imageRes = R.drawable.button_clicked,
                     pressedRes = R.drawable.button_clicked,
-                    modifier = Modifier.size(spacing.scale(200), spacing.buttonHeight),
+                    modifier = btnModifier,
                 ) {
-                    Text("🔒 Unlock at Level ${selectedItem.minLevel}", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+                    Text("🔒 Level ${selectedItem.minLevel}", color = Color.White.copy(alpha = 0.7f), fontSize = if (isTwoPane) 10.sp else 11.sp)
                 }
             }
         }
+    }
 
-        Spacer(modifier = Modifier.height(spacing.sm))
-
-        // --- Character Variant Selection Cards ---
+    @Composable
+    fun CharacterGrid(modifier: Modifier = Modifier, columns: GridCells = GridCells.Fixed(2)) {
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.weight(1f),
+            columns = columns,
+            modifier = modifier,
             horizontalArrangement = Arrangement.spacedBy(spacing.sm),
             verticalArrangement = Arrangement.spacedBy(spacing.sm),
             contentPadding = PaddingValues(bottom = spacing.md),
@@ -337,6 +520,81 @@ fun CharacterCustomizationPanel(
                     onClick = { onSelectCharacter(item.id) },
                 )
             }
+        }
+    }
+
+    if (isTwoPane) {
+        Row(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = spacing.sm),
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
+            // Left Pane (Preview & Controls): HeroStage with GenderToggle inside, then Action & Calibration side-by-side
+            Column(
+                modifier = Modifier
+                    .weight(0.48f)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top,
+            ) {
+                HeroStage(
+                    height = spacing.scale(165),
+                    spriteSize = spacing.scale(90),
+                )
+
+                Spacer(modifier = Modifier.height(spacing.xs))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ActionButton(
+                        buttonHeight = spacing.scale(46),
+                        modifier = Modifier.weight(0.42f),
+                    )
+                    BodyCalibrationCard(
+                        modifier = Modifier.weight(0.58f),
+                    )
+                }
+            }
+
+            // Right Pane (Items Grid)
+            CharacterGrid(
+                modifier = Modifier
+                    .weight(0.52f)
+                    .fillMaxHeight(),
+                columns = GridCells.Adaptive(minSize = 145.dp),
+            )
+        }
+    } else {
+        // Portrait single column
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = spacing.md),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            HeroStage()
+            Spacer(modifier = Modifier.height(spacing.xs))
+            // Equip and Body Stats on one line
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ActionButton(
+                    buttonHeight = spacing.scale(46),
+                    modifier = Modifier.weight(0.44f),
+                )
+                BodyCalibrationCard(
+                    modifier = Modifier.weight(0.56f),
+                )
+            }
+            Spacer(modifier = Modifier.height(spacing.sm))
+            CharacterGrid(modifier = Modifier.weight(1f))
         }
     }
 }
@@ -386,14 +644,20 @@ private fun CharacterCard(
                     color = if (!isUnlocked && !isSelected) Color.White.copy(alpha = 0.65f) else Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
                 )
+                Spacer(modifier = Modifier.width(spacing.xxs))
                 when {
-                    isEquipped -> Text("EQUIPPED", color = RewardGold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                    isUnlocked -> Text("UNLOCKED", color = Color(0xFF81C784), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    isEquipped -> Text("EQUIPPED", color = RewardGold, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    isUnlocked -> Text("UNLOCKED", color = Color(0xFF81C784), fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     item.coinPrice != null -> {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("🔒 ${item.coinPrice}", color = Color(0xFFFFD54F), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.width(2.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text("🔒 ${item.coinPrice}", color = Color(0xFFFFD54F), fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                             Image(
                                 painter = painterResource(R.drawable.coin),
                                 contentDescription = null,
@@ -401,8 +665,8 @@ private fun CharacterCard(
                             )
                         }
                     }
-                    item.minLevel != null -> Text("🔒 LVL ${item.minLevel}", color = Color(0xFFFF8A80), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                    item.isPremium -> Text("🔒 SOON", color = Color.Gray, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    item.minLevel != null -> Text("🔒 LVL ${item.minLevel}", color = Color(0xFFFF8A80), fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    item.isPremium -> Text("🔒 SOON", color = Color.Gray, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                 }
             }
 

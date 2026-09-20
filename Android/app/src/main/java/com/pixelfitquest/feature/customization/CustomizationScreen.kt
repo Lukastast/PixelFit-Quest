@@ -44,12 +44,14 @@ fun CustomizationScreen(
     }
 
     val spacing = MaterialTheme.spacing
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    val useTwoPane = isLandscape || spacing.widthClass != com.pixelfitquest.ui.theme.PixelFitWidthClass.Compact
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()
-            .padding(top = spacing.sm),
+            .padding(top = if (useTwoPane) spacing.xxs else spacing.sm),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // --- Header with Coins, Level, and Body Stats quick action ---
@@ -57,17 +59,19 @@ fun CustomizationScreen(
             coins = uiState.userCoins,
             level = uiState.userLevel,
             onOpenStats = viewModel::openStatsDialog,
+            isCompact = useTwoPane,
         )
 
-        Spacer(modifier = Modifier.height(spacing.sm))
+        Spacer(modifier = Modifier.height(if (useTwoPane) spacing.xxs else spacing.sm))
 
         // --- 4 Equal Tabs (No horizontal scrolling required) ---
         CustomizationTabBar(
             selected = uiState.selectedTab,
             onSelect = viewModel::selectTab,
+            isCompact = useTwoPane,
         )
 
-        Spacer(modifier = Modifier.height(spacing.sm))
+        Spacer(modifier = Modifier.height(if (useTwoPane) spacing.xxs else spacing.sm))
 
         // --- Tab Content ---
         Box(
@@ -94,6 +98,7 @@ fun CustomizationScreen(
                     },
                     onBuyCharacter = viewModel::buyCharacter,
                     onOpenStats = viewModel::openStatsDialog,
+                    isTwoPane = useTwoPane,
                 )
                 CustomizationTab.Home -> HomeCustomizationPanel(
                     selectedHomeId = uiState.selectedHomeId,
@@ -104,6 +109,7 @@ fun CustomizationScreen(
                     onSelectHome = viewModel::selectHome,
                     onEquipHome = viewModel::equipHome,
                     onBuyHome = viewModel::buyHome,
+                    isTwoPane = useTwoPane,
                 )
                 CustomizationTab.Gym -> GymCustomizationPanel(
                     selectedGymId = uiState.selectedGymId,
@@ -114,6 +120,7 @@ fun CustomizationScreen(
                     onSelectGym = viewModel::selectGym,
                     onEquipGym = viewModel::equipGym,
                     onBuyGym = viewModel::buyGym,
+                    isTwoPane = useTwoPane,
                 )
                 CustomizationTab.Background -> BackgroundCustomizationPanel(
                     selectedBackgroundId = uiState.selectedBackgroundId,
@@ -124,6 +131,7 @@ fun CustomizationScreen(
                     onSelectBackground = viewModel::selectBackground,
                     onEquipBackground = viewModel::equipBackground,
                     onBuyBackground = viewModel::buyBackground,
+                    isTwoPane = useTwoPane,
                 )
             }
         }
@@ -146,12 +154,13 @@ private fun CustomizationHeader(
     coins: Int,
     level: Int,
     onOpenStats: () -> Unit,
+    isCompact: Boolean = false,
 ) {
     val spacing = MaterialTheme.spacing
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = spacing.md),
+            .padding(horizontal = if (isCompact) spacing.sm else spacing.md),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -159,7 +168,7 @@ private fun CustomizationHeader(
             text = "Armory",
             color = Color.White,
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
+            fontSize = if (isCompact) 17.sp else 20.sp,
         )
 
         Row(
@@ -230,14 +239,15 @@ private fun CustomizationHeader(
 private fun CustomizationTabBar(
     selected: CustomizationTab,
     onSelect: (CustomizationTab) -> Unit,
+    isCompact: Boolean = false,
 ) {
     val spacing = MaterialTheme.spacing
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = spacing.md),
-        horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+            .padding(horizontal = if (isCompact) spacing.sm else spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(if (isCompact) spacing.xxs else spacing.xs),
     ) {
         CustomizationTab.entries.forEach { tab ->
             val isSelected = selected == tab
@@ -254,13 +264,13 @@ private fun CustomizationTabBar(
                 pressedRes = R.drawable.button_clicked,
                 modifier = Modifier
                     .weight(1f)
-                    .height(spacing.scale(42)),
+                    .height(if (isCompact) spacing.scale(35) else spacing.scale(42)),
             ) {
                 Text(
                     text = title,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
+                    fontSize = if (isCompact) 11.sp else 12.sp,
                 )
             }
         }

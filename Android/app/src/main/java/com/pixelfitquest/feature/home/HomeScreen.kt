@@ -228,15 +228,25 @@ fun HomeScreen(
         )
 
         // Quick Missions Access Button
-        Box(
-            modifier = Modifier
+        val missionsButtonModifier = if (isLandscape) {
+            Modifier
+                .align(Alignment.BottomStart)
+                .navigationBarsPadding()
+                .padding(start = spacing.md, bottom = spacing.md)
+                .size(spacing.scale(48))
+        } else {
+            Modifier
                 .align(Alignment.BottomEnd)
                 .navigationBarsPadding()
                 .padding(
                     end = spacing.md,
-                    bottom = (if (isLandscape) spacing.navBarLandscape else spacing.navBar) + spacing.sm
+                    bottom = spacing.navBar + spacing.sm
                 )
-                .size(if (isLandscape) spacing.scale(40) else spacing.quickAccessIcon)
+                .size(spacing.quickAccessIcon)
+        }
+
+        Box(
+            modifier = missionsButtonModifier
                 .clickable { showMissionsDialog = true }
         ) {
             Image(

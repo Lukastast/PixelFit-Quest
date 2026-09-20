@@ -28,14 +28,14 @@ import com.pixelfitquest.ui.theme.LocalSpacing
 @Composable
 fun VolumeCard(
     musicVolume: Int,
-    onVolumeChange: (Int) -> Unit
+    onVolumeChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val spacing = LocalSpacing.current
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(spacing.cardHeight)
-            .padding(start = spacing.xl, end = spacing.xl, bottom = spacing.xs)
     ) {
         // Background image
         Image(
