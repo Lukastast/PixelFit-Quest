@@ -118,6 +118,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun initialize() {
+        generateWeeklyMissions()
         refreshHealthMetrics()
 
         viewModelScope.launch {
@@ -135,8 +136,6 @@ class HomeViewModel @Inject constructor(
                 weeklyStreakRepository.reconcile()
 
                 fetchCompletedWorkouts()
-                generateWeeklyMissions()
-                refreshHealthMetrics()
 
                 _isLoading.value = false
             } catch (e: Exception) {
@@ -264,29 +263,38 @@ class HomeViewModel @Inject constructor(
             val updates = mutableMapOf<String, Any>()
 
             // 1. Steps Reward
-            val lastStepsRewardDate = userRepository.getUserField("last_steps_reward_date") as? String ?: ""
+            val lastStepsRewardDate = (userRepository.getUserField("last_steps_reward_date") as? String)
+                ?.takeIf { it.isNotBlank() }
+                ?: missionPrefs.getString("last_steps_reward_date", "") ?: ""
             if (HealthRewards.shouldAwardDailyGoal(metrics.steps, metrics.stepGoal, lastStepsRewardDate, today)) {
                 addExp(HealthRewards.STEPS_REWARD_EXP)
                 addCoins(HealthRewards.STEPS_REWARD_COINS)
                 updates["last_steps_reward_date"] = today
+                missionPrefs.edit().putString("last_steps_reward_date", today).apply()
                 Log.d("HomeVM", "Awarded +${HealthRewards.STEPS_REWARD_EXP} EXP and +${HealthRewards.STEPS_REWARD_COINS} coins for steps goal on $today")
             }
 
             // 2. Sleep Milestone Reward (7-9 hours)
-            val lastSleepRewardDate = userRepository.getUserField("last_sleep_reward_date") as? String ?: ""
+            val lastSleepRewardDate = (userRepository.getUserField("last_sleep_reward_date") as? String)
+                ?.takeIf { it.isNotBlank() }
+                ?: missionPrefs.getString("last_sleep_reward_date", "") ?: ""
             if (HealthRewards.shouldAwardSleepMilestone(metrics.sleepMinutes, lastSleepRewardDate, today)) {
                 addExp(HealthRewards.SLEEP_REWARD_EXP)
                 addCoins(HealthRewards.SLEEP_REWARD_COINS)
                 updates["last_sleep_reward_date"] = today
+                missionPrefs.edit().putString("last_sleep_reward_date", today).apply()
                 Log.d("HomeVM", "Awarded +${HealthRewards.SLEEP_REWARD_EXP} EXP and +${HealthRewards.SLEEP_REWARD_COINS} coins for 7-9h sleep on $today")
             }
 
             // 3. Weekly Heart Goal Reward (>= 150 points)
-            val lastWeeklyHeartRewardWeek = userRepository.getUserField("last_weekly_heart_reward_week") as? String ?: ""
+            val lastWeeklyHeartRewardWeek = (userRepository.getUserField("last_weekly_heart_reward_week") as? String)
+                ?.takeIf { it.isNotBlank() }
+                ?: missionPrefs.getString("last_weekly_heart_reward_week", "") ?: ""
             if (HealthRewards.shouldAwardWeeklyHeartGoal(metrics.weeklyHeartPoints, metrics.weeklyHeartGoal, lastWeeklyHeartRewardWeek, currentWeek)) {
                 addExp(HealthRewards.WEEKLY_HEART_REWARD_EXP)
                 addCoins(HealthRewards.WEEKLY_HEART_REWARD_COINS)
                 updates["last_weekly_heart_reward_week"] = currentWeek
+                missionPrefs.edit().putString("last_weekly_heart_reward_week", currentWeek).apply()
                 Log.d("HomeVM", "Awarded +${HealthRewards.WEEKLY_HEART_REWARD_EXP} EXP and +${HealthRewards.WEEKLY_HEART_REWARD_COINS} coins for weekly heart goal on $currentWeek")
             }
 
@@ -382,6 +390,8 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun checkMissionsCompletion() {
+        if (_weeklyMissions.value.isEmpty()) return
+
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
         dateFormat.timeZone = TimeZone.getTimeZone("UTC")
         val today = dateFormat.format(Date())
@@ -405,6 +415,7 @@ class HomeViewModel @Inject constructor(
             }
         }
 
+        // Only award missions that have not been completed before in this week
         val newCompleted = currentCompleted - _completedMissions.value
         for (mission in newCompleted) {
             val reward = _weeklyMissions.value.firstOrNull { it.first == mission }?.second ?: continue
@@ -419,11 +430,13 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-        _completedMissions.value = currentCompleted
+        // Missions accumulate and are never un-completed during the week
+        val allCompleted = _completedMissions.value + currentCompleted
+        _completedMissions.value = allCompleted
 
-        // Persist so missions aren't re-awarded after ViewModel recreation
+        // Persist so missions aren't re-awarded after ViewModel recreation or app restart
         missionPrefs.edit()
-            .putString("completed_missions_${getIsoWeekKey()}", currentCompleted.joinToString(","))
+            .putString("completed_missions_${getIsoWeekKey()}", allCompleted.joinToString(","))
             .apply()
     }
 }

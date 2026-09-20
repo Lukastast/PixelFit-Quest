@@ -19,6 +19,8 @@ data class UserProfileEntity(
     val streak: Int = 0,
     val lastActivityDate: String = "",
     val lastStepsRewardDate: String = "",
+    val lastSleepRewardDate: String = "",
+    val lastWeeklyHeartRewardWeek: String = "",
     val lastStreakUpdateDate: String = "",
     val characterGender: String = "male",
     val characterVariant: String = "basic",

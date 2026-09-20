@@ -35,7 +35,7 @@ import com.pixelfitquest.local.db.entity.UserProfileEntity
         LevelStateEntity::class,
         UnlockedCosmeticEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 abstract class PixelFitDatabase : RoomDatabase() {
@@ -46,4 +46,13 @@ abstract class PixelFitDatabase : RoomDatabase() {
     abstract fun weeklyStreakDao(): WeeklyStreakDao
     abstract fun achievementDao(): AchievementDao
     abstract fun levelsDao(): LevelsDao
+
+    companion object {
+        val MIGRATION_6_7 = object : androidx.room.migration.Migration(6, 7) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE user_profile ADD COLUMN lastSleepRewardDate TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE user_profile ADD COLUMN lastWeeklyHeartRewardWeek TEXT NOT NULL DEFAULT ''")
+            }
+        }
+    }
 }
