@@ -1,6 +1,5 @@
 package com.pixelfitquest.feature.settings
 
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,11 +29,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.health.connect.client.PermissionController
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.components.molecules.ExitAppCard
-import com.pixelfitquest.components.molecules.HealthConnectCard
 import com.pixelfitquest.components.molecules.LandscapeWorkoutCard
 import com.pixelfitquest.components.molecules.RemoveAccountCard
 import com.pixelfitquest.components.molecules.SettingsActionCard
@@ -45,8 +41,6 @@ import com.pixelfitquest.components.molecules.launchCredManButtonUI
 import com.pixelfitquest.feature.streak.WeeklyGoalCard
 import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
 import com.pixelfitquest.firebase.model.User
-import com.pixelfitquest.health.HealthConnectIntents
-import com.pixelfitquest.health.HealthConnectStatus
 import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 import kotlinx.coroutines.launch
@@ -62,23 +56,12 @@ fun SettingsScreen(
     val userSettings by viewModel.userData.collectAsState(initial = null)
     val musicVolume = userSettings?.musicVolume ?: 50
     val signedIn = user.id.isNotBlank()
-    val healthStatus by viewModel.healthStatus.collectAsState()
-    val healthGranted by viewModel.healthPermissionsGranted.collectAsState()
     val workoutLandscapeEnabled by viewModel.workoutLandscapeEnabled.collectAsState()
     val weeklyStreak by weeklyStreakViewModel.snapshot.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val healthPermissionContract = remember {
-        PermissionController.createRequestPermissionResultContract()
-    }
-    val healthPermissionLauncher = rememberLauncherForActivityResult(
-        contract = healthPermissionContract
-    ) { granted ->
-        viewModel.onHealthPermissionsResult(granted)
-    }
 
     LaunchedEffect(Unit) {
-        viewModel.refreshHealthStatus()
         onScreenReady()
     }
 
@@ -113,96 +96,27 @@ fun SettingsScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(spacing.md))
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(spacing.cardHeight)
-                    .padding(start = spacing.xl, end = spacing.xl, bottom = spacing.xs)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.info_background_higher),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.FillBounds
-                )
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(spacing.md),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    if (signedIn) {
-                        Text(
-                            text = stringResource(
-                                R.string.profile_email,
-                                user.email.ifBlank { user.displayName }
-                            ),
-                            color = Color.White,
-                            textAlign = TextAlign.Center
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(R.string.guest_profile_title),
-                            color = Color.White,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = stringResource(R.string.guest_profile_subtitle),
-                            color = Color.White.copy(alpha = 0.85f),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(spacing.md))
+            Spacer(modifier = Modifier.height(spacing.xs))
 
             VolumeCard(
                 musicVolume = musicVolume,
                 onVolumeChange = { viewModel.setMusicVolume(it) }
             )
 
-            Spacer(modifier = Modifier.height(spacing.md))
-
-            HealthConnectCard(
-                status = healthStatus,
-                permissionsGranted = healthGranted,
-                onClick = {
-                    when (healthStatus) {
-                        HealthConnectStatus.AVAILABLE -> {
-                            if (healthGranted) {
-                                runCatching { HealthConnectIntents.openHealthConnectSettings(context) }
-                            } else {
-                                runCatching {
-                                    healthPermissionLauncher.launch(viewModel.healthPermissions)
-                                }
-                            }
-                        }
-                        HealthConnectStatus.UPDATE_REQUIRED -> {
-                            HealthConnectIntents.openPlayStore(context)
-                        }
-                        HealthConnectStatus.UNAVAILABLE -> Unit
-                    }
-                }
-            )
-
-            Spacer(modifier = Modifier.height(spacing.md))
+            Spacer(modifier = Modifier.height(spacing.xxs))
 
             WeeklyGoalCard(
                 targetSessions = weeklyStreak.targetSessionsPerWeek,
                 onTargetChange = { weeklyStreakViewModel.setTargetSessionsPerWeek(it) }
             )
 
-            Spacer(modifier = Modifier.height(spacing.md))
+            Spacer(modifier = Modifier.height(spacing.xxs))
             LandscapeWorkoutCard(
                 enabled = workoutLandscapeEnabled,
                 onToggle = { viewModel.setWorkoutLandscapeEnabled(it) }
             )
 
-            Spacer(modifier = Modifier.height(spacing.md))
+            Spacer(modifier = Modifier.height(spacing.xxs))
 
             if (!signedIn) {
                 SettingsActionCard(
@@ -216,7 +130,7 @@ fun SettingsScreen(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(spacing.md))
+                Spacer(modifier = Modifier.height(spacing.xxs))
             }
 
             SettingsActionCard(
@@ -227,18 +141,18 @@ fun SettingsScreen(
                 viewModel.onBackupSyncClick()
             }
 
-            Spacer(modifier = Modifier.height(spacing.md))
+            Spacer(modifier = Modifier.height(spacing.xxs))
 
             LocalExportCard()
 
             if (signedIn) {
-                Spacer(modifier = Modifier.height(spacing.md))
+                Spacer(modifier = Modifier.height(spacing.xxs))
                 ExitAppCard { viewModel.onSignOutClick(restartApp) }
-                Spacer(modifier = Modifier.height(spacing.md))
+                Spacer(modifier = Modifier.height(spacing.xxs))
                 RemoveAccountCard { viewModel.onDeleteAccountClick(restartApp) }
             }
 
-            Spacer(modifier = Modifier.height(spacing.lg))
+            Spacer(modifier = Modifier.height(spacing.md))
         }
     }
 }

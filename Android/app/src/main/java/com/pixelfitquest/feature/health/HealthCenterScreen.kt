@@ -165,48 +165,63 @@ fun HealthCenterScreen(
 
         // Heart Rate Card
         HealthMetricCard(
-            title = "Resting Heart Rate",
+            title = "Resting Heart Rate (7d Avg)",
             valueText = if (metrics.heartRateBpm != null && metrics.heartRateBpm!! > 0) "${metrics.heartRateBpm} BPM" else "No recent data",
-            subtitle = if (metrics.heartRateBpm != null && metrics.heartRateBpm!! > 0) "Synchronized with Health Connect" else "Wear your fitness tracker during the day",
-            badgeText = "❤ Pulse",
+            subtitle = if (metrics.heartRateBpm != null && metrics.heartRateBpm!! > 0) "7-day rolling baseline (filters outliers)" else "Wear your fitness tracker during rest and sleep",
+            badgeText = "❤ Resting",
             badgeColor = Color(0xFFE53935)
         )
 
         // Sleep Duration Card
+        val isOptimalSleep = metrics.sleepMinutes != null && metrics.sleepMinutes!! in 420..540
         HealthMetricCard(
-            title = "Sleep & Recovery",
-            valueText = if (metrics.sleepMinutes != null) "${metrics.sleepMinutes!! / 60}h ${metrics.sleepMinutes!! % 60}m" else "Resting in Dwelling",
-            subtitle = "Resting in your dwelling restores stamina and earns wellness bonuses",
-            badgeText = "🌙 Sleep",
-            badgeColor = Color(0xFF5C6BC0)
+            title = "Sleep Duration (7–9h Goal)",
+            valueText = if (metrics.sleepMinutes != null) "${metrics.sleepMinutes!! / 60}h ${metrics.sleepMinutes!! % 60}m" else "No sleep data logged",
+            subtitle = when {
+                isOptimalSleep -> "Optimal 7–9h sleep goal reached! +50 EXP & +15 Coins"
+                metrics.sleepMinutes != null && metrics.sleepMinutes!! < 420 -> "${(420 - metrics.sleepMinutes!!)}m more needed for optimal 7h rest reward"
+                metrics.sleepMinutes != null -> "Logged ${metrics.sleepMinutes!! / 60}h ${metrics.sleepMinutes!! % 60}m (Optimal range: 7–9h)"
+                else -> "Track sleep with Health Connect to earn +50 EXP & +15 Coins"
+            },
+            badgeText = if (isOptimalSleep) "⭐ 7–9h Rest" else "🌙 Sleep",
+            badgeColor = if (isOptimalSleep) Color(0xFF4CAF50) else Color(0xFF5C6BC0)
         )
 
-        // Daily Calories & Heart Points Card
+        // Weekly Heart Points Card
+        val isHeartGoalReached = metrics.weeklyHeartPoints >= metrics.weeklyHeartGoal
         HealthMetricCard(
-            title = "Heart Points & Energy",
-            valueText = if (metrics.caloriesBurned != null) "${metrics.caloriesBurned} kcal burned" else "Active Quest Day",
-            subtitle = "Workout sessions and walking contribute to daily quest energy",
-            badgeText = "⚡ Energy",
-            badgeColor = Color(0xFFFFA000)
+            title = "Weekly Heart Goal (Google Fit)",
+            valueText = "${metrics.weeklyHeartPoints} / ${metrics.weeklyHeartGoal} pts",
+            subtitle = if (isHeartGoalReached) {
+                "Weekly goal reached! +150 EXP & +30 Coins"
+            } else {
+                "${(metrics.weeklyHeartGoal - metrics.weeklyHeartPoints).coerceAtLeast(0)} points remaining this week"
+            },
+            badgeText = if (isHeartGoalReached) "❤ Goal Met" else "${metrics.weeklyHeartProgressPercent}%",
+            badgeColor = if (isHeartGoalReached) Color(0xFF4CAF50) else Color(0xFFE53935)
         )
 
-        Spacer(modifier = Modifier.height(spacing.sm))
+        // Manage Health Connect Button (only shown when connected, opens Health Connect to view/revoke permissions)
+        if (healthStatus == HealthConnectStatus.AVAILABLE && permissionsGranted) {
+            Spacer(modifier = Modifier.height(spacing.sm))
 
-        // Refresh Button
-        PixelArtButton(
-            onClick = { viewModel.refresh() },
-            imageRes = R.drawable.button_unclicked,
-            pressedRes = R.drawable.button_clicked,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(spacing.buttonHeight)
-        ) {
-            Text(
-                text = "Sync Health Data",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            PixelArtButton(
+                onClick = {
+                    runCatching { HealthConnectIntents.openHealthConnectSettings(context) }
+                },
+                imageRes = R.drawable.button_unclicked,
+                pressedRes = R.drawable.button_clicked,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(spacing.buttonHeight)
+            ) {
+                Text(
+                    text = "Manage Health Connect",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
         }
     }
 }

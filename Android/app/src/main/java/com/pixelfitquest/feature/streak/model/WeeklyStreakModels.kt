@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 const val MIN_WEEKLY_TARGET = 2
 const val MAX_WEEKLY_TARGET = 7
-const val DEFAULT_WEEKLY_TARGET = 3
+const val DEFAULT_WEEKLY_TARGET = 2
 
 data class WeeklyStreakState(
     val targetSessionsPerWeek: Int = DEFAULT_WEEKLY_TARGET,
