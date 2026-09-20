@@ -65,8 +65,8 @@ class SpacingScaleTest {
     @Test
     fun landscapeNavBarTokens_areCompactAndProportioned() {
         val compactLandscape = PixelFitSpacing.fromWindow(800, 360)
-        assertEquals(52f, compactLandscape.navBarLandscape.value, 0.01f)
-        assertEquals(40f, compactLandscape.navIconLandscape.value, 0.01f)
+        assertEquals(40f, compactLandscape.navBarLandscape.value, 0.01f)
+        assertEquals(32f, compactLandscape.navIconLandscape.value, 0.01f)
         assertEquals(80f, compactLandscape.navBar.value, 0.01f)
         assertEquals(72f, compactLandscape.navIcon.value, 0.01f)
 

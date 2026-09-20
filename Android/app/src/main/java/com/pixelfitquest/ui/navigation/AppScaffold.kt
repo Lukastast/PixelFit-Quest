@@ -19,9 +19,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -198,10 +198,9 @@ fun AppScaffold() {
                             )
                     }
 
-                    NavigationBar(
+                    Box(
                         modifier = navBarModifier,
-                        containerColor = Color.Transparent,
-                        windowInsets = navBarInsets
+                        contentAlignment = Alignment.TopCenter
                     ) {
                         val items = listOf(
                             BottomNavItem.Home,
@@ -214,7 +213,10 @@ fun AppScaffold() {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(navBarHeight),
+                                .height(navBarHeight)
+                                .windowInsetsPadding(
+                                    navBarInsets.only(WindowInsetsSides.Horizontal)
+                                ),
                             horizontalArrangement = Arrangement.SpaceEvenly,
                             verticalAlignment = Alignment.CenterVertically
                         ) {

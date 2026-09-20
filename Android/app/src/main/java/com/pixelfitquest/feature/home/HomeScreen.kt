@@ -199,82 +199,51 @@ fun HomeScreen(
     val spacing = MaterialTheme.spacing
 
     Box(modifier = Modifier.fillMaxSize()) {
-        if (isLandscape) {
-            // Landscape Orientation Layout
-            Row(modifier = Modifier.fillMaxSize()) {
-                StatsHudColumn(
-                    coins = coins,
-                    streak = streak,
-                    displayLevel = displayLevel,
-                    progressIndex = progressIndex,
-                    onStreakClick = { showStreakDialog = true },
-                    onLevelClick = { navController.navigate(LEVELS_SCREEN) },
-                    onMissionsClick = { showMissionsDialog = true },
-                    modifier = Modifier
-                        .statusBarsPadding()
-                        .displayCutoutPadding()
-                        .padding(start = spacing.sm, top = spacing.xs, bottom = spacing.xs)
-                )
+        DwellingScene(
+            tier = dwellingTier,
+            pose = characterPose,
+            gender = characterData.gender,
+            variant = characterData.variant,
+            isLandscape = isLandscape,
+            onPoseCycle = { viewModel.cyclePose() },
+            modifier = Modifier.fillMaxSize()
+        )
 
-                DwellingScene(
-                    tier = dwellingTier,
-                    pose = characterPose,
-                    gender = characterData.gender,
-                    variant = characterData.variant,
-                    isLandscape = true,
-                    onPoseCycle = { viewModel.cyclePose() },
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .padding(start = spacing.xs)
+        StatsHudBar(
+            coins = coins,
+            streak = streak,
+            displayLevel = displayLevel,
+            progressIndex = progressIndex,
+            onStreakClick = { showStreakDialog = true },
+            onLevelClick = { navController.navigate(LEVELS_SCREEN) },
+            isLandscape = isLandscape,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .displayCutoutPadding()
+                .padding(
+                    horizontal = if (isLandscape) spacing.scale(32) else spacing.screen,
+                    vertical = if (isLandscape) spacing.xs else spacing.sm
                 )
-            }
-        } else {
-            // Portrait Orientation Layout
-            Box(modifier = Modifier.fillMaxSize()) {
-                DwellingScene(
-                    tier = dwellingTier,
-                    pose = characterPose,
-                    gender = characterData.gender,
-                    variant = characterData.variant,
-                    isLandscape = false,
-                    onPoseCycle = { viewModel.cyclePose() },
-                    modifier = Modifier.fillMaxSize()
-                )
+        )
 
-                StatsHudBar(
-                    coins = coins,
-                    streak = streak,
-                    displayLevel = displayLevel,
-                    progressIndex = progressIndex,
-                    onStreakClick = { showStreakDialog = true },
-                    onLevelClick = { navController.navigate(LEVELS_SCREEN) },
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .statusBarsPadding()
-                        .displayCutoutPadding()
-                        .padding(horizontal = spacing.screen, vertical = spacing.sm)
+        // Quick Missions Access Button
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .navigationBarsPadding()
+                .padding(
+                    end = spacing.md,
+                    bottom = (if (isLandscape) spacing.navBarLandscape else spacing.navBar) + spacing.sm
                 )
-
-                // Quick Missions Access Button
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .navigationBarsPadding()
-                        .padding(
-                            end = spacing.md,
-                            bottom = spacing.navBar + spacing.sm
-                        )
-                        .size(spacing.quickAccessIcon)
-                        .clickable { showMissionsDialog = true }
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.achievement_button),
-                        contentDescription = "Daily Missions",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
+                .size(if (isLandscape) spacing.scale(40) else spacing.quickAccessIcon)
+                .clickable { showMissionsDialog = true }
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.achievement_button),
+                contentDescription = "Daily Missions",
+                modifier = Modifier.fillMaxSize()
+            )
         }
 
         if (showStreakDialog) {
