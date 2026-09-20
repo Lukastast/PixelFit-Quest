@@ -8,11 +8,11 @@ import org.junit.Test
 class WorkoutOrientationTest {
 
     @Test
-    fun disabledStaysPortraitInEveryPhase() {
+    fun disabledAllowsFreeRotationInEveryPhase() {
         WorkoutPhase.entries.forEach { phase ->
             assertEquals(
                 "phase=$phase",
-                WorkoutOrientationMode.Portrait,
+                WorkoutOrientationMode.AllowRotation,
                 workoutOrientationMode(phase, landscapeEnabled = false),
             )
         }
@@ -27,7 +27,7 @@ class WorkoutOrientationTest {
     }
 
     @Test
-    fun idleCountdownAndReviewAllowRotation() {
+    fun idleCountdownAndReviewForceLandscapeWhenEnabled() {
         listOf(
             WorkoutPhase.Idle,
             WorkoutPhase.Countdown,
@@ -35,7 +35,7 @@ class WorkoutOrientationTest {
         ).forEach { phase ->
             assertEquals(
                 "phase=$phase",
-                WorkoutOrientationMode.AllowRotation,
+                WorkoutOrientationMode.Landscape,
                 workoutOrientationMode(phase, landscapeEnabled = true),
             )
         }
@@ -44,12 +44,12 @@ class WorkoutOrientationTest {
     @Test
     fun mapsModesToActivityRequestedOrientation() {
         assertEquals(
-            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
-            WorkoutOrientationMode.Portrait.toRequestedOrientation(),
-        )
-        assertEquals(
             ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR,
             WorkoutOrientationMode.AllowRotation.toRequestedOrientation(),
+        )
+        assertEquals(
+            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
+            WorkoutOrientationMode.Landscape.toRequestedOrientation(),
         )
         assertEquals(
             ActivityInfo.SCREEN_ORIENTATION_LOCKED,

@@ -42,22 +42,21 @@ class AccountServiceImpl @Inject constructor() : AccountService {
         val profileUpdates = userProfileChangeRequest {
             displayName = newDisplayName
         }
-
-        Firebase.auth.currentUser!!.updateProfile(profileUpdates).await()
+        requireCurrentUser().updateProfile(profileUpdates).await()
     }
 
     override suspend fun linkAccountWithGoogle(idToken: String) {
         val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
-        Firebase.auth.currentUser!!.linkWithCredential(firebaseCredential).await()
+        requireCurrentUser().linkWithCredential(firebaseCredential).await()
     }
 
     override suspend fun linkAccountWithEmail(email: String, password: String) {
         val credential = EmailAuthProvider.getCredential(email, password)
-        Firebase.auth.currentUser!!.linkWithCredential(credential).await()
+        requireCurrentUser().linkWithCredential(credential).await()
     }
 
     override suspend fun signInWithGoogle(idToken: String) {
-            val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
+        val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
         Firebase.auth.signInWithCredential(firebaseCredential).await()
     }
 
@@ -74,8 +73,12 @@ class AccountServiceImpl @Inject constructor() : AccountService {
     }
 
     override suspend fun deleteAccount() {
-        Firebase.auth.currentUser!!.delete().await()
+        requireCurrentUser().delete().await()
     }
+
+    private fun requireCurrentUser(): FirebaseUser =
+        Firebase.auth.currentUser
+            ?: throw IllegalStateException("No authenticated user. Please sign in first.")
 
     private fun FirebaseUser?.toPixelFitUser(): User {
         return if (this == null) User() else User(

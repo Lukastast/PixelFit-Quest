@@ -166,7 +166,7 @@ fun HomeScreen(
     val streak = weeklyStreak.currentStreakWeeks
     val healthMetrics by viewModel.healthMetrics.collectAsState()
     val todaySteps = healthMetrics.steps
-    val dailyMissions by viewModel.dailyMissions.collectAsState()
+    val weeklyMissions by viewModel.weeklyMissions.collectAsState()
     val completedMissions by viewModel.completedMissions.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -283,7 +283,7 @@ fun HomeScreen(
 
         if (showMissionsDialog) {
             MissionsDialog(
-                dailyMissions = dailyMissions,
+                weeklyMissions = weeklyMissions,
                 completedMissions = completedMissions,
                 todaySteps = todaySteps,
                 todaysWorkouts = todaysWorkouts,

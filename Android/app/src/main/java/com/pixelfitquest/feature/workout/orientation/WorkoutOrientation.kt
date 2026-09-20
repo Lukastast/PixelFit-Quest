@@ -19,8 +19,11 @@ object WorkoutOrientationPrefs {
 }
 
 enum class WorkoutOrientationMode {
-    Portrait,
+    /** Free rotation — sensor-driven, no lock. Used when lay-flat is OFF. */
     AllowRotation,
+    /** Force landscape. Used when lay-flat is ON and a set is NOT being recorded. */
+    Landscape,
+    /** Freeze the current rotation. Used during an active recording to stabilise IMU axes. */
     Locked,
 }
 
@@ -28,18 +31,19 @@ fun workoutOrientationMode(
     phase: WorkoutPhase,
     landscapeEnabled: Boolean,
 ): WorkoutOrientationMode {
-    if (!landscapeEnabled) return WorkoutOrientationMode.Portrait
+    if (!landscapeEnabled) return WorkoutOrientationMode.AllowRotation
     return when (phase) {
-        // Freeze the current rotation while IMU is sampled so device axes cannot jump.
+        // Freeze rotation during IMU sampling so device axes cannot jump mid-set.
         WorkoutPhase.Recording -> WorkoutOrientationMode.Locked
+        // All other phases: stay landscape (device was already set to landscape above).
         WorkoutPhase.Idle,
         WorkoutPhase.Countdown,
-        WorkoutPhase.Reviewing -> WorkoutOrientationMode.AllowRotation
+        WorkoutPhase.Reviewing -> WorkoutOrientationMode.Landscape
     }
 }
 
 fun WorkoutOrientationMode.toRequestedOrientation(): Int = when (this) {
-    WorkoutOrientationMode.Portrait -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     WorkoutOrientationMode.AllowRotation -> ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+    WorkoutOrientationMode.Landscape -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
     WorkoutOrientationMode.Locked -> ActivityInfo.SCREEN_ORIENTATION_LOCKED
 }
