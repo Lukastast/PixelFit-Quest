@@ -64,4 +64,41 @@ class ExerciseCatalogPersistenceTest {
             restored.plan.items.map { it.exercise },
         )
     }
+
+    @Test
+    fun workoutSetRoundTripKeepsSignedImbalance() {
+        val original = WorkoutSet(
+            id = "s1",
+            exerciseId = "e1",
+            workoutId = "w1",
+            setNumber = 2,
+            reps = 8,
+            formScore = 81f,
+            twistDeg = 12f,
+            levelDeg = -8f,
+            repRecords = listOf(
+                RepRecord(
+                    index = 0,
+                    tStartNanos = 0L,
+                    tEndNanos = 1L,
+                    durationMs = 1L,
+                    romEstimate = 0.4f,
+                    romUnit = "METERS",
+                    concentricMs = 500L,
+                    eccentricMs = 500L,
+                    pathDeviation = 0.1f,
+                    romScore = 90f,
+                    levelDeg = -8f,
+                    twistDeg = 12f,
+                    formScore = 81f,
+                ),
+            ),
+        )
+        val parsed = WorkoutSet.fromMap(original.toMap())
+        assertNotNull(parsed)
+        assertEquals(12f, parsed!!.twistDeg, 0.01f)
+        assertEquals(-8f, parsed.levelDeg, 0.01f)
+        assertEquals(12f, parsed.repRecords.first().twistDeg!!, 0.01f)
+        assertEquals(-8f, parsed.repRecords.first().levelDeg!!, 0.01f)
+    }
 }

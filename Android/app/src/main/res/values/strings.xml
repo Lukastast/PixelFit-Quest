@@ -195,7 +195,15 @@
     <string name="set_review_form">Form %1$d/100</string>
     <string name="set_review_samples">%1$d samples</string>
     <string name="set_review_rep_index">Rep %1$d</string>
-    <string name="set_review_rep_meta">ecc %1$.1fs · con %2$.1fs · stab %3$d</string>
+    <string name="set_review_rep_meta">ecc %1$.1fs · con %2$.1fs</string>
+    <string name="set_review_rep_imbalance">level %1$s · twist %2$s</string>
+    <string name="tag_tilt_right">Pushing right</string>
+    <string name="tag_tilt_left">Pushing left</string>
+    <string name="tag_twist_head">Right hand toward head</string>
+    <string name="tag_twist_hip">Right hand toward hip</string>
+    <string name="tag_dropped">Dropped the lower</string>
+    <string name="tag_short_rom">Short range</string>
+    <string name="tag_clip_pose">Clip pose unclear — level/twist skipped</string>
     <string name="set_review_rom_label">ROM</string>
     <string name="set_review_rom_percent">%1$d%%</string>
     <string name="set_review_accept">Accept</string>
@@ -259,9 +267,14 @@
     <string name="set_score_title">Set Score</string>
     <string name="reps_label">Reps</string>
     <string name="kg_label">KG</string>
-    <string name="x_tilt_score_title">X Tilt Score</string>
-    <string name="z_tilt_score_title">Z Tilt Score</string>
+    <string name="x_tilt_score_title">Twist</string>
+    <string name="z_tilt_score_title">Bar level</string>
     <string name="score_out_of_100">%1$d/100</string>
+    <string name="imbalance_even">Even</string>
+    <string name="imbalance_right">R %1$d°</string>
+    <string name="imbalance_left">L %1$d°</string>
+    <string name="imbalance_head">Head %1$d°</string>
+    <string name="imbalance_hip">Hip %1$d°</string>
     <string name="no_exercises_completed">No exercises completed yet.</string>
     <string name="delete_workout">Delete workout</string>
     <string name="delete_workout_title">Delete this workout?</string>
@@ -273,8 +286,8 @@
     <string name="feedback_tilt_right">Pushing more to the right</string>
     <string name="feedback_tilt_left">Pushing more to the left</string>
     <string name="feedback_tilt_perfect">Perfect balance!</string>
-    <string name="feedback_x_tilt_right">Right side came closer — keep both arms straight up</string>
-    <string name="feedback_x_tilt_left">Left side came closer — push symmetrically</string>
+    <string name="feedback_x_tilt_right">Right hand closer to your head — keep the bar square</string>
+    <string name="feedback_x_tilt_left">Right hand closer to your hip — keep the bar square</string>
 
     <!-- Workout Customization Screen -->
     <string name="update_template">Update Template</string>

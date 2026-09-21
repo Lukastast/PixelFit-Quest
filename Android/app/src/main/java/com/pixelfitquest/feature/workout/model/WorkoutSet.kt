@@ -22,8 +22,8 @@ data class WorkoutSet(
     val formScore: Float = 0f,
     val avgRepTime: Float = 0f,
     val totalDurationMillis: Long = 0,
-    val xTiltScore: Float = 0f,
-    val zTiltScore: Float = 0f,
+    val twistDeg: Float = 0f,
+    val levelDeg: Float = 0f,
     val flags: List<String> = emptyList(),
     val repRecords: List<RepRecord> = emptyList(),
     val notes: String? = null,
@@ -46,8 +46,8 @@ data class WorkoutSet(
         "formScore" to formScore,
         "avgRepTime" to avgRepTime,
         "totalDurationMillis" to totalDurationMillis,
-        "xTiltScore" to xTiltScore,
-        "zTiltScore" to zTiltScore,
+        "twistDeg" to twistDeg,
+        "levelDeg" to levelDeg,
         "flags" to flags,
         "repRecords" to repRecords.map { it.toMap() },
         "notes" to notes,
@@ -80,8 +80,12 @@ data class WorkoutSet(
                 formScore = (map["formScore"] as? Number)?.toFloat() ?: 0f,
                 avgRepTime = (map["avgRepTime"] as? Number)?.toFloat() ?: 0f,
                 totalDurationMillis = (map["totalDurationMillis"] as? Number)?.toLong() ?: 0L,
-                xTiltScore = (map["xTiltScore"] as? Number)?.toFloat() ?: 0f,
-                zTiltScore = (map["zTiltScore"] as? Number)?.toFloat() ?: 0f,
+                twistDeg = (map["twistDeg"] as? Number)?.toFloat()
+                    ?: (map["xTiltScore"] as? Number)?.toFloat()
+                    ?: 0f,
+                levelDeg = (map["levelDeg"] as? Number)?.toFloat()
+                    ?: (map["zTiltScore"] as? Number)?.toFloat()
+                    ?: 0f,
                 flags = (map["flags"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
                 repRecords = records,
                 notes = map["notes"] as? String,

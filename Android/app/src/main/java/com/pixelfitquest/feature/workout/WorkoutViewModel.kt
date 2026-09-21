@@ -6,9 +6,11 @@ import com.pixelfitquest.feature.customization.model.CharacterData
 import com.pixelfitquest.feature.workout.analysis.AnalyzerUser
 import com.pixelfitquest.feature.workout.analysis.DetectedRep
 import com.pixelfitquest.feature.workout.analysis.ExerciseProfiles
+import com.pixelfitquest.feature.workout.analysis.FullRomStore
 import com.pixelfitquest.feature.workout.analysis.RomUnit
 import com.pixelfitquest.feature.workout.analysis.SetAnalysis
 import com.pixelfitquest.feature.workout.analysis.SetAnalyzer
+import com.pixelfitquest.feature.workout.analysis.formScoreFrom
 import com.pixelfitquest.feature.workout.catalog.ExerciseCatalog
 import com.pixelfitquest.feature.workout.model.Exercise
 import com.pixelfitquest.feature.workout.model.RepRecord
@@ -49,6 +51,7 @@ class WorkoutViewModel @Inject constructor(
     private val weeklyStreakRepository: WeeklyStreakRepository,
     private val setAnalyzer: SetAnalyzer,
     private val liftHistoryDao: LiftHistoryDao,
+    private val fullRomStore: FullRomStore,
 ) : PixelFitViewModel() {
 
     private val _workoutState = MutableStateFlow(WorkoutState())
@@ -203,6 +206,7 @@ class WorkoutViewModel @Inject constructor(
                 heightCm = user?.height ?: 178,
                 armLengthCm = user?.armLength,
             ),
+            fullRom = fullRomStore.get(type.type),
         )
         val review = SetReviewState(
             analysis = analysis,
@@ -243,16 +247,25 @@ class WorkoutViewModel @Inject constructor(
         if (i < 0 || i >= reps.lastIndex) return@mutateReview reps
         val a = reps[i]
         val b = reps[i + 1]
+        val tempo = averageOrNull(a.tempoScore, b.tempoScore)
+        val rom = maxOf(a.romScore, b.romScore)
+        val barQuality = averageOrNull(a.stabilityScore, b.stabilityScore)
         val merged = a.copy(
             tEndNanos = b.tEndNanos,
             durationMs = a.durationMs + b.durationMs,
             romEstimate = maxOf(a.romEstimate, b.romEstimate),
             concentricMs = a.concentricMs + b.concentricMs,
             eccentricMs = a.eccentricMs + b.eccentricMs,
-            romScore = maxOf(a.romScore, b.romScore),
-            stabilityScore = averageOrNull(a.stabilityScore, b.stabilityScore),
-            tempoScore = averageOrNull(a.tempoScore, b.tempoScore),
-            formScore = (a.formScore + b.formScore) / 2f,
+            romScore = rom,
+            stabilityScore = barQuality,
+            tempoScore = tempo,
+            levelDeg = averageOrNull(a.levelDeg, b.levelDeg),
+            twistDeg = averageOrNull(a.twistDeg, b.twistDeg),
+            formScore = formScoreFrom(
+                romScore = rom,
+                tempoScore = tempo,
+                barQuality = barQuality,
+            ),
             tags = (a.tags + b.tags + "merged").distinct() - "candidate",
             accepted = true,
             confidence = maxOf(a.confidence, b.confidence),
@@ -291,6 +304,10 @@ class WorkoutViewModel @Inject constructor(
     }
 
     fun setRom(repIndex: Int, percent: Int) = mutateReview { reps ->
+        val current = reps.firstOrNull { it.index == repIndex }
+        if (percent >= 100 && current != null) {
+            currentExerciseType?.let { fullRomStore.raise(it.type, current.romEstimate) }
+        }
         reps.map { rep ->
             if (rep.index != repIndex) rep
             else rep.withRomPercent(percent.toFloat())
@@ -302,6 +319,10 @@ class WorkoutViewModel @Inject constructor(
         if (_workoutState.value.phase != WorkoutPhase.Reviewing) return
 
         val accepted = review.reps.filter { it.accepted }
+        currentExerciseType?.let { type ->
+            val peak = accepted.maxOfOrNull { it.romEstimate } ?: 0f
+            fullRomStore.raise(type.type, peak)
+        }
         saveConfirmedSet(review, accepted)
         triggerSetFeedback(review.meanFormScore)
 
@@ -410,6 +431,8 @@ class WorkoutViewModel @Inject constructor(
         val stability = accepted.mapNotNull { it.stabilityScore }.averageOrZero()
         val tempo = accepted.mapNotNull { it.tempoScore }.averageOrZero()
         val form = review.meanFormScore
+        val twist = accepted.mapNotNull { it.twistDeg }.averageOrZero()
+        val level = accepted.mapNotNull { it.levelDeg }.averageOrZero()
         val avgTime = if (accepted.isEmpty()) 0f else accepted.map { it.durationMs.toFloat() }.average().toFloat()
         val duration = if (samples.size < 2) 0L else {
             (samples.last().tNanos - samples.first().tNanos) / 1_000_000L
@@ -429,8 +452,8 @@ class WorkoutViewModel @Inject constructor(
             formScore = form,
             avgRepTime = avgTime,
             totalDurationMillis = duration,
-            xTiltScore = 0f,
-            zTiltScore = 0f,
+            twistDeg = twist,
+            levelDeg = level,
             flags = review.analysis.flags,
             repRecords = records,
         )

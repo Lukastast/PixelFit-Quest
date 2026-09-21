@@ -1,6 +1,6 @@
 package com.pixelfitquest.feature.workout.analysis
 
-const val ANALYSIS_VERSION = 2
+const val ANALYSIS_VERSION = 3
 
 data class AnalyzerUser(
     val heightCm: Int,
@@ -20,6 +20,10 @@ data class DetectedRep(
     val romScore: Float,
     val stabilityScore: Float? = null,
     val tempoScore: Float? = null,
+    /** Signed degrees. Positive = pushing more to the right. */
+    val levelDeg: Float? = null,
+    /** Signed degrees. Positive = right hand closer to the head. */
+    val twistDeg: Float? = null,
     val formScore: Float,
     val tags: List<String>,
     val confidence: Float,
@@ -29,7 +33,7 @@ data class DetectedRep(
 
     fun withRomPercent(percent: Float): DetectedRep {
         val rom = percent.coerceIn(0f, 100f)
-        val form = formScoreFrom(rom, stabilityScore, tempoScore)
+        val form = formScoreFrom(romScore = rom, tempoScore = tempoScore, barQuality = stabilityScore)
         val nextTags = buildList {
             addAll(if (isManual) tags else tags + "rom_override")
             if (rom < 70f) add("short_rom")
@@ -40,13 +44,13 @@ data class DetectedRep(
     }
 }
 
-internal fun formScoreFrom(
-    romScore: Float,
-    stabilityScore: Float?,
-    tempoScore: Float?,
+fun formScoreFrom(
+    romScore: Float? = null,
+    tempoScore: Float? = null,
+    barQuality: Float? = null,
 ): Float {
-    val scores = listOfNotNull(romScore, stabilityScore, tempoScore)
-    return if (scores.isEmpty()) romScore else scores.average().toFloat()
+    val scores = listOfNotNull(romScore, barQuality, tempoScore)
+    return if (scores.isEmpty()) 0f else scores.average().toFloat()
 }
 
 data class SetAnalysis(

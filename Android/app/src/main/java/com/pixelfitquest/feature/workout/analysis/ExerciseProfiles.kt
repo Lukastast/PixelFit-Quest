@@ -3,17 +3,14 @@ package com.pixelfitquest.feature.workout.analysis
 import com.pixelfitquest.feature.workout.model.enums.ExerciseType
 
 object ExerciseProfiles {
-    private val verticalQuality = setOf(
+    private val barbellQuality = setOf(
         QualityMetric.ROM,
         QualityMetric.PATH_TILT,
         QualityMetric.TEMPO,
-        QualityMetric.BOTTOM_PAUSE,
-        QualityMetric.LOCKOUT,
     )
 
-    private val pitchQuality = setOf(
+    private val cableQuality = setOf(
         QualityMetric.ROM,
-        QualityMetric.PATH_TILT,
         QualityMetric.TEMPO,
     )
 
@@ -29,7 +26,7 @@ object ExerciseProfiles {
         minAmplitude = 0.15f,
         typicalAmplitude = 0.45f,
         romFactor = 0.25f,
-        quality = verticalQuality,
+        quality = barbellQuality,
     )
 
     val squat = ExerciseProfile(
@@ -44,7 +41,7 @@ object ExerciseProfiles {
         minAmplitude = 0.20f,
         typicalAmplitude = 0.80f,
         romFactor = 0.45f,
-        quality = verticalQuality,
+        quality = barbellQuality,
     )
 
     val latPulldown = ExerciseProfile(
@@ -60,7 +57,7 @@ object ExerciseProfiles {
         typicalAmplitude = 0.90f,
         romFactor = 0.50f,
         usesArmLength = true,
-        quality = verticalQuality,
+        quality = cableQuality,
     )
 
     val seatedRows = ExerciseProfile(
@@ -75,7 +72,7 @@ object ExerciseProfiles {
         minAmplitude = 0.15f,
         typicalAmplitude = 0.60f,
         romFactor = 0.35f,
-        quality = setOf(QualityMetric.ROM, QualityMetric.PATH_TILT, QualityMetric.TEMPO),
+        quality = cableQuality,
     )
 
     val bicepCurl = ExerciseProfile(
@@ -91,7 +88,7 @@ object ExerciseProfiles {
         typicalAmplitude = 2.0f,
         romFactor = 0.18f,
         usesArmLength = true,
-        quality = pitchQuality,
+        quality = barbellQuality,
     )
 
     val tricepExtension = ExerciseProfile(
@@ -107,7 +104,7 @@ object ExerciseProfiles {
         typicalAmplitude = 1.6f,
         romFactor = 0.20f,
         usesArmLength = true,
-        quality = pitchQuality,
+        quality = cableQuality,
     )
 
     private val byId: Map<String, ExerciseProfile> = listOf(

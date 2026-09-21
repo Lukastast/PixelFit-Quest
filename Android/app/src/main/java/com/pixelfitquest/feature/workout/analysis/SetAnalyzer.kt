@@ -4,8 +4,9 @@ import com.pixelfitquest.feature.workout.sensor.BarCalibration
 import com.pixelfitquest.feature.workout.sensor.ImuSample
 import javax.inject.Inject
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.sqrt
+
+const val TAG_CLIP_POSE = "clip_pose_unclear"
 
 class SetAnalyzer @Inject constructor() {
 
@@ -14,6 +15,7 @@ class SetAnalyzer @Inject constructor() {
         profile: ExerciseProfile,
         user: AnalyzerUser,
         calibration: BarCalibration? = null,
+        fullRom: Float? = null,
     ): SetAnalysis {
         if (samples.size < 15) {
             return SetAnalysis(
@@ -25,10 +27,11 @@ class SetAnalyzer @Inject constructor() {
 
         val prepared = Signal.prepare(samples, profile.primaryMotion, calibration)
         val cycles = Signal.segmentCycles(prepared.primary, prepared.tNanos, profile)
-        val typical = theoreticalAmplitude(profile, user)
+        val clipOk = clipPoseOk(samples, prepared.still)
+        val yawRef = openingStillMean(prepared.yaw, prepared.still)
 
         val reps = cycles.mapIndexed { index, cycle ->
-            classifyAndScore(index, cycle, prepared, profile, typical)
+            classifyAndScore(index, cycle, prepared, profile, fullRom, clipOk, yawRef)
         }.filter { it.accepted || "candidate" in it.tags || "truncated" in it.tags }
             .mapIndexed { index, rep -> rep.copy(index = index) }
 
@@ -37,6 +40,7 @@ class SetAnalyzer @Inject constructor() {
         val flags = mutableListOf<String>()
         if (!prepared.usedRotationVector) flags += "no_rotation_vector"
         if (!prepared.usedGyro) flags += "no_gyro"
+        if (!clipOk) flags += TAG_CLIP_POSE
         if (accepted.size >= 4) {
             val first = accepted.take(accepted.size / 2).map { it.formScore }.average()
             val lastTwo = accepted.takeLast(2).map { it.formScore }.average()
@@ -52,26 +56,14 @@ class SetAnalyzer @Inject constructor() {
         )
     }
 
-    private fun theoreticalAmplitude(profile: ExerciseProfile, user: AnalyzerUser): Float {
-        if (profile.primaryMotion == PrimaryMotion.PITCH_ABOUT_ELBOW) {
-            return profile.typicalAmplitude
-        }
-        val heightM = user.heightCm / 100f
-        val fromHeight = heightM * profile.romFactor
-        val armM = user.armLengthCm?.div(100f)
-        return if (profile.usesArmLength && armM != null && armM > 0.1f) {
-            max(fromHeight, armM * 0.85f)
-        } else {
-            fromHeight
-        }
-    }
-
     private fun classifyAndScore(
         index: Int,
         cycle: RawCycle,
         prepared: PreparedSignals,
         profile: ExerciseProfile,
-        typical: Float,
+        fullRom: Float?,
+        clipOk: Boolean,
+        yawRef: Float,
     ): DetectedRep {
         val durationMs = ((cycle.tEndNanos - cycle.tStartNanos) / 1_000_000L).coerceAtLeast(1L)
         val firstMs = ((cycle.tMidNanos - cycle.tStartNanos) / 1_000_000L).coerceAtLeast(1L)
@@ -95,50 +87,65 @@ class SetAnalyzer @Inject constructor() {
             else -> 0.15f
         }
 
-        val romScore = if (typical > 1e-4f) {
-            ((cycle.amplitude / typical) * 100f).coerceIn(0f, 100f)
-        } else 0f
-
-        val concentric = if (profile.eccentricFirst) {
-            cycle.extremumIndex..cycle.endIndex
+        val baseline = fullRom?.takeIf { it > 1e-4f }
+        val romScore = if (baseline != null) {
+            ((cycle.amplitude / baseline) * 100f).coerceIn(0f, 100f)
         } else {
-            cycle.startIndex..cycle.extremumIndex
-        }
-        val (pathDeviation, stabilityScore) = stabilityDuring(
-            prepared,
-            concentric,
-        )
-
-        val ratio = eccentricMs.toFloat() / concentricMs.toFloat()
-        val tempoScore = when {
-            ratio in 0.6f..3.5f -> 90f
-            ratio in 0.4f..5f -> 70f
-            else -> 50f
-        }.let { base ->
-            if (durationOk) base else (base * 0.7f)
+            100f
         }
 
-        var peakBottomAccel = 0f
-        val around = (cycle.extremumIndex - 2).coerceAtLeast(0)..
-            (cycle.extremumIndex + 2).coerceAtMost(prepared.verticalAccel.lastIndex)
-        for (i in around) {
-            peakBottomAccel = max(peakBottomAccel, abs(prepared.verticalAccel[i]))
-        }
-        val bounced = firstMs < 80L || (peakBottomAccel > 6f && secondMs < 200L)
+        val cycleRange = cycle.startIndex..cycle.endIndex
+        val wantsLevel = clipOk &&
+            profile.mount == Mount.BAR_SLEEVE &&
+            QualityMetric.PATH_TILT in profile.quality
+        val wantsTwist = wantsLevel &&
+            profile.primaryMotion == PrimaryMotion.VERTICAL_VS_GRAVITY
+        val headingOk = prepared.usedGyro || prepared.usedRotationVector
+        val level = if (wantsLevel) {
+            BarImbalance.scoreAxis(
+                values = prepared.barLevel,
+                range = cycleRange,
+                ref = 0f,
+                sign = BarImbalance.LATERAL_SIGN,
+            )
+        } else null
+        val twist = if (wantsTwist && headingOk) {
+            BarImbalance.scoreAxis(
+                values = prepared.yaw,
+                range = cycleRange,
+                ref = yawRef,
+                sign = BarImbalance.TWIST_SIGN,
+            )
+        } else null
+        val barQuality = BarImbalance.combinedQuality(level?.quality, twist?.quality)
+        val pathDeviation = listOfNotNull(level?.meanDeg, twist?.meanDeg)
+            .map { abs(it) }
+            .takeIf { it.isNotEmpty() }
+            ?.average()
+            ?.toFloat()
+            ?: 0f
+
+        val tempoScore = Tempo.score(eccentricMs, concentricMs, durationOk)
 
         val tags = mutableListOf<String>()
         if (cycle.truncated) tags += "truncated"
-        if (romScore < 70f) tags += "short_rom"
-        if (bounced && QualityMetric.BOTTOM_PAUSE in profile.quality) tags += "bounced"
-        if (tempoScore < 65f) tags += "uneven_tempo"
-        if (stabilityScore < 70f) tags += "bar_tilt"
+        if (baseline != null && romScore < 70f) tags += "short_rom"
+        if (Tempo.dropped(eccentricMs)) tags += Tempo.TAG_DROPPED
+        if (wantsLevel) {
+            tags += BarImbalance.tags(
+                levelDeg = level?.meanDeg,
+                twistDeg = twist?.meanDeg,
+                barQuality = barQuality,
+            )
+        }
         if (!accepted && candidate) tags += "candidate"
 
-        val scores = mutableListOf<Float>()
-        if (QualityMetric.ROM in profile.quality) scores += romScore
-        if (QualityMetric.PATH_TILT in profile.quality) scores += stabilityScore
-        if (QualityMetric.TEMPO in profile.quality) scores += tempoScore
-        val formScore = if (scores.isEmpty()) romScore else scores.average().toFloat()
+        val includeTempo = QualityMetric.TEMPO in profile.quality
+        val formScore = formScoreFrom(
+            romScore = if (baseline != null) romScore else null,
+            tempoScore = if (includeTempo) tempoScore else null,
+            barQuality = barQuality,
+        )
 
         return DetectedRep(
             index = index,
@@ -151,47 +158,53 @@ class SetAnalyzer @Inject constructor() {
             eccentricMs = eccentricMs,
             pathDeviation = pathDeviation,
             romScore = romScore,
-            stabilityScore = stabilityScore,
+            stabilityScore = barQuality,
             tempoScore = tempoScore,
+            levelDeg = level?.meanDeg,
+            twistDeg = twist?.meanDeg,
             formScore = formScore,
             tags = tags,
             confidence = confidence,
             accepted = accepted,
         )
     }
+}
 
-    private fun stabilityDuring(
-        prepared: PreparedSignals,
-        concentric: IntRange,
-    ): Pair<Float, Float> {
-        val start = concentric.first.coerceIn(0, prepared.roll.lastIndex)
-        val end = concentric.last.coerceIn(0, prepared.roll.lastIndex)
-        if (end < start) return 0f to 100f
-        val refRoll = prepared.roll[0]
-        val refYaw = prepared.yaw[0]
-        var acc = 0.0
-        var n = 0
-        if (prepared.usedGyro || prepared.usedRotationVector) {
-            for (i in start..end) {
-                val dRoll = prepared.roll[i] - refRoll
-                val dYaw = prepared.yaw[i] - refYaw
-                acc += dRoll * dRoll + dYaw * dYaw
-                n++
-            }
-            val rmsRad = if (n == 0) 0f else sqrt(acc / n).toFloat()
-            val rmsDeg = rmsRad * 180f / Math.PI.toFloat()
-            val score = (100f - 4f * rmsDeg).coerceIn(0f, 100f)
-            return rmsRad to score
-        }
-        var tiltAcc = 0.0
-        for (i in start..end) {
-            val dx = prepared.tiltX[i] - prepared.tiltX[0]
-            val dz = prepared.tiltZ[i] - prepared.tiltZ[0]
-            tiltAcc += dx * dx + dz * dz
+internal fun openingStillMean(values: FloatArray, still: BooleanArray): Float {
+    val range = openingStillRange(still) ?: return values.firstOrNull() ?: 0f
+    var sum = 0.0
+    var n = 0
+    for (i in range) {
+        if (i in values.indices) {
+            sum += values[i]
             n++
         }
-        val rms = if (n == 0) 0f else sqrt(tiltAcc / n).toFloat()
-        val score = (100f - rms * 180f / Math.PI.toFloat() * 3f).coerceIn(0f, 100f)
-        return rms to score
     }
+    return if (n == 0) values.firstOrNull() ?: 0f else (sum / n).toFloat()
+}
+
+internal fun clipPoseOk(samples: List<ImuSample>, still: BooleanArray): Boolean {
+    val range = openingStillRange(still) ?: (0 until minOf(10, samples.size))
+    var ratioSum = 0.0
+    var n = 0
+    for (i in range) {
+        if (i !in samples.indices) continue
+        val s = samples[i]
+        val mag = sqrt(s.ax * s.ax + s.ay * s.ay + s.az * s.az)
+        if (mag < 1e-3f) continue
+        ratioSum += abs(s.az) / mag
+        n++
+    }
+    if (n == 0) return true
+    return (ratioSum / n) >= 0.80
+}
+
+private fun openingStillRange(still: BooleanArray): IntRange? {
+    var i = 0
+    while (i < still.size && !still[i]) i++
+    if (i >= still.size) return null
+    val start = i
+    while (i < still.size && still[i]) i++
+    if (i - start < 3) return null
+    return start until i
 }
