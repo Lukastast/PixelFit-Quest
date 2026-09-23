@@ -216,13 +216,10 @@ private fun AchievementsHeader(
         modifier = Modifier
             .fillMaxWidth()
             .height(spacing.headerHeight)
+            .clip(RoundedCornerShape(spacing.cornerMd))
+            .background(SlateDeep.copy(alpha = 0.94f))
+            .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.info_background),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds,
-        )
         Row(
             modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
@@ -231,7 +228,7 @@ private fun AchievementsHeader(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_arrow_back),
                     contentDescription = stringResource(R.string.back_desc),
-                    tint = Color.White,
+                    tint = SilverSteel,
                 )
             }
             Column(
@@ -250,7 +247,7 @@ private fun AchievementsHeader(
                         unlockedCount,
                         totalCount,
                     ),
-                    color = Color.White.copy(alpha = 0.85f),
+                    color = SilverSteel,
                     fontSize = 12.sp,
                 )
             }
@@ -359,7 +356,7 @@ private fun CategoryPickerDialog(
                 Text(
                     text = stringResource(R.string.achievements_select_category),
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
+                    color = ImperialGold,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
                 )
@@ -382,7 +379,7 @@ private fun CategoryPickerDialog(
                     ) {
                         Text(
                             text = stringResource(R.string.achievements_category_all) + " ($totalCount)",
-                            color = if (allSelected) ImperialGold else Color.White,
+                            color = if (allSelected) ImperialGold else SilverSteel,
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.sp,
                         )
@@ -409,7 +406,7 @@ private fun CategoryPickerDialog(
                                 ) {
                                     Text(
                                         text = stringResource(cat.labelRes()) + " ($count)",
-                                        color = if (isSelected) ImperialGold else Color.White,
+                                        color = if (isSelected) ImperialGold else SilverSteel,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 11.sp,
                                     )
@@ -434,7 +431,7 @@ private fun CategoryPickerDialog(
                 ) {
                     Text(
                         text = "CLOSE",
-                        color = Color.White,
+                        color = SilverSteel,
                         fontWeight = FontWeight.Bold,
                         fontSize = 11.sp,
                     )
@@ -467,7 +464,7 @@ private fun StatusFilterRow(
             ) {
                 Text(
                     text = stringResource(filter.labelRes),
-                    color = if (isSelected) ImperialGold else Color.White,
+                    color = if (isSelected) ImperialGold else SilverSteel,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -508,7 +505,7 @@ private fun AchievementHeroStage(
                         text = item.definition.name,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = ImperialGold,
                         fontSize = if (isTwoPane) 14.sp else 15.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -530,7 +527,7 @@ private fun AchievementHeroStage(
                 when {
                     item.isUnlocked -> Text(
                         text = "UNLOCKED",
-                        color = Color(0xFF81C784),
+                        color = VitalGreen,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -542,7 +539,7 @@ private fun AchievementHeroStage(
                     )
                     else -> Text(
                         text = "LOCKED",
-                        color = Color(0xFFFF8A80),
+                        color = TorchAmber,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -568,7 +565,7 @@ private fun AchievementHeroStage(
                 ) {
                     Text(
                         text = item.definition.description,
-                        color = Color.White.copy(alpha = 0.85f),
+                        color = SilverSteel,
                         fontSize = if (isTwoPane) 10.5.sp else 11.5.sp,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
@@ -641,7 +638,7 @@ private fun AchievementCard(
             ) {
                 Text(
                     text = item.definition.name,
-                    color = if (!item.isUnlocked && !isSelected) Color.White.copy(alpha = 0.7f) else Color.White,
+                    color = if (!item.isUnlocked && !isSelected) SilverSlate else SilverSteel,
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.5.sp,
                     maxLines = 1,
@@ -652,7 +649,7 @@ private fun AchievementCard(
                 when {
                     item.isUnlocked -> Text(
                         text = "UNLOCKED",
-                        color = Color(0xFF81C784),
+                        color = VitalGreen,
                         fontSize = 8.5.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -666,7 +663,7 @@ private fun AchievementCard(
                     )
                     else -> Text(
                         text = "LOCKED",
-                        color = Color(0xFFFF8A80),
+                        color = TorchAmber,
                         fontSize = 8.5.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -694,7 +691,7 @@ private fun AchievementCard(
             ) {
                 Text(
                     text = "${item.progress.currentValue.coerceAtMost(item.definition.threshold)}/${item.definition.threshold}",
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = SilverSteel,
                     fontSize = 8.5.sp,
                 )
                 Text(
@@ -724,7 +721,7 @@ private fun AchievementGrid(
         ) {
             Text(
                 text = stringResource(R.string.achievements_no_items),
-                color = Color.White.copy(alpha = 0.7f),
+                color = SilverSlate,
                 fontSize = 12.sp,
             )
         }

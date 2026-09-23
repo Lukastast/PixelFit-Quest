@@ -26,8 +26,14 @@ import com.pixelfitquest.feature.customization.CustomizationViewModel.Companion.
 import com.pixelfitquest.feature.customization.CustomizationViewModel.Companion.HEIGHT_CM_MAX
 import com.pixelfitquest.feature.customization.CustomizationViewModel.Companion.HEIGHT_CM_MIN
 import com.pixelfitquest.ui.theme.DarkStone
+import com.pixelfitquest.ui.theme.ImperialGold
+import com.pixelfitquest.ui.theme.LeatherDark
+import com.pixelfitquest.ui.theme.ParchmentBorder
 import com.pixelfitquest.ui.theme.QuestBrown
 import com.pixelfitquest.ui.theme.RewardGold
+import com.pixelfitquest.ui.theme.SilverSlate
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateDeep
 import com.pixelfitquest.ui.theme.spacing
 import kotlin.math.roundToInt
 
@@ -52,8 +58,8 @@ fun StatsCustomizationPanel(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(spacing.cornerMd))
-                .background(DarkStone.copy(alpha = 0.85f))
-                .border(BorderStroke(2.dp, QuestBrown), RoundedCornerShape(spacing.cornerMd))
+                .background(SlateDeep.copy(alpha = 0.94f))
+                .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
                 .padding(spacing.md),
         ) {
             Column(
@@ -63,7 +69,7 @@ fun StatsCustomizationPanel(
                 Text(
                     text = stringResource(R.string.stats_title),
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
+                    color = ImperialGold,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
                 )
@@ -90,7 +96,7 @@ fun StatsCustomizationPanel(
 
                 Text(
                     text = "Accurate body metrics calibrate the phone's accelerometer and gyroscope sensors to compute precise reps, range of motion (ROM), and tilt during your workouts.",
-                    color = Color.White.copy(alpha = 0.85f),
+                    color = SilverSlate,
                     fontSize = 11.sp,
                     lineHeight = 16.sp,
                 )
@@ -118,13 +124,13 @@ private fun MetricSlider(
         ) {
             Text(
                 text = label,
-                color = Color.White,
+                color = SilverSteel,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
             )
             Text(
                 text = "${sliderValue.roundToInt()} cm",
-                color = RewardGold,
+                color = ImperialGold,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -137,9 +143,9 @@ private fun MetricSlider(
             valueRange = range,
             steps = steps.coerceAtLeast(0),
             colors = SliderDefaults.colors(
-                thumbColor = RewardGold,
-                activeTrackColor = RewardGold,
-                inactiveTrackColor = Color.White.copy(alpha = 0.3f),
+                thumbColor = ImperialGold,
+                activeTrackColor = ImperialGold,
+                inactiveTrackColor = LeatherDark,
             ),
         )
     }

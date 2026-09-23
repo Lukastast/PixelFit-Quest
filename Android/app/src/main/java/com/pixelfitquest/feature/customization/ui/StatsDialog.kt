@@ -29,8 +29,14 @@ import com.pixelfitquest.feature.customization.CustomizationViewModel.Companion.
 import com.pixelfitquest.feature.customization.CustomizationViewModel.Companion.HEIGHT_CM_MAX
 import com.pixelfitquest.feature.customization.CustomizationViewModel.Companion.HEIGHT_CM_MIN
 import com.pixelfitquest.ui.theme.DarkStone
+import com.pixelfitquest.ui.theme.ImperialGold
+import com.pixelfitquest.ui.theme.LeatherDark
+import com.pixelfitquest.ui.theme.ParchmentBorder
 import com.pixelfitquest.ui.theme.QuestBrown
 import com.pixelfitquest.ui.theme.RewardGold
+import com.pixelfitquest.ui.theme.SilverSlate
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateDeep
 import com.pixelfitquest.ui.theme.spacing
 import kotlin.math.roundToInt
 
@@ -49,8 +55,8 @@ fun StatsDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(spacing.cornerMd))
-                .background(DarkStone.copy(alpha = 0.96f))
-                .border(BorderStroke(2.dp, QuestBrown), RoundedCornerShape(spacing.cornerMd))
+                .background(SlateDeep.copy(alpha = 0.96f))
+                .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
                 .padding(spacing.md),
         ) {
             Column(
@@ -68,7 +74,7 @@ fun StatsDialog(
                     Text(
                         text = "📏 Body Calibration",
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color.White,
+                        color = ImperialGold,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                     )
@@ -78,7 +84,7 @@ fun StatsDialog(
 
                 Text(
                     text = "Calibrates accelerometer & gyroscope sensors to compute precise reps and range of motion.",
-                    color = Color.White.copy(alpha = 0.75f),
+                    color = SilverSlate,
                     fontSize = 11.sp,
                     textAlign = TextAlign.Start,
                     modifier = Modifier.fillMaxWidth(),
@@ -144,13 +150,13 @@ private fun DialogMetricSlider(
         ) {
             Text(
                 text = label,
-                color = Color.White,
+                color = SilverSteel,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
             )
             Text(
                 text = "${sliderValue.roundToInt()} cm",
-                color = RewardGold,
+                color = ImperialGold,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -163,9 +169,9 @@ private fun DialogMetricSlider(
             valueRange = range,
             steps = steps.coerceAtLeast(0),
             colors = SliderDefaults.colors(
-                thumbColor = RewardGold,
-                activeTrackColor = RewardGold,
-                inactiveTrackColor = Color.White.copy(alpha = 0.3f),
+                thumbColor = ImperialGold,
+                activeTrackColor = ImperialGold,
+                inactiveTrackColor = LeatherDark,
             ),
         )
     }

@@ -131,14 +131,11 @@ fun HealthCenterScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(if (useTwoPane) spacing.scale(50) else spacing.scale(54)),
+                .height(if (useTwoPane) spacing.scale(50) else spacing.scale(54))
+                .clip(RoundedCornerShape(spacing.cornerMd))
+                .background(SlateDeep.copy(alpha = 0.94f))
+                .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd)),
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.info_background),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds,
-            )
             Row(
                 modifier = Modifier
                     .fillMaxSize()
@@ -306,26 +303,30 @@ private fun QuestTab(
         onClick = onClick,
         imageRes = if (selected) R.drawable.button_clicked else R.drawable.button_unclicked,
         pressedRes = R.drawable.button_clicked,
-        modifier = modifier.height(50.dp),
+        modifier = modifier.height(52.dp),
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(start = 2.dp, end = 2.dp, top = 0.dp, bottom = 6.dp),
+            modifier = Modifier.padding(
+                start = 2.dp,
+                end = 2.dp,
+                top = if (selected) 4.dp else 1.dp,
+                bottom = if (selected) 3.dp else 7.dp,
+            ),
         ) {
             Text(
                 text = label,
                 color = if (selected) ImperialGold else SilverSteel,
-                fontSize = 11.5.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Spacer(modifier = Modifier.height(1.dp))
             Text(
                 text = count,
                 color = if (selected) TorchAmber else SilverSlate,
-                fontSize = 10.5.sp,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
             )

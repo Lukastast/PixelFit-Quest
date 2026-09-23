@@ -32,8 +32,18 @@ import com.pixelfitquest.feature.customization.model.AppBackgroundItem
 import com.pixelfitquest.feature.customization.model.CustomizationCatalog
 import com.pixelfitquest.feature.customization.model.UnlockType
 import com.pixelfitquest.ui.theme.DarkStone
+import com.pixelfitquest.ui.theme.ImperialGold
+import com.pixelfitquest.ui.theme.LeatherDark
+import com.pixelfitquest.ui.theme.ParchmentBorder
+import com.pixelfitquest.ui.theme.ParchmentDark
+import com.pixelfitquest.ui.theme.PlatinumWhite
 import com.pixelfitquest.ui.theme.QuestBrown
 import com.pixelfitquest.ui.theme.RewardGold
+import com.pixelfitquest.ui.theme.SilverSlate
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.TorchAmber
+import com.pixelfitquest.ui.theme.VitalGreen
 import com.pixelfitquest.ui.theme.spacing
 
 @Composable
@@ -68,7 +78,7 @@ fun BackgroundCustomizationPanel(
         Box(
             modifier = stageModifier
                 .clip(RoundedCornerShape(spacing.cornerMd))
-                .border(BorderStroke(2.dp, QuestBrown), RoundedCornerShape(spacing.cornerMd)),
+                .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd)),
         ) {
             Image(
                 painter = painterResource(id = selectedItem.drawableRes),
@@ -82,7 +92,8 @@ fun BackgroundCustomizationPanel(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.TopCenter)
-                        .background(Color(0xD92A0E0E))
+                        .background(LeatherDark.copy(alpha = 0.90f))
+                        .border(BorderStroke(1.dp, ParchmentBorder))
                         .padding(vertical = 3.dp),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -92,7 +103,7 @@ fun BackgroundCustomizationPanel(
                             selectedItem.minLevel != null -> "🔒 Locked · Level ${selectedItem.minLevel} Required"
                             else -> "🔒 Locked"
                         },
-                        color = Color(0xFFFF8A80),
+                        color = TorchAmber,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -103,19 +114,20 @@ fun BackgroundCustomizationPanel(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .background(Color.Black.copy(alpha = 0.65f))
+                    .background(SlateDeep.copy(alpha = 0.88f))
+                    .border(BorderStroke(1.dp, ParchmentBorder))
                     .padding(horizontal = spacing.sm, vertical = spacing.xxs),
             ) {
                 Column {
                     Text(
                         text = selectedItem.name,
-                        color = Color.White,
+                        color = ImperialGold,
                         fontWeight = FontWeight.Bold,
                         fontSize = if (isTwoPane) 12.sp else 14.sp,
                     )
                     Text(
                         text = selectedItem.description,
-                        color = Color.White.copy(alpha = 0.8f),
+                        color = SilverSteel,
                         fontSize = if (isTwoPane) 9.sp else 10.sp,
                         maxLines = if (isTwoPane) 1 else 2,
                     )
@@ -282,16 +294,16 @@ private fun BackgroundCard(
 ) {
     val spacing = MaterialTheme.spacing
     val borderColor = when {
-        isEquipped -> RewardGold
-        isSelected -> Color.White
-        !isUnlocked -> Color(0xFF383333)
-        else -> QuestBrown
+        isEquipped -> ImperialGold
+        isSelected -> PlatinumWhite
+        !isUnlocked -> ParchmentBorder
+        else -> ParchmentBorder
     }
 
     val backgroundColor = if (!isUnlocked) {
-        Color(0xFF141212).copy(alpha = 0.92f)
+        SlateDeep.copy(alpha = 0.88f)
     } else {
-        DarkStone.copy(alpha = 0.85f)
+        ParchmentDark.copy(alpha = 0.94f)
     }
 
     Box(
@@ -314,7 +326,7 @@ private fun BackgroundCard(
             ) {
                 Text(
                     text = item.name,
-                    color = if (!isUnlocked && !isSelected) Color.White.copy(alpha = 0.65f) else Color.White,
+                    color = if (!isUnlocked && !isSelected) SilverSlate else SilverSteel,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp,
                     maxLines = 1,
@@ -323,14 +335,14 @@ private fun BackgroundCard(
                 )
                 Spacer(modifier = Modifier.width(spacing.xxs))
                 when {
-                    isEquipped -> Text("EQUIPPED", color = RewardGold, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                    isUnlocked -> Text("UNLOCKED", color = Color(0xFF81C784), fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    isEquipped -> Text("EQUIPPED", color = ImperialGold, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    isUnlocked -> Text("UNLOCKED", color = VitalGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     item.coinPrice != null -> {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
-                            Text("🔒 ${item.coinPrice}", color = Color(0xFFFFD54F), fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                            Text("🔒 ${item.coinPrice}", color = ImperialGold, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                             Image(
                                 painter = painterResource(R.drawable.coin),
                                 contentDescription = null,
@@ -338,7 +350,7 @@ private fun BackgroundCard(
                             )
                         }
                     }
-                    item.minLevel != null -> Text("🔒 LVL ${item.minLevel}", color = Color(0xFFFF8A80), fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    item.minLevel != null -> Text("🔒 LVL ${item.minLevel}", color = TorchAmber, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                 }
             }
 
@@ -346,7 +358,7 @@ private fun BackgroundCard(
 
             Text(
                 text = item.description,
-                color = if (!isUnlocked) Color.White.copy(alpha = 0.45f) else Color.White.copy(alpha = 0.7f),
+                color = if (!isUnlocked) SilverSlate.copy(alpha = 0.65f) else SilverSteel.copy(alpha = 0.85f),
                 fontSize = 10.sp,
                 maxLines = 2,
                 textAlign = TextAlign.Start,

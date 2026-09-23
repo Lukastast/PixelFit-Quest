@@ -25,8 +25,12 @@ import com.pixelfitquest.feature.customization.model.CustomizationTab
 import com.pixelfitquest.feature.customization.ui.*
 import com.pixelfitquest.feature.levels.LevelsViewModel
 import com.pixelfitquest.ui.theme.DarkStone
+import com.pixelfitquest.ui.theme.ImperialGold
+import com.pixelfitquest.ui.theme.ParchmentBorder
 import com.pixelfitquest.ui.theme.QuestBrown
 import com.pixelfitquest.ui.theme.RewardGold
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateDeep
 import com.pixelfitquest.ui.theme.spacing
 
 @Composable
@@ -179,14 +183,14 @@ private fun CustomizationHeader(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(spacing.cornerSm))
-                    .background(DarkStone.copy(alpha = 0.85f))
-                    .border(1.dp, QuestBrown, RoundedCornerShape(spacing.cornerSm))
+                    .background(SlateDeep.copy(alpha = 0.88f))
+                    .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerSm))
                     .clickable(onClick = onOpenStats)
                     .padding(horizontal = spacing.sm, vertical = spacing.xxs),
             ) {
                 Text(
                     text = "📏 Stats",
-                    color = Color.White,
+                    color = SilverSteel,
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp,
                 )
@@ -196,13 +200,13 @@ private fun CustomizationHeader(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(spacing.cornerSm))
-                    .background(DarkStone.copy(alpha = 0.85f))
-                    .border(1.dp, QuestBrown, RoundedCornerShape(spacing.cornerSm))
+                    .background(SlateDeep.copy(alpha = 0.88f))
+                    .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerSm))
                     .padding(horizontal = spacing.sm, vertical = spacing.xxs),
             ) {
                 Text(
                     text = "Lvl $level",
-                    color = Color.White,
+                    color = ImperialGold,
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp,
                 )
@@ -212,8 +216,8 @@ private fun CustomizationHeader(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(spacing.cornerSm))
-                    .background(DarkStone.copy(alpha = 0.85f))
-                    .border(1.dp, RewardGold, RoundedCornerShape(spacing.cornerSm))
+                    .background(SlateDeep.copy(alpha = 0.88f))
+                    .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerSm))
                     .padding(horizontal = spacing.sm, vertical = spacing.xxs),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -225,7 +229,7 @@ private fun CustomizationHeader(
                     Spacer(modifier = Modifier.width(spacing.xxs))
                     Text(
                         text = "$coins",
-                        color = RewardGold,
+                        color = ImperialGold,
                         fontWeight = FontWeight.Bold,
                         fontSize = 11.sp,
                     )
