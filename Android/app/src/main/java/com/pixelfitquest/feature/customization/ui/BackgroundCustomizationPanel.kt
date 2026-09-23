@@ -33,15 +33,14 @@ import com.pixelfitquest.feature.customization.model.CustomizationCatalog
 import com.pixelfitquest.feature.customization.model.UnlockType
 import com.pixelfitquest.ui.theme.DarkStone
 import com.pixelfitquest.ui.theme.ImperialGold
-import com.pixelfitquest.ui.theme.LeatherDark
-import com.pixelfitquest.ui.theme.ParchmentBorder
-import com.pixelfitquest.ui.theme.ParchmentDark
 import com.pixelfitquest.ui.theme.PlatinumWhite
-import com.pixelfitquest.ui.theme.QuestBrown
 import com.pixelfitquest.ui.theme.RewardGold
 import com.pixelfitquest.ui.theme.SilverSlate
 import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateBorder
 import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.SlateGroove
+import com.pixelfitquest.ui.theme.SlateSurface
 import com.pixelfitquest.ui.theme.TorchAmber
 import com.pixelfitquest.ui.theme.VitalGreen
 import com.pixelfitquest.ui.theme.spacing
@@ -78,7 +77,7 @@ fun BackgroundCustomizationPanel(
         Box(
             modifier = stageModifier
                 .clip(RoundedCornerShape(spacing.cornerMd))
-                .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd)),
+                .border(BorderStroke(2.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd)),
         ) {
             Image(
                 painter = painterResource(id = selectedItem.drawableRes),
@@ -92,8 +91,8 @@ fun BackgroundCustomizationPanel(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.TopCenter)
-                        .background(LeatherDark.copy(alpha = 0.90f))
-                        .border(BorderStroke(1.dp, ParchmentBorder))
+                        .background(SlateGroove.copy(alpha = 0.90f))
+                        .border(BorderStroke(1.dp, SlateBorder))
                         .padding(vertical = 3.dp),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -115,7 +114,7 @@ fun BackgroundCustomizationPanel(
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .background(SlateDeep.copy(alpha = 0.88f))
-                    .border(BorderStroke(1.dp, ParchmentBorder))
+                    .border(BorderStroke(1.dp, SlateBorder))
                     .padding(horizontal = spacing.sm, vertical = spacing.xxs),
             ) {
                 Column {
@@ -296,14 +295,16 @@ private fun BackgroundCard(
     val borderColor = when {
         isEquipped -> ImperialGold
         isSelected -> PlatinumWhite
-        !isUnlocked -> ParchmentBorder
-        else -> ParchmentBorder
+        !isUnlocked -> SlateBorder.copy(alpha = 0.6f)
+        else -> SlateBorder
     }
 
     val backgroundColor = if (!isUnlocked) {
-        SlateDeep.copy(alpha = 0.88f)
+        SlateGroove.copy(alpha = 0.88f)
+    } else if (isEquipped) {
+        SlateDeep.copy(alpha = 0.94f)
     } else {
-        ParchmentDark.copy(alpha = 0.94f)
+        SlateSurface.copy(alpha = 0.94f)
     }
 
     Box(

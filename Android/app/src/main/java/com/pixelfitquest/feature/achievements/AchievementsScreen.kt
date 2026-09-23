@@ -56,17 +56,16 @@ import com.pixelfitquest.feature.achievements.model.AchievementItem
 import com.pixelfitquest.feature.achievements.model.AchievementStatusFilter
 import com.pixelfitquest.feature.achievements.model.AchievementTier
 import com.pixelfitquest.ui.theme.BronzeCopper
-import com.pixelfitquest.ui.theme.BronzeRust
 import com.pixelfitquest.ui.theme.CrystalCyan
 import com.pixelfitquest.ui.theme.ImperialGold
-import com.pixelfitquest.ui.theme.LeatherDark
-import com.pixelfitquest.ui.theme.ParchmentBorder
-import com.pixelfitquest.ui.theme.ParchmentDark
 import com.pixelfitquest.ui.theme.PixelFitWidthClass
 import com.pixelfitquest.ui.theme.PlatinumWhite
 import com.pixelfitquest.ui.theme.SilverSlate
 import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateBorder
 import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.SlateGroove
+import com.pixelfitquest.ui.theme.SlateSurface
 import com.pixelfitquest.ui.theme.TorchAmber
 import com.pixelfitquest.ui.theme.VitalGreen
 import com.pixelfitquest.ui.theme.spacing
@@ -218,7 +217,7 @@ private fun AchievementsHeader(
             .height(spacing.headerHeight)
             .clip(RoundedCornerShape(spacing.cornerMd))
             .background(SlateDeep.copy(alpha = 0.94f))
-            .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
+            .border(BorderStroke(2.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd))
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -294,7 +293,7 @@ private fun CategoryCarousel(
                 .height(34.dp)
                 .clip(RoundedCornerShape(spacing.cornerSm))
                 .background(SlateDeep.copy(alpha = 0.92f))
-                .border(BorderStroke(1.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerSm))
+                .border(BorderStroke(1.dp, SlateBorder), RoundedCornerShape(spacing.cornerSm))
                 .clickable(onClick = onOpenDialog)
                 .padding(horizontal = spacing.sm),
             contentAlignment = Alignment.Center,
@@ -345,7 +344,7 @@ private fun CategoryPickerDialog(
                 .fillMaxWidth(0.95f)
                 .clip(RoundedCornerShape(spacing.cornerMd))
                 .background(SlateDeep.copy(alpha = 0.98f))
-                .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
+                .border(BorderStroke(2.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd))
                 .padding(spacing.md),
         ) {
             Column(
@@ -485,7 +484,7 @@ private fun AchievementHeroStage(
             .fillMaxWidth()
             .clip(RoundedCornerShape(spacing.cornerMd))
             .background(SlateDeep.copy(alpha = 0.92f))
-            .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
+            .border(BorderStroke(2.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd))
             .padding(spacing.sm),
     ) {
         Column(
@@ -607,10 +606,10 @@ private fun AchievementCard(
     val borderColor = when {
         isSelected -> PlatinumWhite
         item.isUnlocked -> ImperialGold
-        else -> ParchmentBorder
+        else -> SlateBorder
     }
     val backgroundColor = if (!item.isUnlocked) {
-        ParchmentDark.copy(alpha = 0.94f)
+        SlateSurface.copy(alpha = 0.94f)
     } else {
         SlateDeep.copy(alpha = 0.92f)
     }
@@ -797,8 +796,8 @@ private fun ProgressBar(fraction: Float, isUnlocked: Boolean = false) {
             .fillMaxWidth()
             .height(5.dp)
             .clip(RoundedCornerShape(2.dp))
-            .background(LeatherDark)
-            .border(1.dp, ParchmentBorder, RoundedCornerShape(2.dp))
+            .background(SlateGroove)
+            .border(1.dp, SlateBorder, RoundedCornerShape(2.dp))
     ) {
         Box(
             modifier = Modifier

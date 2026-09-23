@@ -26,10 +26,9 @@ import com.pixelfitquest.feature.customization.ui.*
 import com.pixelfitquest.feature.levels.LevelsViewModel
 import com.pixelfitquest.ui.theme.DarkStone
 import com.pixelfitquest.ui.theme.ImperialGold
-import com.pixelfitquest.ui.theme.ParchmentBorder
-import com.pixelfitquest.ui.theme.QuestBrown
 import com.pixelfitquest.ui.theme.RewardGold
 import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateBorder
 import com.pixelfitquest.ui.theme.SlateDeep
 import com.pixelfitquest.ui.theme.spacing
 
@@ -184,7 +183,7 @@ private fun CustomizationHeader(
                 modifier = Modifier
                     .clip(RoundedCornerShape(spacing.cornerSm))
                     .background(SlateDeep.copy(alpha = 0.88f))
-                    .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerSm))
+                    .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
                     .clickable(onClick = onOpenStats)
                     .padding(horizontal = spacing.sm, vertical = spacing.xxs),
             ) {
@@ -201,7 +200,7 @@ private fun CustomizationHeader(
                 modifier = Modifier
                     .clip(RoundedCornerShape(spacing.cornerSm))
                     .background(SlateDeep.copy(alpha = 0.88f))
-                    .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerSm))
+                    .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
                     .padding(horizontal = spacing.sm, vertical = spacing.xxs),
             ) {
                 Text(
@@ -217,7 +216,7 @@ private fun CustomizationHeader(
                 modifier = Modifier
                     .clip(RoundedCornerShape(spacing.cornerSm))
                     .background(SlateDeep.copy(alpha = 0.88f))
-                    .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerSm))
+                    .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
                     .padding(horizontal = spacing.sm, vertical = spacing.xxs),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

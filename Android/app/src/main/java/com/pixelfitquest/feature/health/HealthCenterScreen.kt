@@ -67,14 +67,14 @@ import com.pixelfitquest.ui.theme.CrystalCyan
 import com.pixelfitquest.ui.theme.EmberOrange
 import com.pixelfitquest.ui.theme.HeartRuby
 import com.pixelfitquest.ui.theme.ImperialGold
-import com.pixelfitquest.ui.theme.LeatherDark
-import com.pixelfitquest.ui.theme.ParchmentBorder
-import com.pixelfitquest.ui.theme.ParchmentDark
 import com.pixelfitquest.ui.theme.PixelFitWidthClass
 import com.pixelfitquest.ui.theme.PlatinumWhite
 import com.pixelfitquest.ui.theme.SilverSlate
 import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateBorder
 import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.SlateGroove
+import com.pixelfitquest.ui.theme.SlateSurface
 import com.pixelfitquest.ui.theme.SleepAmethyst
 import com.pixelfitquest.ui.theme.TorchAmber
 import com.pixelfitquest.ui.theme.VitalGreen
@@ -134,7 +134,7 @@ fun HealthCenterScreen(
                 .height(if (useTwoPane) spacing.scale(50) else spacing.scale(54))
                 .clip(RoundedCornerShape(spacing.cornerMd))
                 .background(SlateDeep.copy(alpha = 0.94f))
-                .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd)),
+                .border(BorderStroke(2.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd)),
         ) {
             Row(
                 modifier = Modifier
@@ -171,7 +171,7 @@ fun HealthCenterScreen(
                         modifier = Modifier
                             .clip(RoundedCornerShape(spacing.cornerXs))
                             .background(SlateDeep.copy(alpha = 0.88f))
-                            .border(BorderStroke(1.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerXs))
+                            .border(BorderStroke(1.dp, SlateBorder), RoundedCornerShape(spacing.cornerXs))
                             .padding(horizontal = 7.dp, vertical = 3.dp),
                     ) {
                         Text(
@@ -186,7 +186,7 @@ fun HealthCenterScreen(
                         modifier = Modifier
                             .clip(RoundedCornerShape(spacing.cornerXs))
                             .background(SlateDeep.copy(alpha = 0.88f))
-                            .border(BorderStroke(1.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerXs))
+                            .border(BorderStroke(1.dp, SlateBorder), RoundedCornerShape(spacing.cornerXs))
                             .padding(horizontal = 7.dp, vertical = 3.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(3.dp),
@@ -351,7 +351,7 @@ private fun MissionsHeroStage(
             .fillMaxWidth()
             .clip(RoundedCornerShape(spacing.cornerMd))
             .background(SlateDeep.copy(alpha = 0.92f))
-            .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
+            .border(BorderStroke(2.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd))
             .padding(spacing.sm),
     ) {
         Column(
@@ -391,8 +391,8 @@ private fun MissionsHeroStage(
                     modifier = Modifier
                         .size(if (useTwoPane) 50.dp else 54.dp)
                         .clip(RoundedCornerShape(spacing.cornerXs))
-                        .background(LeatherDark.copy(alpha = 0.8f))
-                        .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerXs)),
+                        .background(SlateGroove.copy(alpha = 0.9f))
+                        .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerXs)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Image(
@@ -420,8 +420,8 @@ private fun MissionsHeroStage(
                             .fillMaxWidth()
                             .height(5.dp)
                             .clip(RoundedCornerShape(2.dp))
-                            .background(LeatherDark)
-                            .border(1.dp, ParchmentBorder, RoundedCornerShape(2.dp)),
+                            .background(SlateGroove)
+                            .border(1.dp, SlateBorder, RoundedCornerShape(2.dp)),
                     ) {
                         Box(
                             modifier = Modifier
@@ -505,8 +505,8 @@ private fun MissionsPane(
                 fontSize = 11.5.sp,
                 modifier = Modifier
                     .clip(RoundedCornerShape(spacing.cornerXs))
-                    .background(LeatherDark.copy(alpha = 0.8f))
-                    .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerXs))
+                    .background(SlateSurface.copy(alpha = 0.94f))
+                    .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerXs))
                     .clickable(onClick = onOpenHealth)
                     .padding(horizontal = 10.dp, vertical = 6.dp),
             )
@@ -590,7 +590,7 @@ private fun HealthHeroStage(
             .fillMaxWidth()
             .clip(RoundedCornerShape(spacing.cornerMd))
             .background(SlateDeep.copy(alpha = 0.92f))
-            .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
+            .border(BorderStroke(2.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd))
             .padding(spacing.sm),
     ) {
         Column(
@@ -630,8 +630,8 @@ private fun HealthHeroStage(
                     modifier = Modifier
                         .size(if (useTwoPane) 50.dp else 54.dp)
                         .clip(RoundedCornerShape(spacing.cornerXs))
-                        .background(LeatherDark.copy(alpha = 0.8f))
-                        .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerXs)),
+                        .background(SlateGroove.copy(alpha = 0.9f))
+                        .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerXs)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Image(
@@ -659,8 +659,8 @@ private fun HealthHeroStage(
                             .fillMaxWidth()
                             .height(5.dp)
                             .clip(RoundedCornerShape(2.dp))
-                            .background(LeatherDark)
-                            .border(1.dp, ParchmentBorder, RoundedCornerShape(2.dp)),
+                            .background(SlateGroove)
+                            .border(1.dp, SlateBorder, RoundedCornerShape(2.dp)),
                     ) {
                         Box(
                             modifier = Modifier
@@ -794,8 +794,8 @@ private fun ConnectCard(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(RoundedCornerShape(spacing.cornerXs))
-                    .background(LeatherDark.copy(alpha = 0.8f))
-                    .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerXs)),
+                    .background(SlateGroove.copy(alpha = 0.9f))
+                    .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerXs)),
                 contentAlignment = Alignment.Center,
             ) {
                 Image(
@@ -977,8 +977,8 @@ private fun QuestCard(
     rewardXp: Int? = null,
 ) {
     val spacing = MaterialTheme.spacing
-    val borderColor = if (complete) ImperialGold else ParchmentBorder
-    val backgroundColor = if (complete) SlateDeep.copy(alpha = 0.92f) else ParchmentDark.copy(alpha = 0.94f)
+    val borderColor = if (complete) ImperialGold else SlateBorder
+    val backgroundColor = if (complete) SlateDeep.copy(alpha = 0.92f) else SlateSurface.copy(alpha = 0.94f)
 
     Box(
         modifier = Modifier
@@ -997,8 +997,8 @@ private fun QuestCard(
                     modifier = Modifier
                         .size(50.dp)
                         .clip(RoundedCornerShape(spacing.cornerXs))
-                        .background(LeatherDark.copy(alpha = 0.8f))
-                        .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerXs)),
+                        .background(SlateGroove.copy(alpha = 0.9f))
+                        .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerXs)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Image(
@@ -1112,8 +1112,8 @@ private fun QuestProgressBar(fraction: Float, complete: Boolean) {
             .fillMaxWidth()
             .height(5.dp)
             .clip(RoundedCornerShape(2.dp))
-            .background(LeatherDark)
-            .border(1.dp, ParchmentBorder, RoundedCornerShape(2.dp)),
+            .background(SlateGroove)
+            .border(1.dp, SlateBorder, RoundedCornerShape(2.dp)),
     ) {
         Box(
             modifier = Modifier
