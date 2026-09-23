@@ -61,6 +61,9 @@ import com.pixelfitquest.feature.streak.WeeklyStreakBonusBanner
 import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
 import com.pixelfitquest.feature.workout.model.enums.displayName
 import com.pixelfitquest.ui.navigation.PROGRESS_SCREEN
+import com.pixelfitquest.feature.workout.analysis.BAR_COACH_DEG
+import com.pixelfitquest.feature.workout.analysis.BAR_EVEN_DEG
+import com.pixelfitquest.feature.workout.analysis.BAR_METER_SPAN_DEG
 import com.pixelfitquest.ui.theme.LocalSpacing
 import com.pixelfitquest.ui.theme.spacing
 
@@ -178,14 +181,14 @@ fun WorkoutResumeScreen(
                             items(exercisesWithSets) { item ->
                                 val exercise = item.exercise
                                 val avgRom = item.avgFormScore.toInt()
-                                val avgZTilt = item.sets.map { it.zTiltScore }.average().toInt()
-                                val avgXTilt = item.sets.map { it.xTiltScore }.average().toInt()
+                                val avgLevel = item.sets.map { it.levelDeg }.average().toFloat()
+                                val avgTwist = item.sets.map { it.twistDeg }.average().toFloat()
 
                                 ExerciseMiniFeedback(
                                     exerciseName = exercise.type.displayName(),
                                     avgRomScore = avgRom,
-                                    avgZTiltScore = avgZTilt,
-                                    avgXTiltScore = avgXTilt
+                                    avgLevelDeg = avgLevel,
+                                    avgTwistDeg = avgTwist,
                                 )
                             }
                         }
@@ -371,36 +374,23 @@ fun WorkoutResumeScreen(
 
 
                                         Row(
-                                            modifier = Modifier.fillMaxWidth()
-                                                    .padding(start = spacing.md, end = spacing.md),
-                                            horizontalArrangement = Arrangement.SpaceEvenly
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(start = spacing.md, end = spacing.md),
+                                            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
                                         ) {
-
-                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-                                                Text(stringResource(R.string.x_tilt_score_title), fontSize = 12.sp, color = Color.Gray)
-
-                                                Spacer(modifier = Modifier.height(spacing.scale(6)))
-
-                                                TiltScoreBar(set.xTiltScore)
-                                                Text(
-                                                    stringResource(R.string.score_out_of_100, set.xTiltScore.toInt()),
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Medium,
-                                                    color = Color.White
-                                                )
-                                                Text(stringResource(R.string.z_tilt_score_title), fontSize = 12.sp, color = Color.Gray)
-
-                                                Spacer(modifier = Modifier.height(spacing.scale(6)))
-
-                                                TiltScoreBar(set.zTiltScore)
-                                                Text(
-                                                    stringResource(R.string.score_out_of_100, set.zTiltScore.toInt()),
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Medium,
-                                                    color = Color.White
-                                                )
-                                            }
+                                            ImbalanceMeter(
+                                                title = stringResource(R.string.z_tilt_score_title),
+                                                degrees = set.levelDeg,
+                                                caption = levelCaption(set.levelDeg),
+                                                modifier = Modifier.weight(1f),
+                                            )
+                                            ImbalanceMeter(
+                                                title = stringResource(R.string.x_tilt_score_title),
+                                                degrees = set.twistDeg,
+                                                caption = twistCaption(set.twistDeg),
+                                                modifier = Modifier.weight(1f),
+                                            )
                                         }
                                     }
                                 }
@@ -513,15 +503,60 @@ private fun DeleteWorkoutDialog(
 }
 
 @Composable
+private fun ImbalanceMeter(
+    title: String,
+    degrees: Float,
+    caption: String,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = LocalSpacing.current
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(title, fontSize = 12.sp, color = Color.Gray)
+        Spacer(modifier = Modifier.height(spacing.scale(6)))
+        TiltScoreBar(degrees)
+        Text(
+            caption,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White,
+        )
+    }
+}
+
+@Composable
+private fun levelCaption(deg: Float): String {
+    val mag = kotlin.math.abs(deg).toInt()
+    return when {
+        deg > BAR_EVEN_DEG -> stringResource(R.string.imbalance_right, mag)
+        deg < -BAR_EVEN_DEG -> stringResource(R.string.imbalance_left, mag)
+        else -> stringResource(R.string.imbalance_even)
+    }
+}
+
+@Composable
+private fun twistCaption(deg: Float): String {
+    val mag = kotlin.math.abs(deg).toInt()
+    return when {
+        deg > BAR_EVEN_DEG -> stringResource(R.string.imbalance_head, mag)
+        deg < -BAR_EVEN_DEG -> stringResource(R.string.imbalance_hip, mag)
+        else -> stringResource(R.string.imbalance_even)
+    }
+}
+
+@Composable
 fun TiltScoreBar(
-    tilt: Float,
+    degrees: Float,
     modifier: Modifier = Modifier
         .fillMaxWidth()
         .height(LocalSpacing.current.scale(14))
 ) {
     val spacing = LocalSpacing.current
-    val clamped = tilt.coerceIn(-100f, 100f)
-    val positionFraction = (clamped + 100f) / 200f
+    val span = BAR_METER_SPAN_DEG
+    val clamped = degrees.coerceIn(-span, span)
+    val positionFraction = (clamped + span) / (2f * span)
 
     BoxWithConstraints(
         modifier = modifier
@@ -559,8 +594,8 @@ fun TiltScoreBar(
     fun ExerciseMiniFeedback(
         exerciseName: String,
         avgRomScore: Int,
-        avgZTiltScore: Int,
-        avgXTiltScore: Int
+        avgLevelDeg: Float,
+        avgTwistDeg: Float,
     ) {
         val spacing = LocalSpacing.current
         Column(
@@ -593,12 +628,12 @@ fun TiltScoreBar(
             }
 
             when {
-                avgZTiltScore > 10 -> FeedbackLine(
+                avgLevelDeg > BAR_COACH_DEG -> FeedbackLine(
                     icon = painterResource(R.drawable.ic_balance_scale),
                     text = stringResource(R.string.feedback_tilt_right),
                     color = Color(0xFFFF8800)
                 )
-                avgZTiltScore < -10 -> FeedbackLine(
+                avgLevelDeg < -BAR_COACH_DEG -> FeedbackLine(
                     icon = painterResource(R.drawable.ic_balance_scale),
                     text = stringResource(R.string.feedback_tilt_left),
                     color = Color(0xFFFF8800)
@@ -610,12 +645,12 @@ fun TiltScoreBar(
                 )
             }
 
-            if (avgXTiltScore > 15) {
+            if (avgTwistDeg > BAR_COACH_DEG) {
                 FeedbackLine(
                     text = stringResource(R.string.feedback_x_tilt_right),
                     color = Color(0xFFFF8800)
                 )
-            } else if (avgXTiltScore < -15) {
+            } else if (avgTwistDeg < -BAR_COACH_DEG) {
                 FeedbackLine(
                     text = stringResource(R.string.feedback_x_tilt_left),
                     color = Color(0xFFFF8800)

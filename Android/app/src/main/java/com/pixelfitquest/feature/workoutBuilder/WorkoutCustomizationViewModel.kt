@@ -149,7 +149,9 @@ class WorkoutCustomizationViewModel @Inject constructor(
                     editingTemplateId = null,
                     selections = emptyMap(),
                     templateName = "",
-                    saveSuccess = true
+                    // A caller that starts the workout handles navigation itself.
+                    // saveSuccess would also pop the builder and undo that start.
+                    saveSuccess = onSuccess == null,
                 )
                 onSuccess?.invoke()
             } catch (e: Exception) {

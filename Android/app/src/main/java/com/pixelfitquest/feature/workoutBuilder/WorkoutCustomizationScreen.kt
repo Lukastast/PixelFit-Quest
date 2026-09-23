@@ -94,7 +94,7 @@ fun Modifier.simpleVerticalScrollbar(
 
 @Composable
 fun WorkoutCustomizationScreen(
-    onStartWorkout: (WorkoutPlan, String?) -> Unit,
+    onStartWorkout: (WorkoutPlan, String) -> Unit,
     onBack: () -> Unit = {},
     isTemplateMode: Boolean = false,
     onTemplateSaved: () -> Unit = onBack,
@@ -127,9 +127,7 @@ fun WorkoutCustomizationScreen(
                 snackbarHostState.showSnackbar("Template saved!")
             }
             viewModel.resetSaveSuccess()
-            if (inTemplateMode) {
-                onTemplateSaved()
-            }
+            onTemplateSaved()
         }
     }
 
