@@ -31,6 +31,28 @@ class HealthMetricsTest {
         assertEquals(10_000, HealthMetrics.DEFAULT_STEP_GOAL)
         assertEquals(10_000, HealthMetrics.EMPTY.stepGoal)
         assertEquals(0L, HealthMetrics.EMPTY.steps)
+        assertEquals(0L, HealthMetrics.EMPTY.weeklySteps)
+    }
+
+    @Test
+    fun rewardedGoalsCountStepsSleepAndHeartSeparately() {
+        assertEquals(0, HealthMetrics.EMPTY.rewardedGoalsMet)
+        assertEquals(
+            1,
+            HealthMetrics(steps = 10_000, sleepMinutes = 300, weeklyHeartPoints = 10).rewardedGoalsMet,
+        )
+        assertEquals(
+            3,
+            HealthMetrics(
+                steps = 10_000,
+                sleepMinutes = 480,
+                weeklyHeartPoints = 150,
+            ).rewardedGoalsMet,
+        )
+        assertEquals(
+            2,
+            HealthMetrics(steps = 10_000, sleepMinutes = 600, weeklyHeartPoints = 150).rewardedGoalsMet,
+        )
     }
 }
 

@@ -9,8 +9,8 @@ import com.pixelfitquest.feature.home.model.Achievement
 import com.pixelfitquest.feature.home.model.CharacterPose
 import com.pixelfitquest.feature.home.model.TimeOfDayProvider
 import com.pixelfitquest.feature.home.model.achievementsList
-import com.pixelfitquest.feature.home.model.missionsPool
-import com.pixelfitquest.feature.home.model.rewardsPool
+import com.pixelfitquest.feature.missions.WeeklyMissionBoard
+import com.pixelfitquest.feature.missions.WeeklyMissionService
 import com.pixelfitquest.feature.workout.model.Workout
 import com.pixelfitquest.feature.streak.data.WeeklyStreakRepository
 import com.pixelfitquest.firebase.model.UserData
@@ -36,12 +36,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import javax.inject.Inject
-import kotlin.random.Random
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -52,6 +50,7 @@ class HomeViewModel @Inject constructor(
     private val healthRepository: HealthRepository,
     private val weeklyStreakRepository: WeeklyStreakRepository,
     private val localXpPort: LocalXpPort,
+    private val weeklyMissionService: WeeklyMissionService,
     @ApplicationContext private val context: Context,
 ) : PixelFitViewModel() {
     private val _userData = MutableStateFlow<UserData?>(null)
@@ -91,17 +90,9 @@ class HomeViewModel @Inject constructor(
     private val _characterPose = MutableStateFlow(TimeOfDayProvider.getDefaultPoseForCurrentTime())
     val characterPose: StateFlow<CharacterPose> = _characterPose.asStateFlow()
 
-    private val _weeklyMissions = MutableStateFlow(listOf<Pair<String, String>>())
-    val weeklyMissions: StateFlow<List<Pair<String, String>>> = _weeklyMissions.asStateFlow()
+    val weeklyBoard: StateFlow<WeeklyMissionBoard> = weeklyMissionService.board
 
-    private val _completedMissions = MutableStateFlow(
-        missionPrefs.getString("completed_missions_${getIsoWeekKey()}", "")
-            ?.split(",")
-            ?.filter { it.isNotBlank() }
-            ?.toSet()
-            ?: emptySet()
-    )
-    val completedMissions: StateFlow<Set<String>> = _completedMissions.asStateFlow()
+    private var workoutsLoaded = false
 
     private val _achievements = MutableStateFlow<List<Pair<Achievement, Boolean>>>(emptyList())
     val achievements: StateFlow<List<Pair<Achievement, Boolean>>> = _achievements.asStateFlow()
@@ -118,7 +109,6 @@ class HomeViewModel @Inject constructor(
     }
 
     fun initialize() {
-        generateWeeklyMissions()
         refreshHealthMetrics()
 
         viewModelScope.launch {
@@ -241,11 +231,11 @@ class HomeViewModel @Inject constructor(
                 if (_healthStatus.value == HealthConnectStatus.AVAILABLE) {
                     _healthMetrics.value = healthRepository.readTodayMetrics()
                     checkAndAwardHealthRewards()
-                    checkMissionsCompletion()
                 }
             } catch (e: Exception) {
                 Log.e("HomeVM", "Health Connect refresh failed", e)
             } finally {
+                syncWeeklyMissions()
                 _healthReady.value = true
             }
         }
@@ -309,9 +299,10 @@ class HomeViewModel @Inject constructor(
             try {
                 val list = workoutRepository.getAllCompletedWorkouts().filter { it.totalExercises > 0 }
                 _workouts.value = list.sortedByDescending { it.date }
+                workoutsLoaded = true
                 val total = list.size
                 _achievements.value = achievementsList.map { it to (total >= it.requiredWorkouts) }
-                checkMissionsCompletion()
+                syncWeeklyMissions()
             } catch (e: Exception) {
                 _error.value = "Failed to load workout history"
                 Log.e("HomeVM", "Error loading workouts", e)
@@ -368,75 +359,8 @@ class HomeViewModel @Inject constructor(
         return lastWorkoutDateStr != today
     }
 
-    /** Returns an ISO week string like "2026-W38" used as the persistence key. */
-    private fun getIsoWeekKey(): String {
-        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.US)
-        cal.minimalDaysInFirstWeek = 4 // ISO 8601
-        cal.firstDayOfWeek = Calendar.MONDAY
-        val year = cal.get(Calendar.YEAR)
-        val week = cal.get(Calendar.WEEK_OF_YEAR)
-        return "$year-W${week.toString().padStart(2, '0')}"
-    }
-
-    private fun generateWeeklyMissions() {
-        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.US)
-        cal.minimalDaysInFirstWeek = 4
-        cal.firstDayOfWeek = Calendar.MONDAY
-        val weekSeed = cal.get(Calendar.YEAR) * 100L + cal.get(Calendar.WEEK_OF_YEAR)
-        val random = Random(weekSeed)
-        val selectedMissions = missionsPool.shuffled(random).take(3)
-        val selectedRewards = rewardsPool.shuffled(random).take(3)
-        _weeklyMissions.value = selectedMissions.zip(selectedRewards)
-    }
-
-    private fun checkMissionsCompletion() {
-        if (_weeklyMissions.value.isEmpty()) return
-
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
-        val today = dateFormat.format(Date())
-        val currentCompleted = mutableSetOf<String>()
-
-        // Fix: use startsWith so ISO timestamps like "2026-09-18T12:00:00Z" match "2026-09-18"
-        val todaysWorkouts = _workouts.value.count { it.date.startsWith(today) }
-        val todaySteps = _healthMetrics.value.steps
-
-        for ((mission, reward) in _weeklyMissions.value) {
-            if (mission.startsWith("Walk")) {
-                val target = mission.split(" ")[1].toLongOrNull() ?: continue
-                if (todaySteps >= target) {
-                    currentCompleted.add(mission)
-                }
-            } else if (mission.startsWith("Complete")) {
-                val target = mission.split(" ")[1].toIntOrNull() ?: continue
-                if (todaysWorkouts >= target) {
-                    currentCompleted.add(mission)
-                }
-            }
-        }
-
-        // Only award missions that have not been completed before in this week
-        val newCompleted = currentCompleted - _completedMissions.value
-        for (mission in newCompleted) {
-            val reward = _weeklyMissions.value.firstOrNull { it.first == mission }?.second ?: continue
-            val parts = reward.split(":")
-            if (parts.size < 2) continue
-            val type = parts[0].trim()
-            val amount = parts[1].trim().toIntOrNull() ?: continue
-            if (type == "exp") {
-                addExp(amount)
-            } else if (type == "coins") {
-                addCoins(amount)
-            }
-        }
-
-        // Missions accumulate and are never un-completed during the week
-        val allCompleted = _completedMissions.value + currentCompleted
-        _completedMissions.value = allCompleted
-
-        // Persist so missions aren't re-awarded after ViewModel recreation or app restart
-        missionPrefs.edit()
-            .putString("completed_missions_${getIsoWeekKey()}", allCompleted.joinToString(","))
-            .apply()
+    private suspend fun syncWeeklyMissions() {
+        if (!workoutsLoaded) return
+        weeklyMissionService.sync(_workouts.value, _healthMetrics.value.weeklySteps)
     }
 }

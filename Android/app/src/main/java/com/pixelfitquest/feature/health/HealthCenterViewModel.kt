@@ -1,8 +1,12 @@
 package com.pixelfitquest.feature.health
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.feature.levels.cosmetics.LocalXpPort
+import com.pixelfitquest.feature.missions.WeeklyMissionBoard
+import com.pixelfitquest.feature.missions.WeeklyMissionService
 import com.pixelfitquest.firebase.repository.UserRepository
+import com.pixelfitquest.firebase.repository.WorkoutRepository
 import com.pixelfitquest.health.HealthConnectStatus
 import com.pixelfitquest.health.HealthMetrics
 import com.pixelfitquest.health.HealthPermissions
@@ -23,11 +27,25 @@ import java.util.Locale
 import java.util.TimeZone
 import javax.inject.Inject
 
+enum class QuestSection {
+    MISSIONS,
+    ACHIEVEMENTS,
+    HEALTH,
+}
+
+data class HealthGoalClaims(
+    val steps: Boolean = false,
+    val sleep: Boolean = false,
+    val heart: Boolean = false,
+)
+
 @HiltViewModel
 class HealthCenterViewModel @Inject constructor(
     private val healthRepository: HealthRepository,
     private val userRepository: UserRepository,
     private val localXpPort: LocalXpPort,
+    private val workoutRepository: WorkoutRepository,
+    private val weeklyMissionService: WeeklyMissionService,
 ) : PixelFitViewModel() {
 
     private val _healthStatus = MutableStateFlow(HealthConnectStatus.UNAVAILABLE)
@@ -39,12 +57,24 @@ class HealthCenterViewModel @Inject constructor(
     private val _permissionsGranted = MutableStateFlow(false)
     val permissionsGranted: StateFlow<Boolean> = _permissionsGranted.asStateFlow()
 
+    private val _section = MutableStateFlow(QuestSection.MISSIONS)
+    val section: StateFlow<QuestSection> = _section.asStateFlow()
+
+    private val _healthClaims = MutableStateFlow(HealthGoalClaims())
+    val healthClaims: StateFlow<HealthGoalClaims> = _healthClaims.asStateFlow()
+
+    val weeklyBoard: StateFlow<WeeklyMissionBoard> = weeklyMissionService.board
+
     private val healthAwardMutex = Mutex()
 
     val healthPermissions: Set<String> = HealthPermissions.required()
 
     init {
         refresh()
+    }
+
+    fun onSectionSelected(section: QuestSection) {
+        _section.value = section
     }
 
     fun refresh() {
@@ -59,7 +89,30 @@ class HealthCenterViewModel @Inject constructor(
                 }
             } catch (_: Exception) {
             }
+            try {
+                refreshHealthClaims()
+                val workouts = workoutRepository.getAllCompletedWorkouts()
+                weeklyMissionService.sync(workouts, _healthMetrics.value.weeklySteps)
+            } catch (e: Exception) {
+                Log.w("HealthCenter", "Quest center refresh failed", e)
+            }
         }
+    }
+
+    private suspend fun refreshHealthClaims() {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val today = dateFormat.format(Date())
+        val week = HealthTime.currentWeekIso()
+        _healthClaims.value = HealthGoalClaims(
+            steps = rewardStamp("last_steps_reward_date") == today,
+            sleep = rewardStamp("last_sleep_reward_date") == today,
+            heart = rewardStamp("last_weekly_heart_reward_week") == week,
+        )
+    }
+
+    private suspend fun rewardStamp(field: String): String {
+        return (userRepository.getUserField(field) as? String).orEmpty()
     }
 
     private suspend fun checkAndAwardHealthRewards() {

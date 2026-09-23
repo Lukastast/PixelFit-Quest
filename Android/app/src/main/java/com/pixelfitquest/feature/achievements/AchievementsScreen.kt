@@ -58,24 +58,35 @@ import com.pixelfitquest.ui.theme.typography
 @Composable
 fun AchievementsScreen(
     onBack: () -> Unit,
+    embedded: Boolean = false,
+    modifier: Modifier = Modifier,
     viewModel: AchievementsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val spacing = MaterialTheme.spacing
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(horizontal = spacing.screen, vertical = spacing.sm)
+            .then(
+                if (embedded) {
+                    Modifier
+                } else {
+                    Modifier
+                        .statusBarsPadding()
+                        .navigationBarsPadding()
+                        .padding(horizontal = spacing.screen, vertical = spacing.sm)
+                }
+            )
     ) {
-        AchievementsHeader(
-            unlockedCount = uiState.unlockedCount,
-            totalCount = uiState.totalCount,
-            onBack = onBack,
-        )
-        Spacer(modifier = Modifier.height(spacing.sm))
+        if (!embedded) {
+            AchievementsHeader(
+                unlockedCount = uiState.unlockedCount,
+                totalCount = uiState.totalCount,
+                onBack = onBack,
+            )
+            Spacer(modifier = Modifier.height(spacing.sm))
+        }
         CategoryRow(
             selected = uiState.selectedCategory,
             onSelected = viewModel::onCategorySelected,
@@ -379,15 +390,44 @@ private fun ProgressBar(fraction: Float) {
     }
 }
 
-private fun AchievementItem.iconRes(): Int {
-    if (!isUnlocked) return R.drawable.locked_achievement
-    return when (definition.tier) {
+internal fun achievementIconRes(id: String, tier: AchievementTier): Int = when (id) {
+    "bronze_workout_1" -> R.drawable.bronze_workout_1
+    "iron_workout_5" -> R.drawable.iron_workout_5
+    "silver_workout_10" -> R.drawable.silver_workout_10
+    "steel_workout_25" -> R.drawable.steel_workout_25
+    "gold_workout_50" -> R.drawable.gold_workout_50
+    "platinum_workout_100" -> R.drawable.platinum_workout_100
+    "streak_3" -> R.drawable.streak_3
+    "streak_7" -> R.drawable.streak_7
+    "streak_14" -> R.drawable.streak_14
+    "streak_30" -> R.drawable.streak_30
+    "steps_5000" -> R.drawable.steps_5000
+    "steps_10000" -> R.drawable.steps_10000
+    "steps_50000" -> R.drawable.steps_50000
+    "steps_100000" -> R.drawable.steps_100000
+    "volume_1000" -> R.drawable.volume_1000
+    "volume_10000" -> R.drawable.volume_10000
+    "volume_50000" -> R.drawable.volume_50000
+    "sets_10" -> R.drawable.sets_10
+    "sets_50" -> R.drawable.sets_50
+    "sets_200" -> R.drawable.sets_200
+    "level_5" -> R.drawable.level_5
+    "level_10" -> R.drawable.level_10
+    "level_20" -> R.drawable.level_20
+    "unique_3" -> R.drawable.unique_3
+    "unique_8" -> R.drawable.unique_8
+    else -> when (tier) {
         AchievementTier.BRONZE -> R.drawable.achievement_bronze_workout_1_time
         AchievementTier.SILVER -> R.drawable.achievement_silver_workout_10_times
         AchievementTier.GOLD,
         AchievementTier.PLATINUM,
         -> R.drawable.achievement_gold_workout_50_times
     }
+}
+
+private fun AchievementItem.iconRes(): Int {
+    if (!isUnlocked) return R.drawable.locked_achievement
+    return achievementIconRes(definition.id, definition.tier)
 }
 
 private fun AchievementCategory.labelRes(): Int = when (this) {

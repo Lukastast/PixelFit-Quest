@@ -54,13 +54,6 @@ import com.pixelfitquest.health.HealthConnectStatus
 import com.pixelfitquest.ui.navigation.LEVELS_SCREEN
 import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
-import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
 
 @Composable
 fun HomeScreen(
@@ -120,8 +113,8 @@ fun HomeScreen(
 
     val userData by viewModel.userData.collectAsState()
     val characterData by viewModel.characterData.collectAsState()
-    val workouts by viewModel.workouts.collectAsState()
     val characterPose by viewModel.characterPose.collectAsState()
+    val weeklyBoard by viewModel.weeklyBoard.collectAsState()
     val levelsState by levelsViewModel.uiState.collectAsState()
 
     LaunchedEffect(userData?.level, userData?.exp) {
@@ -168,11 +161,6 @@ fun HomeScreen(
     }
     val coins = userData?.coins ?: 0
     val streak = weeklyStreak.currentStreakWeeks
-    val healthMetrics by viewModel.healthMetrics.collectAsState()
-    val todaySteps = healthMetrics.steps
-    val weeklyMissions by viewModel.weeklyMissions.collectAsState()
-    val completedMissions by viewModel.completedMissions.collectAsState()
-
     LaunchedEffect(Unit) {
         while (true) {
             delay(30000L)
@@ -182,19 +170,6 @@ fun HomeScreen(
 
     val displayLevel = if (level >= 30) stringResource(R.string.max_level) else level.toString()
     val progressIndex = levelsState.progress.xpBarIndex
-
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-    dateFormat.timeZone = TimeZone.getTimeZone("UTC")
-    val today = dateFormat.format(Date())
-    val todaysWorkouts = workouts.count { workout ->
-        try {
-            val instant = Instant.parse(workout.date)
-            val workoutDate = instant.atZone(ZoneId.of("UTC")).toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-            workoutDate == today
-        } catch (e: Exception) {
-            false
-        }
-    }
 
     val spacing = MaterialTheme.spacing
 
@@ -251,7 +226,7 @@ fun HomeScreen(
         ) {
             Image(
                 painter = painterResource(id = R.drawable.achievement_button),
-                contentDescription = "Daily Missions",
+                contentDescription = stringResource(R.string.daily_missions_title),
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -266,11 +241,8 @@ fun HomeScreen(
 
         if (showMissionsDialog) {
             MissionsDialog(
-                weeklyMissions = weeklyMissions,
-                completedMissions = completedMissions,
-                todaySteps = todaySteps,
-                todaysWorkouts = todaysWorkouts,
-                onDismiss = { showMissionsDialog = false }
+                missions = weeklyBoard.missions,
+                onDismiss = { showMissionsDialog = false },
             )
         }
 
