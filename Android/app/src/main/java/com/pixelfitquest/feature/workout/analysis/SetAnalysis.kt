@@ -44,13 +44,31 @@ data class DetectedRep(
     }
 }
 
+/** Range of motion is the main quality of the rep; bar control next; tempo last. */
+const val FORM_ROM_WEIGHT = 0.50f
+const val FORM_BAR_WEIGHT = 0.30f
+const val FORM_TEMPO_WEIGHT = 0.20f
+
 fun formScoreFrom(
     romScore: Float? = null,
     tempoScore: Float? = null,
     barQuality: Float? = null,
 ): Float {
-    val scores = listOfNotNull(romScore, barQuality, tempoScore)
-    return if (scores.isEmpty()) 0f else scores.average().toFloat()
+    var total = 0f
+    var weight = 0f
+    if (romScore != null) {
+        total += romScore * FORM_ROM_WEIGHT
+        weight += FORM_ROM_WEIGHT
+    }
+    if (barQuality != null) {
+        total += barQuality * FORM_BAR_WEIGHT
+        weight += FORM_BAR_WEIGHT
+    }
+    if (tempoScore != null) {
+        total += tempoScore * FORM_TEMPO_WEIGHT
+        weight += FORM_TEMPO_WEIGHT
+    }
+    return if (weight <= 0f) 0f else total / weight
 }
 
 data class SetAnalysis(

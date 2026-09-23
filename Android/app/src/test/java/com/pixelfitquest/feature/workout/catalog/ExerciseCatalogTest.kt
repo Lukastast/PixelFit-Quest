@@ -1,5 +1,6 @@
 package com.pixelfitquest.feature.workout.catalog
 
+import com.pixelfitquest.feature.workout.analysis.ExerciseProfiles
 import com.pixelfitquest.feature.workout.model.enums.ExerciseType
 import com.pixelfitquest.feature.workout.model.enums.displayName
 import org.junit.Assert.assertEquals
@@ -12,10 +13,30 @@ class ExerciseCatalogTest {
 
     private val shippedImuIds = setOf(
         "bench-press",
+        "overhead-press",
+        "seated-overhead-press",
+        "close-grip-bench-press",
+        "floor-press",
+        "incline-bench-press",
+        "decline-bench-press",
         "squat",
-        "bicep-curl",
+        "front-squat",
+        "romanian-deadlift",
+        "good-morning",
+        "deadlift",
+        "sumo-deadlift",
+        "rack-pull",
+        "hip-thrust",
         "lat-pulldown",
         "seated-rows",
+        "barbell-row",
+        "pendlay-row",
+        "t-bar-row",
+        "bicep-curl",
+        "ez-bar-curl",
+        "preacher-curl",
+        "reverse-curl",
+        "skull-crusher",
         "tricep-extension",
     )
 
@@ -38,13 +59,22 @@ class ExerciseCatalogTest {
     fun imuFlagMatchesShippedProfilesOnly() {
         val imu = ExerciseCatalog.all.filter { it.imuSupported }
         assertEquals(shippedImuIds, imu.map { it.id }.toSet())
-        assertEquals(6, imu.size)
+        assertEquals(shippedImuIds.size, imu.size)
         assertTrue(ExerciseCatalog.hasImuSupport(ExerciseType.BENCH_PRESS))
         assertTrue(ExerciseCatalog.hasImuSupport(ExerciseType.SQUAT))
         assertTrue(ExerciseCatalog.hasImuSupport(ExerciseType.BICEP_CURL))
-        assertFalse(ExerciseCatalog.hasImuSupport(ExerciseType.DEADLIFT))
-        assertFalse(ExerciseCatalog.hasImuSupport(ExerciseType.OVERHEAD_PRESS))
+        assertTrue(ExerciseCatalog.hasImuSupport(ExerciseType.DEADLIFT))
+        assertTrue(ExerciseCatalog.hasImuSupport(ExerciseType.OVERHEAD_PRESS))
+        assertTrue(ExerciseCatalog.hasImuSupport(ExerciseType.CLOSE_GRIP_BENCH_PRESS))
         assertFalse(ExerciseCatalog.hasImuSupport(ExerciseType.LEG_PRESS))
+        assertFalse(ExerciseCatalog.hasImuSupport(ExerciseType.DUMBBELL_BENCH_PRESS))
+    }
+
+    @Test
+    fun everyTrackedLiftHasItsOwnProfile() {
+        ExerciseCatalog.all.filter { it.imuSupported }.forEach { def ->
+            assertEquals(def.id, ExerciseProfiles.forId(def.id).id)
+        }
     }
 
     @Test
@@ -69,12 +99,13 @@ class ExerciseCatalogTest {
     @Test
     fun searchFindsLogOnlyDeadliftAndImuBench() {
         val dead = ExerciseCatalog.search("dead")
-        assertTrue(dead.any { it.type == ExerciseType.DEADLIFT && !it.imuSupported })
-        assertTrue(dead.any { it.type == ExerciseType.ROMANIAN_DEADLIFT })
+        assertTrue(dead.any { it.type == ExerciseType.DEADLIFT && it.imuSupported })
+        assertTrue(dead.any { it.type == ExerciseType.ROMANIAN_DEADLIFT && it.imuSupported })
 
         val bench = ExerciseCatalog.search("bench")
         assertTrue(bench.any { it.type == ExerciseType.BENCH_PRESS && it.imuSupported })
-        assertTrue(bench.any { it.type == ExerciseType.INCLINE_BENCH_PRESS && !it.imuSupported })
+        assertTrue(bench.any { it.type == ExerciseType.INCLINE_BENCH_PRESS && it.imuSupported })
+        assertTrue(bench.any { it.type == ExerciseType.DUMBBELL_BENCH_PRESS && !it.imuSupported })
     }
 
     @Test
@@ -84,7 +115,15 @@ class ExerciseCatalogTest {
             category = ExerciseCategory.CHEST,
             imuOnly = true,
         )
-        assertEquals(listOf(ExerciseType.BENCH_PRESS), chestImu.map { it.type })
+        assertEquals(
+            listOf(
+                ExerciseType.BENCH_PRESS,
+                ExerciseType.INCLINE_BENCH_PRESS,
+                ExerciseType.DECLINE_BENCH_PRESS,
+                ExerciseType.FLOOR_PRESS,
+            ),
+            chestImu.map { it.type },
+        )
 
         val logLegs = ExerciseCatalog.search(
             query = "",
