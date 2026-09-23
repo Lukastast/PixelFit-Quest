@@ -2,6 +2,7 @@ package com.pixelfitquest.ui.navigation
 
 import android.content.res.Configuration
 import android.media.MediaPlayer
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -360,6 +361,12 @@ fun AppScaffold() {
     }
 }
 
+private fun workoutRoute(plan: WorkoutPlan, templateName: String?): String {
+    val planJson = Uri.encode(Gson().toJson(plan))
+    val name = Uri.encode(templateName?.takeIf { it.isNotBlank() } ?: "workout")
+    return "$WORKOUT_SCREEN/$planJson/$name"
+}
+
 fun NavGraphBuilder.pixelFitGraph(
     appState: AppState,
 ) {
@@ -397,9 +404,7 @@ fun NavGraphBuilder.pixelFitGraph(
                 appState.navigate("$WORKOUT_CUSTOMIZATION_SCREEN?templateId=$templateId&isTemplate=true")
             },
             onStartWorkout = { plan, templateName ->
-                val gson = Gson()
-                val planJson = gson.toJson(plan)
-                appState.navigate("$WORKOUT_SCREEN/$planJson/$templateName")
+                appState.navigate(workoutRoute(plan, templateName))
             }
         )
     }
@@ -485,15 +490,15 @@ fun NavGraphBuilder.pixelFitGraph(
         WorkoutCustomizationScreen(
             isTemplateMode = isTemplate,
             onStartWorkout = { plan, templateName ->
-                val gson = Gson()
-                val planJson = gson.toJson(plan)
-                appState.navigate("$WORKOUT_SCREEN/$planJson/$templateName")
+                appState.popUp()
+                appState.navigate(workoutRoute(plan, templateName))
             },
             onBack = {
                 appState.popUp()
             },
             onTemplateSaved = {
                 appState.popUp()
+                appState.navigate(WORKOUTS_HISTORY_SCREEN)
             }
         )
     }

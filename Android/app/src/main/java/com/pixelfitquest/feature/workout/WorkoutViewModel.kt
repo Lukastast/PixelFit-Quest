@@ -377,6 +377,16 @@ class WorkoutViewModel @Inject constructor(
         }
     }
 
+    /** Logged sets open the summary. A workout with no sets goes home. */
+    fun leaveWorkout() {
+        if (sessionSetCount > 0) {
+            finishWorkout()
+        } else {
+            stopWorkout()
+            launchCatching { _navigationEvent.emit("") }
+        }
+    }
+
     fun setError(message: String?) {
         _error.value = message
     }
