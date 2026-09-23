@@ -18,6 +18,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.pixelfitquest.firebase.model.UserData
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -64,6 +67,12 @@ class HealthCenterViewModel @Inject constructor(
     val healthClaims: StateFlow<HealthGoalClaims> = _healthClaims.asStateFlow()
 
     val weeklyBoard: StateFlow<WeeklyMissionBoard> = weeklyMissionService.board
+
+    val userData: StateFlow<UserData?> = userRepository.getUserData().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = null,
+    )
 
     private val healthAwardMutex = Mutex()
 

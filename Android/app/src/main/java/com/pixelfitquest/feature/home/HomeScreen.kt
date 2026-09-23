@@ -2,7 +2,6 @@ package com.pixelfitquest.feature.home
 
 import android.content.res.Configuration
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
-import androidx.health.connect.client.PermissionController
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -50,7 +48,6 @@ import com.pixelfitquest.feature.levels.LevelUpDialog
 import com.pixelfitquest.feature.levels.LevelsViewModel
 import com.pixelfitquest.feature.streak.WeeklyStreakDialog
 import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
-import com.pixelfitquest.health.HealthConnectStatus
 import com.pixelfitquest.ui.navigation.LEVELS_SCREEN
 import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
@@ -69,35 +66,10 @@ fun HomeScreen(
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val isLoading by viewModel.isLoading.collectAsState()
-    val healthStatus by viewModel.healthStatus.collectAsState()
-    val healthPermissionsGranted by viewModel.healthPermissionsGranted.collectAsState()
-    val healthReady by viewModel.healthReady.collectAsState()
-    var askedHealthPermissions by remember { mutableStateOf(false) }
-
-    val healthPermissionContract = remember {
-        PermissionController.createRequestPermissionResultContract()
-    }
-    val healthPermissionLauncher = rememberLauncherForActivityResult(
-        contract = healthPermissionContract
-    ) { granted ->
-        viewModel.onHealthPermissionsResult(granted)
-    }
 
     LaunchedEffect(Unit) {
         Log.d("HomeScreen", "Initializing HomeScreen")
         viewModel.initialize()
-    }
-
-    LaunchedEffect(healthReady, healthStatus, healthPermissionsGranted) {
-        if (
-            healthReady &&
-            !askedHealthPermissions &&
-            healthStatus == HealthConnectStatus.AVAILABLE &&
-            !healthPermissionsGranted
-        ) {
-            askedHealthPermissions = true
-            runCatching { healthPermissionLauncher.launch(viewModel.healthPermissions) }
-        }
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current

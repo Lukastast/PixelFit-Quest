@@ -154,7 +154,7 @@
     <string name="quest_mission_done">Done</string>
     <string name="quest_mission_training_blurb">From workouts you finish this week</string>
     <string name="quest_mission_steps_blurb">From Health Connect steps this week</string>
-    <string name="quest_steps_disconnected">Connect Health on the Health tab so walk missions can count steps.</string>
+    <string name="quest_steps_disconnected">Walk missions count steps only if you choose to connect Health. Training missions do not need it.</string>
     <string name="quest_mission_progress">%1$s / %2$s</string>
     <string name="health_mission_steps_title">Daily steps</string>
     <string name="health_mission_sleep_title">Sleep 7–9 hours</string>
@@ -176,7 +176,7 @@
     <string name="health_metric_resting_badge">Resting</string>
     <string name="health_metric_resting_value">%1$d BPM</string>
     <string name="health_connect_card_title">Connect health data</string>
-    <string name="health_connect_card_body">Tap to connect Health Connect for steps, sleep, and heart rewards.</string>
+    <string name="health_connect_card_body">Optional. Tap if you want steps, sleep, and heart rewards from Health Connect.</string>
     <string name="health_manage">Manage Health Connect</string>
     <string name="health_goals_intro">These pay once when you hit them. Resting heart rate is a readout only.</string>
     <string name="quest_percent">%1$d%%</string>
@@ -199,6 +199,11 @@
     <string name="achievements_unlocked">Unlocked</string>
     <string name="achievements_progress_value">%1$d / %2$d</string>
     <string name="achievements_reward_pending">Prize pending on this device</string>
+    <string name="achievements_filter_all">All</string>
+    <string name="achievements_filter_in_progress">In Progress</string>
+    <string name="achievements_filter_unlocked">Unlocked</string>
+    <string name="achievements_select_category">Select Category</string>
+    <string name="achievements_no_items">No achievements in this filter.</string>
 
     <!-- Levels / cosmetics -->
     <string name="levels_header_level">Level %1$s</string>

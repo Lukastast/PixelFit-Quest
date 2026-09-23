@@ -20,7 +20,6 @@ import com.pixelfitquest.feature.levels.cosmetics.LocalXpPort
 import com.pixelfitquest.firebase.service.AccountService
 import com.pixelfitquest.health.HealthConnectStatus
 import com.pixelfitquest.health.HealthMetrics
-import com.pixelfitquest.health.HealthPermissions
 import com.pixelfitquest.health.HealthRepository
 import com.pixelfitquest.health.HealthRewards
 import com.pixelfitquest.health.HealthTime
@@ -73,14 +72,6 @@ class HomeViewModel @Inject constructor(
 
     private val _healthStatus = MutableStateFlow(HealthConnectStatus.UNAVAILABLE)
     val healthStatus: StateFlow<HealthConnectStatus> = _healthStatus.asStateFlow()
-
-    private val _healthPermissionsGranted = MutableStateFlow(false)
-    val healthPermissionsGranted: StateFlow<Boolean> = _healthPermissionsGranted.asStateFlow()
-
-    private val _healthReady = MutableStateFlow(false)
-    val healthReady: StateFlow<Boolean> = _healthReady.asStateFlow()
-
-    val healthPermissions: Set<String> = HealthPermissions.required()
 
     private val healthAwardMutex = Mutex()
 
@@ -217,17 +208,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun onHealthPermissionsResult(granted: Set<String>) {
-        _healthPermissionsGranted.value = HealthPermissions.hasStepsRead(granted)
-        viewModelScope.launch { refreshHealthMetrics() }
-    }
-
     fun refreshHealthMetrics() {
         viewModelScope.launch {
             try {
                 _healthStatus.value = healthRepository.availability()
-                val granted = healthRepository.grantedPermissions()
-                _healthPermissionsGranted.value = HealthPermissions.hasStepsRead(granted)
                 if (_healthStatus.value == HealthConnectStatus.AVAILABLE) {
                     _healthMetrics.value = healthRepository.readTodayMetrics()
                     checkAndAwardHealthRewards()
@@ -236,7 +220,6 @@ class HomeViewModel @Inject constructor(
                 Log.e("HomeVM", "Health Connect refresh failed", e)
             } finally {
                 syncWeeklyMissions()
-                _healthReady.value = true
             }
         }
     }

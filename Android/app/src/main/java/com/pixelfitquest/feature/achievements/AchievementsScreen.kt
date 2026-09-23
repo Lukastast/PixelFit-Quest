@@ -1,16 +1,18 @@
 package com.pixelfitquest.feature.achievements
 
+import android.content.res.Configuration
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,36 +24,51 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
+import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.feature.achievements.model.AchievementCategory
 import com.pixelfitquest.feature.achievements.model.AchievementItem
+import com.pixelfitquest.feature.achievements.model.AchievementStatusFilter
 import com.pixelfitquest.feature.achievements.model.AchievementTier
-import com.pixelfitquest.ui.theme.DarkStone
-import com.pixelfitquest.ui.theme.FireOrange
-import com.pixelfitquest.ui.theme.QuestBrown
-import com.pixelfitquest.ui.theme.RewardGold
-import androidx.compose.material3.MaterialTheme
+import com.pixelfitquest.ui.theme.BronzeCopper
+import com.pixelfitquest.ui.theme.BronzeRust
+import com.pixelfitquest.ui.theme.CrystalCyan
+import com.pixelfitquest.ui.theme.ImperialGold
+import com.pixelfitquest.ui.theme.LeatherDark
+import com.pixelfitquest.ui.theme.ParchmentBorder
+import com.pixelfitquest.ui.theme.ParchmentDark
+import com.pixelfitquest.ui.theme.PixelFitWidthClass
+import com.pixelfitquest.ui.theme.PlatinumWhite
+import com.pixelfitquest.ui.theme.SilverSlate
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.TorchAmber
+import com.pixelfitquest.ui.theme.VitalGreen
 import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 
@@ -64,6 +81,26 @@ fun AchievementsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val spacing = MaterialTheme.spacing
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val useTwoPane = isLandscape || spacing.widthClass != PixelFitWidthClass.Compact
+    var showCategoryDialog by remember { mutableStateOf(false) }
+
+    val categoryCounts = remember(uiState.items) {
+        AchievementCategory.entries.associateWith { cat ->
+            uiState.items.count { it.definition.category == cat }
+        }
+    }
+
+    if (showCategoryDialog) {
+        CategoryPickerDialog(
+            selected = uiState.selectedCategory,
+            totalCount = uiState.totalCount,
+            categoryCounts = categoryCounts,
+            onSelect = viewModel::onCategorySelected,
+            onDismiss = { showCategoryDialog = false },
+        )
+    }
 
     Column(
         modifier = modifier
@@ -85,34 +122,85 @@ fun AchievementsScreen(
                 totalCount = uiState.totalCount,
                 onBack = onBack,
             )
-            Spacer(modifier = Modifier.height(spacing.sm))
+            Spacer(modifier = Modifier.height(spacing.xs))
         }
-        CategoryRow(
-            selected = uiState.selectedCategory,
-            onSelected = viewModel::onCategorySelected,
-        )
-        Spacer(modifier = Modifier.height(spacing.sm))
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(bottom = spacing.xs),
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-            verticalArrangement = Arrangement.spacedBy(spacing.sm),
-        ) {
-            items(
-                items = uiState.visibleItems,
-                key = { it.definition.id },
-            ) { item ->
-                AchievementTile(
-                    item = item,
-                    selected = uiState.selectedId == item.definition.id,
-                    onClick = { viewModel.onAchievementTapped(item.definition.id) },
+
+        if (useTwoPane) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = if (embedded) 0.dp else spacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+            ) {
+                // Left Pane: HeroStage + Filter Controls
+                Column(
+                    modifier = Modifier
+                        .weight(0.45f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.spacedBy(spacing.xs),
+                ) {
+                    uiState.selectedItem?.let {
+                        AchievementHeroStage(item = it, isTwoPane = true)
+                    }
+
+                    CategoryCarousel(
+                        selected = uiState.selectedCategory,
+                        totalCount = uiState.totalCount,
+                        categoryCounts = categoryCounts,
+                        onPrevious = viewModel::onPreviousCategory,
+                        onNext = viewModel::onNextCategory,
+                        onOpenDialog = { showCategoryDialog = true },
+                    )
+
+                    StatusFilterRow(
+                        selected = uiState.statusFilter,
+                        onSelect = viewModel::onStatusFilterSelected,
+                    )
+                }
+
+                // Right Pane: Grid
+                AchievementGrid(
+                    items = uiState.visibleItems,
+                    selectedId = uiState.selectedItem?.definition?.id,
+                    onSelect = viewModel::onAchievementTapped,
+                    columns = GridCells.Adaptive(minSize = 135.dp),
+                    modifier = Modifier
+                        .weight(0.55f)
+                        .fillMaxHeight(),
                 )
             }
-        }
-        uiState.selectedItem?.let { selected ->
-            Spacer(modifier = Modifier.height(spacing.xs))
-            AchievementDetail(item = selected)
+        } else {
+            // Portrait
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(spacing.xs),
+            ) {
+                uiState.selectedItem?.let {
+                    AchievementHeroStage(item = it, isTwoPane = false)
+                }
+
+                CategoryCarousel(
+                    selected = uiState.selectedCategory,
+                    totalCount = uiState.totalCount,
+                    categoryCounts = categoryCounts,
+                    onPrevious = viewModel::onPreviousCategory,
+                    onNext = viewModel::onNextCategory,
+                    onOpenDialog = { showCategoryDialog = true },
+                )
+
+                StatusFilterRow(
+                    selected = uiState.statusFilter,
+                    onSelect = viewModel::onStatusFilterSelected,
+                )
+
+                AchievementGrid(
+                    items = uiState.visibleItems,
+                    selectedId = uiState.selectedItem?.definition?.id,
+                    onSelect = viewModel::onAchievementTapped,
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
     }
 }
@@ -153,7 +241,7 @@ private fun AchievementsHeader(
                 Text(
                     text = stringResource(R.string.achievements_title),
                     style = typography.bodyMedium,
-                    color = Color.White,
+                    color = ImperialGold,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
@@ -172,168 +260,501 @@ private fun AchievementsHeader(
 }
 
 @Composable
-private fun CategoryRow(
+private fun CategoryCarousel(
     selected: AchievementCategory?,
-    onSelected: (AchievementCategory?) -> Unit,
+    totalCount: Int,
+    categoryCounts: Map<AchievementCategory, Int>,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    onOpenDialog: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
+    val spacing = MaterialTheme.spacing
+    val categoryLabel = when (selected) {
+        null -> stringResource(R.string.achievements_category_all) + " ($totalCount)"
+        AchievementCategory.WORKOUTS -> "⚔ " + stringResource(R.string.achievements_category_workouts) + " (${categoryCounts[selected] ?: 0})"
+        AchievementCategory.STREAK -> "🔥 " + stringResource(R.string.achievements_category_streak) + " (${categoryCounts[selected] ?: 0})"
+        AchievementCategory.STEPS -> "🥾 " + stringResource(R.string.achievements_category_steps) + " (${categoryCounts[selected] ?: 0})"
+        AchievementCategory.VOLUME -> "🏋 " + stringResource(R.string.achievements_category_volume) + " (${categoryCounts[selected] ?: 0})"
+        AchievementCategory.MILESTONES -> "🏆 " + stringResource(R.string.achievements_category_milestones) + " (${categoryCounts[selected] ?: 0})"
+    }
+
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(spacing.xxs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        CategoryChip(
-            label = stringResource(R.string.achievements_category_all),
-            selected = selected == null,
-            onClick = { onSelected(null) },
+        PixelArtButton(
+            onClick = onPrevious,
+            imageRes = R.drawable.unclicked_customization_button_left,
+            pressedRes = R.drawable.clicked_customization_button_left,
+            modifier = Modifier.size(width = 24.dp, height = 34.dp),
         )
-        AchievementCategory.entries.forEach { category ->
-            CategoryChip(
-                label = stringResource(category.labelRes()),
-                selected = selected == category,
-                onClick = { onSelected(category) },
-            )
-        }
-    }
-}
 
-@Composable
-private fun CategoryChip(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    val background = if (selected) RewardGold else QuestBrown
-    val textColor = if (selected) DarkStone else Color.White
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(4.dp))
-            .background(background)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 6.dp)
-    ) {
-        Text(
-            text = label,
-            color = textColor,
-            fontSize = 12.sp,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-        )
-    }
-}
-
-@Composable
-private fun AchievementTile(
-    item: AchievementItem,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    val borderColor = if (selected) RewardGold else Color.Transparent
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(168.dp)
-            .border(2.dp, borderColor, RoundedCornerShape(6.dp))
-            .clickable(onClick = onClick)
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.questloginboard_wider),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds,
-        )
-        Column(
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+                .weight(1f)
+                .height(34.dp)
+                .clip(RoundedCornerShape(spacing.cornerSm))
+                .background(SlateDeep.copy(alpha = 0.92f))
+                .border(BorderStroke(1.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerSm))
+                .clickable(onClick = onOpenDialog)
+                .padding(horizontal = spacing.sm),
+            contentAlignment = Alignment.Center,
         ) {
-            Image(
-                painter = painterResource(id = item.iconRes()),
-                contentDescription = item.definition.name,
-                modifier = Modifier.size(56.dp),
-                alpha = if (item.isUnlocked) 1f else 0.55f,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = item.definition.name,
-                color = Color.White,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            ProgressBar(fraction = item.progressFraction)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(
-                    R.string.achievements_progress_value,
-                    item.progress.currentValue.coerceAtMost(item.definition.threshold),
-                    item.definition.threshold,
-                ),
-                color = Color.White.copy(alpha = 0.85f),
-                fontSize = 10.sp,
-            )
-            RewardRow(item = item, compact = true)
-        }
-    }
-}
-
-@Composable
-private fun AchievementDetail(item: AchievementItem) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(120.dp)
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.questloginboard_wider),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds,
-        )
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                text = item.definition.name,
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = item.definition.description,
-                color = Color.White.copy(alpha = 0.9f),
-                fontSize = 12.sp,
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = if (item.isUnlocked) {
-                    stringResource(R.string.achievements_unlocked)
-                } else {
-                    stringResource(R.string.achievements_locked)
-                },
-                color = if (item.isUnlocked) RewardGold else Color.White.copy(alpha = 0.7f),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            RewardRow(item = item, compact = false)
-            if (item.isUnlocked && !item.progress.rewardGranted && item.definition.reward.hasValue) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
                 Text(
-                    text = stringResource(R.string.achievements_reward_pending),
-                    color = FireOrange,
-                    fontSize = 10.sp,
+                    text = categoryLabel,
+                    color = SilverSteel,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.width(spacing.xxs))
+                Text(
+                    text = "▾",
+                    color = ImperialGold,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+
+        PixelArtButton(
+            onClick = onNext,
+            imageRes = R.drawable.unclicked_customization_button_right,
+            pressedRes = R.drawable.clicked_customization_button_right,
+            modifier = Modifier.size(width = 24.dp, height = 34.dp),
+        )
+    }
+}
+
+@Composable
+private fun CategoryPickerDialog(
+    selected: AchievementCategory?,
+    totalCount: Int,
+    categoryCounts: Map<AchievementCategory, Int>,
+    onSelect: (AchievementCategory?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val spacing = MaterialTheme.spacing
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .clip(RoundedCornerShape(spacing.cornerMd))
+                .background(SlateDeep.copy(alpha = 0.98f))
+                .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
+                .padding(spacing.md),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(spacing.sm),
+            ) {
+                Text(
+                    text = stringResource(R.string.achievements_select_category),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                )
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    val allSelected = selected == null
+                    PixelArtButton(
+                        onClick = {
+                            onSelect(null)
+                            onDismiss()
+                        },
+                        imageRes = if (allSelected) R.drawable.button_clicked else R.drawable.button_unclicked,
+                        pressedRes = R.drawable.button_clicked,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(36.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.achievements_category_all) + " ($totalCount)",
+                            color = if (allSelected) ImperialGold else Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                        )
+                    }
+
+                    AchievementCategory.entries.chunked(2).forEach { row ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            row.forEach { cat ->
+                                val isSelected = selected == cat
+                                val count = categoryCounts[cat] ?: 0
+                                PixelArtButton(
+                                    onClick = {
+                                        onSelect(cat)
+                                        onDismiss()
+                                    },
+                                    imageRes = if (isSelected) R.drawable.button_clicked else R.drawable.button_unclicked,
+                                    pressedRes = R.drawable.button_clicked,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(36.dp),
+                                ) {
+                                    Text(
+                                        text = stringResource(cat.labelRes()) + " ($count)",
+                                        color = if (isSelected) ImperialGold else Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                    )
+                                }
+                            }
+                            if (row.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                PixelArtButton(
+                    onClick = onDismiss,
+                    imageRes = R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier
+                        .width(110.dp)
+                        .height(34.dp),
+                ) {
+                    Text(
+                        text = "CLOSE",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusFilterRow(
+    selected: AchievementStatusFilter,
+    onSelect: (AchievementStatusFilter) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = MaterialTheme.spacing
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(spacing.xxs),
+    ) {
+        AchievementStatusFilter.entries.forEach { filter ->
+            val isSelected = selected == filter
+            PixelArtButton(
+                onClick = { onSelect(filter) },
+                imageRes = if (isSelected) R.drawable.button_clicked else R.drawable.button_unclicked,
+                pressedRes = R.drawable.button_clicked,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(30.dp),
+            ) {
+                Text(
+                    text = stringResource(filter.labelRes),
+                    color = if (isSelected) ImperialGold else Color.White,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
                 )
             }
         }
     }
+}
+
+@Composable
+private fun AchievementHeroStage(
+    item: AchievementItem,
+    modifier: Modifier = Modifier,
+    isTwoPane: Boolean = false,
+) {
+    val spacing = MaterialTheme.spacing
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(spacing.cornerMd))
+            .background(SlateDeep.copy(alpha = 0.92f))
+            .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
+            .padding(spacing.sm),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(spacing.xxs),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f, fill = false),
+                ) {
+                    Text(
+                        text = item.definition.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontSize = if (isTwoPane) 14.sp else 15.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(modifier = Modifier.width(spacing.xs))
+                    Text(
+                        text = item.definition.tier.name,
+                        color = tierColor(item.definition.tier),
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(spacing.cornerXs))
+                            .background(tierColor(item.definition.tier).copy(alpha = 0.15f))
+                            .border(1.dp, tierColor(item.definition.tier).copy(alpha = 0.4f), RoundedCornerShape(spacing.cornerXs))
+                            .padding(horizontal = 5.dp, vertical = 1.dp),
+                    )
+                }
+
+                when {
+                    item.isUnlocked -> Text(
+                        text = "UNLOCKED",
+                        color = Color(0xFF81C784),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    item.progressFraction > 0f -> Text(
+                        text = "${(item.progressFraction * 100).toInt()}%",
+                        color = TorchAmber,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    else -> Text(
+                        text = "LOCKED",
+                        color = Color(0xFFFF8A80),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Image(
+                    painter = painterResource(id = item.iconRes()),
+                    contentDescription = item.definition.name,
+                    modifier = Modifier.size(if (isTwoPane) 54.dp else 58.dp),
+                    alpha = if (item.isUnlocked) 1f else 0.6f,
+                )
+
+                Spacer(modifier = Modifier.width(spacing.sm))
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    Text(
+                        text = item.definition.description,
+                        color = Color.White.copy(alpha = 0.85f),
+                        fontSize = if (isTwoPane) 10.5.sp else 11.5.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+
+                    ProgressBar(fraction = item.progressFraction, isUnlocked = item.isUnlocked)
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(
+                                R.string.achievements_progress_value,
+                                item.progress.currentValue.coerceAtMost(item.definition.threshold),
+                                item.definition.threshold,
+                            ),
+                            color = SilverSteel,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+
+                        RewardRow(item = item, compact = true)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AchievementCard(
+    item: AchievementItem,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+) {
+    val spacing = MaterialTheme.spacing
+    val borderColor = when {
+        isSelected -> PlatinumWhite
+        item.isUnlocked -> ImperialGold
+        else -> ParchmentBorder
+    }
+    val backgroundColor = if (!item.isUnlocked) {
+        ParchmentDark.copy(alpha = 0.94f)
+    } else {
+        SlateDeep.copy(alpha = 0.92f)
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(spacing.cornerSm))
+            .background(backgroundColor)
+            .border(
+                BorderStroke(if (isSelected || item.isUnlocked) 2.dp else 1.dp, borderColor),
+                RoundedCornerShape(spacing.cornerSm),
+            )
+            .clickable(onClick = onClick)
+            .padding(spacing.xs),
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = item.definition.name,
+                    color = if (!item.isUnlocked && !isSelected) Color.White.copy(alpha = 0.7f) else Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.5.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                Spacer(modifier = Modifier.width(spacing.xxs))
+                when {
+                    item.isUnlocked -> Text(
+                        text = "UNLOCKED",
+                        color = Color(0xFF81C784),
+                        fontSize = 8.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                    )
+                    item.progressFraction > 0f -> Text(
+                        text = "${(item.progressFraction * 100).toInt()}%",
+                        color = TorchAmber,
+                        fontSize = 8.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                    )
+                    else -> Text(
+                        text = "LOCKED",
+                        color = Color(0xFFFF8A80),
+                        fontSize = 8.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(3.dp))
+
+            Image(
+                painter = painterResource(id = item.iconRes()),
+                contentDescription = item.definition.name,
+                modifier = Modifier.size(50.dp),
+                alpha = if (item.isUnlocked) 1f else 0.55f,
+            )
+
+            Spacer(modifier = Modifier.height(3.dp))
+
+            ProgressBar(fraction = item.progressFraction, isUnlocked = item.isUnlocked)
+            Spacer(modifier = Modifier.height(2.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "${item.progress.currentValue.coerceAtMost(item.definition.threshold)}/${item.definition.threshold}",
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 8.5.sp,
+                )
+                Text(
+                    text = item.definition.tier.name,
+                    color = tierColor(item.definition.tier),
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AchievementGrid(
+    items: List<AchievementItem>,
+    selectedId: String?,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    columns: GridCells = GridCells.Fixed(2),
+) {
+    val spacing = MaterialTheme.spacing
+    if (items.isEmpty()) {
+        Box(
+            modifier = modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = stringResource(R.string.achievements_no_items),
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 12.sp,
+            )
+        }
+    } else {
+        LazyVerticalGrid(
+            columns = columns,
+            modifier = modifier,
+            horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+            verticalArrangement = Arrangement.spacedBy(spacing.xs),
+            contentPadding = PaddingValues(bottom = spacing.sm),
+        ) {
+            items(
+                items = items,
+                key = { it.definition.id },
+            ) { item ->
+                AchievementCard(
+                    item = item,
+                    isSelected = selectedId == item.definition.id,
+                    onClick = { onSelect(item.definition.id) },
+                )
+            }
+        }
+    }
+}
+
+private fun tierColor(tier: AchievementTier): Color = when (tier) {
+    AchievementTier.BRONZE -> BronzeCopper
+    AchievementTier.SILVER -> SilverSteel
+    AchievementTier.GOLD -> ImperialGold
+    AchievementTier.PLATINUM -> CrystalCyan
 }
 
 @Composable
@@ -350,21 +771,21 @@ private fun RewardRow(item: AchievementItem, compact: Boolean) {
                 contentDescription = stringResource(R.string.coins_reward_desc),
                 modifier = Modifier.size(if (compact) 12.dp else 16.dp),
             )
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(3.dp))
             Text(
                 text = stringResource(R.string.achievements_reward_coins, reward.coins),
-                color = RewardGold,
+                color = ImperialGold,
                 fontSize = if (compact) 10.sp else 12.sp,
                 fontWeight = FontWeight.Bold,
             )
         }
         if (reward.coins > 0 && reward.xp > 0) {
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
         }
         if (reward.xp > 0) {
             Text(
                 text = stringResource(R.string.achievements_reward_xp, reward.xp),
-                color = RewardGold,
+                color = ImperialGold,
                 fontSize = if (compact) 10.sp else 12.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -373,19 +794,20 @@ private fun RewardRow(item: AchievementItem, compact: Boolean) {
 }
 
 @Composable
-private fun ProgressBar(fraction: Float) {
+private fun ProgressBar(fraction: Float, isUnlocked: Boolean = false) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(6.dp)
+            .height(5.dp)
             .clip(RoundedCornerShape(2.dp))
-            .background(DarkStone.copy(alpha = 0.7f))
+            .background(LeatherDark)
+            .border(1.dp, ParchmentBorder, RoundedCornerShape(2.dp))
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(fraction)
-                .height(6.dp)
-                .background(FireOrange)
+                .fillMaxWidth(fraction.coerceIn(0f, 1f))
+                .fillMaxHeight()
+                .background(if (isUnlocked) VitalGreen else TorchAmber)
         )
     }
 }

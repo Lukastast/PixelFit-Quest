@@ -56,11 +56,27 @@ import com.pixelfitquest.health.HealthConnectIntents
 import com.pixelfitquest.health.HealthConnectStatus
 import com.pixelfitquest.health.HealthMetrics
 import com.pixelfitquest.health.HealthRewards
-import com.pixelfitquest.ui.theme.DarkStone
-import com.pixelfitquest.ui.theme.FireOrange
-import com.pixelfitquest.ui.theme.QuestBrown
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import com.pixelfitquest.ui.theme.BronzeCopper
+import com.pixelfitquest.ui.theme.BronzeRust
+import com.pixelfitquest.ui.theme.CrystalCyan
+import com.pixelfitquest.ui.theme.EmberOrange
+import com.pixelfitquest.ui.theme.HeartRuby
+import com.pixelfitquest.ui.theme.ImperialGold
+import com.pixelfitquest.ui.theme.LeatherDark
+import com.pixelfitquest.ui.theme.ParchmentBorder
+import com.pixelfitquest.ui.theme.ParchmentDark
 import com.pixelfitquest.ui.theme.PixelFitWidthClass
-import com.pixelfitquest.ui.theme.RewardGold
+import com.pixelfitquest.ui.theme.PlatinumWhite
+import com.pixelfitquest.ui.theme.SilverSlate
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.SleepAmethyst
+import com.pixelfitquest.ui.theme.TorchAmber
 import com.pixelfitquest.ui.theme.VitalGreen
 import com.pixelfitquest.ui.theme.spacing
 
@@ -80,6 +96,9 @@ fun HealthCenterScreen(
     val claims by viewModel.healthClaims.collectAsState()
     val board by viewModel.weeklyBoard.collectAsState()
     val achievements by achievementsViewModel.uiState.collectAsState()
+    val userData by viewModel.userData.collectAsState()
+    val level = userData?.level ?: 1
+    val coins = userData?.coins ?: 0
 
     val permissionContract = remember {
         PermissionController.createRequestPermissionResultContract()
@@ -109,17 +128,87 @@ fun HealthCenterScreen(
                 vertical = if (useTwoPane) spacing.xs else spacing.sm,
             ),
     ) {
-        Text(
-            text = stringResource(R.string.quest_center_title),
-            fontSize = if (useTwoPane) 18.sp else 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = RewardGold,
-        )
-        Text(
-            text = stringResource(R.string.quest_center_subtitle),
-            fontSize = 12.sp,
-            color = Color.White.copy(alpha = 0.75f),
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(if (useTwoPane) spacing.scale(50) else spacing.scale(54)),
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.info_background),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds,
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = spacing.md),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.level_5),
+                    contentDescription = null,
+                    modifier = Modifier.size(if (useTwoPane) 28.dp else 34.dp),
+                )
+                Spacer(modifier = Modifier.width(spacing.xs))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.quest_center_title),
+                        fontSize = if (useTwoPane) 15.sp else 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ImperialGold,
+                    )
+                    Text(
+                        text = stringResource(R.string.quest_center_subtitle),
+                        fontSize = 11.sp,
+                        color = SilverSteel,
+                    )
+                }
+
+                // Level and Coins in top right of Quest Center
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(spacing.xxs),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(spacing.cornerXs))
+                            .background(SlateDeep.copy(alpha = 0.88f))
+                            .border(BorderStroke(1.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerXs))
+                            .padding(horizontal = 7.dp, vertical = 3.dp),
+                    ) {
+                        Text(
+                            text = "Lvl $level",
+                            color = ImperialGold,
+                            fontSize = if (useTwoPane) 11.sp else 12.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(spacing.cornerXs))
+                            .background(SlateDeep.copy(alpha = 0.88f))
+                            .border(BorderStroke(1.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerXs))
+                            .padding(horizontal = 7.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.coin),
+                            contentDescription = null,
+                            modifier = Modifier.size(13.dp),
+                        )
+                        Text(
+                            text = "$coins",
+                            color = ImperialGold,
+                            fontSize = if (useTwoPane) 11.sp else 12.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+            }
+        }
         Spacer(modifier = Modifier.height(spacing.sm))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -213,29 +302,174 @@ private fun QuestTab(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val background = if (selected) RewardGold else QuestBrown
-    val textColor = if (selected) DarkStone else Color.White
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(4.dp))
-            .background(background)
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp, horizontal = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    PixelArtButton(
+        onClick = onClick,
+        imageRes = if (selected) R.drawable.button_clicked else R.drawable.button_unclicked,
+        pressedRes = R.drawable.button_clicked,
+        modifier = modifier.height(50.dp),
     ) {
-        Text(
-            text = label,
-            color = textColor,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = count,
-            color = textColor,
-            fontSize = 11.sp,
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(start = 2.dp, end = 2.dp, top = 0.dp, bottom = 6.dp),
+        ) {
+            Text(
+                text = label,
+                color = if (selected) ImperialGold else SilverSteel,
+                fontSize = 11.5.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(modifier = Modifier.height(1.dp))
+            Text(
+                text = count,
+                color = if (selected) TorchAmber else SilverSlate,
+                fontSize = 10.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+@Composable
+private fun MissionsHeroStage(
+    board: WeeklyMissionBoard,
+    useTwoPane: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = MaterialTheme.spacing
+    val completed = board.completedCount
+    val total = board.missions.size.coerceAtLeast(1)
+    val fraction = (completed.toFloat() / total.toFloat()).coerceIn(0f, 1f)
+    val allDone = completed >= total && total > 0
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(spacing.cornerMd))
+            .background(SlateDeep.copy(alpha = 0.92f))
+            .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
+            .padding(spacing.sm),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(spacing.xxs),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "WEEKLY MISSIONS",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = ImperialGold,
+                    fontSize = if (useTwoPane) 14.sp else 15.sp,
+                )
+                Text(
+                    text = if (allDone) "ALL COMPLETED" else "$completed/$total DONE",
+                    color = if (allDone) VitalGreen else TorchAmber,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(spacing.cornerXs))
+                        .background((if (allDone) VitalGreen else TorchAmber).copy(alpha = 0.18f))
+                        .border(1.dp, (if (allDone) VitalGreen else TorchAmber).copy(alpha = 0.4f), RoundedCornerShape(spacing.cornerXs))
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(if (useTwoPane) 50.dp else 54.dp)
+                        .clip(RoundedCornerShape(spacing.cornerXs))
+                        .background(LeatherDark.copy(alpha = 0.8f))
+                        .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerXs)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.level_5),
+                        contentDescription = null,
+                        modifier = Modifier.size(if (useTwoPane) 40.dp else 44.dp),
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(spacing.sm))
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.quest_week_resets),
+                        color = SilverSlate,
+                        fontSize = if (useTwoPane) 10.5.sp else 11.5.sp,
+                        maxLines = 2,
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(5.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(LeatherDark)
+                            .border(1.dp, ParchmentBorder, RoundedCornerShape(2.dp)),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(fraction)
+                                .fillMaxHeight()
+                                .background(if (allDone) VitalGreen else TorchAmber),
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "${(fraction * 100).toInt()}% Complete",
+                            color = SilverSteel,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+                        val totalCoins = board.missions.sumOf { it.definition.coins }
+                        val totalXp = board.missions.sumOf { it.definition.xp }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.coin),
+                                contentDescription = null,
+                                modifier = Modifier.size(11.dp),
+                            )
+                            Text(
+                                text = "+$totalCoins",
+                                color = ImperialGold,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text(
+                                text = "+$totalXp XP",
+                                color = ImperialGold,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -261,17 +495,19 @@ private fun MissionsPane(
         modifier = modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
-        Text(
-            text = stringResource(R.string.quest_week_resets),
-            color = Color.White.copy(alpha = 0.75f),
-            fontSize = 12.sp,
-        )
+        MissionsHeroStage(board = board, useTwoPane = useTwoPane)
+
         if (stepsHint != null) {
             Text(
                 text = stepsHint,
-                color = RewardGold,
-                fontSize = 12.sp,
-                modifier = Modifier.clickable(onClick = onOpenHealth),
+                color = TorchAmber,
+                fontSize = 11.5.sp,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(spacing.cornerXs))
+                    .background(LeatherDark.copy(alpha = 0.8f))
+                    .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerXs))
+                    .clickable(onClick = onOpenHealth)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
             )
         }
         if (useTwoPane) {
@@ -304,12 +540,15 @@ private fun MissionCard(mission: MissionProgress) {
     val definition = mission.definition
     val target = definition.target.coerceAtLeast(0L)
     val done = mission.isComplete || mission.claimed
-    val blurb = if (definition.metric == MissionMetric.WEEKLY_STEPS) {
+    val isSteps = definition.metric == MissionMetric.WEEKLY_STEPS
+    val blurb = if (isSteps) {
         stringResource(R.string.quest_mission_steps_blurb)
     } else {
         stringResource(R.string.quest_mission_training_blurb)
     }
+    val iconRes = if (isSteps) R.drawable.steps_5000 else R.drawable.bronze_workout_1
     QuestCard(
+        iconRes = iconRes,
         title = definition.title,
         value = stringResource(
             R.string.quest_mission_progress,
@@ -322,15 +561,136 @@ private fun MissionCard(mission: MissionProgress) {
         } else {
             stringResource(R.string.quest_percent, (mission.fraction * 100).toInt())
         },
-        badgeColor = if (done) VitalGreen else RewardGold,
+        badgeColor = if (done) VitalGreen else TorchAmber,
         fraction = if (done) 1f else mission.fraction,
         complete = done,
-        reward = stringResource(
-            R.string.health_mission_reward_line,
-            definition.xp,
-            definition.coins,
-        ),
+        rewardCoins = definition.coins,
+        rewardXp = definition.xp,
     )
+}
+
+@Composable
+private fun HealthHeroStage(
+    metrics: HealthMetrics,
+    healthStatus: HealthConnectStatus,
+    permissionsGranted: Boolean,
+    useTwoPane: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = MaterialTheme.spacing
+    val connected = healthStatus == HealthConnectStatus.AVAILABLE && permissionsGranted
+    val metGoals = metrics.rewardedGoalsMet
+    val totalGoals = HealthRewards.REWARDED_GOAL_COUNT
+    val fraction = (metGoals.toFloat() / totalGoals.toFloat()).coerceIn(0f, 1f)
+    val allDone = metGoals >= totalGoals
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(spacing.cornerMd))
+            .background(SlateDeep.copy(alpha = 0.92f))
+            .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
+            .padding(spacing.sm),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(spacing.xxs),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "DAILY VITALITY",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = ImperialGold,
+                    fontSize = if (useTwoPane) 14.sp else 15.sp,
+                )
+                Text(
+                    text = if (connected) "$metGoals/$totalGoals GOALS MET" else "CONNECT SYNC",
+                    color = if (connected && allDone) VitalGreen else TorchAmber,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(spacing.cornerXs))
+                        .background((if (connected && allDone) VitalGreen else TorchAmber).copy(alpha = 0.18f))
+                        .border(1.dp, (if (connected && allDone) VitalGreen else TorchAmber).copy(alpha = 0.4f), RoundedCornerShape(spacing.cornerXs))
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(if (useTwoPane) 50.dp else 54.dp)
+                        .clip(RoundedCornerShape(spacing.cornerXs))
+                        .background(LeatherDark.copy(alpha = 0.8f))
+                        .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerXs)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.steps_5000),
+                        contentDescription = null,
+                        modifier = Modifier.size(if (useTwoPane) 40.dp else 44.dp),
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(spacing.sm))
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.health_goals_intro),
+                        color = SilverSlate,
+                        fontSize = if (useTwoPane) 10.5.sp else 11.5.sp,
+                        maxLines = 2,
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(5.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(LeatherDark)
+                            .border(1.dp, ParchmentBorder, RoundedCornerShape(2.dp)),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(fraction)
+                                .fillMaxHeight()
+                                .background(if (allDone) VitalGreen else TorchAmber),
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = if (connected) "$metGoals of $totalGoals complete" else "Sync to track daily stats",
+                            color = SilverSteel,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+                        Text(
+                            text = if (connected) "Active" else "Offline Ready",
+                            color = if (connected) VitalGreen else SilverSlate,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -350,11 +710,13 @@ private fun HealthPane(
         modifier = modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
-        Text(
-            text = stringResource(R.string.health_goals_intro),
-            color = Color.White.copy(alpha = 0.75f),
-            fontSize = 12.sp,
+        HealthHeroStage(
+            metrics = metrics,
+            healthStatus = healthStatus,
+            permissionsGranted = permissionsGranted,
+            useTwoPane = useTwoPane,
         )
+
         if (!connected) {
             ConnectCard(
                 healthStatus = healthStatus,
@@ -393,9 +755,9 @@ private fun HealthPane(
             ) {
                 Text(
                     text = stringResource(R.string.health_manage),
-                    fontSize = 15.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = SilverSteel,
                 )
             }
         }
@@ -417,35 +779,49 @@ private fun ConnectCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .clip(RoundedCornerShape(spacing.cornerSm))
+            .background(SlateDeep.copy(alpha = 0.94f))
+            .border(BorderStroke(1.5.dp, TorchAmber.copy(alpha = 0.85f)), RoundedCornerShape(spacing.cornerSm))
+            .clickable(onClick = onClick)
+            .padding(spacing.sm),
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.info_background_higher),
-            contentDescription = null,
-            modifier = Modifier.matchParentSize(),
-            contentScale = ContentScale.FillBounds,
-        )
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = spacing.scale(90))
-                .padding(spacing.sm),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = stringResource(R.string.health_connect_card_title),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = RewardGold,
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = message,
-                fontSize = 12.sp,
-                color = Color.White,
-                textAlign = TextAlign.Center,
-            )
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(RoundedCornerShape(spacing.cornerXs))
+                    .background(LeatherDark.copy(alpha = 0.8f))
+                    .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerXs)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.steps_5000),
+                    contentDescription = null,
+                    modifier = Modifier.size(42.dp),
+                )
+            }
+            Spacer(modifier = Modifier.width(spacing.sm))
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.health_connect_card_title),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = ImperialGold,
+                )
+                Text(
+                    text = message,
+                    fontSize = 10.5.sp,
+                    color = SilverSteel.copy(alpha = 0.85f),
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
@@ -457,6 +833,7 @@ private fun StepsGoalCard(metrics: HealthMetrics, claimed: Boolean) {
     val done = met || claimed
     val remaining = (goal.toLong() - metrics.steps).coerceIn(0L, goal.toLong())
     QuestCard(
+        iconRes = R.drawable.steps_5000,
         title = stringResource(R.string.health_mission_steps_title),
         value = stringResource(
             R.string.quest_mission_progress,
@@ -469,14 +846,11 @@ private fun StepsGoalCard(metrics: HealthMetrics, claimed: Boolean) {
             stringResource(R.string.health_mission_steps_left, remaining.toInt())
         },
         badge = goalBadge(done = done, claimed = claimed, percent = metrics.progressPercent),
-        badgeColor = if (done) VitalGreen else RewardGold,
+        badgeColor = if (done) VitalGreen else TorchAmber,
         fraction = if (done) 1f else metrics.progressPercent / 100f,
         complete = done,
-        reward = stringResource(
-            R.string.health_mission_reward_line,
-            HealthRewards.STEPS_REWARD_EXP,
-            HealthRewards.STEPS_REWARD_COINS,
-        ),
+        rewardCoins = HealthRewards.STEPS_REWARD_COINS,
+        rewardXp = HealthRewards.STEPS_REWARD_EXP,
     )
 }
 
@@ -513,18 +887,16 @@ private fun SleepGoalCard(metrics: HealthMetrics, claimed: Boolean) {
         )
     }
     QuestCard(
+        iconRes = R.drawable.streak_30,
         title = stringResource(R.string.health_mission_sleep_title),
         value = if (minutes == null) "—" else formatSleep(minutes),
         subtitle = subtitle,
         badge = badge,
-        badgeColor = if (done) VitalGreen else Color(0xFF5C6BC0),
+        badgeColor = if (done) VitalGreen else SleepAmethyst,
         fraction = fraction,
         complete = done,
-        reward = stringResource(
-            R.string.health_mission_reward_line,
-            HealthRewards.SLEEP_REWARD_EXP,
-            HealthRewards.SLEEP_REWARD_COINS,
-        ),
+        rewardCoins = HealthRewards.SLEEP_REWARD_COINS,
+        rewardXp = HealthRewards.SLEEP_REWARD_EXP,
     )
 }
 
@@ -535,6 +907,7 @@ private fun HeartGoalCard(metrics: HealthMetrics, claimed: Boolean) {
     val done = met || claimed
     val remaining = (goal - metrics.weeklyHeartPoints).coerceAtLeast(0)
     QuestCard(
+        iconRes = R.drawable.streak_3,
         title = stringResource(R.string.health_mission_heart_title),
         value = stringResource(
             R.string.health_mission_heart_value,
@@ -551,14 +924,11 @@ private fun HeartGoalCard(metrics: HealthMetrics, claimed: Boolean) {
             claimed = claimed,
             percent = metrics.weeklyHeartProgressPercent,
         ),
-        badgeColor = if (done) VitalGreen else Color(0xFFE53935),
+        badgeColor = if (done) VitalGreen else HeartRuby,
         fraction = if (done) 1f else metrics.weeklyHeartProgressPercent / 100f,
         complete = done,
-        reward = stringResource(
-            R.string.health_mission_reward_line,
-            HealthRewards.WEEKLY_HEART_REWARD_EXP,
-            HealthRewards.WEEKLY_HEART_REWARD_COINS,
-        ),
+        rewardCoins = HealthRewards.WEEKLY_HEART_REWARD_COINS,
+        rewardXp = HealthRewards.WEEKLY_HEART_REWARD_EXP,
     )
 }
 
@@ -566,6 +936,7 @@ private fun HeartGoalCard(metrics: HealthMetrics, claimed: Boolean) {
 private fun RestingHeartCard(metrics: HealthMetrics) {
     val bpm = metrics.heartRateBpm
     QuestCard(
+        iconRes = R.drawable.streak_3,
         title = stringResource(R.string.health_metric_resting_title),
         value = if (bpm != null && bpm > 0L) {
             stringResource(R.string.health_metric_resting_value, bpm)
@@ -574,10 +945,11 @@ private fun RestingHeartCard(metrics: HealthMetrics) {
         },
         subtitle = stringResource(R.string.health_metric_resting_hint),
         badge = stringResource(R.string.health_metric_resting_badge),
-        badgeColor = Color(0xFFE53935),
+        badgeColor = HeartRuby,
         fraction = null,
         complete = false,
-        reward = null,
+        rewardCoins = null,
+        rewardXp = null,
     )
 }
 
@@ -592,6 +964,7 @@ private fun goalBadge(done: Boolean, claimed: Boolean, percent: Int): String {
 
 @Composable
 private fun QuestCard(
+    iconRes: Int?,
     title: String,
     value: String,
     subtitle: String,
@@ -599,70 +972,133 @@ private fun QuestCard(
     badgeColor: Color,
     fraction: Float?,
     complete: Boolean,
-    reward: String?,
+    rewardCoins: Int? = null,
+    rewardXp: Int? = null,
 ) {
     val spacing = MaterialTheme.spacing
+    val borderColor = if (complete) ImperialGold else ParchmentBorder
+    val backgroundColor = if (complete) SlateDeep.copy(alpha = 0.92f) else ParchmentDark.copy(alpha = 0.94f)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = spacing.scale(96)),
+            .clip(RoundedCornerShape(spacing.cornerSm))
+            .background(backgroundColor)
+            .border(BorderStroke(if (complete) 2.dp else 1.dp, borderColor), RoundedCornerShape(spacing.cornerSm))
+            .padding(spacing.sm),
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.info_background_higher),
-            contentDescription = null,
-            modifier = Modifier.matchParentSize(),
-            contentScale = ContentScale.FillBounds,
-        )
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = spacing.md, vertical = spacing.sm),
-            verticalArrangement = Arrangement.spacedBy(spacing.xxs),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            if (iconRes != null) {
+                Box(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(RoundedCornerShape(spacing.cornerXs))
+                        .background(LeatherDark.copy(alpha = 0.8f))
+                        .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerXs)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Image(
+                        painter = painterResource(id = iconRes),
+                        contentDescription = null,
+                        modifier = Modifier.size(42.dp),
+                        alpha = if (complete) 1f else 0.75f,
+                    )
+                }
+                Spacer(modifier = Modifier.width(spacing.sm))
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = title,
+                        modifier = Modifier.weight(1f),
+                        color = if (complete) ImperialGold else SilverSteel,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = badge,
+                        color = badgeColor,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(spacing.cornerXs))
+                            .background(badgeColor.copy(alpha = 0.18f))
+                            .border(1.dp, badgeColor.copy(alpha = 0.4f), RoundedCornerShape(spacing.cornerXs))
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                    )
+                }
                 Text(
-                    text = title,
-                    modifier = Modifier.weight(1f),
-                    color = Color.White.copy(alpha = 0.85f),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 2,
+                    text = subtitle,
+                    color = SilverSlate,
+                    fontSize = 10.5.sp,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    text = badge,
-                    color = badgeColor,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(spacing.cornerXs))
-                        .background(badgeColor.copy(alpha = 0.2f))
-                        .padding(horizontal = spacing.xs, vertical = spacing.xxs),
-                )
-            }
-            Text(
-                text = value,
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = subtitle,
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 11.sp,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (fraction != null) {
-                QuestProgressBar(fraction = fraction, complete = complete)
-            }
-            if (reward != null) {
-                Text(
-                    text = reward,
-                    color = RewardGold,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                )
+                if (fraction != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            text = value,
+                            color = SilverSteel,
+                            fontSize = 10.5.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
+                    QuestProgressBar(fraction = fraction, complete = complete)
+                } else {
+                    Text(
+                        text = value,
+                        color = SilverSteel,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                if (rewardCoins != null || rewardXp != null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        if (rewardCoins != null && rewardCoins > 0) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.coin),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(12.dp),
+                                )
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Text(
+                                    text = "+$rewardCoins",
+                                    color = ImperialGold,
+                                    fontSize = 10.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                        if (rewardXp != null && rewardXp > 0) {
+                            Text(
+                                text = "+$rewardXp XP",
+                                color = ImperialGold,
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -673,15 +1109,16 @@ private fun QuestProgressBar(fraction: Float, complete: Boolean) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(6.dp)
+            .height(5.dp)
             .clip(RoundedCornerShape(2.dp))
-            .background(DarkStone.copy(alpha = 0.55f)),
+            .background(LeatherDark)
+            .border(1.dp, ParchmentBorder, RoundedCornerShape(2.dp)),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(fraction.coerceIn(0f, 1f))
-                .height(6.dp)
-                .background(if (complete) VitalGreen else FireOrange),
+                .fillMaxHeight()
+                .background(if (complete) VitalGreen else TorchAmber),
         )
     }
 }
