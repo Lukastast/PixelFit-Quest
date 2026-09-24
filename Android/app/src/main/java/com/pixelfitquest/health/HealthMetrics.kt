@@ -78,6 +78,9 @@ object HealthRewards {
     const val WEEKLY_HEART_REWARD_COINS = 30
     const val REWARDED_GOAL_COUNT = 3
 
+    const val VITALITY_BONUS_EXP = 100
+    const val VITALITY_BONUS_COINS = 25
+
     fun shouldAwardDailyGoal(
         steps: Long,
         goal: Int,
@@ -108,5 +111,15 @@ object HealthRewards {
         if (weeklyGoal <= 0) return false
         if (weeklyHeartPoints < weeklyGoal) return false
         return lastRewardWeek != currentWeekUtc
+    }
+
+    fun shouldAwardVitalityBonus(
+        metGoals: Int,
+        totalGoals: Int = REWARDED_GOAL_COUNT,
+        lastRewardDate: String,
+        todayUtc: String,
+    ): Boolean {
+        if (totalGoals <= 0 || metGoals < totalGoals) return false
+        return lastRewardDate != todayUtc
     }
 }

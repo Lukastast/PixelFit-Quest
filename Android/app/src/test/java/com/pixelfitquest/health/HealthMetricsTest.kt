@@ -141,6 +141,24 @@ class HealthRewardsTest {
         assertTrue(HealthRewards.shouldAwardWeeklyHeartGoal(150, 150, "", "2026-W38"))
         assertFalse(HealthRewards.shouldAwardWeeklyHeartGoal(150, 150, "2026-W38", "2026-W38"))
     }
+
+    @Test
+    fun vitalityBonus_awardsWhenAllGoalsCompleted() {
+        assertTrue(HealthRewards.shouldAwardVitalityBonus(3, 3, "", "2026-09-24"))
+        assertTrue(HealthRewards.shouldAwardVitalityBonus(4, 3, "", "2026-09-24"))
+    }
+
+    @Test
+    fun vitalityBonus_doesNotAwardWhenIncomplete() {
+        assertFalse(HealthRewards.shouldAwardVitalityBonus(2, 3, "", "2026-09-24"))
+        assertFalse(HealthRewards.shouldAwardVitalityBonus(0, 3, "", "2026-09-24"))
+    }
+
+    @Test
+    fun vitalityBonus_awardsOncePerDay() {
+        assertTrue(HealthRewards.shouldAwardVitalityBonus(3, 3, "2026-09-23", "2026-09-24"))
+        assertFalse(HealthRewards.shouldAwardVitalityBonus(3, 3, "2026-09-24", "2026-09-24"))
+    }
 }
 
 class HealthTimeTest {

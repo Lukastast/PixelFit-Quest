@@ -40,6 +40,7 @@ data class HealthGoalClaims(
     val steps: Boolean = false,
     val sleep: Boolean = false,
     val heart: Boolean = false,
+    val vitalityBonus: Boolean = false,
 )
 
 @HiltViewModel
@@ -117,6 +118,7 @@ class HealthCenterViewModel @Inject constructor(
             steps = rewardStamp("last_steps_reward_date") == today,
             sleep = rewardStamp("last_sleep_reward_date") == today,
             heart = rewardStamp("last_weekly_heart_reward_week") == week,
+            vitalityBonus = rewardStamp("last_vitality_bonus_date") == today,
         )
     }
 
@@ -156,6 +158,14 @@ class HealthCenterViewModel @Inject constructor(
                 awardExp(HealthRewards.WEEKLY_HEART_REWARD_EXP)
                 awardCoins(HealthRewards.WEEKLY_HEART_REWARD_COINS)
                 updates["last_weekly_heart_reward_week"] = currentWeek
+            }
+
+            // 4. Daily Vitality All Goals Completed Bonus
+            val lastVitalityBonusDate = userRepository.getUserField("last_vitality_bonus_date") as? String ?: ""
+            if (HealthRewards.shouldAwardVitalityBonus(metrics.rewardedGoalsMet, HealthRewards.REWARDED_GOAL_COUNT, lastVitalityBonusDate, today)) {
+                awardExp(HealthRewards.VITALITY_BONUS_EXP)
+                awardCoins(HealthRewards.VITALITY_BONUS_COINS)
+                updates["last_vitality_bonus_date"] = today
             }
 
             if (updates.isNotEmpty()) {

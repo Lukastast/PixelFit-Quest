@@ -271,6 +271,18 @@ class HomeViewModel @Inject constructor(
                 Log.d("HomeVM", "Awarded +${HealthRewards.WEEKLY_HEART_REWARD_EXP} EXP and +${HealthRewards.WEEKLY_HEART_REWARD_COINS} coins for weekly heart goal on $currentWeek")
             }
 
+            // 4. Daily Vitality All Goals Completed Bonus
+            val lastVitalityBonusDate = (userRepository.getUserField("last_vitality_bonus_date") as? String)
+                ?.takeIf { it.isNotBlank() }
+                ?: missionPrefs.getString("last_vitality_bonus_date", "") ?: ""
+            if (HealthRewards.shouldAwardVitalityBonus(metrics.rewardedGoalsMet, HealthRewards.REWARDED_GOAL_COUNT, lastVitalityBonusDate, today)) {
+                addExp(HealthRewards.VITALITY_BONUS_EXP)
+                addCoins(HealthRewards.VITALITY_BONUS_COINS)
+                updates["last_vitality_bonus_date"] = today
+                missionPrefs.edit().putString("last_vitality_bonus_date", today).apply()
+                Log.d("HomeVM", "Awarded +${HealthRewards.VITALITY_BONUS_EXP} EXP and +${HealthRewards.VITALITY_BONUS_COINS} coins for Daily Vitality all goals on $today")
+            }
+
             if (updates.isNotEmpty()) {
                 userRepository.updateUserData(updates)
             }

@@ -571,6 +571,7 @@ private fun HealthHeroStage(
     healthStatus: HealthConnectStatus,
     permissionsGranted: Boolean,
     useTwoPane: Boolean,
+    claims: HealthGoalClaims? = null,
     modifier: Modifier = Modifier,
 ) {
     val spacing = MaterialTheme.spacing
@@ -604,7 +605,7 @@ private fun HealthHeroStage(
                     fontSize = if (useTwoPane) 14.sp else 15.sp,
                 )
                 Text(
-                    text = if (connected) "$metGoals/$totalGoals GOALS MET" else "CONNECT SYNC",
+                    text = if (connected) (if (allDone) "ALL COMPLETED" else "$metGoals/$totalGoals GOALS MET") else "CONNECT SYNC",
                     color = if (connected && allDone) VitalGreen else TorchAmber,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
@@ -675,12 +676,29 @@ private fun HealthHeroStage(
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Medium,
                         )
-                        Text(
-                            text = if (connected) "Active" else "Offline Ready",
-                            color = if (connected) VitalGreen else SilverSlate,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.coin),
+                                contentDescription = null,
+                                modifier = Modifier.size(11.dp),
+                            )
+                            Text(
+                                text = "+${HealthRewards.VITALITY_BONUS_COINS}",
+                                color = ImperialGold,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text(
+                                text = "+${HealthRewards.VITALITY_BONUS_EXP} XP",
+                                color = ImperialGold,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
                     }
                 }
             }
@@ -710,6 +728,7 @@ private fun HealthPane(
             healthStatus = healthStatus,
             permissionsGranted = permissionsGranted,
             useTwoPane = useTwoPane,
+            claims = claims,
         )
 
         if (!connected) {
