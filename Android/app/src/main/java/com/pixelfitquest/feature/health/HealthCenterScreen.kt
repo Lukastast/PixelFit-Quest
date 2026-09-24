@@ -131,7 +131,7 @@ fun HealthCenterScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(if (useTwoPane) spacing.scale(50) else spacing.scale(54))
+                .height(if (useTwoPane) spacing.scale(46) else spacing.scale(50))
                 .clip(RoundedCornerShape(spacing.cornerMd))
                 .background(SlateDeep.copy(alpha = 0.94f))
                 .border(BorderStroke(2.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd)),
@@ -148,19 +148,13 @@ fun HealthCenterScreen(
                     modifier = Modifier.size(if (useTwoPane) 28.dp else 34.dp),
                 )
                 Spacer(modifier = Modifier.width(spacing.xs))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.quest_center_title),
-                        fontSize = if (useTwoPane) 15.sp else 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ImperialGold,
-                    )
-                    Text(
-                        text = stringResource(R.string.quest_center_subtitle),
-                        fontSize = 11.sp,
-                        color = SilverSteel,
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.quest_center_title),
+                    fontSize = if (useTwoPane) 16.sp else 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = ImperialGold,
+                    modifier = Modifier.weight(1f),
+                )
 
                 // Level and Coins in top right of Quest Center
                 Row(
@@ -367,7 +361,6 @@ private fun MissionsHeroStage(
             ) {
                 Text(
                     text = "WEEKLY MISSIONS",
-                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = ImperialGold,
                     fontSize = if (useTwoPane) 14.sp else 15.sp,
@@ -606,7 +599,6 @@ private fun HealthHeroStage(
             ) {
                 Text(
                     text = "DAILY VITALITY",
-                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = ImperialGold,
                     fontSize = if (useTwoPane) 14.sp else 15.sp,

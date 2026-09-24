@@ -354,7 +354,6 @@ private fun CategoryPickerDialog(
             ) {
                 Text(
                     text = stringResource(R.string.achievements_select_category),
-                    style = MaterialTheme.typography.titleMedium,
                     color = ImperialGold,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
@@ -502,7 +501,6 @@ private fun AchievementHeroStage(
                 ) {
                     Text(
                         text = item.definition.name,
-                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = ImperialGold,
                         fontSize = if (isTwoPane) 14.sp else 15.sp,
