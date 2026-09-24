@@ -305,3 +305,74 @@ def draw_unique_8():
     c.pset(34, 32, C_WHITE)
 
     return c
+
+
+def draw_level_40():
+    """level_40: Gold knight helm."""
+    c = PixelCanvas(64)
+    c.draw_badge_frame('gold')
+    c.fill_rect(22, 24, 42, 40, C_STEEL_MID)
+    c.fill_rect(24, 22, 40, 36, C_STEEL_HI)
+    c.rect(22, 22, 42, 42, C_GOLD_DARK)
+    c.fill_rect(20, 38, 44, 44, C_GOLD_MID)
+    c.fill_rect(18, 34, 22, 46, C_STEEL_DARK)
+    c.fill_rect(42, 34, 46, 46, C_STEEL_DARK)
+    c.fill_rect(29, 30, 35, 36, (20, 24, 32, 255))
+    c.line(29, 30, 35, 36, C_GOLD_HI)
+    c.pset(26, 28, C_WHITE)
+    c.pset(38, 28, C_WHITE)
+    return c
+
+
+def draw_level_60():
+    """level_60: Platinum keep."""
+    c = PixelCanvas(64)
+    c.draw_badge_frame('platinum')
+    c.fill_rect(18, 40, 46, 48, C_STEEL_SHADOW)
+    c.fill_rect(22, 28, 42, 44, C_STEEL_MID)
+    c.fill_rect(24, 30, 40, 42, C_STEEL_HI)
+    c.fill_rect(20, 22, 26, 32, C_STEEL_DARK)
+    c.fill_rect(38, 22, 44, 32, C_STEEL_DARK)
+    c.fill_rect(29, 16, 35, 30, C_STEEL_DARK)
+    c.fill_rect(30, 36, 34, 44, (30, 36, 48, 255))
+    c.pset(32, 14, C_GOLD_HI)
+    c.pset(23, 20, C_CYAN_HI)
+    c.pset(41, 20, C_CYAN_HI)
+    return c
+
+
+def draw_level_80():
+    """level_80: Platinum eight-point star."""
+    c = PixelCanvas(64)
+    c.draw_badge_frame('platinum')
+    c.fill_circle(32, 32, 8, C_GOLD_MID)
+    c.fill_circle(32, 32, 5, C_GOLD_HI)
+    for x0, y0, x1, y1 in (
+        (32, 16, 32, 48),
+        (16, 32, 48, 32),
+        (20, 20, 44, 44),
+        (44, 20, 20, 44),
+    ):
+        c.line(x0, y0, x1, y1, C_GOLD_HI)
+        c.line(x0 + 1, y0, x1 + 1, y1, C_GOLD_MID)
+    c.fill_circle(32, 32, 3, C_WHITE)
+    return c
+
+
+def draw_level_100():
+    """level_100: Platinum crown over a laurel."""
+    c = PixelCanvas(64)
+    c.draw_badge_frame('platinum')
+    c.line(18, 44, 32, 48, C_GREEN_MID)
+    c.line(46, 44, 32, 48, C_GREEN_MID)
+    c.line(20, 40, 30, 46, C_GREEN_HI)
+    c.line(44, 40, 34, 46, C_GREEN_HI)
+    c.fill_rect(20, 28, 44, 36, C_GOLD_MID)
+    c.fill_rect(20, 18, 24, 32, C_GOLD_HI)
+    c.fill_rect(30, 14, 34, 32, C_GOLD_HI)
+    c.fill_rect(40, 18, 44, 32, C_GOLD_HI)
+    c.fill_circle(22, 17, 2, C_WHITE)
+    c.fill_circle(32, 13, 2, C_CYAN_HI)
+    c.fill_circle(42, 17, 2, C_WHITE)
+    c.fill_rect(28, 30, 36, 34, C_GOLD_DARK)
+    return c

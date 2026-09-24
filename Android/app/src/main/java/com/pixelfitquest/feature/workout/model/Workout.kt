@@ -12,6 +12,9 @@ data class Workout(
     val totalDurationMillis: Long = 0,
     val notes: String? = null,
     val rewardsAwarded: Boolean = false,
+    val awardedXp: Int? = null,
+    val awardedCoins: Int? = null,
+    val rewardClipped: Boolean = false,
 ) {
     fun toMap(): Map<String, Any?> = mapOf(
         "id" to id,
@@ -25,6 +28,9 @@ data class Workout(
         "totalDurationMillis" to totalDurationMillis,
         "notes" to notes,
         "rewardsAwarded" to rewardsAwarded,
+        "awardedXp" to awardedXp,
+        "awardedCoins" to awardedCoins,
+        "rewardClipped" to rewardClipped,
     )
 
     companion object {
@@ -40,6 +46,9 @@ data class Workout(
             totalDurationMillis = (map["totalDurationMillis"] as? Number)?.toLong() ?: 0L,
             notes = map["notes"] as? String,
             rewardsAwarded = map["rewardsAwarded"] as? Boolean ?: false,
+            awardedXp = (map["awardedXp"] as? Number)?.toInt(),
+            awardedCoins = (map["awardedCoins"] as? Number)?.toInt(),
+            rewardClipped = map["rewardClipped"] as? Boolean ?: false,
         )
     }
 }

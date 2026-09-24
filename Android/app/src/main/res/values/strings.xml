@@ -152,6 +152,19 @@
     <string name="quest_tab_count">%1$d/%2$d</string>
     <string name="quest_week_resets">This week · resets Monday</string>
     <string name="quest_mission_done">Done</string>
+    <string name="mission_reroll">Reroll · 50 coins</string>
+    <string name="daily_reward_clipped">Some of this workout is past today\'s reward. Those reps are saved and pay nothing.</string>
+    <string name="skills_points">Skill points: %1$d</string>
+    <string name="skill_form">Form · +3% XP on sets scored 90+</string>
+    <string name="skill_iron">Iron · +4% workout coins</string>
+    <string name="skill_vitality">Vitality · +5% step and sleep coins</string>
+    <string name="skill_form_short">Form</string>
+    <string name="skill_iron_short">Iron</string>
+    <string name="skill_vitality_short">Vitality</string>
+    <string name="skill_spend">+</string>
+    <string name="skill_respec">Respec · %1$d coins</string>
+    <string name="skill_respec_wait">Respec in %1$d days</string>
+    <string name="skill_respec_empty">Spend a point before respec</string>
     <string name="quest_mission_training_blurb">From workouts you finish this week</string>
     <string name="quest_mission_steps_blurb">From Health Connect steps this week</string>
     <string name="quest_steps_disconnected">Walk missions count steps only if you choose to connect Health. Training missions do not need it.</string>
@@ -218,6 +231,7 @@
     <string name="levels_locked_level">Lv %1$d</string>
     <string name="levels_level_up_title">Level up!</string>
     <string name="levels_level_up_body">You reached level %1$d</string>
+    <string name="levels_level_up_coins">+%1$d coins</string>
     <string name="levels_unlocked_header">New cosmetics</string>
     <string name="levels_view_rewards">View rewards</string>
     <string name="levels_later">Later</string>

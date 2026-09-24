@@ -5,6 +5,7 @@ import com.pixelfitquest.feature.customization.CustomizationViewModel
 import com.pixelfitquest.feature.customization.model.CharacterData
 import com.pixelfitquest.local.db.entity.UserProfileEntity
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -15,16 +16,15 @@ class HomeGymUpgradeTest {
     fun gymDwellingTier_hasCorrectMetadata() {
         assertEquals("dwelling_gym", DwellingTier.GYM.id)
         assertEquals("Iron Gym", DwellingTier.GYM.displayName)
-        assertEquals(Int.MAX_VALUE, DwellingTier.GYM.minLevel)
+        assertEquals(70, DwellingTier.GYM.minLevel)
+        assertEquals(2000, DwellingTier.GYM.coinPrice)
+        assertEquals(null, DwellingTier.GYM.legacyFreeLevel)
     }
 
     @Test
-    fun gymDwellingTier_notUnlockedViaLeveling() {
-        // Unlike level dwellings (TARP, TENT, SHACK, COTTAGE, CASTLE),
-        // the Gym Upgrade is purchased with coins and never returned by forLevel().
-        for (lvl in 1..30) {
-            val tier = DwellingTier.forLevel(lvl)
-            assertNotEquals(DwellingTier.GYM, tier)
+    fun gymDwellingTier_notGrantedByLegacyMigration() {
+        for (lvl in 1..100) {
+            assertFalse(DwellingTier.legacyGrantedIds(lvl).contains(DwellingTier.GYM.id))
         }
     }
 
@@ -63,21 +63,17 @@ class HomeGymUpgradeTest {
             equippedHomeUpgrade = CustomizationViewModel.GYM_UPGRADE_ID,
             unlockedHomeUpgrades = listOf(CustomizationViewModel.GYM_UPGRADE_ID),
         )
-        val level = 1
-        val selectedTier = if (characterWithGym.equippedHomeUpgrade == CustomizationViewModel.GYM_UPGRADE_ID) {
-            DwellingTier.GYM
-        } else {
-            DwellingTier.forLevel(level)
-        }
+        val selectedTier = DwellingTier.resolve(
+            characterWithGym.equippedHomeUpgrade,
+            characterWithGym.unlockedHomeUpgrades,
+        )
         assertEquals(DwellingTier.GYM, selectedTier)
 
-        // When not equipped, falls back to level-based dwelling tier (e.g. TARP at level 1)
         val characterWithoutGym = CharacterData(equippedHomeUpgrade = null)
-        val defaultTier = if (characterWithoutGym.equippedHomeUpgrade == CustomizationViewModel.GYM_UPGRADE_ID) {
-            DwellingTier.GYM
-        } else {
-            DwellingTier.forLevel(level)
-        }
+        val defaultTier = DwellingTier.resolve(
+            characterWithoutGym.equippedHomeUpgrade,
+            characterWithoutGym.unlockedHomeUpgrades,
+        )
         assertEquals(DwellingTier.TARP, defaultTier)
     }
 

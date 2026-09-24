@@ -32,7 +32,8 @@ import com.pixelfitquest.components.atoms.IdleAnimation
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.feature.customization.model.CharacterItem
 import com.pixelfitquest.feature.customization.model.CustomizationCatalog
-import com.pixelfitquest.feature.customization.model.UnlockType
+import com.pixelfitquest.feature.customization.model.isCharacterUnlocked
+import com.pixelfitquest.feature.customization.model.purchaseBlockedByLevel
 import com.pixelfitquest.feature.levels.cosmetics.AvatarSkinBridge
 import com.pixelfitquest.ui.theme.DarkStone
 import com.pixelfitquest.ui.theme.ImperialGold
@@ -85,11 +86,14 @@ fun CharacterCustomizationPanel(
     }
 
     val isEquipped = equippedVariant == resolvedVariant
-    val unlockedByLevel = AvatarSkinBridge.isUnlockedByLevel(resolvedVariant, unlockedLevelSkinIds)
-    val isUnlocked = selectedItem.unlockType == UnlockType.DEFAULT ||
-        unlockedVariants.contains(resolvedVariant) ||
-        unlockedByLevel ||
-        (selectedItem.minLevel != null && userLevel >= selectedItem.minLevel)
+    val isUnlocked = isCharacterUnlocked(
+        item = selectedItem,
+        variant = resolvedVariant,
+        userLevel = userLevel,
+        unlockedVariants = unlockedVariants,
+        unlockedLevelSkinIds = unlockedLevelSkinIds,
+    )
+    val blockedByLevel = purchaseBlockedByLevel(isUnlocked, selectedItem.minLevel, userLevel)
 
     val spriteKey = remember(resolvedVariant, gender, isUnlocked) {
         AvatarSkinBridge.spriteKey(resolvedVariant, gender, isUnlocked)
@@ -227,6 +231,7 @@ fun CharacterCustomizationPanel(
                                     Text(
                                         text = when {
                                             selectedItem.isPremium -> "🔒 Soon"
+                                            blockedByLevel -> "🔒 Lvl ${selectedItem.minLevel}"
                                             selectedItem.coinPrice != null -> "🔒 ${selectedItem.coinPrice}"
                                             selectedItem.minLevel != null -> "🔒 Lvl ${selectedItem.minLevel}"
                                             else -> "🔒 Locked"
@@ -344,6 +349,7 @@ fun CharacterCustomizationPanel(
                         Text(
                             text = when {
                                 selectedItem.isPremium -> "🔒 Coming Soon"
+                                blockedByLevel -> "🔒 Locked · Level ${selectedItem.minLevel} Required"
                                 selectedItem.coinPrice != null -> "🔒 Locked · ${selectedItem.coinPrice} Coins"
                                 selectedItem.minLevel != null -> "🔒 Locked · Level ${selectedItem.minLevel} Required"
                                 else -> "🔒 Locked"
@@ -462,6 +468,16 @@ fun CharacterCustomizationPanel(
                     Text(stringResource(R.string.select), color = Color.White, fontWeight = FontWeight.Bold, fontSize = if (isTwoPane) 12.sp else 14.sp)
                 }
             }
+            blockedByLevel -> {
+                PixelArtButton(
+                    onClick = {},
+                    imageRes = R.drawable.button_clicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = btnModifier,
+                ) {
+                    Text("🔒 Level ${selectedItem.minLevel}", color = Color.White.copy(alpha = 0.7f), fontSize = if (isTwoPane) 10.sp else 11.sp)
+                }
+            }
             selectedItem.coinPrice != null -> {
                 val canAfford = userCoins >= selectedItem.coinPrice
                 PixelArtButton(
@@ -515,11 +531,13 @@ fun CharacterCustomizationPanel(
                     "premium" -> if (gender == "female") "female_premium" else "male_premium"
                     else -> item.id
                 }
-                val itemUnlockedByLevel = AvatarSkinBridge.isUnlockedByLevel(itemVariant, unlockedLevelSkinIds)
-                val itemUnlocked = item.unlockType == UnlockType.DEFAULT ||
-                    unlockedVariants.contains(itemVariant) ||
-                    itemUnlockedByLevel ||
-                    (item.minLevel != null && userLevel >= item.minLevel)
+                val itemUnlocked = isCharacterUnlocked(
+                    item = item,
+                    variant = itemVariant,
+                    userLevel = userLevel,
+                    unlockedVariants = unlockedVariants,
+                    unlockedLevelSkinIds = unlockedLevelSkinIds,
+                )
                 val itemEquipped = equippedVariant == itemVariant
                 val isSelected = selectedCharacterId == item.id
 
@@ -528,6 +546,7 @@ fun CharacterCustomizationPanel(
                     isSelected = isSelected,
                     isEquipped = itemEquipped,
                     isUnlocked = itemUnlocked,
+                    blockedByLevel = purchaseBlockedByLevel(itemUnlocked, item.minLevel, userLevel),
                     onClick = { onSelectCharacter(item.id) },
                 )
             }
@@ -616,6 +635,7 @@ private fun CharacterCard(
     isSelected: Boolean,
     isEquipped: Boolean,
     isUnlocked: Boolean,
+    blockedByLevel: Boolean,
     onClick: () -> Unit,
 ) {
     val spacing = MaterialTheme.spacing
@@ -665,6 +685,7 @@ private fun CharacterCard(
                 when {
                     isEquipped -> Text("EQUIPPED", color = ImperialGold, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     isUnlocked -> Text("UNLOCKED", color = VitalGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    blockedByLevel -> Text("🔒 LVL ${item.minLevel}", color = TorchAmber, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     item.coinPrice != null -> {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,

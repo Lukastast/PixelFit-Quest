@@ -5,6 +5,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import com.pixelfitquest.feature.customization.model.CharacterData
+import com.pixelfitquest.feature.levels.progression.LevelCurve
+import com.pixelfitquest.feature.progression.ClaimedWorkoutReward
+import com.pixelfitquest.feature.progression.RespecOutcome
+import com.pixelfitquest.feature.progression.RewardSet
+import com.pixelfitquest.feature.progression.SkillBranch
+import com.pixelfitquest.feature.progression.SkillLoadout
+import java.time.LocalDate
 import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.local.CloudSyncPolicy
 import com.pixelfitquest.local.LocalPixelFitStore
@@ -17,8 +24,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import java.util.concurrent.ConcurrentHashMap
-
 @ViewModelScoped
 class UserRepository constructor(
     private val firestore: FirebaseFirestore,
@@ -30,15 +35,7 @@ class UserRepository constructor(
     private val TAG = "UserRepository"
 
     companion object {
-        private const val DEFAULT_BASE_EXP = 100
-        private const val MAX_LEVEL = 30
         private const val MILLIS_PER_DAY = 24 * 60 * 60 * 1000L
-        private val cachedProgression = ConcurrentHashMap<Int, Int>()
-
-        @JvmStatic
-        fun clearCacheForTesting() {
-            cachedProgression.clear()
-        }
     }
 
     fun getUserData(): Flow<UserData?> = localStore.observeUserData().map { it }
@@ -55,40 +52,17 @@ class UserRepository constructor(
 
     suspend fun getUserField(field: String): Any? = localStore.getUserField(field)
 
+    /**
+     * The level curve lives on the phone in [LevelCurve]. A remote table used to
+     * override levels 1–30 and would fight the level-100 balance.
+     */
     suspend fun loadProgressionConfig() {
-        try {
-            val configDoc = firestore.collection("configs").document("game_progression").get().await()
-            val progressionMap = configDoc.get("levels") as? Map<String, Long> ?: emptyMap()
-            cachedProgression.clear()
-            progressionMap.forEach { (levelStr, expReq) ->
-                val level = levelStr.toIntOrNull()
-                if (level != null && level <= MAX_LEVEL) {
-                    cachedProgression[level] = expReq.toInt()
-                }
-            }
-            if (cachedProgression.isEmpty()) {
-                initializeDefaultProgression()
-            }
-            Log.d(TAG, "Loaded progression config")
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to load config, using defaults", e)
-            if (cachedProgression.isEmpty()) {
-                initializeDefaultProgression()
-            }
-        }
+        Log.d(TAG, "Using local level curve through ${LevelCurve.MAX_LEVEL}")
     }
 
-    private fun initializeDefaultProgression() {
-        repeat(MAX_LEVEL) { level ->
-            cachedProgression[level + 1] = DEFAULT_BASE_EXP * (level + 1)
-        }
-    }
+    fun getMaxLevel(): Int = LevelCurve.MAX_LEVEL
 
-    fun getMaxLevel(): Int = MAX_LEVEL
-
-    fun getExpRequiredForLevel(level: Int): Int {
-        return cachedProgression[level] ?: (DEFAULT_BASE_EXP * level)
-    }
+    fun getExpRequiredForLevel(level: Int): Int = LevelCurve.xpToAdvance(level)
 
     suspend fun updateExp(amount: Int) {
         if (amount <= 0) return
@@ -97,10 +71,11 @@ class UserRepository constructor(
                 level = current.level,
                 exp = current.exp,
                 amount = amount,
-                maxLevel = MAX_LEVEL,
-                expRequiredForLevel = { getExpRequiredForLevel(it) },
+                maxLevel = LevelCurve.MAX_LEVEL,
+                expRequiredForLevel = LevelCurve::xpToAdvance,
             )
-            current.copy(level = result.level, exp = result.exp)
+            val coins = current.coins + LevelCurve.coinsForLevels(current.level, result.level)
+            current.copy(level = result.level, exp = result.exp, coins = coins)
         }
     }
 
@@ -132,6 +107,21 @@ class UserRepository constructor(
     fun getCharacterData(): Flow<CharacterData?> = localStore.observeCharacter().map { it }
 
     suspend fun fetchCharacterDataOnce(): CharacterData? = localStore.getCharacter()
+
+    fun observeSkills(): Flow<SkillLoadout> = localStore.observeSkills()
+
+    suspend fun skillLoadout(): SkillLoadout = localStore.skillLoadout()
+
+    suspend fun spendSkillPoint(branch: SkillBranch): Boolean = localStore.spendSkillPoint(branch)
+
+    suspend fun respecSkills(today: LocalDate = LocalDate.now()): RespecOutcome =
+        localStore.respecSkills(today)
+
+    suspend fun claimWorkoutReward(
+        workoutId: String,
+        sets: List<RewardSet>,
+        today: String = LocalDate.now().toString(),
+    ): ClaimedWorkoutReward? = localStore.claimWorkoutReward(workoutId, sets, today)
 
     suspend fun resetUnlockedVariants() {
         localStore.resetUnlockedVariants()

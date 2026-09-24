@@ -13,6 +13,7 @@ import com.pixelfitquest.feature.levels.model.LevelUpResult
 import com.pixelfitquest.feature.levels.model.LevelsPersistedState
 import com.pixelfitquest.feature.levels.model.LevelsSnapshot
 import com.pixelfitquest.feature.levels.progression.CosmeticUnlocker
+import com.pixelfitquest.feature.levels.progression.LevelCurve
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -107,6 +108,7 @@ class DefaultLevelsRepository @Inject constructor(
                 previous = previous,
                 current = current,
                 newlyUnlocked = newly,
+                coinsGranted = LevelCurve.coinsForLevels(previous.level, current.level),
             )
             if (result.leveledUp) {
                 pendingLevelUp.value = result

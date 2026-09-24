@@ -1,5 +1,7 @@
 package com.pixelfitquest.feature.levels.model
 
+import com.pixelfitquest.feature.levels.progression.LevelCurve
+
 enum class CosmeticKind {
     HOME_THEME,
     CHARACTER_SKIN,
@@ -32,7 +34,7 @@ data class LevelProgress(
     val xpIntoLevel: Int = 0,
     val xpToNext: Int = 100,
 ) {
-    val isMaxLevel: Boolean get() = level >= 30
+    val isMaxLevel: Boolean get() = level >= LevelCurve.MAX_LEVEL
 
     val xpFraction: Float
         get() = if (xpToNext <= 0) {
@@ -49,6 +51,7 @@ data class LevelUpResult(
     val previous: LevelProgress,
     val current: LevelProgress,
     val newlyUnlocked: List<CosmeticDefinition>,
+    val coinsGranted: Int = 0,
 ) {
     val leveledUp: Boolean get() = current.level > previous.level
     val levelsGained: Int get() = (current.level - previous.level).coerceAtLeast(0)

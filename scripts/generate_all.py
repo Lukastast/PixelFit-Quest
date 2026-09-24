@@ -28,6 +28,7 @@ from draw_volume_sets import (
 )
 from draw_milestones import (
     draw_level_5, draw_level_10, draw_level_20,
+    draw_level_40, draw_level_60, draw_level_80, draw_level_100,
     draw_unique_3, draw_unique_8
 )
 from draw_locked_form import (
@@ -61,6 +62,10 @@ ACHIEVEMENT_GENERATORS = {
     "level_5": draw_level_5,
     "level_10": draw_level_10,
     "level_20": draw_level_20,
+    "level_40": draw_level_40,
+    "level_60": draw_level_60,
+    "level_80": draw_level_80,
+    "level_100": draw_level_100,
     "unique_3": draw_unique_3,
     "unique_8": draw_unique_8,
     "resting_heart_rate": draw_resting_heart_rate,

@@ -20,9 +20,14 @@ object CosmeticCatalog {
     const val SKIN_SHADOW = "skin_shadow"
 
     const val TITLE_ROOKIE = DEFAULT_TITLE_ID
+    const val TITLE_SCOUT = "title_scout"
     const val TITLE_ADVENTURER = "title_adventurer"
     const val TITLE_CHAMPION = "title_champion"
     const val TITLE_LEGEND = "title_legend"
+    const val TITLE_VETERAN = "title_veteran"
+    const val TITLE_WARDEN = "title_warden"
+    const val TITLE_MYTHIC = "title_mythic"
+    const val TITLE_ASCENDANT = "title_ascendant"
 
     val all: List<CosmeticDefinition> = listOf(
         cosmetic(
@@ -75,13 +80,6 @@ object CosmeticCatalog {
             description = "Starting outfit.",
         ),
         cosmetic(
-            id = SKIN_FITNESS,
-            kind = CosmeticKind.CHARACTER_SKIN,
-            unlockLevel = 5,
-            name = "Gym Fit",
-            description = "Training gear. Also buyable with coins.",
-        ),
-        cosmetic(
             id = SKIN_SHADOW,
             kind = CosmeticKind.CHARACTER_SKIN,
             unlockLevel = 12,
@@ -94,6 +92,13 @@ object CosmeticCatalog {
             unlockLevel = 1,
             name = "Rookie",
             description = "Every hero starts here.",
+        ),
+        cosmetic(
+            id = TITLE_SCOUT,
+            kind = CosmeticKind.TITLE,
+            unlockLevel = 5,
+            name = "Scout",
+            description = "The first miles are behind you.",
         ),
         cosmetic(
             id = TITLE_ADVENTURER,
@@ -114,7 +119,35 @@ object CosmeticCatalog {
             kind = CosmeticKind.TITLE,
             unlockLevel = 30,
             name = "Legend",
-            description = "Max level. Cosmetics complete.",
+            description = "A name the gym remembers.",
+        ),
+        cosmetic(
+            id = TITLE_VETERAN,
+            kind = CosmeticKind.TITLE,
+            unlockLevel = 40,
+            name = "Veteran",
+            description = "Forty levels of showing up.",
+        ),
+        cosmetic(
+            id = TITLE_WARDEN,
+            kind = CosmeticKind.TITLE,
+            unlockLevel = 60,
+            name = "Warden",
+            description = "The hall keeps watch with you.",
+        ),
+        cosmetic(
+            id = TITLE_MYTHIC,
+            kind = CosmeticKind.TITLE,
+            unlockLevel = 80,
+            name = "Mythic",
+            description = "Stories start to sound unlikely.",
+        ),
+        cosmetic(
+            id = TITLE_ASCENDANT,
+            kind = CosmeticKind.TITLE,
+            unlockLevel = 100,
+            name = "Ascendant",
+            description = "Level 100. The road is still open.",
         ),
     )
 

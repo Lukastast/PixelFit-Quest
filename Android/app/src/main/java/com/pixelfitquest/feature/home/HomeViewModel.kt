@@ -7,10 +7,17 @@ import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.feature.customization.model.CharacterData
 import com.pixelfitquest.feature.home.model.Achievement
 import com.pixelfitquest.feature.home.model.CharacterPose
+import com.pixelfitquest.feature.home.model.DwellingTier
 import com.pixelfitquest.feature.home.model.TimeOfDayProvider
 import com.pixelfitquest.feature.home.model.achievementsList
+import com.pixelfitquest.feature.levels.progression.LevelCurve
+import com.pixelfitquest.feature.progression.RewardBonus
+import com.pixelfitquest.feature.progression.RewardPayout
+import com.pixelfitquest.feature.progression.SkillTree
+import com.pixelfitquest.feature.missions.RerollResult
 import com.pixelfitquest.feature.missions.WeeklyMissionBoard
 import com.pixelfitquest.feature.missions.WeeklyMissionService
+import com.pixelfitquest.helpers.SnackbarManager
 import com.pixelfitquest.feature.workout.model.Workout
 import com.pixelfitquest.feature.streak.data.WeeklyStreakRepository
 import com.pixelfitquest.firebase.model.UserData
@@ -136,13 +143,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun updateMaxExp(data: UserData) {
-        val nextLevel = data.level + 1
-        val maxLevel = userRepository.getMaxLevel()
-        _currentMaxExp.value = if (nextLevel > maxLevel) {
-            userRepository.getExpRequiredForLevel(maxLevel)
-        } else {
-            userRepository.getExpRequiredForLevel(nextLevel)
-        }
+        _currentMaxExp.value = LevelCurve.xpToAdvance(data.level)
     }
 
     private fun loadUserData() {
@@ -170,6 +171,29 @@ class HomeViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 Log.w("HomeVM", "Load character data error", e)
+            }
+        }
+    }
+
+    private suspend fun fitnessPayout(xp: Int, coins: Int, vitality: Boolean = false): RewardPayout {
+        val adjusted = if (vitality) {
+            val rank = userRepository.skillLoadout().vitality
+            SkillTree.applyVitalityCoins(coins, rank)
+        } else {
+            coins
+        }
+        return RewardBonus.withFitnessFlat(xp, adjusted, _characterData.value.variant)
+    }
+
+    private fun equippedDwelling(): DwellingTier = DwellingTier.resolve(
+        _characterData.value.equippedHomeUpgrade,
+        _characterData.value.unlockedHomeUpgrades,
+    )
+
+    fun rerollMission(missionId: String) {
+        viewModelScope.launch {
+            if (weeklyMissionService.reroll(missionId) == RerollResult.CANT_AFFORD) {
+                SnackbarManager.showMessage("Need 50 coins to reroll a mission")
             }
         }
     }
@@ -240,8 +264,9 @@ class HomeViewModel @Inject constructor(
                 ?.takeIf { it.isNotBlank() }
                 ?: missionPrefs.getString("last_steps_reward_date", "") ?: ""
             if (HealthRewards.shouldAwardDailyGoal(metrics.steps, metrics.stepGoal, lastStepsRewardDate, today)) {
-                addExp(HealthRewards.STEPS_REWARD_EXP)
-                addCoins(HealthRewards.STEPS_REWARD_COINS)
+                val payout = fitnessPayout(HealthRewards.STEPS_REWARD_EXP, HealthRewards.STEPS_REWARD_COINS, vitality = true)
+                addExp(payout.xp)
+                addCoins(payout.coins)
                 updates["last_steps_reward_date"] = today
                 missionPrefs.edit().putString("last_steps_reward_date", today).apply()
                 Log.d("HomeVM", "Awarded +${HealthRewards.STEPS_REWARD_EXP} EXP and +${HealthRewards.STEPS_REWARD_COINS} coins for steps goal on $today")
@@ -252,8 +277,9 @@ class HomeViewModel @Inject constructor(
                 ?.takeIf { it.isNotBlank() }
                 ?: missionPrefs.getString("last_sleep_reward_date", "") ?: ""
             if (HealthRewards.shouldAwardSleepMilestone(metrics.sleepMinutes, lastSleepRewardDate, today)) {
-                addExp(HealthRewards.SLEEP_REWARD_EXP)
-                addCoins(HealthRewards.SLEEP_REWARD_COINS)
+                val payout = fitnessPayout(HealthRewards.SLEEP_REWARD_EXP, HealthRewards.SLEEP_REWARD_COINS, vitality = true)
+                addExp(payout.xp)
+                addCoins(payout.coins)
                 updates["last_sleep_reward_date"] = today
                 missionPrefs.edit().putString("last_sleep_reward_date", today).apply()
                 Log.d("HomeVM", "Awarded +${HealthRewards.SLEEP_REWARD_EXP} EXP and +${HealthRewards.SLEEP_REWARD_COINS} coins for 7-9h sleep on $today")
@@ -264,8 +290,9 @@ class HomeViewModel @Inject constructor(
                 ?.takeIf { it.isNotBlank() }
                 ?: missionPrefs.getString("last_weekly_heart_reward_week", "") ?: ""
             if (HealthRewards.shouldAwardWeeklyHeartGoal(metrics.weeklyHeartPoints, metrics.weeklyHeartGoal, lastWeeklyHeartRewardWeek, currentWeek)) {
-                addExp(HealthRewards.WEEKLY_HEART_REWARD_EXP)
-                addCoins(HealthRewards.WEEKLY_HEART_REWARD_COINS)
+                val payout = fitnessPayout(HealthRewards.WEEKLY_HEART_REWARD_EXP, HealthRewards.WEEKLY_HEART_REWARD_COINS)
+                addExp(payout.xp)
+                addCoins(payout.coins)
                 updates["last_weekly_heart_reward_week"] = currentWeek
                 missionPrefs.edit().putString("last_weekly_heart_reward_week", currentWeek).apply()
                 Log.d("HomeVM", "Awarded +${HealthRewards.WEEKLY_HEART_REWARD_EXP} EXP and +${HealthRewards.WEEKLY_HEART_REWARD_COINS} coins for weekly heart goal on $currentWeek")
@@ -276,8 +303,9 @@ class HomeViewModel @Inject constructor(
                 ?.takeIf { it.isNotBlank() }
                 ?: missionPrefs.getString("last_vitality_bonus_date", "") ?: ""
             if (HealthRewards.shouldAwardVitalityBonus(metrics.rewardedGoalsMet, HealthRewards.REWARDED_GOAL_COUNT, lastVitalityBonusDate, today)) {
-                addExp(HealthRewards.VITALITY_BONUS_EXP)
-                addCoins(HealthRewards.VITALITY_BONUS_COINS)
+                val payout = fitnessPayout(HealthRewards.VITALITY_BONUS_EXP, HealthRewards.VITALITY_BONUS_COINS)
+                addExp(payout.xp)
+                addCoins(payout.coins)
                 updates["last_vitality_bonus_date"] = today
                 missionPrefs.edit().putString("last_vitality_bonus_date", today).apply()
                 Log.d("HomeVM", "Awarded +${HealthRewards.VITALITY_BONUS_EXP} EXP and +${HealthRewards.VITALITY_BONUS_COINS} coins for Daily Vitality all goals on $today")
@@ -329,8 +357,16 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 workoutRepository.saveWorkout(workout)
-                addExp(100)
-                addCoins(20)
+                val skills = userRepository.skillLoadout()
+                val payout = RewardBonus.workoutPayout(
+                    baseXp = 100,
+                    baseCoins = 20,
+                    dwelling = equippedDwelling(),
+                    variant = _characterData.value.variant,
+                    ironRank = skills.iron,
+                )
+                addExp(payout.xp)
+                addCoins(payout.coins)
                 try {
                     // Also aligns UserProfileEntity.streak / lastActivityDate / lastStreakUpdateDate
                     weeklyStreakRepository.recordCompletedSession(workout.id)

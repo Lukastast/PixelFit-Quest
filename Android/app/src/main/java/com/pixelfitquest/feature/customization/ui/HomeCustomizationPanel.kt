@@ -30,8 +30,10 @@ import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.feature.customization.model.CustomizationCatalog
 import com.pixelfitquest.feature.customization.model.HomeDwellingItem
-import com.pixelfitquest.feature.customization.model.UnlockType
+import com.pixelfitquest.feature.customization.model.isShopItemUnlocked
+import com.pixelfitquest.feature.customization.model.purchaseBlockedByLevel
 import com.pixelfitquest.feature.home.model.DwellingTier
+import com.pixelfitquest.feature.home.model.DwellingVisuals
 import com.pixelfitquest.ui.theme.DarkStone
 import com.pixelfitquest.ui.theme.ImperialGold
 import com.pixelfitquest.ui.theme.PlatinumWhite
@@ -66,25 +68,18 @@ fun HomeCustomizationPanel(
     }
 
     val isEquipped = equippedHomeId == selectedItem.id
-    val isUnlocked = when (selectedItem.unlockType) {
-        UnlockType.DEFAULT -> true
-        UnlockType.LEVEL -> selectedItem.minLevel != null && userLevel >= selectedItem.minLevel
-        UnlockType.COINS -> selectedItem.id != null && unlockedHomeUpgrades.contains(selectedItem.id)
-        UnlockType.COMING_SOON -> false
-    }
+    val isUnlocked = isShopItemUnlocked(
+        unlockType = selectedItem.unlockType,
+        minLevel = selectedItem.minLevel,
+        userLevel = userLevel,
+        owned = selectedItem.id != null && unlockedHomeUpgrades.contains(selectedItem.id),
+    )
+    val blockedByLevel = purchaseBlockedByLevel(isUnlocked, selectedItem.minLevel, userLevel)
 
-    // Determine preview image
-    val previewRes = remember(selectedItem.id, userLevel) {
+    val previewRes = remember(selectedItem.id, unlockedHomeUpgrades) {
         if (selectedItem.id == null) {
-            val tier = DwellingTier.forLevel(userLevel)
-            when (tier) {
-                DwellingTier.TARP -> R.drawable.dwelling_tarp_landscape
-                DwellingTier.TENT -> R.drawable.dwelling_tent_landscape
-                DwellingTier.SHACK -> R.drawable.dwelling_shack_landscape
-                DwellingTier.COTTAGE -> R.drawable.dwelling_cottage_landscape
-                DwellingTier.CASTLE -> R.drawable.dwelling_castle_landscape
-                DwellingTier.GYM -> R.drawable.dwelling_gym_landscape
-            }
+            val tier = DwellingTier.bestOwned(unlockedHomeUpgrades)
+            DwellingVisuals.landscapeBgRes(tier)
         } else {
             selectedItem.landscapeRes
         }
@@ -116,6 +111,7 @@ fun HomeCustomizationPanel(
                 ) {
                     Text(
                         text = when {
+                            blockedByLevel -> "🔒 Locked · Level ${selectedItem.minLevel} Required"
                             selectedItem.coinPrice != null -> "🔒 Locked · ${selectedItem.coinPrice} Coins"
                             selectedItem.minLevel != null -> "🔒 Locked · Level ${selectedItem.minLevel} Required"
                             else -> "🔒 Locked"
@@ -185,6 +181,16 @@ fun HomeCustomizationPanel(
                     Text("Equip", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
+            blockedByLevel -> {
+                PixelArtButton(
+                    onClick = {},
+                    imageRes = R.drawable.button_clicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = actionModifier.size(buttonWidth, buttonHeight),
+                ) {
+                    Text("🔒 Level ${selectedItem.minLevel}", color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp)
+                }
+            }
             selectedItem.coinPrice != null && selectedItem.id != null -> {
                 val canAfford = userCoins >= selectedItem.coinPrice
                 PixelArtButton(
@@ -227,12 +233,12 @@ fun HomeCustomizationPanel(
             contentPadding = PaddingValues(bottom = spacing.md),
         ) {
             items(CustomizationCatalog.homeDwellings, key = { it.id ?: "auto" }) { item ->
-                val itemUnlocked = when (item.unlockType) {
-                    UnlockType.DEFAULT -> true
-                    UnlockType.LEVEL -> item.minLevel != null && userLevel >= item.minLevel
-                    UnlockType.COINS -> item.id != null && unlockedHomeUpgrades.contains(item.id)
-                    UnlockType.COMING_SOON -> false
-                }
+                val itemUnlocked = isShopItemUnlocked(
+                    unlockType = item.unlockType,
+                    minLevel = item.minLevel,
+                    userLevel = userLevel,
+                    owned = item.id != null && unlockedHomeUpgrades.contains(item.id),
+                )
                 val itemEquipped = equippedHomeId == item.id
                 val isSelected = selectedHomeId == item.id
 
@@ -241,6 +247,7 @@ fun HomeCustomizationPanel(
                     isSelected = isSelected,
                     isEquipped = itemEquipped,
                     isUnlocked = itemUnlocked,
+                    blockedByLevel = purchaseBlockedByLevel(itemUnlocked, item.minLevel, userLevel),
                     onClick = { onSelectHome(item.id) },
                 )
             }
@@ -307,6 +314,7 @@ private fun HomeCard(
     isSelected: Boolean,
     isEquipped: Boolean,
     isUnlocked: Boolean,
+    blockedByLevel: Boolean,
     onClick: () -> Unit,
 ) {
     val spacing = MaterialTheme.spacing
@@ -356,6 +364,7 @@ private fun HomeCard(
                 when {
                     isEquipped -> Text("EQUIPPED", color = ImperialGold, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     isUnlocked -> Text("UNLOCKED", color = VitalGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    blockedByLevel -> Text("🔒 LVL ${item.minLevel}", color = TorchAmber, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     item.coinPrice != null -> {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
