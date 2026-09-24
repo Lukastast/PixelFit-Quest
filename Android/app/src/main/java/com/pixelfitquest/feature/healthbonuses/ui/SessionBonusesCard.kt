@@ -33,7 +33,15 @@ import com.pixelfitquest.feature.healthbonuses.model.BonusKind
 import com.pixelfitquest.feature.healthbonuses.model.HealthDataOrigin
 import com.pixelfitquest.feature.healthbonuses.model.HealthSnapshot
 import com.pixelfitquest.feature.healthbonuses.model.SessionBonus
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.clip
+import com.pixelfitquest.ui.theme.ImperialGold
+import com.pixelfitquest.ui.theme.ParchmentBorder
 import com.pixelfitquest.ui.theme.RewardGold
+import com.pixelfitquest.ui.theme.SilverSlate
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateDeep
 import com.pixelfitquest.ui.theme.VitalGreen
 
 @Composable
@@ -43,22 +51,25 @@ fun SessionBonusesCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .border(BorderStroke(1.5.dp, ParchmentBorder), RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A))
+        colors = CardDefaults.cardColors(containerColor = SlateDeep.copy(alpha = 0.94f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = stringResource(R.string.health_bonus_section_title),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                color = ImperialGold
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = stringResource(R.string.health_bonus_disclaimer),
                 fontSize = 11.sp,
-                color = Color.White.copy(alpha = 0.7f)
+                color = SilverSlate
             )
             Spacer(Modifier.height(10.dp))
 
@@ -66,7 +77,7 @@ fun SessionBonusesCard(
                 Text(
                     text = stringResource(R.string.health_bonus_none),
                     fontSize = 13.sp,
-                    color = Color.White.copy(alpha = 0.85f)
+                    color = SilverSteel
                 )
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -89,7 +100,7 @@ fun SessionBonusesCard(
             Text(
                 text = sourceCaption(snapshot),
                 fontSize = 11.sp,
-                color = Color.White.copy(alpha = 0.55f)
+                color = SilverSlate.copy(alpha = 0.7f)
             )
         }
     }
@@ -110,12 +121,12 @@ private fun BonusRow(bonus: SessionBonus) {
                 text = titleFor(bonus.kind),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.White
+                color = SilverSteel
             )
             Text(
                 text = bodyFor(bonus.kind),
                 fontSize = 12.sp,
-                color = Color.White.copy(alpha = 0.8f)
+                color = SilverSlate
             )
         }
         Column(horizontalAlignment = Alignment.End) {
@@ -128,7 +139,7 @@ private fun BonusRow(bonus: SessionBonus) {
             Text(
                 text = stringResource(R.string.coins_reward, bonus.coins),
                 fontSize = 12.sp,
-                color = RewardGold
+                color = ImperialGold
             )
         }
     }

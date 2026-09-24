@@ -2,7 +2,6 @@ package com.pixelfitquest.feature.home
 
 import android.content.res.Configuration
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
-import androidx.health.connect.client.PermissionController
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -50,17 +48,9 @@ import com.pixelfitquest.feature.levels.LevelUpDialog
 import com.pixelfitquest.feature.levels.LevelsViewModel
 import com.pixelfitquest.feature.streak.WeeklyStreakDialog
 import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
-import com.pixelfitquest.health.HealthConnectStatus
 import com.pixelfitquest.ui.navigation.LEVELS_SCREEN
 import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
-import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
 
 @Composable
 fun HomeScreen(
@@ -76,35 +66,10 @@ fun HomeScreen(
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val isLoading by viewModel.isLoading.collectAsState()
-    val healthStatus by viewModel.healthStatus.collectAsState()
-    val healthPermissionsGranted by viewModel.healthPermissionsGranted.collectAsState()
-    val healthReady by viewModel.healthReady.collectAsState()
-    var askedHealthPermissions by remember { mutableStateOf(false) }
-
-    val healthPermissionContract = remember {
-        PermissionController.createRequestPermissionResultContract()
-    }
-    val healthPermissionLauncher = rememberLauncherForActivityResult(
-        contract = healthPermissionContract
-    ) { granted ->
-        viewModel.onHealthPermissionsResult(granted)
-    }
 
     LaunchedEffect(Unit) {
         Log.d("HomeScreen", "Initializing HomeScreen")
         viewModel.initialize()
-    }
-
-    LaunchedEffect(healthReady, healthStatus, healthPermissionsGranted) {
-        if (
-            healthReady &&
-            !askedHealthPermissions &&
-            healthStatus == HealthConnectStatus.AVAILABLE &&
-            !healthPermissionsGranted
-        ) {
-            askedHealthPermissions = true
-            runCatching { healthPermissionLauncher.launch(viewModel.healthPermissions) }
-        }
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -120,8 +85,8 @@ fun HomeScreen(
 
     val userData by viewModel.userData.collectAsState()
     val characterData by viewModel.characterData.collectAsState()
-    val workouts by viewModel.workouts.collectAsState()
     val characterPose by viewModel.characterPose.collectAsState()
+    val weeklyBoard by viewModel.weeklyBoard.collectAsState()
     val levelsState by levelsViewModel.uiState.collectAsState()
 
     LaunchedEffect(userData?.level, userData?.exp) {
@@ -168,11 +133,6 @@ fun HomeScreen(
     }
     val coins = userData?.coins ?: 0
     val streak = weeklyStreak.currentStreakWeeks
-    val healthMetrics by viewModel.healthMetrics.collectAsState()
-    val todaySteps = healthMetrics.steps
-    val weeklyMissions by viewModel.weeklyMissions.collectAsState()
-    val completedMissions by viewModel.completedMissions.collectAsState()
-
     LaunchedEffect(Unit) {
         while (true) {
             delay(30000L)
@@ -182,19 +142,6 @@ fun HomeScreen(
 
     val displayLevel = if (level >= 30) stringResource(R.string.max_level) else level.toString()
     val progressIndex = levelsState.progress.xpBarIndex
-
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-    dateFormat.timeZone = TimeZone.getTimeZone("UTC")
-    val today = dateFormat.format(Date())
-    val todaysWorkouts = workouts.count { workout ->
-        try {
-            val instant = Instant.parse(workout.date)
-            val workoutDate = instant.atZone(ZoneId.of("UTC")).toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-            workoutDate == today
-        } catch (e: Exception) {
-            false
-        }
-    }
 
     val spacing = MaterialTheme.spacing
 
@@ -251,7 +198,7 @@ fun HomeScreen(
         ) {
             Image(
                 painter = painterResource(id = R.drawable.achievement_button),
-                contentDescription = "Daily Missions",
+                contentDescription = stringResource(R.string.daily_missions_title),
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -266,11 +213,8 @@ fun HomeScreen(
 
         if (showMissionsDialog) {
             MissionsDialog(
-                weeklyMissions = weeklyMissions,
-                completedMissions = completedMissions,
-                todaySteps = todaySteps,
-                todaysWorkouts = todaysWorkouts,
-                onDismiss = { showMissionsDialog = false }
+                missions = weeklyBoard.missions,
+                onDismiss = { showMissionsDialog = false },
             )
         }
 

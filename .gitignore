@@ -11,3 +11,7 @@ secrets.properties
 # Android Studio — local IDE state (JDK, last-run device, caches)
 .idea/
 *.iml
+
+# Python bytecode from the icon generators
+__pycache__/
+*.py[cod]

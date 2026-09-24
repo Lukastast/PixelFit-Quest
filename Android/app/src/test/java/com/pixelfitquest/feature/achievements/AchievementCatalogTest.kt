@@ -36,4 +36,19 @@ class AchievementCatalogTest {
         assertTrue(AchievementCatalog.all.map { it.category }.toSet().size >= 4)
         assertTrue(AchievementCatalog.all.map { it.metric }.toSet().size >= 4)
     }
+
+    @Test
+    fun everyCatalogEntryHasDedicatedDrawableIcon() {
+        val iconResIds = AchievementCatalog.all.map { def ->
+            achievementIconRes(def.id, def.tier)
+        }
+        iconResIds.forEach { resId ->
+            assertTrue(resId != 0)
+        }
+        assertEquals(
+            "Every catalog achievement should have a distinct dedicated icon",
+            AchievementCatalog.all.size,
+            iconResIds.toSet().size,
+        )
+    }
 }

@@ -1,26 +1,29 @@
 package com.pixelfitquest.feature.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -30,14 +33,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.pixelfitquest.R
+import com.pixelfitquest.feature.missions.MissionProgress
+import com.pixelfitquest.feature.missions.groupedCount
+import com.pixelfitquest.ui.theme.ImperialGold
+import com.pixelfitquest.ui.theme.ParchmentBorder
+import com.pixelfitquest.ui.theme.RewardGold
+import com.pixelfitquest.ui.theme.SilverSlate
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.VitalGreen
 import com.pixelfitquest.ui.theme.spacing
 
 @Composable
 fun MissionsDialog(
-    weeklyMissions: List<Pair<String, String>>,
-    completedMissions: Set<String>,
-    todaySteps: Long,
-    todaysWorkouts: Int,
+    missions: List<MissionProgress>,
     onDismiss: () -> Unit,
 ) {
     val spacing = MaterialTheme.spacing
@@ -45,131 +54,109 @@ fun MissionsDialog(
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
+                .fillMaxWidth(0.95f)
+                .clip(RoundedCornerShape(spacing.cornerMd))
+                .background(SlateDeep.copy(alpha = 0.98f))
+                .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
+                .padding(spacing.md),
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.questloginboard_wider),
-                contentDescription = null,
-                modifier = Modifier.fillMaxWidth().height(spacing.scale(260)),
-                contentScale = ContentScale.FillBounds
-            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(spacing.scale(260))
-                    .padding(spacing.md),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .heightIn(max = spacing.scale(440)),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = stringResource(R.string.daily_missions_title),
                         fontSize = 16.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        color = ImperialGold,
+                        fontWeight = FontWeight.Bold,
                     )
                     Text(
                         text = "✕",
                         fontSize = 18.sp,
-                        color = Color.White.copy(alpha = 0.8f),
+                        color = SilverSteel,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .clickable { onDismiss() }
-                            .padding(spacing.xxs)
+                            .padding(spacing.xxs),
                     )
                 }
-
-                Spacer(modifier = Modifier.height(spacing.xs))
-
-                weeklyMissions.forEach { (mission, reward) ->
-                    val isCompleted = completedMissions.contains(mission)
-                    val effectiveCompleted = isCompleted || when {
-                        mission.startsWith("Walk") -> {
-                            val target = mission.split(" ")[1].toLongOrNull() ?: 0
-                            todaySteps >= target
-                        }
-                        mission.startsWith("Complete") -> {
-                            val target = mission.split(" ")[1].toIntOrNull() ?: 0
-                            todaysWorkouts >= target
-                        }
-                        else -> false
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    missions.forEach { mission ->
+                        MissionRow(mission)
                     }
+                }
+            }
+        }
+    }
+}
 
-                    val progressText = if (effectiveCompleted) {
-                        if (mission.startsWith("Walk")) {
-                            val target = mission.split(" ")[1].toLongOrNull() ?: 0
-                            "$target / $target"
-                        } else {
-                            val target = mission.split(" ")[1].toIntOrNull() ?: 0
-                            "$target / $target"
-                        }
-                    } else {
-                        if (mission.startsWith("Walk")) {
-                            val target = mission.split(" ")[1].toLongOrNull() ?: 0
-                            "$todaySteps / $target"
-                        } else {
-                            val target = mission.split(" ")[1].toIntOrNull() ?: 0
-                            "$todaysWorkouts / $target"
-                        }
+@Composable
+private fun MissionRow(mission: MissionProgress) {
+    val spacing = MaterialTheme.spacing
+    val definition = mission.definition
+    val target = definition.target.coerceAtLeast(0L)
+    val done = mission.isComplete || mission.claimed
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = spacing.xxs),
+    ) {
+        Text(
+            text = definition.title,
+            color = SilverSteel,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(
+                    R.string.quest_mission_progress,
+                    groupedCount(mission.displayedCurrent()),
+                    groupedCount(target),
+                ),
+                color = if (done) VitalGreen else SilverSlate,
+                fontSize = 12.sp,
+                fontWeight = if (done) FontWeight.Bold else FontWeight.Normal,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (definition.xp > 0) {
+                    Text(
+                        text = "+${definition.xp} ${stringResource(R.string.exp_label)}",
+                        color = RewardGold,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                if (definition.coins > 0) {
+                    if (definition.xp > 0) {
+                        Spacer(modifier = Modifier.width(spacing.xs))
                     }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = spacing.scale(5)),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = mission,
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-
-                        Text(
-                            text = progressText,
-                            color = if (effectiveCompleted) Color(0xFF4CAF50) else Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = if (effectiveCompleted) FontWeight.Bold else FontWeight.Normal
-                        )
-
-                        val rewardParts = reward.split(":", limit = 2).map { it.trim() }
-                        val rewardType = if (rewardParts.size == 2) rewardParts[0].lowercase() else ""
-                        val rewardAmount = if (rewardParts.size == 2) rewardParts[1].toIntOrNull() ?: 0 else 0
-
-                        val isCoins = rewardType == "coins"
-                        val isExp = rewardType == "exp"
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "+$rewardAmount",
-                                color = Color(0xFFFFD700),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.width(spacing.xs))
-                            if (isCoins) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.coin),
-                                    contentDescription = stringResource(R.string.coins_reward_desc),
-                                    modifier = Modifier.size(spacing.md)
-                                )
-                            } else if (isExp) {
-                                Text(
-                                    text = stringResource(R.string.exp_label),
-                                    color = Color(0xFFFFD700),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
+                    Text(
+                        text = "+${definition.coins}",
+                        color = RewardGold,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(modifier = Modifier.width(spacing.xxs))
+                    Image(
+                        painter = painterResource(id = R.drawable.coin),
+                        contentDescription = stringResource(R.string.coins_reward_desc),
+                        modifier = Modifier.size(spacing.md),
+                    )
                 }
             }
         }

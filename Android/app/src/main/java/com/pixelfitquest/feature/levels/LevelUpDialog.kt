@@ -28,7 +28,9 @@ import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.feature.levels.model.CosmeticDefinition
 import com.pixelfitquest.feature.levels.model.LevelUpResult
+import com.pixelfitquest.ui.theme.ImperialGold
 import com.pixelfitquest.ui.theme.RewardGold
+import com.pixelfitquest.ui.theme.SilverSteel
 
 @Composable
 fun LevelUpDialog(
@@ -57,14 +59,14 @@ fun LevelUpDialog(
             ) {
                 Text(
                     text = stringResource(R.string.levels_level_up_title),
-                    color = RewardGold,
+                    color = ImperialGold,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.levels_level_up_body, result.current.level),
-                    color = Color.White,
+                    color = ImperialGold,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -72,13 +74,13 @@ fun LevelUpDialog(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = stringResource(R.string.levels_unlocked_header),
-                        color = Color.White.copy(alpha = 0.9f),
+                        color = SilverSteel,
                         fontSize = 12.sp,
                     )
                     result.newlyUnlocked.take(3).forEach { def ->
                         Text(
                             text = unlockLine(def),
-                            color = RewardGold,
+                            color = ImperialGold,
                             fontSize = 12.sp,
                             textAlign = TextAlign.Center,
                         )
@@ -91,7 +93,7 @@ fun LevelUpDialog(
                     pressedRes = R.drawable.button_clicked,
                     modifier = Modifier.size(200.dp, 44.dp),
                 ) {
-                    Text(stringResource(R.string.levels_view_rewards), color = Color.White)
+                    Text(stringResource(R.string.levels_view_rewards), color = SilverSteel, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(6.dp))
                 PixelArtButton(
@@ -100,7 +102,7 @@ fun LevelUpDialog(
                     pressedRes = R.drawable.button_clicked,
                     modifier = Modifier.size(200.dp, 44.dp),
                 ) {
-                    Text(stringResource(R.string.levels_later), color = Color.White)
+                    Text(stringResource(R.string.levels_later), color = SilverSteel, fontWeight = FontWeight.Bold)
                 }
             }
         }

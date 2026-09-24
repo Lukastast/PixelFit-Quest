@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PixelFit Quest — 16-Bit SNES Achievement Icons</title>
+<style>
+  body {
+    background: #14121d;
+    color: #edeaf5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 30px;
+  }
+  h1 { color: #ffc01e; margin-bottom: 5px; }
+  p.sub { color: #9c94ad; margin-top: 0; margin-bottom: 25px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: #201c2e;
+    border: 2px solid #332d47;
+    border-radius: 8px;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .preview-box {
+    width: 128px;
+    height: 128px;
+    background-image: 
+      linear-gradient(45deg, #181524 25%, transparent 25%), 
+      linear-gradient(-45deg, #181524 25%, transparent 25%), 
+      linear-gradient(45deg, transparent 75%, #181524 75%), 
+      linear-gradient(-45deg, transparent 75%, #181524 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+    background-color: #242034;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    border: 1px solid #3d3554;
+  }
+  .card img {
+    image-rendering: pixelated;
+    width: 112px;
+    height: 112px;
+  }
+  .name {
+    font-weight: bold;
+    font-size: 14px;
+    color: #ffffff;
+    margin-bottom: 4px;
+  }
+  .filename {
+    font-family: monospace;
+    font-size: 11px;
+    color: #ffb834;
+    word-break: break-all;
+    margin-bottom: 4px;
+  }
+  .badge-tag {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .bronze { background: #5a2c14; color: #ffaf82; }
+  .silver { background: #2f3e50; color: #d0e4f5; }
+  .gold { background: #613e0c; color: #ffe482; }
+  .platinum { background: #1f3747; color: #94f0ff; }
+  .locked { background: #353840; color: #b8bec9; }
+</style>
+</head>
+<body>
+  <h1>PixelFit Quest — 16-Bit SNES Achievement Icons</h1>
+  <p class="sub">31 custom square badge / relic icons (64×64 native & 128×128 pixel-scaled) with transparent backgrounds, 1–2px dark outlines, and curated tier palettes.</p>
+  <div class="grid">
+
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/bronze_workout_1.png" alt="Rookie">
+      </div>
+      <div class="name">Rookie</div>
+      <div class="filename">bronze_workout_1.png</div>
+      <span class="badge-tag bronze">Bronze</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/clip_true.png" alt="Right Sleeve">
+      </div>
+      <div class="name">Right Sleeve</div>
+      <div class="filename">clip_true.png</div>
+      <span class="badge-tag silver">Silver</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/form_even_bar.png" alt="True Bar">
+      </div>
+      <div class="name">True Bar</div>
+      <div class="filename">form_even_bar.png</div>
+      <span class="badge-tag gold">Gold</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/form_no_dump.png" alt="Slow Lower">
+      </div>
+      <div class="name">Slow Lower</div>
+      <div class="filename">form_no_dump.png</div>
+      <span class="badge-tag gold">Gold</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/form_square.png" alt="Square Press">
+      </div>
+      <div class="name">Square Press</div>
+      <div class="filename">form_square.png</div>
+      <span class="badge-tag gold">Gold</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/gold_workout_50.png" alt="Legend">
+      </div>
+      <div class="name">Legend</div>
+      <div class="filename">gold_workout_50.png</div>
+      <span class="badge-tag gold">Gold</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/iron_workout_5.png" alt="Regular">
+      </div>
+      <div class="name">Regular</div>
+      <div class="filename">iron_workout_5.png</div>
+      <span class="badge-tag bronze">Bronze</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/level_10.png" alt="Adventurer">
+      </div>
+      <div class="name">Adventurer</div>
+      <div class="filename">level_10.png</div>
+      <span class="badge-tag silver">Silver</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/level_20.png" alt="Champion">
+      </div>
+      <div class="name">Champion</div>
+      <div class="filename">level_20.png</div>
+      <span class="badge-tag gold">Gold</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/level_5.png" alt="Apprentice">
+      </div>
+      <div class="name">Apprentice</div>
+      <div class="filename">level_5.png</div>
+      <span class="badge-tag bronze">Bronze</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/locked_achievement.png" alt="Locked (Shared)">
+      </div>
+      <div class="name">Locked (Shared)</div>
+      <div class="filename">locked_achievement.png</div>
+      <span class="badge-tag locked">Locked</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/platinum_workout_100.png" alt="Immortal">
+      </div>
+      <div class="name">Immortal</div>
+      <div class="filename">platinum_workout_100.png</div>
+      <span class="badge-tag platinum">Platinum</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/rom_honest.png" alt="Full Stroke">
+      </div>
+      <div class="name">Full Stroke</div>
+      <div class="filename">rom_honest.png</div>
+      <span class="badge-tag gold">Gold</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/sets_10.png" alt="Set Starter">
+      </div>
+      <div class="name">Set Starter</div>
+      <div class="filename">sets_10.png</div>
+      <span class="badge-tag bronze">Bronze</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/sets_200.png" alt="Set Machine">
+      </div>
+      <div class="name">Set Machine</div>
+      <div class="filename">sets_200.png</div>
+      <span class="badge-tag gold">Gold</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/sets_50.png" alt="Set Grinder">
+      </div>
+      <div class="name">Set Grinder</div>
+      <div class="filename">sets_50.png</div>
+      <span class="badge-tag silver">Silver</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/silver_workout_10.png" alt="Veteran">
+      </div>
+      <div class="name">Veteran</div>
+      <div class="filename">silver_workout_10.png</div>
+      <span class="badge-tag silver">Silver</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/steel_workout_25.png" alt="Grinder">
+      </div>
+      <div class="name">Grinder</div>
+      <div class="filename">steel_workout_25.png</div>
+      <span class="badge-tag silver">Silver</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/steps_10000.png" alt="Walker">
+      </div>
+      <div class="name">Walker</div>
+      <div class="filename">steps_10000.png</div>
+      <span class="badge-tag bronze">Bronze</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/steps_100000.png" alt="Marathoner">
+      </div>
+      <div class="name">Marathoner</div>
+      <div class="filename">steps_100000.png</div>
+      <span class="badge-tag gold">Gold</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/steps_5000.png" alt="First Miles">
+      </div>
+      <div class="name">First Miles</div>
+      <div class="filename">steps_5000.png</div>
+      <span class="badge-tag bronze">Bronze</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/steps_50000.png" alt="Roadster">
+      </div>
+      <div class="name">Roadster</div>
+      <div class="filename">steps_50000.png</div>
+      <span class="badge-tag silver">Silver</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/streak_14.png" alt="Unstoppable">
+      </div>
+      <div class="name">Unstoppable</div>
+      <div class="filename">streak_14.png</div>
+      <span class="badge-tag gold">Gold</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/streak_3.png" alt="On Fire">
+      </div>
+      <div class="name">On Fire</div>
+      <div class="filename">streak_3.png</div>
+      <span class="badge-tag bronze">Bronze</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/streak_30.png" alt="Habit Hero">
+      </div>
+      <div class="name">Habit Hero</div>
+      <div class="filename">streak_30.png</div>
+      <span class="badge-tag platinum">Platinum</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/streak_7.png" alt="Week Warrior">
+      </div>
+      <div class="name">Week Warrior</div>
+      <div class="filename">streak_7.png</div>
+      <span class="badge-tag silver">Silver</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/unique_3.png" alt="Variety Pack">
+      </div>
+      <div class="name">Variety Pack</div>
+      <div class="filename">unique_3.png</div>
+      <span class="badge-tag bronze">Bronze</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/unique_8.png" alt="Full Roster">
+      </div>
+      <div class="name">Full Roster</div>
+      <div class="filename">unique_8.png</div>
+      <span class="badge-tag silver">Silver</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/volume_1000.png" alt="Iron Novice">
+      </div>
+      <div class="name">Iron Novice</div>
+      <div class="filename">volume_1000.png</div>
+      <span class="badge-tag bronze">Bronze</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/volume_10000.png" alt="Iron Veteran">
+      </div>
+      <div class="name">Iron Veteran</div>
+      <div class="filename">volume_10000.png</div>
+      <span class="badge-tag silver">Silver</span>
+    </div>
+    <div class="card">
+      <div class="preview-box">
+        <img src="128x128/volume_50000.png" alt="Iron Titan">
+      </div>
+      <div class="name">Iron Titan</div>
+      <div class="filename">volume_50000.png</div>
+      <span class="badge-tag gold">Gold</span>
+    </div>
+  </div>
+</body>
+</html>

@@ -31,6 +31,28 @@ class HealthMetricsTest {
         assertEquals(10_000, HealthMetrics.DEFAULT_STEP_GOAL)
         assertEquals(10_000, HealthMetrics.EMPTY.stepGoal)
         assertEquals(0L, HealthMetrics.EMPTY.steps)
+        assertEquals(0L, HealthMetrics.EMPTY.weeklySteps)
+    }
+
+    @Test
+    fun rewardedGoalsCountStepsSleepAndHeartSeparately() {
+        assertEquals(0, HealthMetrics.EMPTY.rewardedGoalsMet)
+        assertEquals(
+            1,
+            HealthMetrics(steps = 10_000, sleepMinutes = 300, weeklyHeartPoints = 10).rewardedGoalsMet,
+        )
+        assertEquals(
+            3,
+            HealthMetrics(
+                steps = 10_000,
+                sleepMinutes = 480,
+                weeklyHeartPoints = 150,
+            ).rewardedGoalsMet,
+        )
+        assertEquals(
+            2,
+            HealthMetrics(steps = 10_000, sleepMinutes = 600, weeklyHeartPoints = 150).rewardedGoalsMet,
+        )
     }
 }
 
@@ -118,6 +140,24 @@ class HealthRewardsTest {
     fun weeklyHeartGoal_awardsOncePerWeek() {
         assertTrue(HealthRewards.shouldAwardWeeklyHeartGoal(150, 150, "", "2026-W38"))
         assertFalse(HealthRewards.shouldAwardWeeklyHeartGoal(150, 150, "2026-W38", "2026-W38"))
+    }
+
+    @Test
+    fun vitalityBonus_awardsWhenAllGoalsCompleted() {
+        assertTrue(HealthRewards.shouldAwardVitalityBonus(3, 3, "", "2026-09-24"))
+        assertTrue(HealthRewards.shouldAwardVitalityBonus(4, 3, "", "2026-09-24"))
+    }
+
+    @Test
+    fun vitalityBonus_doesNotAwardWhenIncomplete() {
+        assertFalse(HealthRewards.shouldAwardVitalityBonus(2, 3, "", "2026-09-24"))
+        assertFalse(HealthRewards.shouldAwardVitalityBonus(0, 3, "", "2026-09-24"))
+    }
+
+    @Test
+    fun vitalityBonus_awardsOncePerDay() {
+        assertTrue(HealthRewards.shouldAwardVitalityBonus(3, 3, "2026-09-23", "2026-09-24"))
+        assertFalse(HealthRewards.shouldAwardVitalityBonus(3, 3, "2026-09-24", "2026-09-24"))
     }
 }
 

@@ -202,6 +202,20 @@ class HealthConnectRepository @Inject constructor(
         val (weekStart, weekEnd) = HealthTime.weekRange()
         val weekTimeRange = TimeRangeFilter.between(weekStart, weekEnd)
         var weeklyHeartPoints = 0
+        val weeklySteps = if (HealthPermissions.hasStepsRead(granted)) {
+            runCatching {
+                val response = client.aggregate(
+                    AggregateRequest(
+                        metrics = setOf(StepsRecord.COUNT_TOTAL),
+                        timeRangeFilter = weekTimeRange,
+                    )
+                )
+                response[StepsRecord.COUNT_TOTAL] ?: 0L
+            }.onFailure { Log.w(TAG, "Weekly steps aggregate failed", it) }
+                .getOrDefault(0L)
+        } else {
+            0L
+        }
 
         if (HealthPermissions.hasExerciseRead(granted)) {
             runCatching {
@@ -262,6 +276,7 @@ class HealthConnectRepository @Inject constructor(
             sleepMinutes = sleepMinutes,
             weeklyHeartPoints = weeklyHeartPoints,
             weeklyHeartGoal = HealthMetrics.DEFAULT_WEEKLY_HEART_GOAL,
+            weeklySteps = maxOf(weeklySteps, steps),
         )
     }
 

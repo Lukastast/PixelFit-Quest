@@ -23,7 +23,7 @@ sealed class BottomNavItem(
         route = HEALTH_CENTER_SCREEN,
         selectedIcon = R.drawable.healthbuttonclicked,
         unSelectedIcon = R.drawable.healthbuttonunclicked,
-        label = "Health")
+        label = "Quests")
 
     object Customization : BottomNavItem(
         route = CUSTOMIZATION_SCREEN,

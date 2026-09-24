@@ -66,6 +66,7 @@ class LocalPixelFitStore @Inject constructor(
             "last_steps_reward_date" -> profile.lastStepsRewardDate
             "last_sleep_reward_date" -> profile.lastSleepRewardDate
             "last_weekly_heart_reward_week" -> profile.lastWeeklyHeartRewardWeek
+            "last_vitality_bonus_date" -> profile.lastVitalityBonusDate
             "last_streak_update_date" -> profile.lastStreakUpdateDate
             else -> null
         }
@@ -259,6 +260,7 @@ class LocalPixelFitStore @Inject constructor(
                 "last_steps_reward_date" -> next.copy(lastStepsRewardDate = value.toString())
                 "last_sleep_reward_date" -> next.copy(lastSleepRewardDate = value.toString())
                 "last_weekly_heart_reward_week" -> next.copy(lastWeeklyHeartRewardWeek = value.toString())
+                "last_vitality_bonus_date" -> next.copy(lastVitalityBonusDate = value.toString())
                 "last_streak_update_date" -> next.copy(lastStreakUpdateDate = value.toString())
                 else -> next
             }

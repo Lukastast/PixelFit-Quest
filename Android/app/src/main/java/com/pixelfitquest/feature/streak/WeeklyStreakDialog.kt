@@ -42,7 +42,10 @@ import com.pixelfitquest.feature.streak.model.WeeklyStreakRewards
 import com.pixelfitquest.feature.streak.model.WeeklyStreakSkin
 import com.pixelfitquest.feature.streak.model.WeeklyStreakSnapshot
 import com.pixelfitquest.ui.theme.FireOrange
+import com.pixelfitquest.ui.theme.ImperialGold
+import com.pixelfitquest.ui.theme.LeatherDark
 import com.pixelfitquest.ui.theme.RewardGold
+import com.pixelfitquest.ui.theme.SilverSteel
 import com.pixelfitquest.ui.theme.VitalGreen
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -84,7 +87,7 @@ fun WeeklyStreakDialog(
                 Text(
                     text = stringResource(R.string.weekly_streak_title),
                     fontSize = 18.sp,
-                    color = Color.White,
+                    color = ImperialGold,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
@@ -94,7 +97,7 @@ fun WeeklyStreakDialog(
                         weekEnd.format(dateFmt),
                     ),
                     fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.8f)
+                    color = SilverSteel
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -120,13 +123,13 @@ fun WeeklyStreakDialog(
                         snapshot.longestStreakWeeks
                     ),
                     fontSize = 12.sp,
-                    color = Color.White
+                    color = SilverSteel
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = stringResource(R.string.weekly_streak_this_week),
                     fontSize = 13.sp,
-                    color = Color.White,
+                    color = ImperialGold,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
@@ -136,7 +139,7 @@ fun WeeklyStreakDialog(
                         snapshot.targetSessionsPerWeek
                     ),
                     fontSize = 14.sp,
-                    color = if (snapshot.weekGoalMet) VitalGreen else Color.White
+                    color = if (snapshot.weekGoalMet) VitalGreen else SilverSteel
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 LinearProgressIndicator(
@@ -145,7 +148,7 @@ fun WeeklyStreakDialog(
                         .fillMaxWidth()
                         .height(8.dp),
                     color = if (snapshot.weekGoalMet) VitalGreen else FireOrange,
-                    trackColor = Color.White.copy(alpha = 0.25f),
+                    trackColor = LeatherDark,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 if (snapshot.weekGoalMet && snapshot.lastXpAwardedThisWeek) {
@@ -176,7 +179,7 @@ fun WeeklyStreakDialog(
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = stringResource(R.string.weekly_streak_target_label),
-                    color = Color.White,
+                    color = SilverSteel,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -192,12 +195,12 @@ fun WeeklyStreakDialog(
                         Icon(
                             imageVector = Icons.Default.Remove,
                             contentDescription = stringResource(R.string.weekly_streak_decrease_goal),
-                            tint = Color.White
+                            tint = SilverSteel
                         )
                     }
                     Text(
                         text = "${snapshot.targetSessionsPerWeek}",
-                        color = Color.White,
+                        color = ImperialGold,
                         fontSize = 16.sp,
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
@@ -212,14 +215,14 @@ fun WeeklyStreakDialog(
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = stringResource(R.string.weekly_streak_increase_goal),
-                            tint = Color.White
+                            tint = SilverSteel
                         )
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(R.string.weekly_streak_skins_title),
-                    color = Color.White,
+                    color = ImperialGold,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -232,7 +235,7 @@ fun WeeklyStreakDialog(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(R.string.weekly_streak_close),
-                    color = Color.White,
+                    color = SilverSteel,
                     fontSize = 14.sp,
                     modifier = Modifier
                         .clickable(onClick = onDismiss)
@@ -273,12 +276,12 @@ private fun SkinRow(
                 Icon(
                     imageVector = Icons.Default.Lock,
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.6f),
+                    tint = SilverSteel.copy(alpha = 0.6f),
                     modifier = Modifier.size(16.dp)
                 )
             }
             Spacer(modifier = Modifier.width(6.dp))
-            Text(text = name, color = Color.White, fontSize = 12.sp)
+            Text(text = name, color = SilverSteel, fontSize = 12.sp)
         }
         Text(
             text = if (unlocked) {
@@ -286,7 +289,7 @@ private fun SkinRow(
             } else {
                 stringResource(R.string.weekly_streak_skin_locked, skin.requiredWeeks)
             },
-            color = if (unlocked) VitalGreen else Color.White.copy(alpha = 0.7f),
+            color = if (unlocked) VitalGreen else SilverSteel.copy(alpha = 0.7f),
             fontSize = 11.sp
         )
     }

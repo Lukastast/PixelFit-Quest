@@ -31,6 +31,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
+import com.pixelfitquest.ui.theme.ImperialGold
+import com.pixelfitquest.ui.theme.LeatherDark
+import com.pixelfitquest.ui.theme.ParchmentBorder
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateDeep
 import com.pixelfitquest.ui.theme.spacing
 
 @Composable
@@ -81,7 +86,7 @@ fun StatsHudBar(
                     text = stringResource(R.string.coins_count, coins),
                     fontSize = if (isLandscape) 13.sp else 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = ImperialGold
                 )
             }
 
@@ -100,7 +105,7 @@ fun StatsHudBar(
                     text = "$streak",
                     fontSize = if (isLandscape) 13.sp else 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = SilverSteel
                 )
             }
 
@@ -109,7 +114,7 @@ fun StatsHudBar(
                 text = stringResource(R.string.level_display, displayLevel),
                 fontSize = if (isLandscape) 13.sp else 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = ImperialGold,
                 modifier = Modifier.clickable { onLevelClick() }
             )
 
@@ -160,12 +165,12 @@ fun StatsHudColumn(
             .width(spacing.landscapeHudWidth)
             .padding(vertical = spacing.xs, horizontal = spacing.xxs)
             .background(
-                color = Color(0xD0182430),
+                color = SlateDeep.copy(alpha = 0.94f),
                 shape = RoundedCornerShape(spacing.cornerSm)
             )
             .border(
                 width = 2.dp,
-                color = Color(0xFF384A5C),
+                color = ParchmentBorder,
                 shape = RoundedCornerShape(spacing.cornerSm)
             )
             .padding(spacing.xs),
@@ -184,7 +189,7 @@ fun StatsHudColumn(
                 text = "$coins",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFFFFD700)
+                color = ImperialGold
             )
         }
 
@@ -203,7 +208,7 @@ fun StatsHudColumn(
                 text = "$streak",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = SilverSteel
             )
         }
 
@@ -216,7 +221,7 @@ fun StatsHudColumn(
                 text = "Lv. $displayLevel",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = ImperialGold
             )
             Spacer(modifier = Modifier.height(spacing.xxs))
             val xpPainter = when (progressIndex) {
@@ -238,7 +243,8 @@ fun StatsHudColumn(
         Box(
             modifier = Modifier
                 .clickable { onMissionsClick() }
-                .background(Color(0xFF2C3E50), RoundedCornerShape(spacing.cornerXs))
+                .background(LeatherDark.copy(alpha = 0.9f), RoundedCornerShape(spacing.cornerXs))
+                .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerXs))
                 .padding(horizontal = spacing.xs, vertical = spacing.xxs),
             contentAlignment = Alignment.Center
         ) {
@@ -246,7 +252,7 @@ fun StatsHudColumn(
                 text = "Missions",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFFFFD700)
+                color = ImperialGold
             )
         }
     }

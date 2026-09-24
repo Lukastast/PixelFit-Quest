@@ -21,6 +21,7 @@ data class UserProfileEntity(
     val lastStepsRewardDate: String = "",
     val lastSleepRewardDate: String = "",
     val lastWeeklyHeartRewardWeek: String = "",
+    val lastVitalityBonusDate: String = "",
     val lastStreakUpdateDate: String = "",
     val characterGender: String = "male",
     val characterVariant: String = "basic",

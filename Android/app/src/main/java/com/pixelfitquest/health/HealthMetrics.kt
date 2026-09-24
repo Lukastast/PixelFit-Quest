@@ -10,6 +10,7 @@ data class HealthMetrics(
     val caloriesBurned: Long? = null,
     val weeklyHeartPoints: Int = 0,
     val weeklyHeartGoal: Int = DEFAULT_WEEKLY_HEART_GOAL,
+    val weeklySteps: Long = 0L,
 ) {
     val progressPercent: Int
         get() = if (stepGoal <= 0) {
@@ -23,6 +24,18 @@ data class HealthMetrics(
             0
         } else {
             ((weeklyHeartPoints * 100) / weeklyHeartGoal).coerceIn(0, 100)
+        }
+
+    val rewardedGoalsMet: Int
+        get() {
+            var met = 0
+            if (stepGoal > 0 && steps >= stepGoal) met += 1
+            val sleep = sleepMinutes
+            if (sleep != null && sleep in HealthRewards.SLEEP_MINUTES_MIN..HealthRewards.SLEEP_MINUTES_MAX) {
+                met += 1
+            }
+            if (weeklyHeartGoal > 0 && weeklyHeartPoints >= weeklyHeartGoal) met += 1
+            return met
         }
 
     companion object {
@@ -63,6 +76,10 @@ object HealthRewards {
 
     const val WEEKLY_HEART_REWARD_EXP = 150
     const val WEEKLY_HEART_REWARD_COINS = 30
+    const val REWARDED_GOAL_COUNT = 3
+
+    const val VITALITY_BONUS_EXP = 100
+    const val VITALITY_BONUS_COINS = 25
 
     fun shouldAwardDailyGoal(
         steps: Long,
@@ -94,5 +111,15 @@ object HealthRewards {
         if (weeklyGoal <= 0) return false
         if (weeklyHeartPoints < weeklyGoal) return false
         return lastRewardWeek != currentWeekUtc
+    }
+
+    fun shouldAwardVitalityBonus(
+        metGoals: Int,
+        totalGoals: Int = REWARDED_GOAL_COUNT,
+        lastRewardDate: String,
+        todayUtc: String,
+    ): Boolean {
+        if (totalGoals <= 0 || metGoals < totalGoals) return false
+        return lastRewardDate != todayUtc
     }
 }

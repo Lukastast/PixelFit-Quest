@@ -49,10 +49,18 @@ import com.pixelfitquest.feature.levels.cosmetics.HomeThemeVisuals
 import com.pixelfitquest.feature.levels.model.CosmeticItem
 import com.pixelfitquest.feature.levels.model.CosmeticKind
 import com.pixelfitquest.feature.levels.model.LevelProgress
-import com.pixelfitquest.ui.theme.DarkStone
-import com.pixelfitquest.ui.theme.QuestBrown
-import com.pixelfitquest.ui.theme.RewardGold
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.MaterialTheme
+import com.pixelfitquest.ui.theme.ImperialGold
+import com.pixelfitquest.ui.theme.LeatherDark
+import com.pixelfitquest.ui.theme.ParchmentBorder
+import com.pixelfitquest.ui.theme.ParchmentDark
+import com.pixelfitquest.ui.theme.PlatinumWhite
+import com.pixelfitquest.ui.theme.SilverSlate
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.TorchAmber
+import com.pixelfitquest.ui.theme.VitalGreen
 import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 
@@ -120,17 +128,15 @@ private fun LevelsHeader(
     totalCount: Int,
     onBack: () -> Unit,
 ) {
+    val spacing = MaterialTheme.spacing
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(72.dp)
+            .clip(RoundedCornerShape(spacing.cornerMd))
+            .background(SlateDeep.copy(alpha = 0.94f))
+            .border(BorderStroke(2.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerMd))
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.info_background),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds,
-        )
         Row(
             modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
@@ -139,7 +145,7 @@ private fun LevelsHeader(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_arrow_back),
                     contentDescription = stringResource(R.string.back_desc),
-                    tint = Color.White,
+                    tint = SilverSteel,
                 )
             }
             Column(
@@ -154,13 +160,13 @@ private fun LevelsHeader(
                 Text(
                     text = stringResource(R.string.levels_header_level, levelLabel),
                     style = typography.bodyMedium,
-                    color = Color.White,
+                    color = ImperialGold,
                     fontWeight = FontWeight.Bold,
                 )
                 if (titleName.isNotBlank()) {
                     Text(
                         text = titleName,
-                        color = RewardGold,
+                        color = SilverSteel,
                         fontSize = 12.sp,
                     )
                 }
@@ -170,7 +176,7 @@ private fun LevelsHeader(
                         unlockedCount,
                         totalCount,
                     ),
-                    color = Color.White.copy(alpha = 0.85f),
+                    color = SilverSlate,
                     fontSize = 11.sp,
                 )
             }
@@ -223,12 +229,15 @@ private fun KindChip(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val background = if (selected) RewardGold else QuestBrown
-    val textColor = if (selected) DarkStone else Color.White
+    val spacing = MaterialTheme.spacing
+    val background = if (selected) LeatherDark else SlateDeep.copy(alpha = 0.88f)
+    val borderColor = if (selected) ImperialGold else ParchmentBorder
+    val textColor = if (selected) ImperialGold else SilverSteel
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(spacing.cornerXs))
             .background(background)
+            .border(BorderStroke(1.dp, borderColor), RoundedCornerShape(spacing.cornerXs))
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
@@ -236,7 +245,7 @@ private fun KindChip(
             text = label,
             color = textColor,
             fontSize = 12.sp,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
         )
     }
 }
@@ -247,28 +256,28 @@ private fun CosmeticTile(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
+    val spacing = MaterialTheme.spacing
     val borderColor = when {
-        selected -> RewardGold
-        item.equipped -> RewardGold.copy(alpha = 0.55f)
-        else -> Color.Transparent
+        selected -> PlatinumWhite
+        item.equipped -> ImperialGold
+        item.unlocked -> ParchmentBorder
+        else -> ParchmentBorder.copy(alpha = 0.5f)
     }
+    val backgroundColor = if (item.unlocked) SlateDeep.copy(alpha = 0.92f) else ParchmentDark.copy(alpha = 0.94f)
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(168.dp)
-            .border(2.dp, borderColor, RoundedCornerShape(6.dp))
+            .clip(RoundedCornerShape(spacing.cornerSm))
+            .background(backgroundColor)
+            .border(BorderStroke(if (selected || item.equipped) 2.dp else 1.dp, borderColor), RoundedCornerShape(spacing.cornerSm))
             .clickable(onClick = onClick)
+            .padding(spacing.xs),
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.questloginboard_wider),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds,
-        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(10.dp),
+                .padding(spacing.xs),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -282,7 +291,7 @@ private fun CosmeticTile(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = item.definition.name,
-                color = Color.White,
+                color = if (item.unlocked) SilverSteel else SilverSlate,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -300,8 +309,9 @@ private fun CosmeticTile(
                 } else {
                     stringResource(R.string.levels_locked_level, item.definition.unlockLevel)
                 },
-                color = if (item.unlocked) RewardGold else Color.White.copy(alpha = 0.7f),
+                color = if (item.unlocked) (if (item.equipped) ImperialGold else VitalGreen) else TorchAmber,
                 fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
             )
         }
     }
@@ -312,32 +322,30 @@ private fun CosmeticDetail(
     item: CosmeticItem,
     onEquip: () -> Unit,
 ) {
+    val spacing = MaterialTheme.spacing
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(128.dp)
+            .clip(RoundedCornerShape(spacing.cornerSm))
+            .background(SlateDeep.copy(alpha = 0.94f))
+            .border(BorderStroke(1.5.dp, ParchmentBorder), RoundedCornerShape(spacing.cornerSm))
+            .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.questloginboard_wider),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds,
-        )
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .fillMaxSize(),
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = item.definition.name,
-                color = Color.White,
+                color = ImperialGold,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
             )
             Text(
                 text = item.definition.description,
-                color = Color.White.copy(alpha = 0.9f),
+                color = SilverSteel,
                 fontSize = 12.sp,
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -345,7 +353,7 @@ private fun CosmeticDetail(
                 item.equipped -> {
                     Text(
                         text = stringResource(R.string.levels_equipped),
-                        color = RewardGold,
+                        color = ImperialGold,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -357,7 +365,7 @@ private fun CosmeticDetail(
                         pressedRes = R.drawable.button_clicked,
                         modifier = Modifier.size(160.dp, 40.dp),
                     ) {
-                        Text(stringResource(R.string.levels_equip), color = Color.White)
+                        Text(stringResource(R.string.levels_equip), color = SilverSteel, fontWeight = FontWeight.Bold)
                     }
                 }
                 else -> {
@@ -366,8 +374,9 @@ private fun CosmeticDetail(
                             R.string.levels_locked_level,
                             item.definition.unlockLevel,
                         ),
-                        color = Color.White.copy(alpha = 0.75f),
+                        color = TorchAmber,
                         fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
                     )
                 }
             }
