@@ -307,28 +307,30 @@ private fun QuestTab(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.spacedBy((-2).dp, Alignment.CenterVertically),
             modifier = Modifier.padding(
                 start = 2.dp,
                 end = 2.dp,
                 top = if (selected) 4.dp else 1.dp,
-                bottom = if (selected) 3.dp else 7.dp,
+                bottom = if (selected) 2.dp else 6.dp,
             ),
         ) {
             Text(
                 text = label,
-                color = if (selected) ImperialGold else SilverSteel,
+                color = if (selected) ImperialGold else Color.White,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                lineHeight = 13.sp,
             )
             Text(
                 text = count,
-                color = if (selected) TorchAmber else SilverSlate,
+                color = if (selected) TorchAmber else Color.White,
                 fontSize = 10.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 maxLines = 1,
+                lineHeight = 12.sp,
             )
         }
     }
@@ -908,7 +910,7 @@ private fun HeartGoalCard(metrics: HealthMetrics, claimed: Boolean) {
     val done = met || claimed
     val remaining = (goal - metrics.weeklyHeartPoints).coerceAtLeast(0)
     QuestCard(
-        iconRes = R.drawable.streak_3,
+        iconRes = R.drawable.resting_heart_rate,
         title = stringResource(R.string.health_mission_heart_title),
         value = stringResource(
             R.string.health_mission_heart_value,
@@ -937,7 +939,7 @@ private fun HeartGoalCard(metrics: HealthMetrics, claimed: Boolean) {
 private fun RestingHeartCard(metrics: HealthMetrics) {
     val bpm = metrics.heartRateBpm
     QuestCard(
-        iconRes = R.drawable.streak_3,
+        iconRes = R.drawable.resting_heart_rate,
         title = stringResource(R.string.health_metric_resting_title),
         value = if (bpm != null && bpm > 0L) {
             stringResource(R.string.health_metric_resting_value, bpm)

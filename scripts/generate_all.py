@@ -34,6 +34,7 @@ from draw_locked_form import (
     draw_locked_achievement, draw_form_even_bar, draw_form_square,
     draw_form_no_dump, draw_clip_true, draw_rom_honest
 )
+from draw_heart import draw_resting_heart_rate
 
 ACHIEVEMENT_GENERATORS = {
     # 25 Shipped Achievements
@@ -62,6 +63,7 @@ ACHIEVEMENT_GENERATORS = {
     "level_20": draw_level_20,
     "unique_3": draw_unique_3,
     "unique_8": draw_unique_8,
+    "resting_heart_rate": draw_resting_heart_rate,
 
     # 1 Shared Locked Achievement
     "locked_achievement": draw_locked_achievement,
