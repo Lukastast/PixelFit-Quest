@@ -158,6 +158,14 @@ fun WorkoutResumeScreen(
                             }
                         }
 
+                        if (summary.rewardClipped) {
+                            Spacer(Modifier.height(spacing.xs))
+                            Text(
+                                text = stringResource(R.string.daily_reward_clipped),
+                                color = Color(0xFFFFD700),
+                                fontSize = 13.sp,
+                            )
+                        }
                         Spacer(Modifier.height(spacing.xs))
                         WeeklyStreakBonusBanner(snapshot = weeklyStreak)
 

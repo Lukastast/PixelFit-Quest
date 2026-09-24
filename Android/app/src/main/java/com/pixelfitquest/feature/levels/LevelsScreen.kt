@@ -87,6 +87,15 @@ fun LevelsScreen(
             onBack = onBack,
         )
         Spacer(modifier = Modifier.height(spacing.sm))
+        SkillCard(
+            level = uiState.progress.level,
+            skills = uiState.skills,
+            coins = uiState.coins,
+            respecDaysRemaining = uiState.respecDaysRemaining,
+            onSpend = viewModel::spendSkill,
+            onRespec = viewModel::respecSkills,
+        )
+        Spacer(modifier = Modifier.height(spacing.sm))
         KindRow(
             selected = uiState.selectedKind,
             onSelected = viewModel::onFilterSelected,

@@ -44,6 +44,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.home.model.DwellingTier
+import com.pixelfitquest.feature.levels.progression.LevelCurve
 import com.pixelfitquest.feature.levels.LevelUpDialog
 import com.pixelfitquest.feature.levels.LevelsViewModel
 import com.pixelfitquest.feature.streak.WeeklyStreakDialog
@@ -122,15 +123,10 @@ fun HomeScreen(
     }
 
     val level = levelsState.progress.level
-    val dwellingTier = when (characterData.equippedHomeUpgrade) {
-        "dwelling_gym" -> DwellingTier.GYM
-        "dwelling_castle" -> DwellingTier.CASTLE
-        "dwelling_cottage" -> DwellingTier.COTTAGE
-        "dwelling_shack" -> DwellingTier.SHACK
-        "dwelling_tent" -> DwellingTier.TENT
-        "dwelling_tarp" -> DwellingTier.TARP
-        else -> DwellingTier.forLevel(level)
-    }
+    val dwellingTier = DwellingTier.resolve(
+        characterData.equippedHomeUpgrade,
+        characterData.unlockedHomeUpgrades,
+    )
     val coins = userData?.coins ?: 0
     val streak = weeklyStreak.currentStreakWeeks
     LaunchedEffect(Unit) {
@@ -140,7 +136,7 @@ fun HomeScreen(
         }
     }
 
-    val displayLevel = if (level >= 30) stringResource(R.string.max_level) else level.toString()
+    val displayLevel = if (level >= LevelCurve.MAX_LEVEL) stringResource(R.string.max_level) else level.toString()
     val progressIndex = levelsState.progress.xpBarIndex
 
     val spacing = MaterialTheme.spacing
@@ -214,6 +210,8 @@ fun HomeScreen(
         if (showMissionsDialog) {
             MissionsDialog(
                 missions = weeklyBoard.missions,
+                rerollAvailable = weeklyBoard.rerollAvailable,
+                onReroll = viewModel::rerollMission,
                 onDismiss = { showMissionsDialog = false },
             )
         }
@@ -221,6 +219,8 @@ fun HomeScreen(
         levelsState.pendingLevelUp?.let { pending ->
             LevelUpDialog(
                 result = pending,
+                skills = levelsState.skills,
+                onSpendSkill = levelsViewModel::spendSkill,
                 onDismiss = { levelsViewModel.dismissLevelUp() },
                 onOpenRewards = {
                     levelsViewModel.dismissLevelUp()

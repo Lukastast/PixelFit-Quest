@@ -48,7 +48,8 @@ class LocalProfileXpSource @Inject constructor(
                 maxLevel = LevelCurve.MAX_LEVEL,
                 expRequiredForLevel = { LevelCurve.xpToAdvance(it) },
             )
-            current.copy(level = result.level, exp = result.exp)
+            val coins = current.coins + LevelCurve.coinsForLevels(current.level, result.level)
+            current.copy(level = result.level, exp = result.exp, coins = coins)
         }
         val current = loadProgress()
         return previous to current

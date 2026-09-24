@@ -248,6 +248,7 @@ fun HealthCenterScreen(
                     permissionsGranted = permissionsGranted,
                     useTwoPane = useTwoPane,
                     onOpenHealth = { viewModel.onSectionSelected(QuestSection.HEALTH) },
+                    onReroll = viewModel::rerollMission,
                     modifier = Modifier.fillMaxSize(),
                 )
                 QuestSection.ACHIEVEMENTS -> AchievementsScreen(
@@ -476,6 +477,7 @@ private fun MissionsPane(
     permissionsGranted: Boolean,
     useTwoPane: Boolean,
     onOpenHealth: () -> Unit,
+    onReroll: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = MaterialTheme.spacing
@@ -514,7 +516,7 @@ private fun MissionsPane(
                 ) {
                     row.forEach { mission ->
                         Box(modifier = Modifier.weight(1f)) {
-                            MissionCard(mission)
+                            MissionCard(mission, board.rerollAvailable, onReroll)
                         }
                     }
                     if (row.size == 1) {
@@ -524,7 +526,7 @@ private fun MissionsPane(
             }
         } else {
             board.missions.forEach { mission ->
-                MissionCard(mission)
+                MissionCard(mission, board.rerollAvailable, onReroll)
             }
         }
         Spacer(modifier = Modifier.height(spacing.xs))
@@ -532,7 +534,11 @@ private fun MissionsPane(
 }
 
 @Composable
-private fun MissionCard(mission: MissionProgress) {
+private fun MissionCard(
+    mission: MissionProgress,
+    rerollAvailable: Boolean,
+    onReroll: (String) -> Unit,
+) {
     val definition = mission.definition
     val target = definition.target.coerceAtLeast(0L)
     val done = mission.isComplete || mission.claimed
@@ -543,7 +549,8 @@ private fun MissionCard(mission: MissionProgress) {
         stringResource(R.string.quest_mission_training_blurb)
     }
     val iconRes = if (isSteps) R.drawable.steps_5000 else R.drawable.bronze_workout_1
-    QuestCard(
+    Column {
+        QuestCard(
         iconRes = iconRes,
         title = definition.title,
         value = stringResource(
@@ -563,6 +570,18 @@ private fun MissionCard(mission: MissionProgress) {
         rewardCoins = definition.coins,
         rewardXp = definition.xp,
     )
+        if (rerollAvailable && !done) {
+            Text(
+                text = stringResource(R.string.mission_reroll),
+                color = ImperialGold,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .clickable { onReroll(definition.id) },
+            )
+        }
+    }
 }
 
 @Composable

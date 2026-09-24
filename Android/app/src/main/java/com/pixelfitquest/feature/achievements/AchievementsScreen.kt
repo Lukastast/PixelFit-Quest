@@ -830,6 +830,10 @@ internal fun achievementIconRes(id: String, tier: AchievementTier): Int = when (
     "level_5" -> R.drawable.level_5
     "level_10" -> R.drawable.level_10
     "level_20" -> R.drawable.level_20
+    "level_40" -> R.drawable.level_40
+    "level_60" -> R.drawable.level_60
+    "level_80" -> R.drawable.level_80
+    "level_100" -> R.drawable.level_100
     "unique_3" -> R.drawable.unique_3
     "unique_8" -> R.drawable.unique_8
     "resting_heart_rate" -> R.drawable.resting_heart_rate

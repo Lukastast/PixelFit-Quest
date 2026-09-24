@@ -35,7 +35,7 @@ import com.pixelfitquest.local.db.entity.UserProfileEntity
         LevelStateEntity::class,
         UnlockedCosmeticEntity::class,
     ],
-    version = 9,
+    version = 11,
     exportSchema = false,
 )
 abstract class PixelFitDatabase : RoomDatabase() {
@@ -67,6 +67,25 @@ abstract class PixelFitDatabase : RoomDatabase() {
         val MIGRATION_8_9 = object : androidx.room.migration.Migration(8, 9) {
             override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE user_profile ADD COLUMN lastVitalityBonusDate TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        val MIGRATION_9_10 = object : androidx.room.migration.Migration(9, 10) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE user_profile ADD COLUMN dwellingLegacyMigrated INTEGER NOT NULL DEFAULT 0",
+                )
+            }
+        }
+
+        val MIGRATION_10_11 = object : androidx.room.migration.Migration(10, 11) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE user_profile ADD COLUMN skillForm INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE user_profile ADD COLUMN skillIron INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE user_profile ADD COLUMN skillVitality INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE user_profile ADD COLUMN skillRespecDate TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE user_profile ADD COLUMN rewardedSetsDate TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE user_profile ADD COLUMN rewardedSetsCount INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

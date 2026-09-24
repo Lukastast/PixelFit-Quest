@@ -5,6 +5,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.feature.healthbonuses.SessionBonusService
+import com.pixelfitquest.feature.progression.RewardBonus
+import com.pixelfitquest.feature.progression.RewardSet
+import java.time.LocalDate
 import com.pixelfitquest.feature.healthbonuses.model.SessionBonus
 import com.pixelfitquest.feature.healthbonuses.model.SessionBonusUiState
 import com.pixelfitquest.firebase.model.UserData
@@ -116,11 +119,37 @@ class WorkoutResumeViewModel @Inject constructor(
 
                 _exercisesWithSets.value = exercisesWithSetsList
 
-                _summary.value = calculateSummary(exercisesWithSetsList)
-
-                if (!workout.rewardsAwarded) {
-                    awardRewards(_summary.value)
-                    workoutRepository.updateWorkout(workoutId, mapOf("rewardsAwarded" to true))
+                val baseSummary = calculateSummary(exercisesWithSetsList)
+                if (workout.rewardsAwarded && workout.awardedXp != null) {
+                    _summary.value = baseSummary.copy(
+                        totalXp = workout.awardedXp,
+                        totalCoins = workout.awardedCoins ?: 0,
+                        rewardClipped = workout.rewardClipped,
+                    )
+                } else if (!workout.rewardsAwarded) {
+                    val claim = userRepository.claimWorkoutReward(
+                        workoutId = workoutId,
+                        sets = exercisesWithSetsList.flatMap { exercise ->
+                            exercise.sets.map { set ->
+                                RewardSet(reps = set.reps, formScore = set.formScore)
+                            }
+                        },
+                        today = LocalDate.now().toString(),
+                    )
+                    if (claim != null) {
+                        _summary.value = baseSummary.copy(
+                            totalXp = claim.xp,
+                            totalCoins = claim.coins,
+                            rewardClipped = claim.clipped,
+                        )
+                        if (claim.fresh) {
+                            awardRewards(_summary.value)
+                        }
+                    } else {
+                        _summary.value = baseSummary
+                    }
+                } else {
+                    _summary.value = baseSummary
                 }
                 grantPendingStreakXp()
 
@@ -152,24 +181,23 @@ class WorkoutResumeViewModel @Inject constructor(
     private fun awardHealthBonuses(bonuses: List<SessionBonus>) {
         val xp = bonuses.sumOf { it.xp }
         val coins = bonuses.sumOf { it.coins }
-        if (xp > 0) {
-            viewModelScope.launch {
+        if (xp <= 0 && coins <= 0) return
+        viewModelScope.launch {
+            val variant = userRepository.fetchCharacterDataOnce()?.variant
+            val payout = RewardBonus.withFitnessFlat(xp, coins, variant)
+            if (payout.xp > 0) {
                 try {
-                    // Single wallet: user_profile via LevelsRepository / UserProgression
-                    localXpPort.awardXp(xp, "health_bonus")
-                    Log.d("ResumeVM", "Added $xp health-bonus XP")
+                    localXpPort.awardXp(payout.xp, "health_bonus")
+                    Log.d("ResumeVM", "Added ${payout.xp} health-bonus XP")
                 } catch (e: Exception) {
                     Log.w("ResumeVM", "Health-bonus XP award failed", e)
                 }
             }
-        }
-        if (coins > 0) {
-            viewModelScope.launch {
+            if (payout.coins > 0) {
                 try {
-                    // Room SoT via UserRepository → LocalPixelFitStore user_profile coins
                     val current = userRepository.fetchUserDataOnce() ?: return@launch
-                    userRepository.updateUserData(mapOf("coins" to current.coins + coins))
-                    Log.d("ResumeVM", "Added $coins health-bonus coins")
+                    userRepository.updateUserData(mapOf("coins" to current.coins + payout.coins))
+                    Log.d("ResumeVM", "Added ${payout.coins} health-bonus coins")
                 } catch (e: Exception) {
                     Log.w("ResumeVM", "Health-bonus coins not saved", e)
                 }

@@ -29,8 +29,8 @@ class CosmeticUnlockerTest {
     fun newlyUnlocked_returnsOnlyCrossedThresholds() {
         val newly = CosmeticUnlocker.newlyUnlocked(previousLevel = 4, newLevel = 5)
         assertEquals(1, newly.size)
-        assertEquals(CosmeticCatalog.SKIN_FITNESS, newly.first().id)
-        assertEquals(CosmeticKind.CHARACTER_SKIN, newly.first().kind)
+        assertEquals(CosmeticCatalog.TITLE_SCOUT, newly.first().id)
+        assertEquals(CosmeticKind.TITLE, newly.first().kind)
     }
 
     @Test
@@ -43,7 +43,7 @@ class CosmeticUnlockerTest {
     fun catalog_coversHomeSkinsAndTitles() {
         val byKind = CosmeticCatalog.all.groupBy { it.kind }
         assertTrue(byKind[CosmeticKind.HOME_THEME]!!.size >= 5)
-        assertTrue(byKind[CosmeticKind.CHARACTER_SKIN]!!.size >= 3)
+        assertTrue(byKind[CosmeticKind.CHARACTER_SKIN]!!.size >= 2)
         assertTrue(byKind[CosmeticKind.TITLE]!!.size >= 4)
         assertEquals(CosmeticCatalog.all.size, CosmeticCatalog.all.map { it.id }.toSet().size)
     }

@@ -36,6 +36,38 @@ class WeeklyMissionEvaluatorTest {
     }
 
     @Test
+    fun rerollPicksTheNextMissionNotAlreadyOnTheBoard() {
+        val board = WeeklyMissions.boardForWeek("2026-W38")
+        val sets = board.first { it.metric == MissionMetric.SETS }
+        val replacement = WeeklyMissions.replacementFor(board, sets.id)
+        assertTrue(replacement != null)
+        assertEquals(MissionMetric.SETS, replacement!!.metric)
+        assertFalse(board.any { it.id == replacement.id })
+        val swapped = WeeklyMissions.applySwap(board, MissionSwap(sets.id, replacement.id))
+        assertEquals(board.size, swapped.size)
+        assertTrue(swapped.any { it.id == replacement.id })
+        assertFalse(swapped.any { it.id == sets.id })
+    }
+
+    @Test
+    fun evaluateKeepsASavedSwap() {
+        val board = WeeklyMissions.boardForWeek("2026-W38")
+        val sets = board.first { it.metric == MissionMetric.SETS }
+        val replacement = WeeklyMissions.replacementFor(board, sets.id)!!
+        val evaluated = WeeklyMissions.evaluate(
+            weekKey = "2026-W38",
+            workouts = emptyList(),
+            weeklySteps = 0L,
+            weekStart = Instant.parse("2026-09-14T00:00:00Z"),
+            weekEnd = Instant.parse("2026-09-20T23:59:59Z"),
+            claimedIds = emptySet(),
+            swap = MissionSwap(sets.id, replacement.id),
+        )
+        assertFalse(evaluated.rerollAvailable)
+        assertTrue(evaluated.missions.any { it.definition.id == replacement.id })
+    }
+
+    @Test
     fun differentWeeksAreNotAllTheSameBoard() {
         val boards = (1..12).map { week ->
             WeeklyMissions.boardForWeek("2026-W%02d".format(week)).map { it.id }

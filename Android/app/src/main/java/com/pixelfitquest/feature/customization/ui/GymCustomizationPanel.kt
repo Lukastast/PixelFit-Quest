@@ -30,7 +30,8 @@ import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.feature.customization.model.CustomizationCatalog
 import com.pixelfitquest.feature.customization.model.GymItem
-import com.pixelfitquest.feature.customization.model.UnlockType
+import com.pixelfitquest.feature.customization.model.isShopItemUnlocked
+import com.pixelfitquest.feature.customization.model.purchaseBlockedByLevel
 import com.pixelfitquest.ui.theme.DarkStone
 import com.pixelfitquest.ui.theme.ImperialGold
 import com.pixelfitquest.ui.theme.PlatinumWhite
@@ -65,12 +66,13 @@ fun GymCustomizationPanel(
     }
 
     val isEquipped = equippedGymId == selectedItem.id
-    val isUnlocked = when (selectedItem.unlockType) {
-        UnlockType.DEFAULT -> true
-        UnlockType.LEVEL -> selectedItem.minLevel != null && userLevel >= selectedItem.minLevel
-        UnlockType.COINS -> unlockedGyms.contains(selectedItem.id)
-        UnlockType.COMING_SOON -> false
-    }
+    val isUnlocked = isShopItemUnlocked(
+        unlockType = selectedItem.unlockType,
+        minLevel = selectedItem.minLevel,
+        userLevel = userLevel,
+        owned = unlockedGyms.contains(selectedItem.id),
+    )
+    val blockedByLevel = purchaseBlockedByLevel(isUnlocked, selectedItem.minLevel, userLevel)
 
     @Composable
     fun HeroStage(stageModifier: Modifier = Modifier) {
@@ -98,6 +100,7 @@ fun GymCustomizationPanel(
                 ) {
                     Text(
                         text = when {
+                            blockedByLevel -> "🔒 Locked · Level ${selectedItem.minLevel} Required"
                             selectedItem.coinPrice != null -> "🔒 Locked · ${selectedItem.coinPrice} Coins"
                             selectedItem.minLevel != null -> "🔒 Locked · Level ${selectedItem.minLevel} Required"
                             else -> "🔒 Locked"
@@ -167,6 +170,16 @@ fun GymCustomizationPanel(
                     Text("Equip", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
+            blockedByLevel -> {
+                PixelArtButton(
+                    onClick = {},
+                    imageRes = R.drawable.button_clicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = actionModifier.size(buttonWidth, buttonHeight),
+                ) {
+                    Text("🔒 Level ${selectedItem.minLevel}", color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp)
+                }
+            }
             selectedItem.coinPrice != null -> {
                 val canAfford = userCoins >= selectedItem.coinPrice
                 PixelArtButton(
@@ -209,12 +222,12 @@ fun GymCustomizationPanel(
             contentPadding = PaddingValues(bottom = spacing.md),
         ) {
             items(CustomizationCatalog.gyms, key = { it.id }) { item ->
-                val itemUnlocked = when (item.unlockType) {
-                    UnlockType.DEFAULT -> true
-                    UnlockType.LEVEL -> item.minLevel != null && userLevel >= item.minLevel
-                    UnlockType.COINS -> unlockedGyms.contains(item.id)
-                    UnlockType.COMING_SOON -> false
-                }
+                val itemUnlocked = isShopItemUnlocked(
+                    unlockType = item.unlockType,
+                    minLevel = item.minLevel,
+                    userLevel = userLevel,
+                    owned = unlockedGyms.contains(item.id),
+                )
                 val itemEquipped = equippedGymId == item.id
                 val isSelected = selectedGymId == item.id
 
@@ -223,6 +236,7 @@ fun GymCustomizationPanel(
                     isSelected = isSelected,
                     isEquipped = itemEquipped,
                     isUnlocked = itemUnlocked,
+                    blockedByLevel = purchaseBlockedByLevel(itemUnlocked, item.minLevel, userLevel),
                     onClick = { onSelectGym(item.id) },
                 )
             }
@@ -289,6 +303,7 @@ private fun GymCard(
     isSelected: Boolean,
     isEquipped: Boolean,
     isUnlocked: Boolean,
+    blockedByLevel: Boolean,
     onClick: () -> Unit,
 ) {
     val spacing = MaterialTheme.spacing
@@ -338,6 +353,7 @@ private fun GymCard(
                 when {
                     isEquipped -> Text("EQUIPPED", color = ImperialGold, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     isUnlocked -> Text("UNLOCKED", color = VitalGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    blockedByLevel -> Text("🔒 LVL ${item.minLevel}", color = TorchAmber, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     item.coinPrice != null -> {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,

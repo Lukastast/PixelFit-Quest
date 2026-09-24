@@ -3,8 +3,12 @@ package com.pixelfitquest.feature.health
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.feature.levels.cosmetics.LocalXpPort
+import com.pixelfitquest.feature.progression.RewardBonus
+import com.pixelfitquest.feature.progression.SkillTree
+import com.pixelfitquest.feature.missions.RerollResult
 import com.pixelfitquest.feature.missions.WeeklyMissionBoard
 import com.pixelfitquest.feature.missions.WeeklyMissionService
+import com.pixelfitquest.helpers.SnackbarManager
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
 import com.pixelfitquest.health.HealthConnectStatus
@@ -135,36 +139,42 @@ class HealthCenterViewModel @Inject constructor(
             val metrics = _healthMetrics.value
 
             val updates = mutableMapOf<String, Any>()
+            val variant = userRepository.fetchCharacterDataOnce()?.variant
+            val vitalityRank = userRepository.skillLoadout().vitality
 
             // 1. Steps Reward
             val lastStepsRewardDate = userRepository.getUserField("last_steps_reward_date") as? String ?: ""
             if (HealthRewards.shouldAwardDailyGoal(metrics.steps, metrics.stepGoal, lastStepsRewardDate, today)) {
-                awardExp(HealthRewards.STEPS_REWARD_EXP)
-                awardCoins(HealthRewards.STEPS_REWARD_COINS)
+                awardFitnessBonus(
+                    HealthRewards.STEPS_REWARD_EXP,
+                    SkillTree.applyVitalityCoins(HealthRewards.STEPS_REWARD_COINS, vitalityRank),
+                    variant,
+                )
                 updates["last_steps_reward_date"] = today
             }
 
             // 2. Sleep Milestone Reward (7-9 hours)
             val lastSleepRewardDate = userRepository.getUserField("last_sleep_reward_date") as? String ?: ""
             if (HealthRewards.shouldAwardSleepMilestone(metrics.sleepMinutes, lastSleepRewardDate, today)) {
-                awardExp(HealthRewards.SLEEP_REWARD_EXP)
-                awardCoins(HealthRewards.SLEEP_REWARD_COINS)
+                awardFitnessBonus(
+                    HealthRewards.SLEEP_REWARD_EXP,
+                    SkillTree.applyVitalityCoins(HealthRewards.SLEEP_REWARD_COINS, vitalityRank),
+                    variant,
+                )
                 updates["last_sleep_reward_date"] = today
             }
 
             // 3. Weekly Heart Goal Reward (>= 150 points)
             val lastWeeklyHeartRewardWeek = userRepository.getUserField("last_weekly_heart_reward_week") as? String ?: ""
             if (HealthRewards.shouldAwardWeeklyHeartGoal(metrics.weeklyHeartPoints, metrics.weeklyHeartGoal, lastWeeklyHeartRewardWeek, currentWeek)) {
-                awardExp(HealthRewards.WEEKLY_HEART_REWARD_EXP)
-                awardCoins(HealthRewards.WEEKLY_HEART_REWARD_COINS)
+                awardFitnessBonus(HealthRewards.WEEKLY_HEART_REWARD_EXP, HealthRewards.WEEKLY_HEART_REWARD_COINS, variant)
                 updates["last_weekly_heart_reward_week"] = currentWeek
             }
 
             // 4. Daily Vitality All Goals Completed Bonus
             val lastVitalityBonusDate = userRepository.getUserField("last_vitality_bonus_date") as? String ?: ""
             if (HealthRewards.shouldAwardVitalityBonus(metrics.rewardedGoalsMet, HealthRewards.REWARDED_GOAL_COUNT, lastVitalityBonusDate, today)) {
-                awardExp(HealthRewards.VITALITY_BONUS_EXP)
-                awardCoins(HealthRewards.VITALITY_BONUS_COINS)
+                awardFitnessBonus(HealthRewards.VITALITY_BONUS_EXP, HealthRewards.VITALITY_BONUS_COINS, variant)
                 updates["last_vitality_bonus_date"] = today
             }
 
@@ -172,6 +182,12 @@ class HealthCenterViewModel @Inject constructor(
                 userRepository.updateUserData(updates)
             }
         }
+    }
+
+    private fun awardFitnessBonus(xp: Int, coins: Int, variant: String?) {
+        val payout = RewardBonus.withFitnessFlat(xp, coins, variant)
+        awardExp(payout.xp)
+        awardCoins(payout.coins)
     }
 
     private fun awardCoins(amount: Int) {
@@ -189,6 +205,14 @@ class HealthCenterViewModel @Inject constructor(
             try {
                 localXpPort.awardXp(amount, "health_center")
             } catch (_: Exception) {
+            }
+        }
+    }
+
+    fun rerollMission(missionId: String) {
+        viewModelScope.launch {
+            if (weeklyMissionService.reroll(missionId) == RerollResult.CANT_AFFORD) {
+                SnackbarManager.showMessage("Need 50 coins to reroll a mission")
             }
         }
     }
