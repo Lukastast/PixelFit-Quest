@@ -500,7 +500,7 @@ private fun AchievementHeroStage(
                     modifier = Modifier.weight(1f, fill = false),
                 ) {
                     Text(
-                        text = item.definition.name,
+                        text = item.definition.name.uppercase(),
                         fontWeight = FontWeight.Bold,
                         color = ImperialGold,
                         fontSize = if (isTwoPane) 14.sp else 15.sp,
