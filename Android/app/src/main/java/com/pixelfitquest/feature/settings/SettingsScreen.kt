@@ -35,8 +35,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.pixelfitquest.BuildConfig
 import com.pixelfitquest.R
 import com.pixelfitquest.components.molecules.ExitAppCard
+import com.pixelfitquest.components.molecules.GodModeCard
 import com.pixelfitquest.components.molecules.LandscapeWorkoutCard
 import com.pixelfitquest.components.molecules.RemoveAccountCard
 import com.pixelfitquest.components.molecules.SettingsActionCard
@@ -63,6 +65,7 @@ fun SettingsScreen(
     val musicVolume = userSettings?.musicVolume ?: 50
     val signedIn = user.id.isNotBlank()
     val workoutLandscapeEnabled by viewModel.workoutLandscapeEnabled.collectAsState()
+    val godModeEnabled by viewModel.godModeEnabled.collectAsState()
     val weeklyStreak by weeklyStreakViewModel.snapshot.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -158,6 +161,14 @@ fun SettingsScreen(
                             onToggle = { viewModel.setWorkoutLandscapeEnabled(it) },
                             modifier = cardModifier,
                         )
+
+                        if (BuildConfig.DEBUG) {
+                            GodModeCard(
+                                enabled = godModeEnabled,
+                                onToggle = { viewModel.setGodModeEnabled(it) },
+                                modifier = cardModifier,
+                            )
+                        }
                     }
 
                     // Right Column: Account & Data
@@ -230,6 +241,14 @@ fun SettingsScreen(
                     onToggle = { viewModel.setWorkoutLandscapeEnabled(it) },
                     modifier = cardModifier,
                 )
+
+                if (BuildConfig.DEBUG) {
+                    GodModeCard(
+                        enabled = godModeEnabled,
+                        onToggle = { viewModel.setGodModeEnabled(it) },
+                        modifier = cardModifier,
+                    )
+                }
 
                 if (!signedIn) {
                     SettingsActionCard(

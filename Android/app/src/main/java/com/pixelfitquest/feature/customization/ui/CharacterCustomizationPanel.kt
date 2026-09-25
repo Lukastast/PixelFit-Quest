@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.IdleAnimation
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.debug.GodModePrefs
 import com.pixelfitquest.feature.customization.model.CharacterItem
 import com.pixelfitquest.feature.customization.model.CustomizationCatalog
 import com.pixelfitquest.feature.customization.model.isCharacterUnlocked
@@ -433,7 +434,7 @@ fun CharacterCustomizationPanel(
         }
 
         when {
-            selectedItem.isPremium -> {
+            selectedItem.isPremium && !GodModePrefs.isGodModeActive -> {
                 PixelArtButton(
                     onClick = {},
                     imageRes = R.drawable.button_unclicked,

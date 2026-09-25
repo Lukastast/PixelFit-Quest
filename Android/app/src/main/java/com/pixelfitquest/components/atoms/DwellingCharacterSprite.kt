@@ -7,11 +7,15 @@ import androidx.compose.ui.res.imageResource
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.home.model.CharacterPose
 
+import com.pixelfitquest.feature.home.model.DwellingTier
+import com.pixelfitquest.feature.home.model.DwellingVisuals
+
 @Composable
 fun DwellingCharacterSprite(
     pose: CharacterPose,
     gender: String,
     variant: String = "basic",
+    tier: DwellingTier = DwellingTier.TARP,
     modifier: Modifier = Modifier,
     isAnimating: Boolean = true,
 ) {
@@ -41,11 +45,7 @@ fun DwellingCharacterSprite(
             )
         }
         CharacterPose.LYING -> {
-            val sheetRes = if (isFemale) {
-                R.drawable.character_woman_lying
-            } else {
-                R.drawable.character_male_lying
-            }
+            val sheetRes = DwellingVisuals.lyingSpriteRes(gender, tier)
             SpriteSheetPlayer(
                 sheet = ImageBitmap.imageResource(sheetRes),
                 frameCount = 6,

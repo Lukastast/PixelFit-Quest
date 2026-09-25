@@ -29,6 +29,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class ResumeTab {
+    Form,
+    Sets,
+    Rewards,
+}
+
 @HiltViewModel
 class WorkoutResumeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
@@ -56,10 +62,25 @@ class WorkoutResumeViewModel @Inject constructor(
     private val _deleted = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val deleted: SharedFlow<Unit> = _deleted.asSharedFlow()
 
+    private val _selectedTab = MutableStateFlow(ResumeTab.Form)
+    val selectedTab: StateFlow<ResumeTab> = _selectedTab.asStateFlow()
+
+    private val _selectedSetIndex = MutableStateFlow(0)
+    val selectedSetIndex: StateFlow<Int> = _selectedSetIndex.asStateFlow()
+
     init {
+        loaduserData()
         if (workoutId.isNotBlank()) {
             loadWorkoutData()
         }
+    }
+
+    fun selectTab(tab: ResumeTab) {
+        _selectedTab.value = tab
+    }
+
+    fun selectSetIndex(index: Int) {
+        _selectedSetIndex.value = index.coerceAtLeast(0)
     }
 
     private fun loaduserData() {

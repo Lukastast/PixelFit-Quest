@@ -24,6 +24,35 @@ object DwellingVisuals {
     fun furnitureRes(tier: DwellingTier, isLandscape: Boolean): Int? = null
 
     /**
+     * Determines whether the given dwelling tier uses the exclusive royal blanket sleeping animation.
+     * Castle tier uses the royal velvet blanket with gold embroidery.
+     */
+    fun usesRoyalBlanket(tier: DwellingTier): Boolean =
+        tier == DwellingTier.CASTLE
+
+    /**
+     * Determines whether the given dwelling tier uses the upgraded white blanket sleeping animation.
+     * Cottage (dwelling #3) and Gym use the white blanket.
+     */
+    fun usesWhiteBlanket(tier: DwellingTier): Boolean =
+        tier == DwellingTier.COTTAGE || tier == DwellingTier.GYM
+
+    /**
+     * Returns the sleeping/lying sprite sheet resource ID for the character's gender and dwelling tier.
+     */
+    fun lyingSpriteRes(gender: String, tier: DwellingTier): Int {
+        val isFemale = gender.lowercase() in listOf("female", "woman", "character_woman_idle")
+        return when {
+            usesRoyalBlanket(tier) && isFemale -> R.drawable.character_woman_lying_royal
+            usesRoyalBlanket(tier) && !isFemale -> R.drawable.character_male_lying_royal
+            usesWhiteBlanket(tier) && isFemale -> R.drawable.character_woman_lying_white
+            usesWhiteBlanket(tier) && !isFemale -> R.drawable.character_male_lying_white
+            isFemale -> R.drawable.character_woman_lying
+            else -> R.drawable.character_male_lying
+        }
+    }
+
+    /**
      * Character anchor (x, y) normalized to [0..1] range within the dwelling container.
      */
     fun characterAnchor(
@@ -88,19 +117,19 @@ object DwellingVisuals {
                     CharacterPose.LYING -> Pair(0.31f, 0.80f)
                 }
                 DwellingTier.SHACK -> when (pose) {
-                    CharacterPose.STANDING -> Pair(0.50f, 0.87f)
-                    CharacterPose.SITTING -> Pair(0.50f, 0.87f)
-                    CharacterPose.LYING -> Pair(0.35f, 0.65f)
+                    CharacterPose.STANDING -> Pair(0.50f, 0.75f)
+                    CharacterPose.SITTING -> Pair(0.50f, 0.76f)
+                    CharacterPose.LYING -> Pair(0.14f, 0.56f)
                 }
                 DwellingTier.COTTAGE -> when (pose) {
-                    CharacterPose.STANDING -> Pair(0.50f, 0.87f)
-                    CharacterPose.SITTING -> Pair(0.50f, 0.87f)
-                    CharacterPose.LYING -> Pair(0.39f, 0.66f)
+                    CharacterPose.STANDING -> Pair(0.50f, 0.82f)
+                    CharacterPose.SITTING -> Pair(0.50f, 0.82f)
+                    CharacterPose.LYING -> Pair(0.15f, 0.66f)
                 }
                 DwellingTier.CASTLE -> when (pose) {
-                    CharacterPose.STANDING -> Pair(0.50f, 0.87f)
-                    CharacterPose.SITTING -> Pair(0.50f, 0.87f)
-                    CharacterPose.LYING -> Pair(0.27f, 0.66f)
+                    CharacterPose.STANDING -> Pair(0.50f, 0.82f)
+                    CharacterPose.SITTING -> Pair(0.50f, 0.82f)
+                    CharacterPose.LYING -> Pair(0.15f, 0.66f)
                 }
                 DwellingTier.GYM -> Pair(0.80f, 0.69f)
             }

@@ -346,6 +346,19 @@
     <string name="feedback_tilt_perfect">Perfect balance!</string>
     <string name="feedback_x_tilt_right">Right hand closer to your head — keep the bar square</string>
     <string name="feedback_x_tilt_left">Right hand closer to your hip — keep the bar square</string>
+    <string name="resume_screen_title">Quest Debrief</string>
+    <string name="resume_tab_form">Form &amp; Clips</string>
+    <string name="resume_tab_sets">Sets &amp; Reps</string>
+    <string name="resume_tab_rewards">Rewards</string>
+    <string name="hero_stage_form_check">FORM CHECK</string>
+    <string name="hero_stage_clean_form">CLEAN FORM</string>
+    <string name="form_even_title">Level &amp; Balanced</string>
+    <string name="form_even_cue">Bar level, symmetrical press, clean lockout!</string>
+    <string name="feedback_dropped_cue">Control the descent — don\'t drop onto the chest!</string>
+    <string name="feedback_clip_pose_cue">Ensure phone is firmly aligned along the bar sleeve.</string>
+    <string name="continue_to_quest">⚔ Continue Quest</string>
+    <string name="select_set_label">Inspect Set:</string>
+    <string name="set_chip_label">Set %1$d</string>
 
     <!-- Workout Customization Screen -->
     <string name="update_template">Update Template</string>

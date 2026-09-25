@@ -1,5 +1,6 @@
 package com.pixelfitquest.feature.levels.data
 
+import com.pixelfitquest.debug.GodModePrefs
 import com.pixelfitquest.feature.levels.cosmetics.CharacterSkinPort
 import com.pixelfitquest.feature.levels.cosmetics.CloudProgressMirror
 import com.pixelfitquest.feature.levels.cosmetics.HomeThemePort
@@ -122,7 +123,7 @@ class DefaultLevelsRepository @Inject constructor(
         val progress = xpSource.loadProgress()
         val loaded = withBaseline(store.load(), progress.level)
         val definition = CosmeticCatalog.byId(id) ?: return@withLock false
-        if (id !in loaded.unlockedIds) return@withLock false
+        if (!GodModePrefs.isGodModeActive && id !in loaded.unlockedIds) return@withLock false
         val next = when (definition.kind) {
             CosmeticKind.HOME_THEME -> loaded.copy(equippedHomeThemeId = id)
             CosmeticKind.CHARACTER_SKIN -> loaded.copy(equippedCharacterSkinId = id)
@@ -201,10 +202,11 @@ class DefaultLevelsRepository @Inject constructor(
             characterSkinId = state.equippedCharacterSkinId,
             titleId = state.equippedTitleId,
         )
+        val isGod = GodModePrefs.isGodModeActive
         val items = CosmeticCatalog.all.map { definition ->
             CosmeticItem(
                 definition = definition,
-                unlocked = definition.id in state.unlockedIds ||
+                unlocked = isGod || definition.id in state.unlockedIds ||
                     definition.unlockLevel <= progress.level,
                 equipped = definition.id == when (definition.kind) {
                     CosmeticKind.HOME_THEME -> equipped.homeThemeId

@@ -2,6 +2,7 @@ package com.pixelfitquest.feature.customization
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pixelfitquest.debug.GodModePrefs
 import com.pixelfitquest.feature.customization.model.CustomizationCatalog
 import com.pixelfitquest.feature.customization.model.CustomizationScreenUiState
 import com.pixelfitquest.feature.customization.model.CustomizationTab
@@ -47,6 +48,37 @@ class CustomizationViewModel @Inject constructor(
                 val char = data ?: CharacterData()
                 _characterData.value = char
                 val charId = CustomizationCatalog.resolveCharacterIdFromVariant(char.variant)
+                val isGod = GodModePrefs.isGodModeActive
+                val effectiveUnlockedVariants = if (isGod) {
+                    setOf(
+                        "basic",
+                        "male_fitness",
+                        "female_fitness",
+                        "shadow",
+                        "male_premium",
+                        "female_premium",
+                        com.pixelfitquest.feature.streak.model.WeeklyStreakRewards.SKIN_EMBER,
+                        com.pixelfitquest.feature.streak.model.WeeklyStreakRewards.SKIN_PHOENIX,
+                        com.pixelfitquest.feature.streak.model.WeeklyStreakRewards.SKIN_LEGEND,
+                    )
+                } else {
+                    char.unlockedVariants.toSet()
+                }
+                val effectiveUnlockedHomes = if (isGod) {
+                    CustomizationCatalog.homeDwellings.mapNotNull { it.id }.toSet()
+                } else {
+                    char.unlockedHomeUpgrades.toSet()
+                }
+                val effectiveUnlockedGyms = if (isGod) {
+                    CustomizationCatalog.gyms.map { it.id }.toSet()
+                } else {
+                    char.unlockedGyms.toSet()
+                }
+                val effectiveUnlockedBgs = if (isGod) {
+                    CustomizationCatalog.appBackgrounds.map { it.id }.toSet()
+                } else {
+                    char.unlockedAppBackgrounds.toSet()
+                }
                 _uiState.update { current ->
                     val currentEquippedCharId = CustomizationCatalog.resolveCharacterIdFromVariant(current.equippedVariant)
                     val newSelectedCharId = if (!hasInitializedSelections || current.selectedCharacterId == currentEquippedCharId) {
@@ -74,16 +106,16 @@ class CustomizationViewModel @Inject constructor(
                         gender = char.gender,
                         selectedCharacterId = newSelectedCharId,
                         equippedVariant = char.variant,
-                        unlockedVariants = char.unlockedVariants.toSet(),
+                        unlockedVariants = effectiveUnlockedVariants,
                         selectedHomeId = newSelectedHomeId,
                         equippedHomeId = char.equippedHomeUpgrade,
-                        unlockedHomeUpgrades = char.unlockedHomeUpgrades.toSet(),
+                        unlockedHomeUpgrades = effectiveUnlockedHomes,
                         selectedGymId = newSelectedGymId,
                         equippedGymId = char.equippedGym,
-                        unlockedGyms = char.unlockedGyms.toSet(),
+                        unlockedGyms = effectiveUnlockedGyms,
                         selectedBackgroundId = newSelectedBgId,
                         equippedBackgroundId = char.equippedAppBackground,
-                        unlockedBackgrounds = char.unlockedAppBackgrounds.toSet(),
+                        unlockedBackgrounds = effectiveUnlockedBgs,
                     )
                 }
             }
@@ -322,6 +354,7 @@ class CustomizationViewModel @Inject constructor(
         price: Int,
         alreadyOwned: Boolean,
     ): Boolean {
+        if (GodModePrefs.isGodModeActive) return true
         if (alreadyOwned || price <= 0 || coins < price) return false
         return meetsLevelGate(minLevel, level)
     }

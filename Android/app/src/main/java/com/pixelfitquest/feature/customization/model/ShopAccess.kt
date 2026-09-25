@@ -1,5 +1,6 @@
 package com.pixelfitquest.feature.customization.model
 
+import com.pixelfitquest.debug.GodModePrefs
 import com.pixelfitquest.feature.levels.cosmetics.AvatarSkinBridge
 
 /**
@@ -17,22 +18,25 @@ fun grandfatherFitnessVariants(
 }
 
 fun meetsLevelGate(minLevel: Int?, userLevel: Int): Boolean =
-    minLevel == null || userLevel >= minLevel
+    GodModePrefs.isGodModeActive || minLevel == null || userLevel >= minLevel
 
 /** True when the buy button must wait for a level, even if the item also has a price. */
 fun purchaseBlockedByLevel(unlocked: Boolean, minLevel: Int?, userLevel: Int): Boolean =
-    !unlocked && !meetsLevelGate(minLevel, userLevel)
+    if (GodModePrefs.isGodModeActive) false else !unlocked && !meetsLevelGate(minLevel, userLevel)
 
 fun isShopItemUnlocked(
     unlockType: UnlockType,
     minLevel: Int?,
     userLevel: Int,
     owned: Boolean,
-): Boolean = when (unlockType) {
-    UnlockType.DEFAULT -> true
-    UnlockType.LEVEL -> meetsLevelGate(minLevel, userLevel)
-    UnlockType.COINS -> owned
-    UnlockType.COMING_SOON -> false
+): Boolean {
+    if (GodModePrefs.isGodModeActive) return true
+    return when (unlockType) {
+        UnlockType.DEFAULT -> true
+        UnlockType.LEVEL -> meetsLevelGate(minLevel, userLevel)
+        UnlockType.COINS -> owned
+        UnlockType.COMING_SOON -> false
+    }
 }
 
 fun isCharacterUnlocked(
@@ -42,6 +46,7 @@ fun isCharacterUnlocked(
     unlockedVariants: Set<String>,
     unlockedLevelSkinIds: Set<String>,
 ): Boolean {
+    if (GodModePrefs.isGodModeActive) return true
     if (item.unlockType == UnlockType.DEFAULT) return true
     if (item.unlockType == UnlockType.COMING_SOON) return false
     if (variant in unlockedVariants) return true
