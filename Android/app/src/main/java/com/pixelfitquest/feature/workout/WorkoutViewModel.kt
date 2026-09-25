@@ -27,6 +27,7 @@ import com.pixelfitquest.feature.streak.data.WeeklyStreakRepository
 import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
+import com.pixelfitquest.feature.achievements.AchievementSyncService
 import com.pixelfitquest.viewmodel.PixelFitViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -49,6 +50,7 @@ class WorkoutViewModel @Inject constructor(
     private val weeklyStreakRepository: WeeklyStreakRepository,
     private val setAnalyzer: SetAnalyzer,
     private val liftHistoryDao: LiftHistoryDao,
+    private val achievementSyncService: AchievementSyncService,
 ) : PixelFitViewModel() {
 
     private val _workoutState = MutableStateFlow(WorkoutState())
@@ -499,6 +501,11 @@ class WorkoutViewModel @Inject constructor(
         launchCatching {
             workoutRepository.saveWorkout(workout)
             recordWeeklyStreak(workout.id)
+            try {
+                achievementSyncService.sync()
+            } catch (e: Exception) {
+                Log.w("WorkoutVM", "Achievement sync failed", e)
+            }
             stopWorkout()
             _navigationEvent.emit(workoutId)
         }

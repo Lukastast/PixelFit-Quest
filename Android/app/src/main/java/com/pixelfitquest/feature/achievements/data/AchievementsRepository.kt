@@ -78,7 +78,9 @@ class DefaultAchievementsRepository @Inject constructor(
             nowEpochMs = System.currentTimeMillis(),
         )
         val withRewards = evaluation.updated.map { progress ->
-            if (progress.achievementId !in evaluation.newlyUnlockedIds) {
+            val shouldGrant = progress.achievementId in evaluation.newlyUnlockedIds ||
+                (progress.isUnlocked && !progress.rewardGranted)
+            if (!shouldGrant) {
                 return@map progress
             }
             val definition = AchievementCatalog.byId(progress.achievementId) ?: return@map progress

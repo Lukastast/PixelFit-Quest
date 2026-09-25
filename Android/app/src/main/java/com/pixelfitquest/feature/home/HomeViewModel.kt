@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.pixelfitquest.feature.achievements.AchievementSyncService
 import com.pixelfitquest.feature.customization.model.CharacterData
 import com.pixelfitquest.feature.home.model.Achievement
 import com.pixelfitquest.feature.home.model.CharacterPose
@@ -50,6 +51,7 @@ class HomeViewModel @Inject constructor(
     private val weeklyStreakRepository: WeeklyStreakRepository,
     private val localXpPort: LocalXpPort,
     private val weeklyMissionService: WeeklyMissionService,
+    private val achievementSyncService: AchievementSyncService,
     @ApplicationContext private val context: Context,
 ) : PixelFitViewModel() {
     private val _userData = MutableStateFlow<UserData?>(null)
@@ -219,7 +221,7 @@ class HomeViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("HomeVM", "Health Connect refresh failed", e)
             } finally {
-                syncWeeklyMissions()
+                syncMissionsAndAchievements()
             }
         }
     }
@@ -297,7 +299,7 @@ class HomeViewModel @Inject constructor(
                 workoutsLoaded = true
                 val total = list.size
                 _achievements.value = achievementsList.map { it to (total >= it.requiredWorkouts) }
-                syncWeeklyMissions()
+                syncMissionsAndAchievements()
             } catch (e: Exception) {
                 _error.value = "Failed to load workout history"
                 Log.e("HomeVM", "Error loading workouts", e)
@@ -354,8 +356,10 @@ class HomeViewModel @Inject constructor(
         return lastWorkoutDateStr != today
     }
 
-    private suspend fun syncWeeklyMissions() {
+    private suspend fun syncMissionsAndAchievements() {
         if (!workoutsLoaded) return
         weeklyMissionService.sync(_workouts.value, _healthMetrics.value.weeklySteps)
+        val steps = maxOf(_healthMetrics.value.steps, _healthMetrics.value.weeklySteps)
+        achievementSyncService.sync(_workouts.value, steps)
     }
 }

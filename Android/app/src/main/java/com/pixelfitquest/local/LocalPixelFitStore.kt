@@ -169,6 +169,9 @@ class LocalPixelFitStore @Inject constructor(
     suspend fun getExercises(workoutId: String): List<Exercise> =
         workoutDao.getExercises(workoutId).mapNotNull { decodeExercise(it.payloadJson) }
 
+    suspend fun getAllExercises(): List<Exercise> =
+        workoutDao.getAllExercises().mapNotNull { decodeExercise(it.payloadJson) }
+
     suspend fun getSets(workoutId: String): List<WorkoutSet> =
         workoutDao.getSets(workoutId).mapNotNull { decodeSet(it.payloadJson, workoutId) }
 

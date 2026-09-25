@@ -14,6 +14,7 @@ import com.pixelfitquest.feature.workoutResume.model.WorkoutSummary
 import com.pixelfitquest.feature.streak.data.WeeklyStreakRepository
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
+import com.pixelfitquest.feature.achievements.AchievementSyncService
 import com.pixelfitquest.feature.levels.cosmetics.LocalXpPort
 import com.pixelfitquest.helpers.SnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,6 +35,7 @@ class WorkoutResumeViewModel @Inject constructor(
     private val weeklyStreakRepository: WeeklyStreakRepository,
     private val localXpPort: LocalXpPort,
     private val sessionBonusService: SessionBonusService,
+    private val achievementSyncService: AchievementSyncService,
 ) : ViewModel() {
 
     private val _userData = MutableStateFlow<UserData?>(null)
@@ -123,6 +125,7 @@ class WorkoutResumeViewModel @Inject constructor(
                     workoutRepository.updateWorkout(workoutId, mapOf("rewardsAwarded" to true))
                 }
                 grantPendingStreakXp()
+                achievementSyncService.sync()
 
             } catch (e: Exception) {
                 Log.e("WorkoutResumeVM", "Failed to load exercises/sets", e)

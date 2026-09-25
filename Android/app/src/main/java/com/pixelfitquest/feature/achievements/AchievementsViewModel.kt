@@ -12,15 +12,23 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AchievementsViewModel @Inject constructor(
     repository: AchievementsRepository,
+    private val achievementSyncService: AchievementSyncService,
 ) : PixelFitViewModel() {
     private val selectedCategory = MutableStateFlow<AchievementCategory?>(null)
     private val statusFilter = MutableStateFlow(AchievementStatusFilter.ALL)
     private val selectedId = MutableStateFlow<String?>(null)
+
+    init {
+        viewModelScope.launch {
+            achievementSyncService.sync()
+        }
+    }
 
     val uiState: StateFlow<AchievementsUiState> = combine(
         repository.observeItems(),

@@ -38,6 +38,9 @@ interface WorkoutDao {
     @Query("SELECT * FROM exercises WHERE workoutId = :workoutId")
     suspend fun getExercises(workoutId: String): List<LocalExerciseEntity>
 
+    @Query("SELECT * FROM exercises")
+    suspend fun getAllExercises(): List<LocalExerciseEntity>
+
     @Query("SELECT * FROM workout_sets WHERE workoutId = :workoutId")
     suspend fun getSets(workoutId: String): List<LocalSetEntity>
 
