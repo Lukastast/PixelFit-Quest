@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -59,6 +60,8 @@ fun StatsHudBar(
                 else Modifier.fillMaxWidth()
             )
             .height(barHeight)
+            .clip(RoundedCornerShape(spacing.cornerSm))
+            .clickable { onLevelClick() }
     ) {
         Image(
             painter = painterResource(id = R.drawable.info_background),
@@ -115,7 +118,6 @@ fun StatsHudBar(
                 fontSize = if (isLandscape) 13.sp else 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = ImperialGold,
-                modifier = Modifier.clickable { onLevelClick() }
             )
 
             // XP Bar
@@ -124,8 +126,7 @@ fun StatsHudBar(
                     .size(
                         width = if (isLandscape) spacing.scale(68) else spacing.scale(76),
                         height = if (isLandscape) spacing.scale(14) else spacing.md
-                    )
-                    .clickable { onLevelClick() },
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 val xpPainter = when (progressIndex) {
@@ -173,6 +174,8 @@ fun StatsHudColumn(
                 color = ParchmentBorder,
                 shape = RoundedCornerShape(spacing.cornerSm)
             )
+            .clip(RoundedCornerShape(spacing.cornerSm))
+            .clickable { onLevelClick() }
             .padding(spacing.xs),
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -215,7 +218,6 @@ fun StatsHudColumn(
         // Level & XP
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.clickable { onLevelClick() }
         ) {
             Text(
                 text = "Lv. $displayLevel",

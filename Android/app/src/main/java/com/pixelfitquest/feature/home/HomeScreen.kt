@@ -47,9 +47,9 @@ import com.pixelfitquest.feature.home.model.DwellingTier
 import com.pixelfitquest.feature.levels.progression.LevelCurve
 import com.pixelfitquest.feature.levels.LevelUpDialog
 import com.pixelfitquest.feature.levels.LevelsViewModel
+import com.pixelfitquest.feature.levels.XpStatusDialog
 import com.pixelfitquest.feature.streak.WeeklyStreakDialog
 import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
-import com.pixelfitquest.ui.navigation.LEVELS_SCREEN
 import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
 
@@ -98,6 +98,7 @@ fun HomeScreen(
     val weeklyStreak by weeklyStreakViewModel.snapshot.collectAsState()
     var showStreakDialog by remember { mutableStateOf(false) }
     var showMissionsDialog by remember { mutableStateOf(false) }
+    var showXpStatusDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(isLoading) {
         if (!isLoading) {
@@ -158,7 +159,7 @@ fun HomeScreen(
             displayLevel = displayLevel,
             progressIndex = progressIndex,
             onStreakClick = { showStreakDialog = true },
-            onLevelClick = { navController.navigate(LEVELS_SCREEN) },
+            onLevelClick = { showXpStatusDialog = true },
             isLandscape = isLandscape,
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -216,16 +217,29 @@ fun HomeScreen(
             )
         }
 
+        if (showXpStatusDialog) {
+            XpStatusDialog(
+                progress = levelsState.progress,
+                skills = levelsState.skills,
+                coins = coins,
+                streakSnapshot = weeklyStreak,
+                onSpendSkill = levelsViewModel::spendSkill,
+                onRespecSkills = levelsViewModel::respecSkills,
+                respecDaysRemaining = levelsState.respecDaysRemaining,
+                onStreakClick = {
+                    showXpStatusDialog = false
+                    showStreakDialog = true
+                },
+                onDismiss = { showXpStatusDialog = false },
+            )
+        }
+
         levelsState.pendingLevelUp?.let { pending ->
             LevelUpDialog(
                 result = pending,
                 skills = levelsState.skills,
                 onSpendSkill = levelsViewModel::spendSkill,
                 onDismiss = { levelsViewModel.dismissLevelUp() },
-                onOpenRewards = {
-                    levelsViewModel.dismissLevelUp()
-                    navController.navigate(LEVELS_SCREEN)
-                },
             )
         }
     }

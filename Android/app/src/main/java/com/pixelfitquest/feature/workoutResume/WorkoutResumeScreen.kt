@@ -18,22 +18,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -54,6 +53,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,6 +61,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.feature.customization.model.CustomizationCatalog
 import com.pixelfitquest.feature.healthbonuses.ui.SessionBonusesCard
 import com.pixelfitquest.feature.streak.WeeklyStreakBonusBanner
 import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
@@ -72,10 +73,12 @@ import com.pixelfitquest.feature.workout.model.enums.displayName
 import com.pixelfitquest.feature.workoutResume.model.CoachingVisualInfo
 import com.pixelfitquest.feature.workoutResume.model.CoachingVisuals
 import com.pixelfitquest.feature.workoutResume.ui.FormClipVisual
+import com.pixelfitquest.ui.theme.DarkStone
 import com.pixelfitquest.ui.theme.HeartRuby
 import com.pixelfitquest.ui.theme.ImperialGold
 import com.pixelfitquest.ui.theme.LocalSpacing
 import com.pixelfitquest.ui.theme.PixelFitWidthClass
+import com.pixelfitquest.ui.theme.RewardGold
 import com.pixelfitquest.ui.theme.SilverSlate
 import com.pixelfitquest.ui.theme.SilverSteel
 import com.pixelfitquest.ui.theme.SlateBorder
@@ -87,7 +90,6 @@ import com.pixelfitquest.ui.theme.VitalGreen
 import com.pixelfitquest.ui.theme.determination
 import com.pixelfitquest.ui.theme.spacing
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutResumeScreen(
     openScreen: (String) -> Unit,
@@ -135,130 +137,56 @@ fun WorkoutResumeScreen(
         viewModel.deleted.collect { onWorkoutDeleted() }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.resume_screen_title),
-                        fontFamily = determination,
-                        fontSize = if (useTwoPane) 18.sp else 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { openScreen("home") }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_back),
-                            contentDescription = stringResource(R.string.back_desc),
-                            tint = Color.White,
-                        )
-                    }
-                },
-                actions = {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(spacing.xs),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(end = spacing.sm),
-                    ) {
-                        // Level Badge
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(spacing.cornerXs))
-                                .background(SlateGroove)
-                                .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerXs))
-                                .padding(horizontal = spacing.xs, vertical = spacing.xxs),
-                        ) {
-                            Text(
-                                text = "Lvl ${userData?.level ?: 1}",
-                                color = SilverSteel,
-                                fontFamily = determination,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp,
-                            )
-                        }
+    val appBackgroundRes = remember(characterData.equippedAppBackground) {
+        CustomizationCatalog.appBackgroundDrawable(characterData.equippedAppBackground)
+    }
 
-                        // XP Badge
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(spacing.cornerXs))
-                                .background(SlateGroove)
-                                .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerXs))
-                                .padding(horizontal = spacing.xs, vertical = spacing.xxs),
-                        ) {
-                            Text(
-                                text = "+${summary.totalXp} XP",
-                                color = VitalGreen,
-                                fontFamily = determination,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp,
-                            )
-                        }
-
-                        // Coins Badge
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(spacing.cornerXs))
-                                .background(SlateGroove)
-                                .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerXs))
-                                .padding(horizontal = spacing.xs, vertical = spacing.xxs),
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.coin),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(13.dp),
-                                )
-                                Spacer(modifier = Modifier.width(spacing.xxs))
-                                Text(
-                                    text = "+${summary.totalCoins}",
-                                    color = ImperialGold,
-                                    fontFamily = determination,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp,
-                                )
-                            }
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SlateDeep,
-                ),
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .paint(
+                painter = painterResource(id = appBackgroundRes),
+                contentScale = ContentScale.Crop,
             )
-        },
-        modifier = modifier,
-    ) { paddingValues ->
-        Box(
+            .statusBarsPadding()
+            .navigationBarsPadding(),
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .paint(
-                    painter = painterResource(id = R.drawable.logsigninbackground),
-                    contentScale = ContentScale.Crop,
-                )
-                .padding(paddingValues),
+                .padding(top = if (useTwoPane) spacing.xxs else spacing.sm),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Column(
+            // --- Header with Back Button, Title, and Badges (CustomizationHeader pattern) ---
+            ResumeHeader(
+                userLevel = userData?.level ?: 1,
+                earnedCoins = summary.totalCoins,
+                earnedXp = summary.totalXp,
+                onBack = { openScreen("home") },
+                isCompact = useTwoPane,
+            )
+
+            Spacer(modifier = Modifier.height(if (useTwoPane) spacing.xxs else spacing.sm))
+
+            // --- 2 Equal Tabs (CustomizationTabBar pattern) ---
+            ResumeTabBar(
+                selected = selectedTab,
+                onSelect = viewModel::selectTab,
+                isCompact = useTwoPane,
+            )
+
+            Spacer(modifier = Modifier.height(if (useTwoPane) spacing.xxs else spacing.sm))
+
+            // --- Main Content: Adaptive Two-Pane vs Single Column ---
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = spacing.md, vertical = spacing.xs),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = if (useTwoPane) spacing.sm else spacing.md),
             ) {
-                // --- 3 Equal Tabs (Customization Screen Pattern) ---
-                ResumeTabBar(
-                    selected = selectedTab,
-                    onSelect = viewModel::selectTab,
-                    isCompact = useTwoPane,
-                )
-
-                Spacer(Modifier.height(spacing.sm))
-
-                // --- Main Content: Adaptive Two-Pane vs Single Column ---
                 if (useTwoPane) {
                     Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
+                        modifier = Modifier.fillMaxSize(),
                         horizontalArrangement = Arrangement.spacedBy(spacing.md),
                     ) {
                         // Left Pane: HeroStage + Set Selector + Primary CTA
@@ -266,29 +194,34 @@ fun WorkoutResumeScreen(
                             modifier = Modifier
                                 .weight(0.42f)
                                 .fillMaxHeight(),
-                            verticalArrangement = Arrangement.spacedBy(spacing.sm),
+                            verticalArrangement = Arrangement.SpaceBetween,
                         ) {
-                            HeroStageBox(
-                                visualInfo = visualInfo,
-                                setNumber = currentSet?.setNumber ?: 1,
-                                formScore = currentSet?.formScore?.toInt() ?: summary.avgScore.toInt(),
-                                levelDeg = currentSet?.levelDeg ?: 0f,
-                                twistDeg = currentSet?.twistDeg ?: 0f,
-                                romScore = currentSet?.romScore?.toInt() ?: 100,
-                                isFemale = isFemale,
-                                isCompact = true,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-
-                            if (allSets.size > 1) {
-                                SetSelectorGroupedByExercise(
-                                    exercisesWithSets = exercisesWithSets,
-                                    selectedSetIndex = selectedSetIndex,
-                                    onSelect = viewModel::selectSetIndex,
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f, fill = false)
+                                    .verticalScroll(rememberScrollState()),
+                                verticalArrangement = Arrangement.spacedBy(spacing.xs),
+                            ) {
+                                HeroStageBox(
+                                    visualInfo = visualInfo,
+                                    setNumber = currentSet?.setNumber ?: 1,
+                                    formScore = currentSet?.formScore?.toInt() ?: summary.avgScore.toInt(),
+                                    levelDeg = currentSet?.levelDeg ?: 0f,
+                                    twistDeg = currentSet?.twistDeg ?: 0f,
+                                    romScore = currentSet?.romScore?.toInt() ?: 100,
+                                    isFemale = isFemale,
+                                    isCompact = true,
+                                    modifier = Modifier.fillMaxWidth(),
                                 )
-                            }
 
-                            Spacer(Modifier.weight(1f))
+                                if (allSets.size > 1) {
+                                    SetSelectorGroupedByExercise(
+                                        exercisesWithSets = exercisesWithSets,
+                                        selectedSetIndex = selectedSetIndex,
+                                        onSelect = viewModel::selectSetIndex,
+                                    )
+                                }
+                            }
 
                             PixelArtButton(
                                 onClick = { openScreen("home") },
@@ -296,14 +229,14 @@ fun WorkoutResumeScreen(
                                 pressedRes = R.drawable.button_clicked,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(spacing.scale(48)),
+                                    .height(spacing.scale(42)),
                             ) {
                                 Text(
                                     text = stringResource(R.string.continue_to_quest),
                                     color = Color.White,
                                     fontFamily = determination,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp,
+                                    fontSize = 14.sp,
                                 )
                             }
                         }
@@ -346,39 +279,33 @@ fun WorkoutResumeScreen(
                     }
                 } else {
                     // Portrait: Single Column Content
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                    ) {
-                        when (selectedTab) {
-                            ResumeTab.Form -> FormTabContent(
-                                visualInfo = visualInfo,
-                                currentSet = currentSet,
-                                allSets = allSets,
-                                exercisesWithSets = exercisesWithSets,
-                                summary = summary,
-                                selectedSetIndex = selectedSetIndex,
-                                onSelectSet = viewModel::selectSetIndex,
-                                onContinue = { openScreen("home") },
-                                isFemale = isFemale,
-                                showHeroStage = true,
-                            )
-                            ResumeTab.Sets -> SetsTabContent(
-                                exercisesWithSets = exercisesWithSets,
-                                allSets = allSets,
-                                summary = summary,
-                                weeklyStreak = weeklyStreak,
-                                bonusUi = bonusUi,
-                                selectedSetIndex = selectedSetIndex,
-                                isDeleting = isDeleting,
-                                onSelectSet = { index ->
-                                    viewModel.selectSetIndex(index)
-                                    viewModel.selectTab(ResumeTab.Form)
-                                },
-                                onDeleteRequest = { showDeleteDialog = true },
-                            )
-                        }
+                    when (selectedTab) {
+                        ResumeTab.Form -> FormTabContent(
+                            visualInfo = visualInfo,
+                            currentSet = currentSet,
+                            allSets = allSets,
+                            exercisesWithSets = exercisesWithSets,
+                            summary = summary,
+                            selectedSetIndex = selectedSetIndex,
+                            onSelectSet = viewModel::selectSetIndex,
+                            onContinue = { openScreen("home") },
+                            isFemale = isFemale,
+                            showHeroStage = true,
+                        )
+                        ResumeTab.Sets -> SetsTabContent(
+                            exercisesWithSets = exercisesWithSets,
+                            allSets = allSets,
+                            summary = summary,
+                            weeklyStreak = weeklyStreak,
+                            bonusUi = bonusUi,
+                            selectedSetIndex = selectedSetIndex,
+                            isDeleting = isDeleting,
+                            onSelectSet = { index ->
+                                viewModel.selectSetIndex(index)
+                                viewModel.selectTab(ResumeTab.Form)
+                            },
+                            onDeleteRequest = { showDeleteDialog = true },
+                        )
                     }
                 }
             }
@@ -397,6 +324,124 @@ fun WorkoutResumeScreen(
 }
 
 // ==========================================
+// HEADER (CustomizationHeader Pattern)
+// ==========================================
+
+@Composable
+private fun ResumeHeader(
+    userLevel: Int,
+    earnedCoins: Int,
+    earnedXp: Int,
+    onBack: () -> Unit,
+    isCompact: Boolean = false,
+) {
+    val spacing = LocalSpacing.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = if (isCompact) spacing.sm else spacing.md),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // Left: Back button + Title
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(if (isCompact) 30.dp else 36.dp)
+                    .clip(RoundedCornerShape(spacing.cornerSm))
+                    .background(SlateDeep.copy(alpha = 0.88f))
+                    .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
+                    .clickable(onClick = onBack),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_arrow_back),
+                    contentDescription = stringResource(R.string.back_desc),
+                    tint = Color.White,
+                    modifier = Modifier.size(if (isCompact) 16.dp else 20.dp),
+                )
+            }
+
+            Text(
+                text = stringResource(R.string.resume_screen_title),
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = if (isCompact) 16.sp else 20.sp,
+                fontFamily = determination,
+            )
+        }
+
+        // Right: Badges matching CustomizationHeader pattern
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Level Badge
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(spacing.cornerSm))
+                    .background(SlateDeep.copy(alpha = 0.88f))
+                    .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
+                    .padding(horizontal = spacing.sm, vertical = spacing.xxs),
+            ) {
+                Text(
+                    text = "Lvl $userLevel",
+                    color = SilverSteel,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = determination,
+                    fontSize = 11.sp,
+                )
+            }
+
+            // XP Badge
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(spacing.cornerSm))
+                    .background(SlateDeep.copy(alpha = 0.88f))
+                    .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
+                    .padding(horizontal = spacing.sm, vertical = spacing.xxs),
+            ) {
+                Text(
+                    text = "+$earnedXp XP",
+                    color = VitalGreen,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = determination,
+                    fontSize = 11.sp,
+                )
+            }
+
+            // Coins Badge
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(spacing.cornerSm))
+                    .background(SlateDeep.copy(alpha = 0.88f))
+                    .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
+                    .padding(horizontal = spacing.sm, vertical = spacing.xxs),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(id = R.drawable.coin),
+                        contentDescription = null,
+                        modifier = Modifier.size(13.dp),
+                    )
+                    Spacer(modifier = Modifier.width(spacing.xxs))
+                    Text(
+                        text = "+$earnedCoins",
+                        color = ImperialGold,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = determination,
+                        fontSize = 11.sp,
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ==========================================
 // TAB BAR (CustomizationTabBar Pattern)
 // ==========================================
 
@@ -408,29 +453,38 @@ private fun ResumeTabBar(
 ) {
     val spacing = LocalSpacing.current
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(if (isCompact) spacing.xxs else spacing.xs),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = if (isCompact) spacing.sm else spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(if (isCompact) spacing.xs else spacing.sm),
     ) {
         ResumeTab.entries.forEach { tab ->
-            val isSelected = selected == tab
-            val title = when (tab) {
-                ResumeTab.Form -> stringResource(R.string.resume_tab_form)
-                ResumeTab.Sets -> stringResource(R.string.resume_tab_sets)
-            }
-
-            PixelArtButton(
-                onClick = { onSelect(tab) },
-                imageRes = if (isSelected) R.drawable.button_clicked else R.drawable.button_unclicked,
-                pressedRes = R.drawable.button_clicked,
+            val isSelected = tab == selected
+            Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(if (isCompact) spacing.scale(36) else spacing.scale(42)),
+                    .height(if (isCompact) spacing.scale(32) else spacing.scale(38))
+                    .clip(RoundedCornerShape(spacing.cornerSm))
+                    .background(
+                        if (isSelected) ImperialGold
+                        else SlateDeep.copy(alpha = 0.82f)
+                    )
+                    .border(
+                        width = if (isSelected) 1.5.dp else 1.dp,
+                        color = if (isSelected) RewardGold else SlateBorder,
+                        shape = RoundedCornerShape(spacing.cornerSm),
+                    )
+                    .clickable { onSelect(tab) },
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = title,
-                    color = if (isSelected) ImperialGold else Color.White,
-                    fontFamily = determination,
+                    text = when (tab) {
+                        ResumeTab.Form -> stringResource(R.string.resume_tab_form)
+                        ResumeTab.Sets -> stringResource(R.string.resume_tab_sets)
+                    },
+                    color = if (isSelected) DarkStone else SilverSteel,
                     fontWeight = FontWeight.Bold,
+                    fontFamily = determination,
                     fontSize = if (isCompact) 11.sp else 13.sp,
                 )
             }
@@ -460,7 +514,7 @@ private fun HeroStageBox(
             .clip(RoundedCornerShape(spacing.cornerMd))
             .background(SlateDeep.copy(alpha = 0.94f))
             .border(2.dp, SlateBorder, RoundedCornerShape(spacing.cornerMd))
-            .padding(spacing.sm),
+            .padding(if (isCompact) spacing.xs else spacing.sm),
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -484,7 +538,7 @@ private fun HeroStageBox(
                         color = SilverSteel,
                         fontFamily = determination,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        fontSize = if (isCompact) 10.sp else 11.sp,
                     )
                 }
 
@@ -500,30 +554,30 @@ private fun HeroStageBox(
                         color = visualInfo.accentColor,
                         fontFamily = determination,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        fontSize = if (isCompact) 10.sp else 11.sp,
                     )
                 }
             }
 
-            Spacer(Modifier.height(spacing.xs))
+            Spacer(Modifier.height(if (isCompact) spacing.xxs else spacing.xs))
 
             // 16-bit SNES Animated Form Clip Visual with lifter avatar
             FormClipVisual(
                 tag = visualInfo.tag,
                 isFemale = isFemale,
-                size = if (isCompact) spacing.scale(105) else spacing.scale(125),
+                size = if (isCompact) spacing.scale(70) else spacing.scale(125),
             )
 
-            Spacer(Modifier.height(spacing.xs))
+            Spacer(Modifier.height(if (isCompact) spacing.xxs else spacing.xs))
 
-            // Bottom Info Overlay: Title + Actionable Coaching Cue
+            // Bottom Info Overlay: Title + Actionable Coaching Cue + Metrics Strip
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(spacing.cornerSm))
                     .background(SlateGroove.copy(alpha = 0.92f))
                     .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
-                    .padding(spacing.sm),
+                    .padding(if (isCompact) spacing.xs else spacing.sm),
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
@@ -531,7 +585,7 @@ private fun HeroStageBox(
                         color = visualInfo.accentColor,
                         fontFamily = determination,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
+                        fontSize = if (isCompact) 12.sp else 14.sp,
                         textAlign = TextAlign.Center,
                     )
 
@@ -540,8 +594,10 @@ private fun HeroStageBox(
                     Text(
                         text = stringResource(visualInfo.cueRes),
                         color = SilverSteel,
-                        fontSize = 12.sp,
+                        fontSize = if (isCompact) 10.sp else 12.sp,
                         textAlign = TextAlign.Center,
+                        maxLines = if (isCompact) 2 else Int.MAX_VALUE,
+                        overflow = TextOverflow.Ellipsis,
                     )
 
                     Spacer(Modifier.height(spacing.xxs))
@@ -555,19 +611,19 @@ private fun HeroStageBox(
                             text = "Form: $formScore/100",
                             color = gradeColor(formScore.toFloat()),
                             fontFamily = determination,
-                            fontSize = 11.sp,
+                            fontSize = if (isCompact) 9.sp else 11.sp,
                         )
                         Text(
                             text = "ROM: $romScore%",
                             color = SilverSlate,
                             fontFamily = determination,
-                            fontSize = 11.sp,
+                            fontSize = if (isCompact) 9.sp else 11.sp,
                         )
                         Text(
                             text = "Tilt: ${levelCaption(levelDeg)}",
                             color = if (kotlin.math.abs(levelDeg) > BAR_EVEN_DEG) HeartRuby else VitalGreen,
                             fontFamily = determination,
-                            fontSize = 11.sp,
+                            fontSize = if (isCompact) 9.sp else 11.sp,
                         )
                     }
                 }
@@ -696,7 +752,7 @@ private fun FormTabContent(
             }
         }
 
-        if (allSets.size > 1) {
+        if (allSets.size > 1 && showHeroStage) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(spacing.xxs)) {
                     SetSelectorGroupedByExercise(

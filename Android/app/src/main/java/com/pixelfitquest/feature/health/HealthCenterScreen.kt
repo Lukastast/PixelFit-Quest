@@ -128,79 +128,12 @@ fun HealthCenterScreen(
                 vertical = if (useTwoPane) spacing.xs else spacing.sm,
             ),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(if (useTwoPane) spacing.scale(46) else spacing.scale(50))
-                .clip(RoundedCornerShape(spacing.cornerMd))
-                .background(SlateDeep.copy(alpha = 0.94f))
-                .border(BorderStroke(2.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd)),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = spacing.md),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.level_5),
-                    contentDescription = null,
-                    modifier = Modifier.size(if (useTwoPane) 28.dp else 34.dp),
-                )
-                Spacer(modifier = Modifier.width(spacing.xs))
-                Text(
-                    text = stringResource(R.string.quest_center_title),
-                    fontSize = if (useTwoPane) 16.sp else 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ImperialGold,
-                    modifier = Modifier.weight(1f),
-                )
-
-                // Level and Coins in top right of Quest Center
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(spacing.xxs),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(spacing.cornerXs))
-                            .background(SlateDeep.copy(alpha = 0.88f))
-                            .border(BorderStroke(1.dp, SlateBorder), RoundedCornerShape(spacing.cornerXs))
-                            .padding(horizontal = 7.dp, vertical = 3.dp),
-                    ) {
-                        Text(
-                            text = "Lvl $level",
-                            color = ImperialGold,
-                            fontSize = if (useTwoPane) 11.sp else 12.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(spacing.cornerXs))
-                            .background(SlateDeep.copy(alpha = 0.88f))
-                            .border(BorderStroke(1.dp, SlateBorder), RoundedCornerShape(spacing.cornerXs))
-                            .padding(horizontal = 7.dp, vertical = 3.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.coin),
-                            contentDescription = null,
-                            modifier = Modifier.size(13.dp),
-                        )
-                        Text(
-                            text = "$coins",
-                            color = ImperialGold,
-                            fontSize = if (useTwoPane) 11.sp else 12.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(spacing.sm))
+        QuestCenterHeader(
+            coins = coins,
+            level = level,
+            isCompact = useTwoPane,
+        )
+        Spacer(modifier = Modifier.height(if (useTwoPane) spacing.xxs else spacing.sm))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(spacing.xs),
@@ -281,6 +214,73 @@ fun HealthCenterScreen(
                     },
                     modifier = Modifier.fillMaxSize(),
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuestCenterHeader(
+    coins: Int,
+    level: Int,
+    isCompact: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = MaterialTheme.spacing
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.quest_center_title),
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = if (isCompact) 17.sp else 20.sp,
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Level Badge
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(spacing.cornerSm))
+                    .background(SlateDeep.copy(alpha = 0.88f))
+                    .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
+                    .padding(horizontal = spacing.sm, vertical = spacing.xxs),
+            ) {
+                Text(
+                    text = "Lvl $level",
+                    color = ImperialGold,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
+                )
+            }
+
+            // Coins Badge
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(spacing.cornerSm))
+                    .background(SlateDeep.copy(alpha = 0.88f))
+                    .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
+                    .padding(horizontal = spacing.sm, vertical = spacing.xxs),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(id = R.drawable.coin),
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                    )
+                    Spacer(modifier = Modifier.width(spacing.xxs))
+                    Text(
+                        text = "$coins",
+                        color = ImperialGold,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                    )
+                }
             }
         }
     }
