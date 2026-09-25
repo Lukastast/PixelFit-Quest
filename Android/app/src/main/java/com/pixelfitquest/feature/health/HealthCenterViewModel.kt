@@ -2,12 +2,13 @@ package com.pixelfitquest.feature.health
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.pixelfitquest.feature.achievements.AchievementSyncService
 import com.pixelfitquest.feature.levels.cosmetics.LocalXpPort
-import com.pixelfitquest.feature.progression.RewardBonus
-import com.pixelfitquest.feature.progression.SkillTree
 import com.pixelfitquest.feature.missions.RerollResult
 import com.pixelfitquest.feature.missions.WeeklyMissionBoard
 import com.pixelfitquest.feature.missions.WeeklyMissionService
+import com.pixelfitquest.feature.progression.RewardBonus
+import com.pixelfitquest.feature.progression.SkillTree
 import com.pixelfitquest.helpers.SnackbarManager
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
@@ -54,6 +55,7 @@ class HealthCenterViewModel @Inject constructor(
     private val localXpPort: LocalXpPort,
     private val workoutRepository: WorkoutRepository,
     private val weeklyMissionService: WeeklyMissionService,
+    private val achievementSyncService: AchievementSyncService,
 ) : PixelFitViewModel() {
 
     private val _healthStatus = MutableStateFlow(HealthConnectStatus.UNAVAILABLE)
@@ -107,6 +109,8 @@ class HealthCenterViewModel @Inject constructor(
                 refreshHealthClaims()
                 val workouts = workoutRepository.getAllCompletedWorkouts()
                 weeklyMissionService.sync(workouts, _healthMetrics.value.weeklySteps)
+                val steps = maxOf(_healthMetrics.value.steps, _healthMetrics.value.weeklySteps)
+                achievementSyncService.sync(workouts, steps)
             } catch (e: Exception) {
                 Log.w("HealthCenter", "Quest center refresh failed", e)
             }

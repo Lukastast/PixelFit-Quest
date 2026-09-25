@@ -551,25 +551,25 @@ private fun MissionCard(
     val iconRes = if (isSteps) R.drawable.steps_5000 else R.drawable.bronze_workout_1
     Column {
         QuestCard(
-        iconRes = iconRes,
-        title = definition.title,
-        value = stringResource(
-            R.string.quest_mission_progress,
-            groupedCount(mission.displayedCurrent()),
-            groupedCount(target),
-        ),
-        subtitle = blurb,
-        badge = if (done) {
-            stringResource(R.string.quest_mission_done)
-        } else {
-            stringResource(R.string.quest_percent, (mission.fraction * 100).toInt())
-        },
-        badgeColor = if (done) VitalGreen else TorchAmber,
-        fraction = if (done) 1f else mission.fraction,
-        complete = done,
-        rewardCoins = definition.coins,
-        rewardXp = definition.xp,
-    )
+            iconRes = iconRes,
+            title = definition.title,
+            value = stringResource(
+                R.string.quest_mission_progress,
+                groupedCount(mission.displayedCurrent()),
+                groupedCount(target),
+            ),
+            subtitle = blurb,
+            badge = if (done) {
+                stringResource(R.string.quest_mission_done)
+            } else {
+                stringResource(R.string.quest_percent, (mission.fraction * 100).toInt())
+            },
+            badgeColor = if (done) VitalGreen else TorchAmber,
+            fraction = if (done) 1f else mission.fraction,
+            complete = done,
+            rewardCoins = definition.coins,
+            rewardXp = definition.xp,
+        )
         if (rerollAvailable && !done) {
             Text(
                 text = stringResource(R.string.mission_reroll),

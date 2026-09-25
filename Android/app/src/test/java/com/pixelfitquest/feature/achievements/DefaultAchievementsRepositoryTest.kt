@@ -64,6 +64,28 @@ class DefaultAchievementsRepositoryTest {
         assertFalse(items.first { it.definition.id == "streak_14" }.isUnlocked)
     }
 
+    @Test
+    fun subsequentApplySnapshotGrantsPreviouslyUnrewardedUnlockedAchievement() = runBlocking {
+        val failingSink = RecordingRewardSink(grantResult = false)
+        val store = InMemoryAchievementProgressStore()
+        val repo1 = DefaultAchievementsRepository(store = store, rewardSink = failingSink)
+
+        repo1.applySnapshot(LocalFitnessSnapshot(workoutsCompleted = 1))
+        val itemBefore = repo1.observeItems().first().first { it.definition.id == "bronze_workout_1" }
+        assertTrue(itemBefore.isUnlocked)
+        assertFalse(itemBefore.progress.rewardGranted)
+
+        val workingSink = RecordingRewardSink(grantResult = true)
+        val repo2 = DefaultAchievementsRepository(store = store, rewardSink = workingSink)
+        repo2.applySnapshot(LocalFitnessSnapshot(workoutsCompleted = 1))
+
+        val itemAfter = repo2.observeItems().first().first { it.definition.id == "bronze_workout_1" }
+        assertTrue(itemAfter.isUnlocked)
+        assertTrue(itemAfter.progress.rewardGranted)
+        assertEquals(1, workingSink.grants.size)
+        assertEquals("bronze_workout_1", workingSink.grants.first().first)
+    }
+
     private class RecordingRewardSink(
         private val grantResult: Boolean,
     ) : AchievementRewardSink {

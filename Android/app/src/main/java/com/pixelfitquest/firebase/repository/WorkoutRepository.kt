@@ -55,6 +55,15 @@ class WorkoutRepository @Inject constructor(
         }
     }
 
+    suspend fun getAllExercises(): List<Exercise> {
+        return try {
+            localStore.getAllExercises()
+        } catch (e: Exception) {
+            Log.e("WorkoutRepo", "Failed to load all exercises", e)
+            emptyList()
+        }
+    }
+
     suspend fun fetchWorkoutsOnce(limit: Int = 50): List<Workout> {
         return try {
             localStore.getWorkouts(limit)

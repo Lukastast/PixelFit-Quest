@@ -88,7 +88,6 @@ data class WeeklyMissionBoard(
  */
 object WeeklyMissions {
     const val REROLL_COST = 50
-
     val catalog: List<MissionDefinition> = listOf(
         mission("workouts_2", "Finish 2 workouts", MissionMetric.WORKOUTS, 2, xp = 80, coins = 10),
         mission("workouts_4", "Finish 4 workouts", MissionMetric.WORKOUTS, 4, xp = 150, coins = 25),
@@ -140,7 +139,6 @@ object WeeklyMissions {
         if (replacement.metric != current.metric) return board
         return board.map { if (it.id == swap.fromId) replacement else it }
     }
-
     fun stats(
         workouts: List<Workout>,
         weeklySteps: Long,
