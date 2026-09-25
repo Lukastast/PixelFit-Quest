@@ -11,6 +11,7 @@ import com.pixelfitquest.R
 import com.pixelfitquest.helpers.ERROR_TAG
 import com.pixelfitquest.helpers.SnackbarManager
 import com.pixelfitquest.helpers.UNEXPECTED_CREDENTIAL
+import com.pixelfitquest.debug.GodModePrefs
 import com.pixelfitquest.firebase.model.User
 import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.firebase.service.AccountService
@@ -43,6 +44,9 @@ class SettingsViewModel @Inject constructor(
 
     private val _workoutLandscapeEnabled = MutableStateFlow(WorkoutOrientationPrefs.isEnabled(prefs))
     val workoutLandscapeEnabled: StateFlow<Boolean> = _workoutLandscapeEnabled.asStateFlow()
+
+    private val _godModeEnabled = MutableStateFlow(GodModePrefs.isEnabled(prefs))
+    val godModeEnabled: StateFlow<Boolean> = _godModeEnabled.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -166,6 +170,11 @@ class SettingsViewModel @Inject constructor(
     fun setWorkoutLandscapeEnabled(enabled: Boolean) {
         WorkoutOrientationPrefs.setEnabled(prefs, enabled)
         _workoutLandscapeEnabled.value = enabled
+    }
+
+    fun setGodModeEnabled(enabled: Boolean) {
+        GodModePrefs.setEnabled(prefs, enabled)
+        _godModeEnabled.value = enabled
     }
 
 }

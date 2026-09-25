@@ -1,5 +1,7 @@
 package com.pixelfitquest.feature.levels.model
 
+import com.pixelfitquest.feature.progression.SkillLoadout
+
 data class LevelsUiState(
     val progress: LevelProgress = LevelProgress(),
     val items: List<CosmeticItem> = emptyList(),
@@ -7,6 +9,9 @@ data class LevelsUiState(
     val selectedKind: CosmeticKind? = null,
     val selectedId: String? = null,
     val pendingLevelUp: LevelUpResult? = null,
+    val skills: SkillLoadout = SkillLoadout(),
+    val coins: Int = 0,
+    val respecDaysRemaining: Int = 0,
 ) {
     val visibleItems: List<CosmeticItem>
         get() = if (selectedKind == null) {

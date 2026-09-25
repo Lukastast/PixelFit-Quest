@@ -1,5 +1,7 @@
 package com.pixelfitquest.feature.streak.model
 
+import com.pixelfitquest.debug.GodModePrefs
+
 /**
  * XP table and skin-id hooks for maintaining a weekly streak.
  *
@@ -26,16 +28,16 @@ object WeeklyStreakRewards {
     }
 
     fun unlocked(streakWeeks: Int): List<WeeklyStreakSkin> =
-        skins.filter { streakWeeks >= it.requiredWeeks }
+        if (GodModePrefs.isGodModeActive) skins else skins.filter { streakWeeks >= it.requiredWeeks }
 
     fun nextUnlock(streakWeeks: Int): WeeklyStreakSkin? =
-        skins.firstOrNull { streakWeeks < it.requiredWeeks }
+        if (GodModePrefs.isGodModeActive) null else skins.firstOrNull { streakWeeks < it.requiredWeeks }
 
     fun unlockedSkinIds(streakWeeks: Int): Set<String> =
-        unlocked(streakWeeks).map { it.id }.toSet()
+        if (GodModePrefs.isGodModeActive) skins.map { it.id }.toSet() else unlocked(streakWeeks).map { it.id }.toSet()
 
     fun isSkinUnlocked(skinId: String, streakWeeks: Int): Boolean =
-        unlockedSkinIds(streakWeeks).contains(skinId)
+        if (GodModePrefs.isGodModeActive) true else unlockedSkinIds(streakWeeks).contains(skinId)
 }
 
 object WeeklyStreakSkinHooks {

@@ -56,6 +56,7 @@ fun DwellingScene(
                 pose = pose,
                 gender = gender,
                 variant = variant,
+                tier = tier,
                 isAnimating = true,
                 modifier = Modifier
                     .fillMaxWidth(if (isLandscape) 0.28f else 0.44f)

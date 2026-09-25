@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy — PixelFit Quest</title>
+  <meta name="description" content="Privacy Policy for PixelFit Quest (com.pixelfitquest) by Tast Studio / Lukas Tast." />
+  <meta name="robots" content="index,follow" />
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height: 1.55; max-width: 44rem; margin: 2rem auto; padding: 0 1.25rem; }
+    h1 { font-size: 1.75rem; margin-bottom: 0.35rem; }
+    h2 { font-size: 1.25rem; margin-top: 2rem; border-bottom: 1px solid color-mix(in srgb, CanvasText 25%, transparent); padding-bottom: 0.25rem; }
+    h3 { font-size: 1.05rem; margin-top: 1.25rem; }
+    .meta { opacity: 0.8; font-size: 0.95rem; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.95rem; }
+    th, td { border: 1px solid color-mix(in srgb, CanvasText 35%, transparent); padding: 0.45rem 0.6rem; text-align: left; vertical-align: top; }
+    blockquote { margin: 1rem 0; padding: 0.75rem 1rem; border-left: 4px solid color-mix(in srgb, CanvasText 40%, transparent); background: color-mix(in srgb, CanvasText 6%, transparent); }
+    .todo { background: #fff3cd; color: #111; padding: 0.05rem 0.2rem; border-radius: 2px; }
+    ul { padding-left: 1.25rem; }
+    code { font-size: 0.9em; }
+    footer { margin: 3rem 0 2rem; font-size: 0.9rem; opacity: 0.85; }
+  </style>
+</head>
+<body>
+  <h1>Privacy Policy — PixelFit Quest</h1>
+  <p class="meta"><strong>Effective date:</strong> 24 September 2026<br />
+  <strong>Last updated:</strong> 24 September 2026<br />
+  <strong>Controller:</strong> Tast Studio / Lukas Tast (Denmark)<br />
+  <strong>Contact:</strong> <a href="mailto:lukastast@gmail.com">lukastast@gmail.com</a> (preferred) · lukasrtast@yahoo.dk</p>
+
+  <blockquote>
+    <strong>Not legal advice.</strong> This page is for Google Play / Health Connect transparency.
+    Have a lawyer review before relying on it for GDPR or consumer law.
+    Text marked <span class="todo">TODO</span> must be confirmed by the publisher before treating this as final.
+  </blockquote>
+
+  <h2>1. Who we are</h2>
+  <p>PixelFit Quest (“PixelFit”, “the app”) is an Android fitness / gym logging app published by <strong>Tast Studio</strong> (Lukas Tast), based in Denmark. This policy explains how the app handles information when you use package <code>com.pixelfitquest</code>.</p>
+
+  <h2>2. Short summary</h2>
+  <ul>
+    <li>PixelFit is <strong>offline-first</strong>. Workout logs, progression, and most settings live in a <strong>local Room database on your phone</strong> (source of truth).</li>
+    <li>You can use core workout features <strong>without</strong> creating an account.</li>
+    <li><strong>Google Sign-In</strong> is optional.</li>
+    <li><strong>Health Connect</strong> access is optional and user-granted. Health metrics read via Health Connect are used <strong>on-device</strong> for goals and bonuses; we do <strong>not</strong> sell your data.</li>
+    <li><strong>Cloud backup / multi-device sync / leaderboards</strong> are planned as <strong>PixelFit Pro</strong> features and are <strong>not enabled</strong> in the current free build. <span class="todo">TODO: re-check when Pro ships.</span></li>
+    <li>You can <strong>export</strong> your local data (JSON/CSV) yourself and share it with apps you choose.</li>
+  </ul>
+
+  <h2>3. Information we process</h2>
+
+  <h3>3.1 Data stored only on your device (default)</h3>
+  <p>Depending on how you use the app, PixelFit may store locally:</p>
+  <ul>
+    <li>Workout sessions, sets, templates, and related gym log data</li>
+    <li>In-app progression (level, XP, streaks, coins, cosmetics unlocks)</li>
+    <li>Body / profile metrics you enter (e.g. height)</li>
+    <li>App preferences (e.g. volume)</li>
+    <li>Sensor-derived workout signals from the device accelerometer / optional gyroscope (IMU tracking) — processed on device for the active workout</li>
+    <li>Local exports you generate in cache before you share them</li>
+  </ul>
+  <p>This local data stays on your device unless <strong>you</strong> export/share it, back up the device with your own tools, or (<span class="todo">TODO: Pro</span>) enable paid cloud sync in a future version.</p>
+
+  <h3>3.2 Optional Google account (Firebase Authentication)</h3>
+  <p>If you choose Google Sign-In, Google and Firebase Authentication process identifiers such as Google account email, display name, profile photo URL (if provided), and a Firebase user ID.</p>
+  <p>Purpose: optional account linking / future Pro sync identity — <strong>not</strong> required to start workouts.</p>
+  <p><span class="todo">TODO: Confirm whether anonymous Firebase sessions are created automatically on first launch; if yes, disclose that here.</span></p>
+  <p>Account deletion: the app exposes delete-account / sign-out flows that call Firebase Auth deletion for the signed-in user.
+  <span class="todo">TODO: Also offer email deletion requests (e.g. lukastast@gmail.com, subject “PixelFit account deletion”) for Play User Data expectations.</span></p>
+
+  <h3>3.3 Health Connect (optional)</h3>
+  <p>If you grant Health Connect permissions, PixelFit may read:</p>
+  <table>
+    <thead><tr><th>Data type</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>Steps</td><td>Daily / weekly step goals and quests</td></tr>
+      <tr><td>Sleep sessions</td><td>Sleep-related goals / bonuses</td></tr>
+      <tr><td>Heart rate &amp; resting heart rate</td><td>Fitness / recovery context for goals</td></tr>
+      <tr><td>Exercise sessions (read)</td><td>Align bonuses with recent workouts</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Write exercise sessions:</strong> The app may request write permission for finished strength sessions.
+  <span class="todo">TODO: As of 2026-09-24, write is stubbed / not inserting. Update this policy when write goes live, or remove the permission.</span></p>
+  <p>Health Connect data is accessed <strong>on your device</strong>. Per current product rules and in-app rationale, PixelFit <strong>does not upload these Health Connect metrics</strong> to our servers. You can revoke access in system settings; workouts still work without it.</p>
+
+  <h3>3.4 Limited cloud configuration (non-personal)</h3>
+  <p>When online, the app may fetch game balance / progression configuration from Firebase Firestore (e.g. level XP tables). That config is not your personal workout history.</p>
+
+  <h3>3.5 Notifications</h3>
+  <p>With your permission, PixelFit may show local notifications (e.g. reminders).
+  <span class="todo">TODO: Confirm exact notification types shipped.</span></p>
+
+  <h3>3.6 What we do not do</h3>
+  <ul>
+    <li>We do <strong>not</strong> sell your personal data.</li>
+    <li>We do <strong>not</strong> show third-party advertising in the current app. <span class="todo">TODO: confirm no house-ad / cross-promo banners.</span></li>
+    <li>We do <strong>not</strong> use your Health Connect data for advertising.</li>
+  </ul>
+  <p><span class="todo">TODO — analytics / Tag Manager: confirm whether any measurement SDK is active; disclose or remove unused dependency.</span></p>
+
+  <h2>4. Legal bases (EEA/UK — GDPR summary)</h2>
+  <p><span class="todo">TODO — confirm with counsel.</span> Likely bases include: contract / requested service for the gym logger; consent for Health Connect, optional Google Sign-In, and notifications; legitimate interests for security and abuse prevention.</p>
+
+  <h2>5. Sharing</h2>
+  <table>
+    <thead><tr><th>Recipient</th><th>When</th><th>What</th></tr></thead>
+    <tbody>
+      <tr><td>Google (Sign-In / Play services)</td><td>If you sign in</td><td>Auth tokens / profile fields Google provides</td></tr>
+      <tr><td>Google Firebase</td><td>If you use account features</td><td>Auth account record; future Pro sync payloads when enabled</td></tr>
+      <tr><td>Apps you choose</td><td>If you use Share/export</td><td>Files you export</td></tr>
+      <tr><td>Health Connect / other health apps</td><td>Only via OS permissions you grant</td><td>Types you allow</td></tr>
+    </tbody>
+  </table>
+  <p>We do not sell data to data brokers.</p>
+
+  <h2>6. Retention</h2>
+  <ul>
+    <li><strong>Local Room data:</strong> kept until you clear app data, uninstall, or delete content in-app.</li>
+    <li><strong>Exports:</strong> temporary files in app cache until cleared.</li>
+    <li><strong>Firebase Auth account:</strong> until you delete the account or request deletion.</li>
+    <li><strong>Pro cloud backups (future):</strong> <span class="todo">TODO define retention when Pro ships.</span></li>
+  </ul>
+
+  <h2>7. Security</h2>
+  <p>We use platform protections (Android app sandbox, HTTPS for Google/Firebase network calls). No method is 100% secure. Health Connect access follows Android’s permission and rationale requirements.</p>
+
+  <h2>8. Children</h2>
+  <p>PixelFit Quest is intended for <strong>adults</strong> (fitness training). It is <strong>not directed at children under 13</strong> (or the equivalent age in your country). We do not knowingly collect children’s data.
+  <span class="todo">TODO: Confirm Play Console target audience excludes children / Families.</span></p>
+
+  <h2>9. International transfers</h2>
+  <p>If you use Google Sign-In / Firebase, Google may process data in data centres outside Denmark/EEA under Google’s terms and safeguards.
+  <span class="todo">TODO: Link Google’s privacy policy and confirm Firebase regions used.</span></p>
+
+  <h2>10. Your rights (Denmark / EEA)</h2>
+  <p>Subject to law, you may request access, correction, deletion, restriction, portability, or object to certain processing. Contact <a href="mailto:lukastast@gmail.com">lukastast@gmail.com</a>.</p>
+  <p>You may lodge a complaint with the Danish Data Protection Agency (<strong>Datatilsynet</strong>): <a href="https://www.datatilsynet.dk/">https://www.datatilsynet.dk/</a>.</p>
+  <p>You can also revoke Health Connect / notification permissions in Android settings; sign out or delete your PixelFit-linked Firebase account in Settings (when signed in); export and delete local data; or uninstall the app.</p>
+
+  <h2>11. Health disclaimer</h2>
+  <p>PixelFit is a consumer fitness / training logger — <strong>not</strong> a medical device and <strong>not</strong> medical advice. Do not rely on it to diagnose or treat conditions.</p>
+
+  <h2>12. Changes</h2>
+  <p>We may update this policy. The “Last updated” date will change; material changes should be highlighted in-app or on this page when feasible.</p>
+
+  <h2>13. Contact</h2>
+  <p><strong>Tast Studio / Lukas Tast</strong><br />
+  Email: <a href="mailto:lukastast@gmail.com">lukastast@gmail.com</a> (preferred)<br />
+  Alternate: lukasrtast@yahoo.dk</p>
+  <p><span class="todo">TODO: Add postal address if required for your publisher type / consumer rules.</span></p>
+
+  <footer>
+    Host this file as a public, non-geofenced HTTPS URL (recommended: GitHub Pages from <code>docs/privacy.html</code> in the PixelFit-Quest repo).
+    Paste that URL into Play Console → Policy → App content → Privacy policy, and use the same URL for Health Connect.
+  </footer>
+</body>
+</html>

@@ -2,6 +2,7 @@ package com.pixelfitquest.feature.customization.model
 
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.home.model.DwellingTier
+import com.pixelfitquest.feature.home.model.DwellingVisuals
 
 enum class UnlockType {
     DEFAULT,
@@ -64,10 +65,10 @@ object CustomizationCatalog {
             id = "fitness",
             name = "Gym Fit",
             description = "High-performance training gear.",
-            bonusDescription = "+2 coins & +2 exp per reward",
+            bonusDescription = "+2 XP and +2 coins on workout, mission, and health rewards",
             unlockType = UnlockType.COINS,
-            minLevel = 5,
-            coinPrice = 100,
+            minLevel = 8,
+            coinPrice = 180,
         ),
         CharacterItem(
             id = "shadow",
@@ -90,60 +91,22 @@ object CustomizationCatalog {
     val homeDwellings = listOf(
         HomeDwellingItem(
             id = null,
-            name = "Auto (By Level)",
-            description = "Dwelling evolves automatically as your hero levels up.",
+            name = "Best Owned",
+            description = "Shows the finest home you already own.",
             landscapeRes = R.drawable.dwelling_tarp_landscape,
             unlockType = UnlockType.DEFAULT,
         ),
+    ) + DwellingTier.entries.map { tier ->
         HomeDwellingItem(
-            id = DwellingTier.TARP.id,
-            name = "Worn Tarp",
-            description = "A humble tarp shelter for the start of your journey.",
-            landscapeRes = R.drawable.dwelling_tarp_landscape,
-            unlockType = UnlockType.LEVEL,
-            minLevel = 1,
-        ),
-        HomeDwellingItem(
-            id = DwellingTier.TENT.id,
-            name = "Campfire Tent",
-            description = "A cozy campfire tent under the night sky.",
-            landscapeRes = R.drawable.dwelling_tent_landscape,
-            unlockType = UnlockType.LEVEL,
-            minLevel = 5,
-        ),
-        HomeDwellingItem(
-            id = DwellingTier.SHACK.id,
-            name = "Wooden Shack",
-            description = "A sturdy rustic cabin built from solid timber.",
-            landscapeRes = R.drawable.dwelling_shack_landscape,
-            unlockType = UnlockType.LEVEL,
-            minLevel = 10,
-        ),
-        HomeDwellingItem(
-            id = DwellingTier.COTTAGE.id,
-            name = "Stone Cottage",
-            description = "A warm stone cottage with a roaring fireplace.",
-            landscapeRes = R.drawable.dwelling_cottage_landscape,
-            unlockType = UnlockType.LEVEL,
-            minLevel = 15,
-        ),
-        HomeDwellingItem(
-            id = DwellingTier.CASTLE.id,
-            name = "Grand Keep",
-            description = "A majestic stone castle fit for a quest champion.",
-            landscapeRes = R.drawable.dwelling_castle_landscape,
-            unlockType = UnlockType.LEVEL,
-            minLevel = 25,
-        ),
-        HomeDwellingItem(
-            id = DwellingTier.GYM.id,
-            name = "Iron Gym Dwelling",
-            description = "An iron gym with personal workout gear and bed.",
-            landscapeRes = R.drawable.dwelling_gym_landscape,
-            unlockType = UnlockType.COINS,
-            coinPrice = 150,
-        ),
-    )
+            id = tier.id,
+            name = tier.displayName,
+            description = tier.shopDescription(),
+            landscapeRes = DwellingVisuals.landscapeBgRes(tier),
+            unlockType = if (tier.coinPrice > 0) UnlockType.COINS else UnlockType.DEFAULT,
+            minLevel = tier.minLevel,
+            coinPrice = tier.coinPrice.takeIf { it > 0 },
+        )
+    }
 
     val gyms = listOf(
         GymItem(
@@ -167,7 +130,8 @@ object CustomizationCatalog {
             description = "Torchlit ancient stone vault with heavy iron equipment.",
             drawableRes = R.drawable.gym_dungeon,
             unlockType = UnlockType.COINS,
-            coinPrice = 150,
+            minLevel = 18,
+            coinPrice = 320,
         ),
         GymItem(
             id = "gym_cyber",
@@ -183,7 +147,8 @@ object CustomizationCatalog {
             description = "Open-air rooftop gym overlooking the city skyline.",
             drawableRes = R.drawable.gym_rooftop,
             unlockType = UnlockType.COINS,
-            coinPrice = 200,
+            minLevel = 40,
+            coinPrice = 700,
         ),
         GymItem(
             id = "gym_champion",

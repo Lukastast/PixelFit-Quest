@@ -3,6 +3,7 @@ package com.pixelfitquest.feature.customization.model
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.home.model.DwellingTier
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -20,8 +21,8 @@ class CustomizationCatalogTest {
         val fitness = chars.find { it.id == "fitness" }
         assertNotNull(fitness)
         assertEquals(UnlockType.COINS, fitness?.unlockType)
-        assertEquals(100, fitness?.coinPrice)
-        assertEquals(5, fitness?.minLevel)
+        assertEquals(180, fitness?.coinPrice)
+        assertEquals(8, fitness?.minLevel)
 
         val shadow = chars.find { it.id == "shadow" }
         assertNotNull(shadow)
@@ -35,11 +36,60 @@ class CustomizationCatalogTest {
     }
 
     @Test
+    fun fitnessGear_requiresCoinsEvenAfterItsLevelGate() {
+        val fitness = CustomizationCatalog.characters.first { it.id == "fitness" }
+        assertFalse(
+            isCharacterUnlocked(
+                item = fitness,
+                variant = "male_fitness",
+                userLevel = 8,
+                unlockedVariants = emptySet(),
+                unlockedLevelSkinIds = emptySet(),
+            ),
+        )
+        assertTrue(purchaseBlockedByLevel(unlocked = false, minLevel = 8, userLevel = 7))
+        assertFalse(purchaseBlockedByLevel(unlocked = false, minLevel = 8, userLevel = 8))
+        assertTrue(
+            isCharacterUnlocked(
+                item = fitness,
+                variant = "male_fitness",
+                userLevel = 3,
+                unlockedVariants = setOf("male_fitness"),
+                unlockedLevelSkinIds = emptySet(),
+            ),
+        )
+    }
+
+    @Test
+    fun grandfatherFitness_onlyForHeroesAlreadyPastTheOldGate() {
+        val granted = grandfatherFitnessVariants(
+            level = 8,
+            ownedVariants = listOf("basic"),
+            alreadyMigrated = false,
+        )
+        assertTrue(granted.contains("male_fitness"))
+        assertTrue(granted.contains("female_fitness"))
+        val newbie = grandfatherFitnessVariants(
+            level = 1,
+            ownedVariants = listOf("basic"),
+            alreadyMigrated = false,
+        )
+        assertFalse(newbie.contains("male_fitness"))
+        val later = grandfatherFitnessVariants(
+            level = 20,
+            ownedVariants = listOf("basic"),
+            alreadyMigrated = true,
+        )
+        assertFalse(later.contains("male_fitness"))
+    }
+
+    @Test
     fun homeDwellingsCatalog_hasAutoAndAllTiers() {
         val dwellings = CustomizationCatalog.homeDwellings
         val auto = dwellings.find { it.id == null }
         assertNotNull(auto)
         assertEquals(UnlockType.DEFAULT, auto?.unlockType)
+        assertEquals("Best Owned", auto?.name)
 
         DwellingTier.entries.forEach { tier ->
             val found = dwellings.find { it.id == tier.id }
@@ -48,7 +98,10 @@ class CustomizationCatalogTest {
 
         val gymDwelling = dwellings.find { it.id == DwellingTier.GYM.id }
         assertEquals(UnlockType.COINS, gymDwelling?.unlockType)
-        assertEquals(150, gymDwelling?.coinPrice)
+        assertEquals(DwellingTier.GYM.coinPrice, gymDwelling?.coinPrice)
+        assertEquals(DwellingTier.GYM.minLevel, gymDwelling?.minLevel)
+        val tarp = dwellings.find { it.id == DwellingTier.TARP.id }
+        assertEquals(UnlockType.DEFAULT, tarp?.unlockType)
     }
 
     @Test
@@ -80,12 +133,14 @@ class CustomizationCatalogTest {
         val dungeonGym = gyms.find { it.id == "gym_dungeon" }
         assertNotNull(dungeonGym)
         assertEquals(UnlockType.COINS, dungeonGym?.unlockType)
-        assertEquals(150, dungeonGym?.coinPrice)
+        assertEquals(18, dungeonGym?.minLevel)
+        assertEquals(320, dungeonGym?.coinPrice)
 
         val rooftopGym = gyms.find { it.id == "gym_rooftop" }
         assertNotNull(rooftopGym)
         assertEquals(UnlockType.COINS, rooftopGym?.unlockType)
-        assertEquals(200, rooftopGym?.coinPrice)
+        assertEquals(40, rooftopGym?.minLevel)
+        assertEquals(700, rooftopGym?.coinPrice)
     }
 
     @Test

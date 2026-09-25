@@ -3,28 +3,50 @@ package com.pixelfitquest.feature.levels.progression
 import com.pixelfitquest.feature.levels.model.LevelProgress
 
 /**
- * Local XP curve. Matches the existing on-device formula used by
- * [com.pixelfitquest.firebase.repository.UserRepository]: cost to leave
- * level L is `100 * L`, max level 30.
+ * Local XP curve through level 100.
  *
- * Phone/Room is the source of truth. This object has no Firebase.
+ * Cost to leave level L is `88 + 12L + L²/50` (integer math). Level 1 still
+ * costs 100 XP, about one workout. Later levels rise slowly enough that a
+ * steady training week still moves the bar at level 90. Phone storage is the
+ * source of truth; this object has no Firebase.
  */
 object LevelCurve {
-    const val MAX_LEVEL = 30
-    const val BASE_XP = 100
+    const val MAX_LEVEL = 100
 
-    fun xpToAdvance(fromLevel: Int): Int {
-        val level = fromLevel.coerceIn(1, MAX_LEVEL)
-        return BASE_XP * level
+    private val costByLevel = IntArray(MAX_LEVEL + 1)
+    private val totalToReach = IntArray(MAX_LEVEL + 1)
+
+    init {
+        var sum = 0
+        for (level in 1..MAX_LEVEL) {
+            costByLevel[level] = 88 + 12 * level + (level * level) / 50
+            totalToReach[level] = sum
+            sum += costByLevel[level]
+        }
     }
+
+    fun xpToAdvance(fromLevel: Int): Int = costByLevel[fromLevel.coerceIn(1, MAX_LEVEL)]
 
     /** Total XP required to *reach* [level] (xp into that level is 0). */
-    fun totalXpForLevel(level: Int): Int {
-        val l = level.coerceIn(1, MAX_LEVEL)
-        return BASE_XP * (l - 1) * l / 2
-    }
+    fun totalXpForLevel(level: Int): Int = totalToReach[level.coerceIn(1, MAX_LEVEL)]
 
     fun maxTotalXp(): Int = totalXpForLevel(MAX_LEVEL) + xpToAdvance(MAX_LEVEL)
+
+    /** Coins paid once, when the hero arrives on [level]. */
+    fun coinsForReaching(level: Int): Int {
+        if (level <= 1) return 0
+        return 10 + (level / 5) * 5
+    }
+
+    fun coinsForLevels(previousLevel: Int, newLevel: Int): Int {
+        if (newLevel <= previousLevel) return 0
+        var sum = 0
+        val last = newLevel.coerceAtMost(MAX_LEVEL)
+        for (level in (previousLevel + 1)..last) {
+            sum += coinsForReaching(level)
+        }
+        return sum
+    }
 
     fun progressFromTotalXp(totalXp: Int): LevelProgress {
         val capped = totalXp.coerceIn(0, maxTotalXp())
@@ -49,8 +71,8 @@ object LevelCurve {
     }
 
     /**
-     * Convert a remote (level, xp-into-level) pair into local total XP.
-     * Used once to seed the phone store; not an ongoing sync.
+     * Convert a stored (level, xp-into-level) pair into total XP.
+     * Used to seed the phone store and to draw the bar. Not an ongoing sync.
      */
     fun totalXpFromRemote(level: Int, xpIntoLevel: Int): Int {
         val safeLevel = level.coerceIn(1, MAX_LEVEL)

@@ -137,7 +137,8 @@ fun WorkoutScreen(
 
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { workoutId ->
-            navController.navigate("workout_resume/$workoutId") {
+            val route = if (workoutId.isBlank()) HOME_SCREEN else "workout_resume/$workoutId"
+            navController.navigate(route) {
                 popUpTo(HOME_SCREEN) { inclusive = false }
                 launchSingleTop = true
             }
@@ -147,7 +148,10 @@ fun WorkoutScreen(
     LaunchedEffect(Unit) {
         if (plan.items.isEmpty()) {
             viewModel.setError(context.getString(R.string.no_plan_error))
-            openScreen("workout_customization")
+            navController.navigate(HOME_SCREEN) {
+                popUpTo(HOME_SCREEN) { inclusive = false }
+                launchSingleTop = true
+            }
             return@LaunchedEffect
         }
         viewModel.startWorkoutFromPlan(plan, templateName)
@@ -293,10 +297,7 @@ fun WorkoutScreen(
                     }
                 }
                 PixelArtButton(
-                    onClick = {
-                        viewModel.stopWorkout()
-                        openScreen("workout_customization")
-                    },
+                    onClick = { viewModel.leaveWorkout() },
                     imageRes = R.drawable.stop_button_unclicked,
                     pressedRes = R.drawable.stop_button_clicked,
                     modifier = Modifier.size(buttonSize),

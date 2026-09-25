@@ -5,6 +5,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.firebase.FirebaseApp
+import com.pixelfitquest.debug.GodModePrefs
 import dagger.hilt.android.HiltAndroidApp
 import java.util.concurrent.TimeUnit
 
@@ -15,5 +16,6 @@ class PixelFitQuest : Application() {
         super.onCreate()
 
         FirebaseApp.initializeApp(this)
+        GodModePrefs.init(this)
     }
 }

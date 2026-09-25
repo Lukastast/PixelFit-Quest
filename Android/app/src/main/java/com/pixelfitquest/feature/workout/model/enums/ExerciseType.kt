@@ -3,8 +3,8 @@ package com.pixelfitquest.feature.workout.model.enums
 import com.pixelfitquest.feature.workout.catalog.ExerciseCatalog
 
 /**
- * Stable ids for logging. The first six match shipped IMU profiles; everything
- * after is catalog/log-only until a profile is added elsewhere (do not invent math here).
+ * Stable ids for logging. IMU math lives in ExerciseProfiles; a lift is tracked
+ * only when the catalog sets imuSupported and a matching profile exists.
  */
 enum class ExerciseType {
     // IMU-backed (ExerciseProfiles)

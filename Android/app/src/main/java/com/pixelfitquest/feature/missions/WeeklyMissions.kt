@@ -63,9 +63,16 @@ data class WeeklyMissionStats(
     }
 }
 
+data class MissionSwap(
+    val fromId: String,
+    val toId: String,
+)
+
 data class WeeklyMissionBoard(
     val weekKey: String,
     val missions: List<MissionProgress>,
+    val rerollAvailable: Boolean = true,
+    val rerollCost: Int = WeeklyMissions.REROLL_COST,
 ) {
     val completedCount: Int get() = missions.count { it.isComplete }
 
@@ -80,6 +87,7 @@ data class WeeklyMissionBoard(
  * Rewards are fixed on the mission, not shuffled independently.
  */
 object WeeklyMissions {
+    const val REROLL_COST = 50
     val catalog: List<MissionDefinition> = listOf(
         mission("workouts_2", "Finish 2 workouts", MissionMetric.WORKOUTS, 2, xp = 80, coins = 10),
         mission("workouts_4", "Finish 4 workouts", MissionMetric.WORKOUTS, 4, xp = 150, coins = 25),
@@ -111,6 +119,26 @@ object WeeklyMissions {
         return picked
     }
 
+    /** Next same-metric mission that is not already on the board. Higher target first. */
+    fun replacementFor(board: List<MissionDefinition>, missionId: String): MissionDefinition? {
+        val current = board.find { it.id == missionId } ?: return null
+        val available = catalog
+            .filter { it.metric == current.metric }
+            .filter { candidate -> board.none { it.id == candidate.id } }
+            .sortedBy { it.target }
+        if (available.isEmpty()) return null
+        return available.firstOrNull { it.target > current.target } ?: available.first()
+    }
+
+    fun applySwap(board: List<MissionDefinition>, swap: MissionSwap?): List<MissionDefinition> {
+        if (swap == null) return board
+        val replacement = catalog.find { it.id == swap.toId } ?: return board
+        if (board.none { it.id == swap.fromId }) return board
+        if (board.any { it.id == swap.toId }) return board
+        val current = board.first { it.id == swap.fromId }
+        if (replacement.metric != current.metric) return board
+        return board.map { if (it.id == swap.fromId) replacement else it }
+    }
     fun stats(
         workouts: List<Workout>,
         weeklySteps: Long,
@@ -147,16 +175,21 @@ object WeeklyMissions {
         weekStart: Instant,
         weekEnd: Instant,
         claimedIds: Set<String>,
+        swap: MissionSwap? = null,
     ): WeeklyMissionBoard {
         val totals = stats(workouts, weeklySteps, weekStart, weekEnd)
-        val missions = boardForWeek(weekKey).map { definition ->
+        val missions = applySwap(boardForWeek(weekKey), swap).map { definition ->
             MissionProgress(
                 definition = definition,
                 current = totals.valueOf(definition.metric),
                 claimed = definition.id in claimedIds,
             )
         }
-        return WeeklyMissionBoard(weekKey = weekKey, missions = missions)
+        return WeeklyMissionBoard(
+            weekKey = weekKey,
+            missions = missions,
+            rerollAvailable = swap == null,
+        )
     }
 
     fun newlyClaimable(missions: List<MissionProgress>): List<MissionDefinition> {

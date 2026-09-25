@@ -1,6 +1,6 @@
 package com.pixelfitquest.feature.workout.analysis
 
-const val ANALYSIS_VERSION = 2
+const val ANALYSIS_VERSION = 3
 
 data class AnalyzerUser(
     val heightCm: Int,
@@ -20,6 +20,10 @@ data class DetectedRep(
     val romScore: Float,
     val stabilityScore: Float? = null,
     val tempoScore: Float? = null,
+    /** Signed degrees. Positive = pushing more to the right. */
+    val levelDeg: Float? = null,
+    /** Signed degrees. Positive = right hand closer to the head. */
+    val twistDeg: Float? = null,
     val formScore: Float,
     val tags: List<String>,
     val confidence: Float,
@@ -29,7 +33,7 @@ data class DetectedRep(
 
     fun withRomPercent(percent: Float): DetectedRep {
         val rom = percent.coerceIn(0f, 100f)
-        val form = formScoreFrom(rom, stabilityScore, tempoScore)
+        val form = formScoreFrom(romScore = rom, tempoScore = tempoScore, barQuality = stabilityScore)
         val nextTags = buildList {
             addAll(if (isManual) tags else tags + "rom_override")
             if (rom < 70f) add("short_rom")
@@ -40,13 +44,31 @@ data class DetectedRep(
     }
 }
 
-internal fun formScoreFrom(
-    romScore: Float,
-    stabilityScore: Float?,
-    tempoScore: Float?,
+/** Range of motion is the main quality of the rep; bar control next; tempo last. */
+const val FORM_ROM_WEIGHT = 0.50f
+const val FORM_BAR_WEIGHT = 0.30f
+const val FORM_TEMPO_WEIGHT = 0.20f
+
+fun formScoreFrom(
+    romScore: Float? = null,
+    tempoScore: Float? = null,
+    barQuality: Float? = null,
 ): Float {
-    val scores = listOfNotNull(romScore, stabilityScore, tempoScore)
-    return if (scores.isEmpty()) romScore else scores.average().toFloat()
+    var total = 0f
+    var weight = 0f
+    if (romScore != null) {
+        total += romScore * FORM_ROM_WEIGHT
+        weight += FORM_ROM_WEIGHT
+    }
+    if (barQuality != null) {
+        total += barQuality * FORM_BAR_WEIGHT
+        weight += FORM_BAR_WEIGHT
+    }
+    if (tempoScore != null) {
+        total += tempoScore * FORM_TEMPO_WEIGHT
+        weight += FORM_TEMPO_WEIGHT
+    }
+    return if (weight <= 0f) 0f else total / weight
 }
 
 data class SetAnalysis(

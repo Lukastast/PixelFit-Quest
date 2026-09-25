@@ -2,6 +2,17 @@ package com.pixelfitquest.local
 
 import androidx.room.withTransaction
 import com.pixelfitquest.feature.customization.model.CharacterData
+import com.pixelfitquest.feature.customization.model.grandfatherFitnessVariants
+import com.pixelfitquest.feature.home.model.DwellingTier
+import com.pixelfitquest.feature.progression.ClaimedWorkoutReward
+import com.pixelfitquest.feature.progression.DailyTrainingReward
+import com.pixelfitquest.feature.progression.RespecOutcome
+import com.pixelfitquest.feature.progression.RewardBonus
+import com.pixelfitquest.feature.progression.RewardSet
+import com.pixelfitquest.feature.progression.SkillBranch
+import com.pixelfitquest.feature.progression.SkillLoadout
+import com.pixelfitquest.feature.progression.SkillTree
+import java.time.LocalDate
 import com.pixelfitquest.feature.workout.model.Exercise
 import com.pixelfitquest.feature.workout.model.Workout
 import com.pixelfitquest.feature.workout.model.WorkoutSet
@@ -35,7 +46,26 @@ class LocalPixelFitStore @Inject constructor(
     private val profileMutex = Mutex()
 
     suspend fun ensureProfile(): UserProfileEntity = profileMutex.withLock {
-        userDao.get() ?: UserProfileEntity.default().also { userDao.upsert(it) }
+        val current = userDao.get() ?: UserProfileEntity.default().also { userDao.upsert(it) }
+        if (current.dwellingLegacyMigrated != 0) return@withLock current
+        val character = current.toCharacter()
+        val migratedHomes = DwellingTier.migrateOwnership(
+            level = current.level,
+            ownedIds = character.unlockedHomeUpgrades,
+            alreadyMigrated = false,
+        )
+        val migratedVariants = grandfatherFitnessVariants(
+            level = current.level,
+            ownedVariants = character.unlockedVariants,
+            alreadyMigrated = false,
+        )
+        val next = current.copy(
+            dwellingLegacyMigrated = 1,
+            unlockedHomeUpgradesCsv = migratedHomes.joinToString(","),
+            unlockedVariantsCsv = UserProfileEntity.variantsCsv(migratedVariants),
+        )
+        userDao.upsert(next)
+        next
     }
 
     fun observeUserData(): Flow<UserData> =
@@ -101,6 +131,122 @@ class LocalPixelFitStore @Inject constructor(
         }
 
     suspend fun getCharacter(): CharacterData = ensureProfile().toCharacter()
+
+    fun observeSkills(): Flow<SkillLoadout> =
+        userDao.observe().onStart { ensureProfile() }.map { entity ->
+            (entity ?: UserProfileEntity.default()).toSkills()
+        }
+
+    suspend fun skillLoadout(): SkillLoadout = ensureProfile().toSkills()
+
+    suspend fun spendSkillPoint(branch: SkillBranch): Boolean = profileMutex.withLock {
+        val current = userDao.get() ?: return@withLock false
+        val rank = current.rankOf(branch)
+        if (rank >= SkillTree.MAX_RANK) return@withLock false
+        val unspent = SkillTree.unspent(
+            current.level,
+            current.skillForm,
+            current.skillIron,
+            current.skillVitality,
+        )
+        if (unspent <= 0) return@withLock false
+        val next = when (branch) {
+            SkillBranch.FORM -> current.copy(skillForm = rank + 1)
+            SkillBranch.IRON -> current.copy(skillIron = rank + 1)
+            SkillBranch.VITALITY -> current.copy(skillVitality = rank + 1)
+        }
+        userDao.upsert(next)
+        true
+    }
+
+    suspend fun respecSkills(today: LocalDate = LocalDate.now()): RespecOutcome = profileMutex.withLock {
+        val current = userDao.get() ?: return@withLock RespecOutcome.NOTHING_SPENT
+        val spent = current.skillForm + current.skillIron + current.skillVitality
+        if (spent <= 0) return@withLock RespecOutcome.NOTHING_SPENT
+        if (!SkillTree.respecAllowed(today, current.skillRespecDate)) return@withLock RespecOutcome.COOLDOWN
+        if (current.coins < SkillTree.RESPEC_COST) return@withLock RespecOutcome.CANT_AFFORD
+        userDao.upsert(
+            current.copy(
+                skillForm = 0,
+                skillIron = 0,
+                skillVitality = 0,
+                skillRespecDate = today.toString(),
+                coins = current.coins - SkillTree.RESPEC_COST,
+            ),
+        )
+        RespecOutcome.RESET
+    }
+
+    /**
+     * Pays a workout at most once. Marks the workout awarded and consumes today's
+     * set budget in the same transaction.
+     */
+    suspend fun claimWorkoutReward(
+        workoutId: String,
+        sets: List<RewardSet>,
+        today: String = LocalDate.now().toString(),
+    ): ClaimedWorkoutReward? = profileMutex.withLock {
+        db.withTransaction {
+            val row = workoutDao.getWorkout(workoutId) ?: return@withTransaction null
+            val workout = decodeWorkout(row.payloadJson) ?: return@withTransaction null
+            if (workout.rewardsAwarded) {
+                val storedXp = workout.awardedXp
+                if (storedXp == null) return@withTransaction null
+                return@withTransaction ClaimedWorkoutReward(
+                    xp = storedXp,
+                    coins = workout.awardedCoins ?: 0,
+                    clipped = workout.rewardClipped,
+                    fresh = false,
+                )
+            }
+            val profile = userDao.get() ?: UserProfileEntity.default()
+            val used = if (profile.rewardedSetsDate == today) {
+                profile.rewardedSetsCount.coerceIn(0, DailyTrainingReward.MAX_SETS_PER_DAY)
+            } else {
+                0
+            }
+            val clip = DailyTrainingReward.clip(sets, used)
+            val character = profile.toCharacter()
+            val skills = profile.toSkills()
+            val payout = RewardBonus.workoutPayout(
+                baseXp = clip.xp,
+                baseCoins = clip.coins,
+                dwelling = DwellingTier.resolve(
+                    character.equippedHomeUpgrade,
+                    character.unlockedHomeUpgrades,
+                ),
+                variant = character.variant,
+                perfectSetXp = clip.perfectSetXp,
+                formRank = skills.form,
+                ironRank = skills.iron,
+            )
+            userDao.upsert(
+                profile.copy(
+                    rewardedSetsDate = today,
+                    rewardedSetsCount = used + clip.setsConsumed,
+                ),
+            )
+            val saved = workout.copy(
+                rewardsAwarded = true,
+                awardedXp = payout.xp,
+                awardedCoins = payout.coins,
+                rewardClipped = clip.clipped,
+            )
+            workoutDao.upsertWorkout(
+                com.pixelfitquest.local.db.entity.LocalWorkoutEntity(
+                    id = saved.id.ifBlank { workoutId },
+                    date = saved.date.ifBlank { row.date },
+                    payloadJson = LocalJson.toJson(saved.toMap()),
+                ),
+            )
+            ClaimedWorkoutReward(
+                xp = payout.xp,
+                coins = payout.coins,
+                clipped = clip.clipped,
+                fresh = true,
+            )
+        }
+    }
 
     suspend fun resetUnlockedVariants() {
         replaceProfile { current ->
@@ -311,4 +457,17 @@ class LocalPixelFitStore @Inject constructor(
         is String -> value.toFloatOrNull()
         else -> null
     }
+
+    private fun UserProfileEntity.rankOf(branch: SkillBranch): Int = when (branch) {
+        SkillBranch.FORM -> skillForm
+        SkillBranch.IRON -> skillIron
+        SkillBranch.VITALITY -> skillVitality
+    }.coerceIn(0, SkillTree.MAX_RANK)
+
+    private fun UserProfileEntity.toSkills(): SkillLoadout = SkillLoadout(
+        form = skillForm.coerceIn(0, SkillTree.MAX_RANK),
+        iron = skillIron.coerceIn(0, SkillTree.MAX_RANK),
+        vitality = skillVitality.coerceIn(0, SkillTree.MAX_RANK),
+        lastRespecDate = skillRespecDate,
+    )
 }

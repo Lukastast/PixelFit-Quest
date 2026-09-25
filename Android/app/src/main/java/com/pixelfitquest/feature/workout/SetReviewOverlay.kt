@@ -27,7 +27,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
+import com.pixelfitquest.feature.workout.analysis.BAR_EVEN_DEG
+import com.pixelfitquest.feature.workout.analysis.CoachingTags
 import com.pixelfitquest.feature.workout.analysis.DetectedRep
+import com.pixelfitquest.feature.workout.analysis.TAG_CLIP_POSE
 import com.pixelfitquest.feature.workout.model.SetReviewState
 import com.pixelfitquest.ui.theme.LocalSpacing
 import com.pixelfitquest.ui.theme.determination
@@ -70,11 +73,19 @@ fun SetReviewOverlay(
                     color = Color.White.copy(alpha = 0.85f),
                     fontSize = 13.sp,
                 )
+                if (TAG_CLIP_POSE in review.analysis.flags) {
+                    Text(
+                        text = stringResource(R.string.tag_clip_pose),
+                        color = Color(0xFFFFCC80),
+                        fontSize = 12.sp,
+                    )
+                }
             }
             items(review.reps, key = { it.index }) { rep ->
+                val rowIndex = review.reps.indexOfFirst { it.index == rep.index }
                 RepRow(
                     rep = rep,
-                    canMerge = rep.index < review.reps.lastIndex,
+                    canMerge = shouldOfferMerge(review.reps, rowIndex),
                     onAccept = { onAcceptCandidate(rep.index) },
                     onRemove = { onRemove(rep.index) },
                     onMerge = { onMerge(rep.index) },
@@ -267,15 +278,28 @@ private fun RepRow(
                     R.string.set_review_rep_meta,
                     (rep.eccentricMs / 100) / 10f,
                     (rep.concentricMs / 100) / 10f,
-                    (rep.stabilityScore ?: 0f).toInt(),
                 ),
                 color = Color.White.copy(alpha = 0.75f),
                 fontSize = 11.sp,
             )
         }
-        if (rep.tags.isNotEmpty()) {
+        if (!rep.isManual && (rep.levelDeg != null || rep.twistDeg != null)) {
             Text(
-                text = rep.tags.joinToString(" · "),
+                text = stringResource(
+                    R.string.set_review_rep_imbalance,
+                    levelLabel(rep.levelDeg ?: 0f),
+                    twistLabel(rep.twistDeg ?: 0f),
+                ),
+                color = Color.White.copy(alpha = 0.75f),
+                fontSize = 11.sp,
+            )
+        }
+        val visibleTags = CoachingTags.visible(rep.tags)
+        if (visibleTags.isNotEmpty()) {
+            Text(
+                text = visibleTags.map { tag ->
+                    CoachingTags.labelRes(tag)?.let { res -> stringResource(res) } ?: tag
+                }.joinToString(" · "),
                 color = Color(0xFFFFCC80),
                 fontSize = 11.sp,
             )
@@ -382,4 +406,30 @@ private fun gradeColor(score: Float): Color = when {
     score >= 70 -> Color.Yellow
     score >= 50 -> Color(0xFFFFA500)
     else -> Color.Red
+}
+
+private fun shouldOfferMerge(reps: List<DetectedRep>, index: Int): Boolean {
+    if (index < 0 || index >= reps.lastIndex) return false
+    return looksLikeSplit(reps[index]) || looksLikeSplit(reps[index + 1])
+}
+
+private fun looksLikeSplit(rep: DetectedRep): Boolean =
+    "candidate" in rep.tags || "truncated" in rep.tags
+
+private fun levelLabel(deg: Float): String {
+    val mag = kotlin.math.abs(deg).toInt()
+    return when {
+        deg > BAR_EVEN_DEG -> "R $mag°"
+        deg < -BAR_EVEN_DEG -> "L $mag°"
+        else -> "even"
+    }
+}
+
+private fun twistLabel(deg: Float): String {
+    val mag = kotlin.math.abs(deg).toInt()
+    return when {
+        deg > BAR_EVEN_DEG -> "$mag° toward head"
+        deg < -BAR_EVEN_DEG -> "$mag° toward hip"
+        else -> "even"
+    }
 }

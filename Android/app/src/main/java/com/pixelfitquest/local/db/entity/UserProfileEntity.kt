@@ -32,6 +32,14 @@ data class UserProfileEntity(
     val unlockedGymsCsv: String = "gym_standard",
     val equippedAppBackground: String = "bg_classic",
     val unlockedAppBackgroundsCsv: String = "bg_classic,bg_ember",
+    /** 1 after the one-time grant of homes the old level curve gave away. */
+    val dwellingLegacyMigrated: Int = 0,
+    val skillForm: Int = 0,
+    val skillIron: Int = 0,
+    val skillVitality: Int = 0,
+    val skillRespecDate: String = "",
+    val rewardedSetsDate: String = "",
+    val rewardedSetsCount: Int = 0,
 ) {
     fun toUserData(): UserData = UserData(
         height = height,

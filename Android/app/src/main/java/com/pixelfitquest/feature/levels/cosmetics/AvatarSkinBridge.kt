@@ -1,5 +1,6 @@
 package com.pixelfitquest.feature.levels.cosmetics
 
+import com.pixelfitquest.debug.GodModePrefs
 import com.pixelfitquest.feature.levels.model.CosmeticCatalog
 
 /**
@@ -23,19 +24,21 @@ object AvatarSkinBridge {
     }
 
     fun isUnlockedByLevel(variant: String, unlockedCosmeticIds: Set<String>): Boolean {
+        if (GodModePrefs.isGodModeActive) return true
         if (variant.contains("premium")) return false
         return cosmeticIdForVariant(variant) in unlockedCosmeticIds
     }
 
     fun spriteKey(variant: String, gender: String, unlocked: Boolean): String {
         val female = gender == "female"
+        val effectiveUnlocked = unlocked || GodModePrefs.isGodModeActive
         return when {
             variant == VARIANT_BASIC -> gender
             variant == VARIANT_SHADOW -> if (female) "locked_woman" else "locked_male"
-            variant.contains("fitness") && unlocked -> {
+            variant.contains("fitness") && effectiveUnlocked -> {
                 if (female) "fitness_character_woman_idle" else "fitness_character_male_idle"
             }
-            variant.contains("premium") || !unlocked -> {
+            !effectiveUnlocked -> {
                 if (female) "locked_woman" else "locked_male"
             }
             else -> gender

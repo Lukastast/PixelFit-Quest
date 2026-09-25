@@ -26,8 +26,6 @@ enum class QualityMetric {
     ROM,
     PATH_TILT,
     TEMPO,
-    BOTTOM_PAUSE,
-    LOCKOUT,
 }
 
 enum class RomUnit {

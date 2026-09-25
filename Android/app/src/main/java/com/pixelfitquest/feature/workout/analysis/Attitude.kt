@@ -2,6 +2,7 @@ package com.pixelfitquest.feature.workout.analysis
 
 import com.pixelfitquest.feature.workout.sensor.BarCalibration
 import com.pixelfitquest.feature.workout.sensor.ImuSample
+import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -13,6 +14,8 @@ internal data class AttitudeSeries(
     val roll: FloatArray,
     val pitch: FloatArray,
     val yaw: FloatArray,
+    /** Elevation of device +X (bar axis) vs horizon, radians. Independent of set-start heading. */
+    val barLevel: FloatArray,
     val usedRotationVector: Boolean,
     val usedGyro: Boolean,
 )
@@ -50,6 +53,7 @@ internal object Attitude {
         val roll = FloatArray(n)
         val pitch = FloatArray(n)
         val yaw = FloatArray(n)
+        val barLevel = FloatArray(n)
         val q0inv = invert(q[0])
 
         for (i in 0 until n) {
@@ -64,6 +68,8 @@ internal object Attitude {
             roll[i] = rv[0]
             pitch[i] = rv[1]
             yaw[i] = rv[2]
+            val barWorld = Signal.mulMatVec(r, floatArrayOf(1f, 0f, 0f))
+            barLevel[i] = asin(barWorld[2].coerceIn(-1f, 1f))
         }
 
         return AttitudeSeries(
@@ -72,6 +78,7 @@ internal object Attitude {
             roll = roll,
             pitch = pitch,
             yaw = yaw,
+            barLevel = barLevel,
             usedRotationVector = usedRv,
             usedGyro = usedGyro,
         )

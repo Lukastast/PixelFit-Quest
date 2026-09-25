@@ -47,6 +47,8 @@ import com.pixelfitquest.ui.theme.spacing
 @Composable
 fun MissionsDialog(
     missions: List<MissionProgress>,
+    rerollAvailable: Boolean = false,
+    onReroll: (String) -> Unit = {},
     onDismiss: () -> Unit,
 ) {
     val spacing = MaterialTheme.spacing
@@ -92,7 +94,7 @@ fun MissionsDialog(
                         .verticalScroll(rememberScrollState()),
                 ) {
                     missions.forEach { mission ->
-                        MissionRow(mission)
+                        MissionRow(mission, rerollAvailable, onReroll)
                     }
                 }
             }
@@ -101,7 +103,11 @@ fun MissionsDialog(
 }
 
 @Composable
-private fun MissionRow(mission: MissionProgress) {
+private fun MissionRow(
+    mission: MissionProgress,
+    rerollAvailable: Boolean,
+    onReroll: (String) -> Unit,
+) {
     val spacing = MaterialTheme.spacing
     val definition = mission.definition
     val target = definition.target.coerceAtLeast(0L)
@@ -159,6 +165,17 @@ private fun MissionRow(mission: MissionProgress) {
                     )
                 }
             }
+        }
+        if (rerollAvailable && !done) {
+            Text(
+                text = stringResource(R.string.mission_reroll),
+                color = ImperialGold,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(top = spacing.xxs)
+                    .clickable { onReroll(definition.id) },
+            )
         }
     }
 }

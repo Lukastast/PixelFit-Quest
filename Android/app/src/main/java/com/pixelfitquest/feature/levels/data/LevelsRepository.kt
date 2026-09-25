@@ -1,5 +1,6 @@
 package com.pixelfitquest.feature.levels.data
 
+import com.pixelfitquest.debug.GodModePrefs
 import com.pixelfitquest.feature.levels.cosmetics.CharacterSkinPort
 import com.pixelfitquest.feature.levels.cosmetics.CloudProgressMirror
 import com.pixelfitquest.feature.levels.cosmetics.HomeThemePort
@@ -13,6 +14,7 @@ import com.pixelfitquest.feature.levels.model.LevelUpResult
 import com.pixelfitquest.feature.levels.model.LevelsPersistedState
 import com.pixelfitquest.feature.levels.model.LevelsSnapshot
 import com.pixelfitquest.feature.levels.progression.CosmeticUnlocker
+import com.pixelfitquest.feature.levels.progression.LevelCurve
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -107,6 +109,7 @@ class DefaultLevelsRepository @Inject constructor(
                 previous = previous,
                 current = current,
                 newlyUnlocked = newly,
+                coinsGranted = LevelCurve.coinsForLevels(previous.level, current.level),
             )
             if (result.leveledUp) {
                 pendingLevelUp.value = result
@@ -120,7 +123,7 @@ class DefaultLevelsRepository @Inject constructor(
         val progress = xpSource.loadProgress()
         val loaded = withBaseline(store.load(), progress.level)
         val definition = CosmeticCatalog.byId(id) ?: return@withLock false
-        if (id !in loaded.unlockedIds) return@withLock false
+        if (!GodModePrefs.isGodModeActive && id !in loaded.unlockedIds) return@withLock false
         val next = when (definition.kind) {
             CosmeticKind.HOME_THEME -> loaded.copy(equippedHomeThemeId = id)
             CosmeticKind.CHARACTER_SKIN -> loaded.copy(equippedCharacterSkinId = id)
@@ -199,10 +202,11 @@ class DefaultLevelsRepository @Inject constructor(
             characterSkinId = state.equippedCharacterSkinId,
             titleId = state.equippedTitleId,
         )
+        val isGod = GodModePrefs.isGodModeActive
         val items = CosmeticCatalog.all.map { definition ->
             CosmeticItem(
                 definition = definition,
-                unlocked = definition.id in state.unlockedIds ||
+                unlocked = isGod || definition.id in state.unlockedIds ||
                     definition.unlockLevel <= progress.level,
                 equipped = definition.id == when (definition.kind) {
                     CosmeticKind.HOME_THEME -> equipped.homeThemeId

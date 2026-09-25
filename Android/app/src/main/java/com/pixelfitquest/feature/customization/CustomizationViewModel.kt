@@ -2,10 +2,13 @@ package com.pixelfitquest.feature.customization
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pixelfitquest.debug.GodModePrefs
 import com.pixelfitquest.feature.customization.model.CustomizationCatalog
 import com.pixelfitquest.feature.customization.model.CustomizationScreenUiState
 import com.pixelfitquest.feature.customization.model.CustomizationTab
 import com.pixelfitquest.feature.customization.model.CharacterData
+import com.pixelfitquest.feature.customization.model.meetsLevelGate
+import com.pixelfitquest.feature.home.model.DwellingTier
 import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.firebase.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,6 +48,37 @@ class CustomizationViewModel @Inject constructor(
                 val char = data ?: CharacterData()
                 _characterData.value = char
                 val charId = CustomizationCatalog.resolveCharacterIdFromVariant(char.variant)
+                val isGod = GodModePrefs.isGodModeActive
+                val effectiveUnlockedVariants = if (isGod) {
+                    setOf(
+                        "basic",
+                        "male_fitness",
+                        "female_fitness",
+                        "shadow",
+                        "male_premium",
+                        "female_premium",
+                        com.pixelfitquest.feature.streak.model.WeeklyStreakRewards.SKIN_EMBER,
+                        com.pixelfitquest.feature.streak.model.WeeklyStreakRewards.SKIN_PHOENIX,
+                        com.pixelfitquest.feature.streak.model.WeeklyStreakRewards.SKIN_LEGEND,
+                    )
+                } else {
+                    char.unlockedVariants.toSet()
+                }
+                val effectiveUnlockedHomes = if (isGod) {
+                    CustomizationCatalog.homeDwellings.mapNotNull { it.id }.toSet()
+                } else {
+                    char.unlockedHomeUpgrades.toSet()
+                }
+                val effectiveUnlockedGyms = if (isGod) {
+                    CustomizationCatalog.gyms.map { it.id }.toSet()
+                } else {
+                    char.unlockedGyms.toSet()
+                }
+                val effectiveUnlockedBgs = if (isGod) {
+                    CustomizationCatalog.appBackgrounds.map { it.id }.toSet()
+                } else {
+                    char.unlockedAppBackgrounds.toSet()
+                }
                 _uiState.update { current ->
                     val currentEquippedCharId = CustomizationCatalog.resolveCharacterIdFromVariant(current.equippedVariant)
                     val newSelectedCharId = if (!hasInitializedSelections || current.selectedCharacterId == currentEquippedCharId) {
@@ -72,16 +106,16 @@ class CustomizationViewModel @Inject constructor(
                         gender = char.gender,
                         selectedCharacterId = newSelectedCharId,
                         equippedVariant = char.variant,
-                        unlockedVariants = char.unlockedVariants.toSet(),
+                        unlockedVariants = effectiveUnlockedVariants,
                         selectedHomeId = newSelectedHomeId,
                         equippedHomeId = char.equippedHomeUpgrade,
-                        unlockedHomeUpgrades = char.unlockedHomeUpgrades.toSet(),
+                        unlockedHomeUpgrades = effectiveUnlockedHomes,
                         selectedGymId = newSelectedGymId,
                         equippedGymId = char.equippedGym,
-                        unlockedGyms = char.unlockedGyms.toSet(),
+                        unlockedGyms = effectiveUnlockedGyms,
                         selectedBackgroundId = newSelectedBgId,
                         equippedBackgroundId = char.equippedAppBackground,
-                        unlockedBackgrounds = char.unlockedAppBackgrounds.toSet(),
+                        unlockedBackgrounds = effectiveUnlockedBgs,
                     )
                 }
             }
@@ -145,53 +179,37 @@ class CustomizationViewModel @Inject constructor(
     }
 
     fun buyCharacter(characterId: String, price: Int) {
+        val item = CustomizationCatalog.characters.find { it.id == characterId } ?: return
+        val cost = item.coinPrice ?: return
+        if (price != cost) return
         viewModelScope.launch {
-            val user = userRepository.fetchUserDataOnce()
+            val user = userRepository.fetchUserDataOnce() ?: return@launch
             val current = _characterData.value
             val variant = resolveVariantForGender(characterId, current.gender)
-            if (user != null && user.coins >= price && !current.unlockedVariants.contains(variant)) {
-                userRepository.updateUserData(mapOf("coins" to (user.coins - price)))
-                val newUnlocked = current.unlockedVariants + variant
-                _characterData.value = current.copy(
-                    variant = variant,
-                    unlockedVariants = newUnlocked,
-                )
-                _uiState.update {
-                    it.copy(
-                        userCoins = user.coins - price,
-                        equippedVariant = variant,
-                        selectedCharacterId = characterId,
-                        unlockedVariants = newUnlocked.toSet(),
-                    )
-                }
-                saveData()
+            if (!canPay(user.level, user.coins, item.minLevel, cost, current.unlockedVariants.contains(variant))) {
+                return@launch
             }
+            userRepository.updateUserData(mapOf("coins" to (user.coins - cost)))
+            val newUnlocked = current.unlockedVariants + variant
+            _characterData.value = current.copy(
+                variant = variant,
+                unlockedVariants = newUnlocked,
+            )
+            _uiState.update {
+                it.copy(
+                    userCoins = user.coins - cost,
+                    equippedVariant = variant,
+                    selectedCharacterId = characterId,
+                    unlockedVariants = newUnlocked.toSet(),
+                )
+            }
+            saveData()
         }
     }
 
     fun buyVariant(variant: String, price: Int) {
-        viewModelScope.launch {
-            val user = userRepository.fetchUserDataOnce()
-            val current = _characterData.value
-            if (user != null && user.coins >= price && !current.unlockedVariants.contains(variant)) {
-                userRepository.updateUserData(mapOf("coins" to (user.coins - price)))
-                val newUnlocked = current.unlockedVariants + variant
-                val charId = CustomizationCatalog.resolveCharacterIdFromVariant(variant)
-                _characterData.value = current.copy(
-                    variant = variant,
-                    unlockedVariants = newUnlocked,
-                )
-                _uiState.update {
-                    it.copy(
-                        userCoins = user.coins - price,
-                        equippedVariant = variant,
-                        selectedCharacterId = charId,
-                        unlockedVariants = newUnlocked.toSet(),
-                    )
-                }
-                saveData()
-            }
-        }
+        val characterId = CustomizationCatalog.resolveCharacterIdFromVariant(variant)
+        buyCharacter(characterId, price)
     }
 
     private fun resolveVariantForGender(characterId: String, gender: String): String {
@@ -219,26 +237,30 @@ class CustomizationViewModel @Inject constructor(
     fun equipHomeUpgrade(upgradeId: String?) = equipHome(upgradeId)
 
     fun buyHome(homeId: String, price: Int) {
+        val item = CustomizationCatalog.homeDwellings.find { it.id == homeId } ?: return
+        val cost = item.coinPrice ?: return
+        if (price != cost) return
         viewModelScope.launch {
-            val user = userRepository.fetchUserDataOnce()
+            val user = userRepository.fetchUserDataOnce() ?: return@launch
             val current = _characterData.value
-            if (user != null && user.coins >= price && !current.unlockedHomeUpgrades.contains(homeId)) {
-                userRepository.updateUserData(mapOf("coins" to (user.coins - price)))
-                val newUnlocked = current.unlockedHomeUpgrades + homeId
-                _characterData.value = current.copy(
-                    equippedHomeUpgrade = homeId,
-                    unlockedHomeUpgrades = newUnlocked,
-                )
-                _uiState.update {
-                    it.copy(
-                        userCoins = user.coins - price,
-                        equippedHomeId = homeId,
-                        selectedHomeId = homeId,
-                        unlockedHomeUpgrades = newUnlocked.toSet(),
-                    )
-                }
-                saveData()
+            if (!canPay(user.level, user.coins, item.minLevel, cost, current.unlockedHomeUpgrades.contains(homeId))) {
+                return@launch
             }
+            userRepository.updateUserData(mapOf("coins" to (user.coins - cost)))
+            val newUnlocked = current.unlockedHomeUpgrades + homeId
+            _characterData.value = current.copy(
+                equippedHomeUpgrade = homeId,
+                unlockedHomeUpgrades = newUnlocked,
+            )
+            _uiState.update {
+                it.copy(
+                    userCoins = user.coins - cost,
+                    equippedHomeId = homeId,
+                    selectedHomeId = homeId,
+                    unlockedHomeUpgrades = newUnlocked.toSet(),
+                )
+            }
+            saveData()
         }
     }
 
@@ -258,26 +280,30 @@ class CustomizationViewModel @Inject constructor(
     }
 
     fun buyGym(gymId: String, price: Int) {
+        val item = CustomizationCatalog.gyms.find { it.id == gymId } ?: return
+        val cost = item.coinPrice ?: return
+        if (price != cost) return
         viewModelScope.launch {
-            val user = userRepository.fetchUserDataOnce()
+            val user = userRepository.fetchUserDataOnce() ?: return@launch
             val current = _characterData.value
-            if (user != null && user.coins >= price && !current.unlockedGyms.contains(gymId)) {
-                userRepository.updateUserData(mapOf("coins" to (user.coins - price)))
-                val newUnlocked = current.unlockedGyms + gymId
-                _characterData.value = current.copy(
-                    equippedGym = gymId,
-                    unlockedGyms = newUnlocked,
-                )
-                _uiState.update {
-                    it.copy(
-                        userCoins = user.coins - price,
-                        equippedGymId = gymId,
-                        selectedGymId = gymId,
-                        unlockedGyms = newUnlocked.toSet(),
-                    )
-                }
-                saveData()
+            if (!canPay(user.level, user.coins, item.minLevel, cost, current.unlockedGyms.contains(gymId))) {
+                return@launch
             }
+            userRepository.updateUserData(mapOf("coins" to (user.coins - cost)))
+            val newUnlocked = current.unlockedGyms + gymId
+            _characterData.value = current.copy(
+                equippedGym = gymId,
+                unlockedGyms = newUnlocked,
+            )
+            _uiState.update {
+                it.copy(
+                    userCoins = user.coins - cost,
+                    equippedGymId = gymId,
+                    selectedGymId = gymId,
+                    unlockedGyms = newUnlocked.toSet(),
+                )
+            }
+            saveData()
         }
     }
 
@@ -294,27 +320,43 @@ class CustomizationViewModel @Inject constructor(
     }
 
     fun buyBackground(backgroundId: String, price: Int) {
+        val item = CustomizationCatalog.appBackgrounds.find { it.id == backgroundId } ?: return
+        val cost = item.coinPrice ?: return
+        if (price != cost) return
         viewModelScope.launch {
-            val user = userRepository.fetchUserDataOnce()
+            val user = userRepository.fetchUserDataOnce() ?: return@launch
             val current = _characterData.value
-            if (user != null && user.coins >= price && !current.unlockedAppBackgrounds.contains(backgroundId)) {
-                userRepository.updateUserData(mapOf("coins" to (user.coins - price)))
-                val newUnlocked = current.unlockedAppBackgrounds + backgroundId
-                _characterData.value = current.copy(
-                    equippedAppBackground = backgroundId,
-                    unlockedAppBackgrounds = newUnlocked,
-                )
-                _uiState.update {
-                    it.copy(
-                        userCoins = user.coins - price,
-                        equippedBackgroundId = backgroundId,
-                        selectedBackgroundId = backgroundId,
-                        unlockedBackgrounds = newUnlocked.toSet(),
-                    )
-                }
-                saveData()
+            if (!canPay(user.level, user.coins, item.minLevel, cost, current.unlockedAppBackgrounds.contains(backgroundId))) {
+                return@launch
             }
+            userRepository.updateUserData(mapOf("coins" to (user.coins - cost)))
+            val newUnlocked = current.unlockedAppBackgrounds + backgroundId
+            _characterData.value = current.copy(
+                equippedAppBackground = backgroundId,
+                unlockedAppBackgrounds = newUnlocked,
+            )
+            _uiState.update {
+                it.copy(
+                    userCoins = user.coins - cost,
+                    equippedBackgroundId = backgroundId,
+                    selectedBackgroundId = backgroundId,
+                    unlockedBackgrounds = newUnlocked.toSet(),
+                )
+            }
+            saveData()
         }
+    }
+
+    private fun canPay(
+        level: Int,
+        coins: Int,
+        minLevel: Int?,
+        price: Int,
+        alreadyOwned: Boolean,
+    ): Boolean {
+        if (GodModePrefs.isGodModeActive) return true
+        if (alreadyOwned || price <= 0 || coins < price) return false
+        return meetsLevelGate(minLevel, level)
     }
 
     // --- Body Stats Actions ---
@@ -356,6 +398,6 @@ class CustomizationViewModel @Inject constructor(
         const val ARM_CM_MAX = 120
         const val ARM_CM_DEFAULT = 70
         const val GYM_UPGRADE_ID = "dwelling_gym"
-        const val GYM_UPGRADE_PRICE = 150
+        val GYM_UPGRADE_PRICE: Int get() = DwellingTier.GYM.coinPrice
     }
 }
