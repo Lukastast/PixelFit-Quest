@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pixelfitquest.feature.customization.model.CharacterData
 import com.pixelfitquest.feature.healthbonuses.SessionBonusService
 import com.pixelfitquest.feature.progression.RewardBonus
 import com.pixelfitquest.feature.progression.RewardSet
@@ -32,7 +33,6 @@ import javax.inject.Inject
 enum class ResumeTab {
     Form,
     Sets,
-    Rewards,
 }
 
 @HiltViewModel
@@ -47,6 +47,8 @@ class WorkoutResumeViewModel @Inject constructor(
 
     private val _userData = MutableStateFlow<UserData?>(null)
     val userData: StateFlow<UserData?> = _userData.asStateFlow()
+    private val _characterData = MutableStateFlow(CharacterData())
+    val characterData: StateFlow<CharacterData> = _characterData.asStateFlow()
     private val workoutId: String = savedStateHandle.get<String>("workoutId") ?: ""
 
     private val _summary = MutableStateFlow(WorkoutSummary(0, 0, 0f))
@@ -70,6 +72,7 @@ class WorkoutResumeViewModel @Inject constructor(
 
     init {
         loaduserData()
+        loadCharacterData()
         if (workoutId.isNotBlank()) {
             loadWorkoutData()
         }
@@ -81,6 +84,18 @@ class WorkoutResumeViewModel @Inject constructor(
 
     fun selectSetIndex(index: Int) {
         _selectedSetIndex.value = index.coerceAtLeast(0)
+    }
+
+    private fun loadCharacterData() {
+        viewModelScope.launch {
+            try {
+                userRepository.getCharacterData().collect { data ->
+                    if (data != null) {
+                        _characterData.value = data
+                    }
+                }
+            } catch (_: Exception) {}
+        }
     }
 
     private fun loaduserData() {

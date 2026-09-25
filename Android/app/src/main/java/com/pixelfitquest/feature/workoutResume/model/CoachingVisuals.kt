@@ -132,4 +132,18 @@ object CoachingVisuals {
         // 3. Fallback: form is clean / level
         return infoFor(TAG_FORM_EVEN)
     }
+
+    /**
+     * Resolves the 8-frame avatar spritesheet drawable resource for a coaching clip.
+     */
+    fun resolveClipDrawable(tag: String, isFemale: Boolean = false): Int = when (tag) {
+        TAG_TILT_RIGHT -> if (isFemale) R.drawable.clip_tilt_right_woman else R.drawable.clip_tilt_right
+        TAG_TILT_LEFT -> if (isFemale) R.drawable.clip_tilt_left_woman else R.drawable.clip_tilt_left
+        TAG_TWIST_HEAD -> if (isFemale) R.drawable.clip_twist_head_woman else R.drawable.clip_twist_head
+        TAG_TWIST_HIP -> if (isFemale) R.drawable.clip_twist_hip_woman else R.drawable.clip_twist_hip
+        TAG_SHORT_ROM -> if (isFemale) R.drawable.clip_short_rom_woman else R.drawable.clip_short_rom
+        TAG_DROPPED -> if (isFemale) R.drawable.clip_dropped_woman else R.drawable.clip_dropped
+        TAG_CLIP_POSE, "clip_pose_unclear" -> if (isFemale) R.drawable.clip_clip_pose_woman else R.drawable.clip_clip_pose
+        else -> if (isFemale) R.drawable.clip_form_even_woman else R.drawable.clip_form_even
+    }
 }

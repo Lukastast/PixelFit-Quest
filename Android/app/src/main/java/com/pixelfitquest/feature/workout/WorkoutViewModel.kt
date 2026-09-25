@@ -85,6 +85,7 @@ class WorkoutViewModel @Inject constructor(
     private var savedExerciseForIndex = -1
     private var sessionFormSum = 0f
     private var sessionSetCount = 0
+    private var sessionRepCount = 0
     private var sessionVolume = 0f
     private var sessionDurationMs = 0L
     private var exerciseFormSum = 0f
@@ -118,6 +119,7 @@ class WorkoutViewModel @Inject constructor(
         savedExerciseForIndex = -1
         sessionFormSum = 0f
         sessionSetCount = 0
+        sessionRepCount = 0
         sessionVolume = 0f
         sessionDurationMs = 0L
         exerciseFormSum = 0f
@@ -134,18 +136,6 @@ class WorkoutViewModel @Inject constructor(
             weight = initialWeight,
         )
 
-        launchCatching {
-            workoutRepository.saveWorkout(
-                Workout(
-                    id = workoutId,
-                    date = Instant.now().toString(),
-                    name = workoutName,
-                    schemaVersion = WORKOUT_SCHEMA_VERSION,
-                    totalExercises = plan.items.size,
-                    totalSets = plan.items.sumOf { it.sets },
-                )
-            )
-        }
         ensureExerciseSaved()
     }
 
@@ -364,7 +354,7 @@ class WorkoutViewModel @Inject constructor(
     fun stopWorkout() {
         samples.clear()
         val wasTracking = _workoutState.value.isTracking
-        val shouldDiscard = wasTracking && sessionSetCount == 0
+        val shouldDiscard = wasTracking && (sessionSetCount == 0 || sessionRepCount == 0)
         _workoutState.value = _workoutState.value.copy(
             isTracking = false,
             phase = WorkoutPhase.Idle,
@@ -377,9 +367,9 @@ class WorkoutViewModel @Inject constructor(
         }
     }
 
-    /** Logged sets open the summary. A workout with no sets goes home. */
+    /** Logged sets with reps open the summary. A workout with no reps goes home. */
     fun leaveWorkout() {
-        if (sessionSetCount > 0) {
+        if (sessionSetCount > 0 && sessionRepCount > 0) {
             finishWorkout()
         } else {
             stopWorkout()
@@ -467,23 +457,27 @@ class WorkoutViewModel @Inject constructor(
             flags = review.analysis.flags,
             repRecords = records,
         )
+        val repsCount = accepted.size
+        sessionRepCount += repsCount
         sessionFormSum += form
         sessionSetCount += 1
-        sessionVolume += weight * accepted.size
+        sessionVolume += weight * repsCount
         sessionDurationMs += duration
         exerciseFormSum += form
         exerciseSetCount += 1
-        exerciseVolume += weight * accepted.size
-        launchCatching {
-            try {
-                liftHistoryDao.insert(set.toLiftHistoryEntity(type))
-            } catch (e: Exception) {
-                Log.w("WorkoutVM", "Local lift history save skipped", e)
-            }
-            try {
-                workoutRepository.saveSet(set)
-            } catch (e: Exception) {
-                Log.w("WorkoutVM", "Cloud set save skipped", e)
+        exerciseVolume += weight * repsCount
+        if (repsCount > 0) {
+            launchCatching {
+                try {
+                    liftHistoryDao.insert(set.toLiftHistoryEntity(type))
+                } catch (e: Exception) {
+                    Log.w("WorkoutVM", "Local lift history save skipped", e)
+                }
+                try {
+                    workoutRepository.saveSet(set)
+                } catch (e: Exception) {
+                    Log.w("WorkoutVM", "Cloud set save skipped", e)
+                }
             }
         }
     }
@@ -508,12 +502,13 @@ class WorkoutViewModel @Inject constructor(
 
     private fun finishWorkout() {
         val plan = currentPlan ?: return
-        if (plan.items.isEmpty() || sessionSetCount == 0) {
+        if (plan.items.isEmpty() || sessionSetCount == 0 || sessionRepCount == 0) {
             launchCatching {
                 if (workoutId.isNotBlank()) {
                     workoutRepository.deleteWorkout(workoutId)
                 }
                 stopWorkout()
+                _navigationEvent.emit("")
             }
             return
         }
@@ -524,7 +519,7 @@ class WorkoutViewModel @Inject constructor(
             name = workoutName,
             schemaVersion = WORKOUT_SCHEMA_VERSION,
             totalExercises = plan.items.size,
-            totalSets = plan.items.sumOf { it.sets },
+            totalSets = sessionSetCount,
             overallScore = overall,
             totalVolume = sessionVolume,
             totalDurationMillis = sessionDurationMs,

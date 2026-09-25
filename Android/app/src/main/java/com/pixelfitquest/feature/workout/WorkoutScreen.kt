@@ -2,6 +2,7 @@ package com.pixelfitquest.feature.workout
 
 import android.content.Context
 import android.hardware.SensorManager
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -72,6 +73,11 @@ fun WorkoutScreen(
 ) {
     val viewModel: WorkoutViewModel = hiltViewModel()
     val state by viewModel.workoutState.collectAsState()
+
+    BackHandler {
+        viewModel.leaveWorkout()
+    }
+
     val context = LocalContext.current
     val landscapeEnabled = remember {
         WorkoutOrientationPrefs.isEnabled(
