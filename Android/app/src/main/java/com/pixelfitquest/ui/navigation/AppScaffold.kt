@@ -81,6 +81,7 @@ import com.pixelfitquest.feature.workoutBuilder.WorkoutCustomizationScreen
 import com.pixelfitquest.feature.workoutResume.WorkoutResumeScreen
 import com.pixelfitquest.feature.progress.ProgressScreen
 import com.pixelfitquest.feature.workouts.WorkoutsHistoryScreen
+import com.pixelfitquest.feature.workouts.WorkoutsTab
 import com.pixelfitquest.feature.health.HealthCenterScreen
 import com.pixelfitquest.feature.workout.WorkoutScreen
 import com.pixelfitquest.viewmodel.GlobalSettingsViewModel
@@ -99,7 +100,7 @@ fun AppScaffold() {
 
     val hasBottomBar = currentRoute?.let { route ->
         route == HOME_SCREEN ||
-        route == WORKOUTS_HISTORY_SCREEN ||
+        route.startsWith(WORKOUTS_HISTORY_SCREEN) ||
         route == HEALTH_CENTER_SCREEN ||
         route == CUSTOMIZATION_SCREEN ||
         route == SETTINGS_SCREEN ||
@@ -242,7 +243,7 @@ fun AppScaffold() {
                                 ) {
                                     Icon(
                                         painter = painterResource(
-                                            id = if (currentRoute == item.route || (item == BottomNavItem.Workouts && currentRoute.startsWith(WORKOUT_CUSTOMIZATION_SCREEN))) {
+                                            id = if (currentRoute == item.route || (item == BottomNavItem.Workouts && (currentRoute.startsWith(WORKOUTS_HISTORY_SCREEN) || currentRoute.startsWith(WORKOUT_CUSTOMIZATION_SCREEN)))) {
                                                 item.selectedIcon
                                             } else {
                                                 item.unSelectedIcon
@@ -325,7 +326,7 @@ fun AppScaffold() {
                                     ) {
                                         Icon(
                                             painter = painterResource(
-                                                id = if (currentRoute == item.route || (item == BottomNavItem.Workouts && currentRoute.startsWith(WORKOUT_CUSTOMIZATION_SCREEN))) {
+                                                id = if (currentRoute == item.route || (item == BottomNavItem.Workouts && (currentRoute.startsWith(WORKOUTS_HISTORY_SCREEN) || currentRoute.startsWith(WORKOUT_CUSTOMIZATION_SCREEN)))) {
                                                     item.selectedIcon
                                                 } else {
                                                     item.unSelectedIcon
@@ -388,8 +389,25 @@ fun NavGraphBuilder.pixelFitGraph(
         )
     }
 
-    composable(WORKOUTS_HISTORY_SCREEN) {
+    composable(
+        route = "$WORKOUTS_HISTORY_SCREEN?tab={tab}",
+        arguments = listOf(
+            navArgument("tab") {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            }
+        )
+    ) { backStackEntry ->
+        val tabArg = backStackEntry.arguments?.getString("tab")
+        val initialTab = if (tabArg.equals("history", ignoreCase = true)) {
+            WorkoutsTab.HISTORY
+        } else {
+            WorkoutsTab.TEMPLATES
+        }
+
         WorkoutsHistoryScreen(
+            initialTab = initialTab,
             onWorkoutClick = { workoutId ->
                 appState.navigate("workout_resume/$workoutId")
             },
@@ -427,10 +445,22 @@ fun NavGraphBuilder.pixelFitGraph(
             hiltViewModel(viewModelStoreOwner = backStackEntry)
 
         WorkoutResumeScreen(
-            openScreen = { route -> appState.navigate(route) },
+            openScreen = { route ->
+                if (route.startsWith(WORKOUTS_HISTORY_SCREEN)) {
+                    appState.navController.navigate(route) {
+                        popUpTo("workout_resume/{workoutId}") { inclusive = true }
+                        launchSingleTop = true
+                    }
+                } else {
+                    appState.navigate(route)
+                }
+            },
             onWorkoutDeleted = {
-                if (!appState.navController.popBackStack(HOME_SCREEN, inclusive = false)) {
-                    appState.clearAndNavigate(HOME_SCREEN)
+                if (!appState.navController.popBackStack(WORKOUTS_HISTORY_SCREEN, inclusive = false)) {
+                    appState.navController.navigate("$WORKOUTS_HISTORY_SCREEN?tab=history") {
+                        popUpTo("workout_resume/{workoutId}") { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             },
             viewModel = viewModel,

@@ -64,6 +64,7 @@ enum class WorkoutsTab {
 
 @Composable
 fun WorkoutsHistoryScreen(
+    initialTab: WorkoutsTab = WorkoutsTab.TEMPLATES,
     onWorkoutClick: (String) -> Unit,
     onStartNewWorkout: () -> Unit,
     onCreateTemplate: () -> Unit = onStartNewWorkout,
@@ -79,7 +80,7 @@ fun WorkoutsHistoryScreen(
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val useTwoPane = isLandscape || spacing.widthClass != PixelFitWidthClass.Compact
 
-    var selectedTab by remember { mutableStateOf(WorkoutsTab.TEMPLATES) }
+    var selectedTab by remember(initialTab) { mutableStateOf(initialTab) }
     var templateToDelete by remember { mutableStateOf<WorkoutTemplate?>(null) }
 
     if (useTwoPane) {
@@ -96,41 +97,15 @@ fun WorkoutsHistoryScreen(
                     .weight(1f)
                     .fillMaxHeight()
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = spacing.sm),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.workouts_tab_templates) + if (templates.isNotEmpty()) " (${templates.size})" else "",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
-                    Spacer(modifier = Modifier.width(spacing.xs))
-                    PixelArtButton(
-                        onClick = onCreateTemplate,
-                        imageRes = R.drawable.button_unclicked,
-                        pressedRes = R.drawable.button_clicked,
-                        modifier = Modifier
-                            .width(spacing.scale(140))
-                            .height(spacing.scale(36))
-                    ) {
-                        Text(
-                            text = "⚔ " + stringResource(R.string.create_template_button),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
+                Text(
+                    text = stringResource(R.string.workouts_tab_templates) + if (templates.isNotEmpty()) " (${templates.size})" else "",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(bottom = spacing.xs)
+                )
 
                 TemplatesList(
                     templates = templates,
@@ -139,6 +114,26 @@ fun WorkoutsHistoryScreen(
                     onDeleteTemplate = { templateToDelete = it },
                     modifier = Modifier.weight(1f)
                 )
+
+                Spacer(modifier = Modifier.height(spacing.xs))
+
+                PixelArtButton(
+                    onClick = onCreateTemplate,
+                    imageRes = R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(spacing.scale(38))
+                ) {
+                    Text(
+                        text = "⚔ " + stringResource(R.string.create_template_button),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
 
             // Right Pane: History
@@ -147,41 +142,15 @@ fun WorkoutsHistoryScreen(
                     .weight(1f)
                     .fillMaxHeight()
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = spacing.sm),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.workouts_tab_history) + if (workouts.isNotEmpty()) " (${workouts.size})" else "",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
-                    Spacer(modifier = Modifier.width(spacing.xs))
-                    PixelArtButton(
-                        onClick = onStartNewWorkout,
-                        imageRes = R.drawable.button_unclicked,
-                        pressedRes = R.drawable.button_clicked,
-                        modifier = Modifier
-                            .width(spacing.scale(140))
-                            .height(spacing.scale(36))
-                    ) {
-                        Text(
-                            text = stringResource(R.string.start_new_workout),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
+                Text(
+                    text = stringResource(R.string.workouts_tab_history) + if (workouts.isNotEmpty()) " (${workouts.size})" else "",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(bottom = spacing.xs)
+                )
 
                 HistoryList(
                     workouts = workouts,
@@ -189,6 +158,26 @@ fun WorkoutsHistoryScreen(
                     onWorkoutClick = onWorkoutClick,
                     modifier = Modifier.weight(1f)
                 )
+
+                Spacer(modifier = Modifier.height(spacing.xs))
+
+                PixelArtButton(
+                    onClick = onStartNewWorkout,
+                    imageRes = R.drawable.button_unclicked,
+                    pressedRes = R.drawable.button_clicked,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(spacing.scale(38))
+                ) {
+                    Text(
+                        text = stringResource(R.string.start_new_workout),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     } else {
@@ -252,6 +241,34 @@ fun WorkoutsHistoryScreen(
 
             Spacer(modifier = Modifier.height(spacing.sm))
 
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                when (selectedTab) {
+                    WorkoutsTab.TEMPLATES -> {
+                        TemplatesList(
+                            templates = templates,
+                            onStartWorkout = onStartWorkout,
+                            onEditTemplate = onEditTemplate,
+                            onDeleteTemplate = { templateToDelete = it },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    WorkoutsTab.HISTORY -> {
+                        HistoryList(
+                            workouts = workouts,
+                            isLoading = isLoading,
+                            onWorkoutClick = onWorkoutClick,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(spacing.sm))
+
             if (selectedTab == WorkoutsTab.TEMPLATES) {
                 PixelArtButton(
                     onClick = onCreateTemplate,
@@ -282,28 +299,6 @@ fun WorkoutsHistoryScreen(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(spacing.md))
-
-            when (selectedTab) {
-                WorkoutsTab.TEMPLATES -> {
-                    TemplatesList(
-                        templates = templates,
-                        onStartWorkout = onStartWorkout,
-                        onEditTemplate = onEditTemplate,
-                        onDeleteTemplate = { templateToDelete = it },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                WorkoutsTab.HISTORY -> {
-                    HistoryList(
-                        workouts = workouts,
-                        isLoading = isLoading,
-                        onWorkoutClick = onWorkoutClick,
-                        modifier = Modifier.weight(1f)
                     )
                 }
             }

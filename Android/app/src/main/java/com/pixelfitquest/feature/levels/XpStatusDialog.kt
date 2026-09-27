@@ -9,12 +9,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -42,7 +42,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -57,8 +56,6 @@ import com.pixelfitquest.feature.progression.SkillBranch
 import com.pixelfitquest.feature.progression.SkillLoadout
 import com.pixelfitquest.feature.progression.SkillTree
 import com.pixelfitquest.feature.streak.model.WeeklyStreakSnapshot
-import com.pixelfitquest.ui.theme.CrystalCyan
-import com.pixelfitquest.ui.theme.EmberOrange
 import com.pixelfitquest.ui.theme.ImperialGold
 import com.pixelfitquest.ui.theme.PlatinumWhite
 import com.pixelfitquest.ui.theme.RewardGold
@@ -114,7 +111,12 @@ fun XpStatusDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.74f)),
+                .background(Color.Black.copy(alpha = 0.74f))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onDismiss,
+                ),
             contentAlignment = Alignment.Center,
         ) {
             // Main card overlay
@@ -123,6 +125,11 @@ fun XpStatusDialog(
                     .width(360.dp)
                     .heightIn(max = 640.dp)
                     .padding(horizontal = spacing.md, vertical = spacing.sm)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {},
+                    )
                     .clip(RoundedCornerShape(spacing.cornerMd))
                     .background(SlateDeep.copy(alpha = 0.98f))
                     .border(BorderStroke(2.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd)),
@@ -167,7 +174,7 @@ fun XpStatusDialog(
                                 .clip(RoundedCornerShape(spacing.cornerSm))
                                 .background(SlateSurface.copy(alpha = 0.85f))
                                 .border(BorderStroke(1.dp, SlateBorderSubtle), RoundedCornerShape(spacing.cornerSm))
-                                .padding(horizontal = 8.dp, vertical = 8.dp),
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
                             contentAlignment = Alignment.CenterStart,
                         ) {
                             Row(
@@ -177,21 +184,23 @@ fun XpStatusDialog(
                                 Image(
                                     painter = painterResource(id = R.drawable.coin),
                                     contentDescription = "Coins",
-                                    modifier = Modifier.size(18.dp),
+                                    modifier = Modifier.size(16.dp),
                                     contentScale = ContentScale.Fit,
                                 )
-                                Column {
+                                Column(verticalArrangement = Arrangement.Center) {
                                     Text(
                                         text = "$coins",
                                         fontFamily = determination,
                                         color = RewardGold,
-                                        fontSize = 13.sp,
+                                        fontSize = 12.sp,
+                                        lineHeight = 13.sp,
                                         fontWeight = FontWeight.Bold,
                                     )
                                     Text(
                                         text = "Coins",
                                         color = SilverSlate,
                                         fontSize = 9.sp,
+                                        lineHeight = 10.sp,
                                     )
                                 }
                             }
@@ -215,7 +224,7 @@ fun XpStatusDialog(
                                     if (onStreakClick != null) Modifier.clickable { onStreakClick() }
                                     else Modifier
                                 )
-                                .padding(horizontal = 8.dp, vertical = 8.dp),
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
                             contentAlignment = Alignment.CenterStart,
                         ) {
                             Row(
@@ -227,29 +236,35 @@ fun XpStatusDialog(
                                     contentDescription = "Streak",
                                     colorFilter = if (isStreakDoneThisWeek) null else grayFilter,
                                     alpha = if (isStreakDoneThisWeek) 1f else 0.4f,
-                                    modifier = Modifier.size(22.dp),
+                                    modifier = Modifier.size(18.dp),
                                     contentScale = ContentScale.Fit,
                                 )
-                                Column(modifier = Modifier.weight(1f)) {
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.Center,
+                                ) {
                                     Text(
                                         text = "${streakSnapshot.currentStreakWeeks} Wk Streak",
                                         fontFamily = determination,
                                         color = if (isStreakDoneThisWeek) ImperialGold else SilverSteel,
-                                        fontSize = 12.sp,
+                                        fontSize = 11.sp,
+                                        lineHeight = 12.sp,
                                         fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
                                     )
                                     Text(
                                         text = if (isStreakDoneThisWeek) {
-                                            "${streakSnapshot.sessionsThisWeek}/${streakSnapshot.targetSessionsPerWeek} done • Streak active!"
+                                            "${streakSnapshot.sessionsThisWeek}/${streakSnapshot.targetSessionsPerWeek} done • Active!"
                                         } else {
-                                            "${streakSnapshot.sessionsThisWeek}/${streakSnapshot.targetSessionsPerWeek} done • resets in $daysUntilReset ${if (daysUntilReset == 1L) "day" else "days"}"
+                                            "${streakSnapshot.sessionsThisWeek}/${streakSnapshot.targetSessionsPerWeek} done • resets in ${daysUntilReset}d"
                                         },
                                         fontFamily = determination,
                                         color = if (isStreakDoneThisWeek) VitalGreen else TorchAmber,
-                                        fontSize = 10.sp,
-                                        lineHeight = 12.sp,
+                                        fontSize = 9.sp,
+                                        lineHeight = 11.sp,
                                         fontWeight = FontWeight.Bold,
-                                        maxLines = 2,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 }
                             }

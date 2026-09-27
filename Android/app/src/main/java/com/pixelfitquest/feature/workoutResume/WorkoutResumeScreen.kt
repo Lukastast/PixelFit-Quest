@@ -1,6 +1,7 @@
 package com.pixelfitquest.feature.workoutResume
 
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -87,6 +88,7 @@ import com.pixelfitquest.ui.theme.SlateGroove
 import com.pixelfitquest.ui.theme.SlateSurface
 import com.pixelfitquest.ui.theme.TorchAmber
 import com.pixelfitquest.ui.theme.VitalGreen
+import com.pixelfitquest.ui.navigation.WORKOUTS_HISTORY_SCREEN
 import com.pixelfitquest.ui.theme.determination
 import com.pixelfitquest.ui.theme.spacing
 
@@ -137,6 +139,10 @@ fun WorkoutResumeScreen(
         viewModel.deleted.collect { onWorkoutDeleted() }
     }
 
+    BackHandler {
+        openScreen("$WORKOUTS_HISTORY_SCREEN?tab=history")
+    }
+
     val appBackgroundRes = remember(characterData.equippedAppBackground) {
         CustomizationCatalog.appBackgroundDrawable(characterData.equippedAppBackground)
     }
@@ -157,18 +163,17 @@ fun WorkoutResumeScreen(
                 .padding(top = if (useTwoPane) spacing.xxs else spacing.sm),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // --- Header with Back Button, Title, and Badges (CustomizationHeader pattern) ---
+            // --- Header with Title and Badges (CustomizationHeader pattern) ---
             ResumeHeader(
                 userLevel = userData?.level ?: 1,
                 earnedCoins = summary.totalCoins,
                 earnedXp = summary.totalXp,
-                onBack = { openScreen("home") },
                 isCompact = useTwoPane,
             )
 
             Spacer(modifier = Modifier.height(if (useTwoPane) spacing.xxs else spacing.sm))
 
-            // --- 2 Equal Tabs (CustomizationTabBar pattern) ---
+            // --- 2 Equal Tabs using PixelArtButton ---
             ResumeTabBar(
                 selected = selectedTab,
                 onSelect = viewModel::selectTab,
@@ -224,7 +229,7 @@ fun WorkoutResumeScreen(
                             }
 
                             PixelArtButton(
-                                onClick = { openScreen("home") },
+                                onClick = { openScreen("$WORKOUTS_HISTORY_SCREEN?tab=history") },
                                 imageRes = R.drawable.button_unclicked,
                                 pressedRes = R.drawable.button_clicked,
                                 modifier = Modifier
@@ -256,7 +261,7 @@ fun WorkoutResumeScreen(
                                     summary = summary,
                                     selectedSetIndex = selectedSetIndex,
                                     onSelectSet = viewModel::selectSetIndex,
-                                    onContinue = { openScreen("home") },
+                                    onContinue = { openScreen("$WORKOUTS_HISTORY_SCREEN?tab=history") },
                                     isFemale = isFemale,
                                     showHeroStage = false, // already on left pane
                                 )
@@ -288,7 +293,7 @@ fun WorkoutResumeScreen(
                             summary = summary,
                             selectedSetIndex = selectedSetIndex,
                             onSelectSet = viewModel::selectSetIndex,
-                            onContinue = { openScreen("home") },
+                            onContinue = { openScreen("$WORKOUTS_HISTORY_SCREEN?tab=history") },
                             isFemale = isFemale,
                             showHeroStage = true,
                         )
@@ -332,7 +337,6 @@ private fun ResumeHeader(
     userLevel: Int,
     earnedCoins: Int,
     earnedXp: Int,
-    onBack: () -> Unit,
     isCompact: Boolean = false,
 ) {
     val spacing = LocalSpacing.current
@@ -343,36 +347,14 @@ private fun ResumeHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Left: Back button + Title
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.xs),
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(if (isCompact) 30.dp else 36.dp)
-                    .clip(RoundedCornerShape(spacing.cornerSm))
-                    .background(SlateDeep.copy(alpha = 0.88f))
-                    .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
-                    .clickable(onClick = onBack),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_arrow_back),
-                    contentDescription = stringResource(R.string.back_desc),
-                    tint = Color.White,
-                    modifier = Modifier.size(if (isCompact) 16.dp else 20.dp),
-                )
-            }
-
-            Text(
-                text = stringResource(R.string.resume_screen_title),
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = if (isCompact) 16.sp else 20.sp,
-                fontFamily = determination,
-            )
-        }
+        // Left: Title
+        Text(
+            text = stringResource(R.string.resume_screen_title),
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = if (isCompact) 16.sp else 20.sp,
+            fontFamily = determination,
+        )
 
         // Right: Badges matching CustomizationHeader pattern
         Row(
@@ -442,7 +424,7 @@ private fun ResumeHeader(
 }
 
 // ==========================================
-// TAB BAR (CustomizationTabBar Pattern)
+// TAB BAR (PixelArtButton Pattern)
 // ==========================================
 
 @Composable
@@ -456,35 +438,28 @@ private fun ResumeTabBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = if (isCompact) spacing.sm else spacing.md),
-        horizontalArrangement = Arrangement.spacedBy(if (isCompact) spacing.xs else spacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(if (isCompact) spacing.xxs else spacing.xs),
     ) {
         ResumeTab.entries.forEach { tab ->
             val isSelected = tab == selected
-            Box(
+            val title = when (tab) {
+                ResumeTab.Form -> stringResource(R.string.resume_tab_form)
+                ResumeTab.Sets -> stringResource(R.string.resume_tab_sets)
+            }
+
+            PixelArtButton(
+                onClick = { onSelect(tab) },
+                imageRes = if (isSelected) R.drawable.button_clicked else R.drawable.button_unclicked,
+                pressedRes = R.drawable.button_clicked,
                 modifier = Modifier
                     .weight(1f)
-                    .height(if (isCompact) spacing.scale(32) else spacing.scale(38))
-                    .clip(RoundedCornerShape(spacing.cornerSm))
-                    .background(
-                        if (isSelected) ImperialGold
-                        else SlateDeep.copy(alpha = 0.82f)
-                    )
-                    .border(
-                        width = if (isSelected) 1.5.dp else 1.dp,
-                        color = if (isSelected) RewardGold else SlateBorder,
-                        shape = RoundedCornerShape(spacing.cornerSm),
-                    )
-                    .clickable { onSelect(tab) },
-                contentAlignment = Alignment.Center,
+                    .height(if (isCompact) spacing.scale(36) else spacing.scale(42)),
             ) {
                 Text(
-                    text = when (tab) {
-                        ResumeTab.Form -> stringResource(R.string.resume_tab_form)
-                        ResumeTab.Sets -> stringResource(R.string.resume_tab_sets)
-                    },
-                    color = if (isSelected) DarkStone else SilverSteel,
-                    fontWeight = FontWeight.Bold,
+                    text = title,
+                    color = if (isSelected) ImperialGold else Color.White,
                     fontFamily = determination,
+                    fontWeight = FontWeight.Bold,
                     fontSize = if (isCompact) 11.sp else 13.sp,
                 )
             }

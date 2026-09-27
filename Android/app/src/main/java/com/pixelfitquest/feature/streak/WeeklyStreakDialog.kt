@@ -9,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,24 +20,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -105,7 +105,12 @@ fun WeeklyStreakDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.76f)),
+                .background(Color.Black.copy(alpha = 0.76f))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onDismiss,
+                ),
             contentAlignment = Alignment.Center,
         ) {
             Box(
@@ -113,6 +118,11 @@ fun WeeklyStreakDialog(
                     .width(360.dp)
                     .heightIn(max = 620.dp)
                     .padding(horizontal = spacing.md, vertical = spacing.sm)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {},
+                    )
                     .clip(RoundedCornerShape(spacing.cornerMd))
                     .background(SlateDeep.copy(alpha = 0.98f))
                     .border(BorderStroke(2.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd)),
@@ -128,48 +138,29 @@ fun WeeklyStreakDialog(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    // Header with title, date range, and close button
-                    Row(
+                    // Header with title and date range
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Column {
-                            Text(
-                                text = stringResource(R.string.weekly_streak_title).uppercase(),
-                                fontFamily = determination,
-                                color = ImperialGold,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
-                                letterSpacing = 1.sp,
-                            )
-                            Text(
-                                text = stringResource(
-                                    R.string.weekly_streak_range,
-                                    snapshot.weekStart.format(dateFmt),
-                                    weekEnd.format(dateFmt),
-                                ),
-                                fontFamily = determination,
-                                color = SilverSlate,
-                                fontSize = 11.sp,
-                            )
-                        }
-
-                        IconButton(
-                            onClick = onDismiss,
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clip(CircleShape)
-                                .background(SlateSurface.copy(alpha = 0.8f))
-                                .border(1.dp, SlateBorderSubtle, CircleShape),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = stringResource(R.string.weekly_streak_close),
-                                tint = SilverSteel,
-                                modifier = Modifier.size(16.dp),
-                            )
-                        }
+                        Text(
+                            text = stringResource(R.string.weekly_streak_title).uppercase(),
+                            fontFamily = determination,
+                            color = ImperialGold,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            letterSpacing = 1.sp,
+                        )
+                        Text(
+                            text = stringResource(
+                                R.string.weekly_streak_range,
+                                snapshot.weekStart.format(dateFmt),
+                                weekEnd.format(dateFmt),
+                            ),
+                            fontFamily = determination,
+                            color = SilverSlate,
+                            fontSize = 11.sp,
+                        )
                     }
 
                     // Hero Streak Card
@@ -429,8 +420,6 @@ fun WeeklyStreakDialog(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(4.dp))
-
                     // Close Button
                     PixelArtButton(
                         onClick = onDismiss,
@@ -438,7 +427,8 @@ fun WeeklyStreakDialog(
                         pressedRes = R.drawable.button_clicked,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(44.dp),
+                            .height(44.dp)
+                            .offset(y = (-4).dp),
                     ) {
                         Text(
                             text = stringResource(R.string.weekly_streak_close).uppercase(),

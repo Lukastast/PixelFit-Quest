@@ -1,19 +1,26 @@
 package com.pixelfitquest.components.molecules
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,14 +30,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.ui.theme.HeartRuby
 import com.pixelfitquest.ui.theme.LocalSpacing
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.determination
 
 @Composable
 fun RemoveAccountCard(
@@ -38,77 +55,132 @@ fun RemoveAccountCard(
     modifier: Modifier = Modifier,
 ) {
     var showRemoveAccDialog by remember { mutableStateOf(false) }
-
-    val cardTitle = stringResource(R.string.delete_account)
     val spacing = LocalSpacing.current
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(spacing.cardHeight)
-            .clickable {
-                showRemoveAccDialog = true
-            }
+            .heightIn(min = spacing.scale(56))
+            .clip(RoundedCornerShape(spacing.cornerSm))
+            .background(SlateDeep.copy(alpha = 0.94f))
+            .border(BorderStroke(1.5.dp, HeartRuby.copy(alpha = 0.45f)), RoundedCornerShape(spacing.cornerSm))
+            .clickable { showRemoveAccDialog = true }
+            .padding(horizontal = spacing.sm, vertical = spacing.xs)
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.info_background_higher),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds
-        )
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = spacing.md, vertical = spacing.sm)
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = cardTitle,
-                    color = Color.White
+            // Danger icon well
+            Box(
+                modifier = Modifier
+                    .size(spacing.scale(36))
+                    .clip(RoundedCornerShape(spacing.cornerXs))
+                    .background(HeartRuby.copy(alpha = 0.12f))
+                    .border(1.dp, HeartRuby.copy(alpha = 0.4f), RoundedCornerShape(spacing.cornerXs)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.DeleteForever,
+                    contentDescription = "Delete Account",
+                    tint = HeartRuby,
+                    modifier = Modifier.size(spacing.scale(18))
                 )
             }
+
+            Spacer(modifier = Modifier.width(spacing.sm))
+
+            // Title & Subtitle
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.delete_account),
+                    color = HeartRuby,
+                    fontFamily = determination,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    lineHeight = 16.sp
+                )
+                Text(
+                    text = "Permanently remove cloud account",
+                    color = HeartRuby.copy(alpha = 0.7f),
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.width(spacing.xs))
+
             Icon(
-                Icons.Filled.Delete,
-                contentDescription = "Delete",
-                tint = Color.White
+                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                contentDescription = null,
+                tint = HeartRuby.copy(alpha = 0.5f),
+                modifier = Modifier.size(spacing.scale(12))
             )
         }
     }
 
     if (showRemoveAccDialog) {
         Dialog(
-            onDismissRequest = { showRemoveAccDialog = false }
+            onDismissRequest = { showRemoveAccDialog = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Box(
                 modifier = Modifier
                     .widthIn(max = spacing.scale(420))
-                    .fillMaxWidth(),
+                    .fillMaxWidth(0.92f)
+                    .padding(horizontal = spacing.sm),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
                     painter = painterResource(R.drawable.questloginboard),
                     contentDescription = "Dialog Background",
-                    modifier = Modifier.fillMaxWidth(0.95f).height(spacing.dialogHeight),
+                    modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.FillBounds
                 )
                 Column(
                     modifier = Modifier
-                        .padding(spacing.xl)
-                        .fillMaxWidth(0.95f)
-                        .heightIn(max = spacing.scale(300))
+                        .padding(horizontal = spacing.xl, vertical = spacing.xl),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(spacing.sm)
                 ) {
-                    Text(stringResource(R.string.delete_account_title), color = Color.White)
-                    Text(stringResource(R.string.delete_account_description), color = Color.White)
-                    Row {
+                    Text(
+                        text = stringResource(R.string.delete_account_title).uppercase(),
+                        fontFamily = determination,
+                        color = HeartRuby,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 17.sp,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        text = stringResource(R.string.delete_account_description),
+                        color = SilverSteel,
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.size(spacing.xxs))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         PixelArtButton(
                             onClick = { showRemoveAccDialog = false },
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier.height(spacing.scale(50)).width(spacing.buttonWidthSm)
+                            modifier = Modifier
+                                .height(spacing.scale(46))
+                                .width(spacing.buttonWidthSm)
                         ) {
-                            Text(stringResource(R.string.cancel), color = Color.Black)
+                            Text(
+                                text = stringResource(R.string.cancel),
+                                fontFamily = determination,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black,
+                                fontSize = 12.sp
+                            )
                         }
                         PixelArtButton(
                             onClick = {
@@ -117,9 +189,17 @@ fun RemoveAccountCard(
                             },
                             imageRes = R.drawable.button_unclicked,
                             pressedRes = R.drawable.button_clicked,
-                            modifier = Modifier.height(spacing.scale(50)).width(spacing.buttonWidthSm)
+                            modifier = Modifier
+                                .height(spacing.scale(46))
+                                .width(spacing.buttonWidthSm)
                         ) {
-                            Text(stringResource(R.string.delete_account), color = Color.Black)
+                            Text(
+                                text = stringResource(R.string.delete_account),
+                                fontFamily = determination,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black,
+                                fontSize = 12.sp
+                            )
                         }
                     }
                 }
