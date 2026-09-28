@@ -23,6 +23,8 @@ data class SessionProgressPoint(
     val avgRomScore: Float,
     val avgStabilityScore: Float,
     val setCount: Int,
+    val est1RmKg: Float = workingWeightKg,
+    val totalReps: Int = 0,
 )
 
 data class ExerciseProgressSeries(
@@ -37,6 +39,30 @@ data class ExerciseProgressSeries(
             val latest = latestWeightKg
             return if (first != null && latest != null) latest - first else null
         }
+    val maxWeightKg: Float get() = sessions.maxOfOrNull { it.workingWeightKg } ?: 0f
+    val totalVolumeKg: Float get() = sessions.sumOf { it.volumeKg.toDouble() }.toFloat()
+    val maxVolumeKg: Float get() = sessions.maxOfOrNull { it.volumeKg } ?: 0f
+    val bestEst1RmKg: Float get() = sessions.maxOfOrNull { it.est1RmKg } ?: 0f
+    val firstEst1RmKg: Float? get() = sessions.firstOrNull()?.est1RmKg
+    val latestEst1RmKg: Float? get() = sessions.lastOrNull()?.est1RmKg
+    val est1RmDeltaKg: Float?
+        get() {
+            val first = firstEst1RmKg
+            val latest = latestEst1RmKg
+            return if (first != null && latest != null) latest - first else null
+        }
+    val avgRomScore: Float
+        get() {
+            val scores = sessions.map { it.avgRomScore }.filter { it > 0f }
+            return if (scores.isEmpty()) 0f else scores.average().toFloat()
+        }
+    val avgStabilityScore: Float
+        get() {
+            val scores = sessions.map { it.avgStabilityScore }.filter { it > 0f }
+            return if (scores.isEmpty()) 0f else scores.average().toFloat()
+        }
+    val totalSets: Int get() = sessions.sumOf { it.setCount }
+    val totalReps: Int get() = sessions.sumOf { it.totalReps }
 }
 
 enum class ProgressDataSource {
@@ -50,6 +76,8 @@ data class ProgressOverview(
     val source: ProgressDataSource,
 ) {
     val isSample: Boolean get() = source == ProgressDataSource.SAMPLE
+    val primarySeries: ExerciseProgressSeries?
+        get() = series.maxByOrNull { it.sessions.size } ?: series.firstOrNull()
 }
 
 data class ProgressLoad(

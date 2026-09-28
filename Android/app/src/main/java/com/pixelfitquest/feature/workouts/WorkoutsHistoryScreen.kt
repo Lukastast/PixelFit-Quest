@@ -1,6 +1,11 @@
 package com.pixelfitquest.feature.workouts
 
+import android.content.Context
 import android.content.res.Configuration
+import androidx.compose.ui.platform.LocalContext
+import com.pixelfitquest.feature.workout.PreWorkoutLoadoutScreen
+import com.pixelfitquest.feature.workout.WorkoutWeightPrefs
+import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationPrefs
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -49,7 +54,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.PixelArtButton
+import com.pixelfitquest.components.molecules.GymProgressionOverviewCard
 import com.pixelfitquest.components.molecules.formatDate
+import com.pixelfitquest.feature.progress.model.ProgressOverview
 import com.pixelfitquest.feature.workout.model.Workout
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutTemplate
@@ -70,18 +77,51 @@ fun WorkoutsHistoryScreen(
     onCreateTemplate: () -> Unit = onStartNewWorkout,
     onEditTemplate: (String) -> Unit = {},
     onStartWorkout: (WorkoutPlan, String) -> Unit = { _, _ -> },
+    onOpenProgression: () -> Unit = {},
     viewModel: WorkoutsHistoryViewModel = hiltViewModel(),
 ) {
     val workouts by viewModel.workouts.collectAsState()
     val templates by viewModel.templates.collectAsState()
+    val progressionOverview by viewModel.progressionOverview.collectAsState()
+    val exerciseLastReps by viewModel.exerciseLastReps.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val spacing = MaterialTheme.spacing
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val useTwoPane = isLandscape || spacing.widthClass != PixelFitWidthClass.Compact
 
+    val context = LocalContext.current
+    val prefs = remember(context) {
+        context.getSharedPreferences(WorkoutOrientationPrefs.PREFS_NAME, Context.MODE_PRIVATE)
+    }
+
     var selectedTab by remember(initialTab) { mutableStateOf(initialTab) }
     var templateToDelete by remember { mutableStateOf<WorkoutTemplate?>(null) }
+    var pendingWorkoutToStart by remember { mutableStateOf<Pair<WorkoutPlan, String?>?>(null) }
+
+    val handleStartWorkout: (WorkoutPlan, String) -> Unit = { plan, name ->
+        if (WorkoutWeightPrefs.isEnabled(prefs)) {
+            pendingWorkoutToStart = Pair(plan, name)
+        } else {
+            onStartWorkout(plan, name)
+        }
+    }
+
+    pendingWorkoutToStart?.let { (plan, templateName) ->
+        PreWorkoutLoadoutScreen(
+            plan = plan,
+            templateName = templateName,
+            exerciseLastReps = exerciseLastReps,
+            isWeightSuggestionEnabled = WorkoutWeightPrefs.isWeightSuggestionEnabled(prefs),
+            targetRepThreshold = WorkoutWeightPrefs.getRepThreshold(prefs),
+            onBack = { pendingWorkoutToStart = null },
+            onStartWorkout = { adjustedPlan ->
+                pendingWorkoutToStart = null
+                onStartWorkout(adjustedPlan, templateName ?: "")
+            }
+        )
+        return
+    }
 
     if (useTwoPane) {
         // Landscape & Foldables: Single 2-Pane view with Templates on Left and History on Right
@@ -109,7 +149,7 @@ fun WorkoutsHistoryScreen(
 
                 TemplatesList(
                     templates = templates,
-                    onStartWorkout = onStartWorkout,
+                    onStartWorkout = handleStartWorkout,
                     onEditTemplate = onEditTemplate,
                     onDeleteTemplate = { templateToDelete = it },
                     modifier = Modifier.weight(1f)
@@ -155,7 +195,9 @@ fun WorkoutsHistoryScreen(
                 HistoryList(
                     workouts = workouts,
                     isLoading = isLoading,
+                    progressionOverview = progressionOverview,
                     onWorkoutClick = onWorkoutClick,
+                    onOpenProgression = onOpenProgression,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -250,7 +292,7 @@ fun WorkoutsHistoryScreen(
                     WorkoutsTab.TEMPLATES -> {
                         TemplatesList(
                             templates = templates,
-                            onStartWorkout = onStartWorkout,
+                            onStartWorkout = handleStartWorkout,
                             onEditTemplate = onEditTemplate,
                             onDeleteTemplate = { templateToDelete = it },
                             modifier = Modifier.fillMaxSize()
@@ -260,7 +302,9 @@ fun WorkoutsHistoryScreen(
                         HistoryList(
                             workouts = workouts,
                             isLoading = isLoading,
+                            progressionOverview = progressionOverview,
                             onWorkoutClick = onWorkoutClick,
+                            onOpenProgression = onOpenProgression,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -384,7 +428,9 @@ private fun TemplatesList(
 private fun HistoryList(
     workouts: List<Workout>,
     isLoading: Boolean,
+    progressionOverview: ProgressOverview?,
     onWorkoutClick: (String) -> Unit,
+    onOpenProgression: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = MaterialTheme.spacing
@@ -395,39 +441,53 @@ private fun HistoryList(
         ) {
             CircularProgressIndicator(color = Color.White)
         }
-    } else if (workouts.isEmpty()) {
-        Box(
-            modifier = modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "No workouts yet!",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.8f)
-                )
-                Spacer(modifier = Modifier.height(spacing.xs))
-                Text(
-                    text = "Complete your first workout session to earn XP, coins, and level up your dwelling!",
-                    fontSize = 13.sp,
-                    color = Color.White.copy(alpha = 0.6f),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = spacing.lg)
-                )
-            }
-        }
     } else {
         LazyColumn(
             modifier = modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(spacing.sm),
             contentPadding = PaddingValues(bottom = spacing.md)
         ) {
-            items(workouts, key = { it.id }) { workout ->
-                WorkoutHistoryRow(
-                    workout = workout,
-                    onClick = { onWorkoutClick(workout.id) }
+            item(key = "gym_progression_overview") {
+                GymProgressionOverviewCard(
+                    overview = progressionOverview,
+                    onClick = onOpenProgression,
+                    modifier = Modifier.fillMaxWidth()
                 )
+            }
+
+            if (workouts.isEmpty()) {
+                item(key = "empty_workouts_message") {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = spacing.md),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "No workouts yet!",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White.copy(alpha = 0.8f)
+                            )
+                            Spacer(modifier = Modifier.height(spacing.xs))
+                            Text(
+                                text = "Complete your first workout session to earn XP, coins, and level up your dwelling!",
+                                fontSize = 13.sp,
+                                color = Color.White.copy(alpha = 0.6f),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = spacing.lg)
+                            )
+                        }
+                    }
+                }
+            } else {
+                items(workouts, key = { it.id }) { workout ->
+                    WorkoutHistoryRow(
+                        workout = workout,
+                        onClick = { onWorkoutClick(workout.id) }
+                    )
+                }
             }
         }
     }

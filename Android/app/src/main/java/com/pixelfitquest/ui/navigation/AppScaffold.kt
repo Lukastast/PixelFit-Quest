@@ -243,7 +243,7 @@ fun AppScaffold() {
                                 ) {
                                     Icon(
                                         painter = painterResource(
-                                            id = if (currentRoute == item.route || (item == BottomNavItem.Workouts && (currentRoute.startsWith(WORKOUTS_HISTORY_SCREEN) || currentRoute.startsWith(WORKOUT_CUSTOMIZATION_SCREEN)))) {
+                                            id = if (currentRoute == item.route || (item == BottomNavItem.Workouts && (currentRoute.startsWith(WORKOUTS_HISTORY_SCREEN) || currentRoute.startsWith(WORKOUT_CUSTOMIZATION_SCREEN) || currentRoute == PROGRESS_SCREEN))) {
                                                 item.selectedIcon
                                             } else {
                                                 item.unSelectedIcon
@@ -326,7 +326,7 @@ fun AppScaffold() {
                                     ) {
                                         Icon(
                                             painter = painterResource(
-                                                id = if (currentRoute == item.route || (item == BottomNavItem.Workouts && (currentRoute.startsWith(WORKOUTS_HISTORY_SCREEN) || currentRoute.startsWith(WORKOUT_CUSTOMIZATION_SCREEN)))) {
+                                                id = if (currentRoute == item.route || (item == BottomNavItem.Workouts && (currentRoute.startsWith(WORKOUTS_HISTORY_SCREEN) || currentRoute.startsWith(WORKOUT_CUSTOMIZATION_SCREEN) || currentRoute == PROGRESS_SCREEN))) {
                                                     item.selectedIcon
                                                 } else {
                                                     item.unSelectedIcon
@@ -422,6 +422,9 @@ fun NavGraphBuilder.pixelFitGraph(
             },
             onStartWorkout = { plan, templateName ->
                 appState.navigate(workoutRoute(plan, templateName))
+            },
+            onOpenProgression = {
+                appState.navigate(PROGRESS_SCREEN)
             }
         )
     }

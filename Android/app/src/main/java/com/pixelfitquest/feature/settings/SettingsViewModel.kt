@@ -16,6 +16,7 @@ import com.pixelfitquest.firebase.model.User
 import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.firebase.service.AccountService
 import com.pixelfitquest.firebase.repository.UserRepository
+import com.pixelfitquest.feature.workout.WorkoutWeightPrefs
 import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationPrefs
 import com.pixelfitquest.local.CloudBackup
 import com.pixelfitquest.viewmodel.PixelFitViewModel
@@ -44,6 +45,18 @@ class SettingsViewModel @Inject constructor(
 
     private val _workoutLandscapeEnabled = MutableStateFlow(WorkoutOrientationPrefs.isEnabled(prefs))
     val workoutLandscapeEnabled: StateFlow<Boolean> = _workoutLandscapeEnabled.asStateFlow()
+
+    private val _preWorkoutWeightCheckEnabled =
+        MutableStateFlow(WorkoutWeightPrefs.isPreWorkoutCheckEnabled(prefs))
+    val preWorkoutWeightCheckEnabled: StateFlow<Boolean> = _preWorkoutWeightCheckEnabled.asStateFlow()
+
+    private val _weightSuggestionEnabled =
+        MutableStateFlow(WorkoutWeightPrefs.isWeightSuggestionEnabled(prefs))
+    val weightSuggestionEnabled: StateFlow<Boolean> = _weightSuggestionEnabled.asStateFlow()
+
+    private val _weightSuggestionRepThreshold =
+        MutableStateFlow(WorkoutWeightPrefs.getRepThreshold(prefs))
+    val weightSuggestionRepThreshold: StateFlow<Int> = _weightSuggestionRepThreshold.asStateFlow()
 
     private val _godModeEnabled = MutableStateFlow(GodModePrefs.isEnabled(prefs))
     val godModeEnabled: StateFlow<Boolean> = _godModeEnabled.asStateFlow()
@@ -170,6 +183,22 @@ class SettingsViewModel @Inject constructor(
     fun setWorkoutLandscapeEnabled(enabled: Boolean) {
         WorkoutOrientationPrefs.setEnabled(prefs, enabled)
         _workoutLandscapeEnabled.value = enabled
+    }
+
+    fun setPreWorkoutWeightCheckEnabled(enabled: Boolean) {
+        WorkoutWeightPrefs.setPreWorkoutCheckEnabled(prefs, enabled)
+        _preWorkoutWeightCheckEnabled.value = enabled
+    }
+
+    fun setWeightSuggestionEnabled(enabled: Boolean) {
+        WorkoutWeightPrefs.setWeightSuggestionEnabled(prefs, enabled)
+        _weightSuggestionEnabled.value = enabled
+    }
+
+    fun setWeightSuggestionRepThreshold(threshold: Int) {
+        val clamped = threshold.coerceIn(5, 30)
+        WorkoutWeightPrefs.setRepThreshold(prefs, clamped)
+        _weightSuggestionRepThreshold.value = clamped
     }
 
     fun setGodModeEnabled(enabled: Boolean) {

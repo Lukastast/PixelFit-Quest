@@ -421,4 +421,38 @@
     <string name="progress_empty_chart">No working weights logged for this lift yet.</string>
     <string name="progress_empty_volume">No volume yet — complete a set to plot this lift.</string>
     <string name="progress_no_exercises">No chartable lifts yet. Finish a workout to start a history.</string>
+    <string name="progress_overview_title">GYM PROGRESSION</string>
+    <string name="progress_overview_subtitle">Strength &amp; Volume Trends</string>
+    <string name="progress_overview_cta">Full Analysis &gt;</string>
+    <string name="progress_overview_empty">Log workouts to track your gym progression curve</string>
+    <string name="progress_overview_latest">LATEST</string>
+    <string name="progress_overview_est_1rm">EST. 1RM</string>
+    <string name="progress_overview_volume">VOLUME</string>
+    <string name="progress_1rm_title">Estimated 1-Rep Max (1RM)</string>
+    <string name="progress_1rm_desc">Calculated strength ceiling based on your heaviest sets</string>
+    <string name="progress_1rm_formula_hint">Calculated via Epley progression formula from working weight and completed reps.</string>
+    <string name="progress_form_quality_title">Form &amp; Motion Control</string>
+    <string name="progress_form_sensor_hint">Sensor tracking available: equip your phone during lifts to track Bar Imbalance, ROM, and Stability in real-time.</string>
+    <string name="progress_recent_sessions_title">Session Milestones</string>
+    <string name="progress_no_sessions_yet">No sessions logged for this lift yet.</string>
+    <string name="progress_hero_subtitle">Track your strength progression, capacity, and form quality over time.</string>
+
+    <!-- Pre-workout loadout and progression -->
+    <string name="settings_pre_workout_weight_check_title">Pre-Workout Weight Check</string>
+    <string name="settings_pre_workout_weight_check_subtitle">Review &amp; adjust weights before starting workouts</string>
+    <string name="settings_weight_progression_title">Weight Increase Suggestions</string>
+    <string name="settings_weight_progression_subtitle">Suggest +2.5 kg upon hitting rep target</string>
+    <string name="settings_rep_threshold_title">Progression Rep Target</string>
+    <string name="settings_rep_threshold_hint">Hitting %1$d reps in a session suggests +2.5 kg next time</string>
+    <string name="loadout_title">PRE-WORKOUT LOADOUT</string>
+    <string name="loadout_subtitle">Calibrate starting weights &amp; review suggestions</string>
+    <string name="loadout_progression_hit_title">PROGRESSION GOAL HIT!</string>
+    <string name="loadout_progression_hit_desc">Hit %1$d reps last session (target: %2$d). Ready for +2.5 kg!</string>
+    <string name="loadout_apply_suggestion">+2.5 KG SUGGESTION</string>
+    <string name="loadout_suggestion_applied">APPLIED ✓</string>
+    <string name="loadout_start_button">Start Workout</string>
+    <string name="loadout_cancel_button">Back</string>
+    <string name="loadout_ready_badge">%1$d LIFT READY TO OVERLOAD</string>
+    <string name="loadout_ready_badge_plural">%1$d LIFTS READY TO OVERLOAD</string>
+    <string name="workout_set_weight_label">Set Weight</string>
 </resources>

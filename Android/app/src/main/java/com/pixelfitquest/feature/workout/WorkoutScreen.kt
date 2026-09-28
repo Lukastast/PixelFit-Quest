@@ -16,8 +16,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -107,7 +110,7 @@ fun WorkoutScreen(
     val currentExercise = currentDefinition?.displayName ?: "Unknown"
     val currentImu = currentDefinition?.imuSupported == true
     val currentSets = currentItem?.sets ?: 0
-    val currentWeight = currentItem?.weight ?: 0.0
+    val currentWeight = state.weight
 
     LaunchedEffect(Unit) {
         viewModel.countdownEvent.collectLatest {
@@ -252,62 +255,75 @@ fun WorkoutScreen(
         }
 
         if (state.phase != WorkoutPhase.Reviewing) {
-            Row(
+            Column(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .statusBarsPadding()
                     .displayCutoutPadding()
                     .padding(top = spacing.xl + spacing.sm),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                when (state.phase) {
-                    WorkoutPhase.Recording -> PixelArtButton(
-                        onClick = {
-                            val recorded = session.snapshotInterpolated()
-                            session.unregister()
-                            viewModel.finishSet(recorded)
-                        },
-                        imageRes = R.drawable.pause_button_unclicked,
-                        pressedRes = R.drawable.pause_button_clicked,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    when (state.phase) {
+                        WorkoutPhase.Recording -> PixelArtButton(
+                            onClick = {
+                                val recorded = session.snapshotInterpolated()
+                                session.unregister()
+                                viewModel.finishSet(recorded)
+                            },
+                            imageRes = R.drawable.pause_button_unclicked,
+                            pressedRes = R.drawable.pause_button_clicked,
+                            modifier = Modifier.size(buttonSize),
+                        )
+                        WorkoutPhase.Idle -> PixelArtButton(
+                            onClick = { viewModel.startSet() },
+                            imageRes = R.drawable.play_button_unclicked,
+                            pressedRes = R.drawable.play_button_clicked,
+                            modifier = Modifier.size(buttonSize),
+                        )
+                        else -> Box(Modifier.size(buttonSize))
+                    }
+
+                    Box(modifier = Modifier.padding(start = spacing.md, end = spacing.md)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(spacing.cornerSm))
+                                .padding(horizontal = spacing.sm, vertical = spacing.xxs),
+                        ) {
+                            Text(
+                                text = currentExercise,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                            )
+                            Text(
+                                text = stringResource(
+                                    if (currentImu) R.string.exercise_badge_imu else R.string.exercise_badge_log,
+                                ),
+                                color = if (currentImu) Color(0xFFA5D6A7) else Color(0xFFBDBDBD),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp,
+                                modifier = Modifier.padding(start = spacing.xs),
+                            )
+                        }
+                    }
+                    PixelArtButton(
+                        onClick = { viewModel.leaveWorkout() },
+                        imageRes = R.drawable.stop_button_unclicked,
+                        pressedRes = R.drawable.stop_button_clicked,
                         modifier = Modifier.size(buttonSize),
                     )
-                    WorkoutPhase.Idle -> PixelArtButton(
-                        onClick = { viewModel.startSet() },
-                        imageRes = R.drawable.play_button_unclicked,
-                        pressedRes = R.drawable.play_button_clicked,
-                        modifier = Modifier.size(buttonSize),
-                    )
-                    else -> Box(Modifier.size(buttonSize))
                 }
 
-                Box(modifier = Modifier.padding(top = spacing.lg, start = spacing.md, end = spacing.md)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(spacing.cornerSm))
-                            .padding(horizontal = spacing.sm, vertical = spacing.xxs),
-                    ) {
-                        Text(
-                            text = currentExercise,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                        )
-                        Text(
-                            text = stringResource(
-                                if (currentImu) R.string.exercise_badge_imu else R.string.exercise_badge_log,
-                            ),
-                            color = if (currentImu) Color(0xFFA5D6A7) else Color(0xFFBDBDBD),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            modifier = Modifier.padding(start = spacing.xs),
-                        )
-                    }
+                if (state.phase == WorkoutPhase.Idle) {
+                    Spacer(modifier = Modifier.height(spacing.xs))
+                    BetweenSetsWeightHud(
+                        weight = state.weight,
+                        onAdjustWeight = viewModel::adjustWeight,
+                    )
                 }
-                PixelArtButton(
-                    onClick = { viewModel.leaveWorkout() },
-                    imageRes = R.drawable.stop_button_unclicked,
-                    pressedRes = R.drawable.stop_button_clicked,
-                    modifier = Modifier.size(buttonSize),
-                )
             }
         }
 
@@ -400,6 +416,8 @@ fun WorkoutScreen(
             if (state.phase == WorkoutPhase.Reviewing) {
                 SetReviewOverlay(
                     review = review,
+                    currentWeight = state.weight,
+                    onAdjustWeight = viewModel::adjustWeight,
                     onAcceptCandidate = viewModel::acceptCandidate,
                     onRemove = viewModel::removeRep,
                     onMerge = viewModel::mergeWithNext,

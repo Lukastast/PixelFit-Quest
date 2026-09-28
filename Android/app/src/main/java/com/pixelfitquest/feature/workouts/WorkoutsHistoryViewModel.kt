@@ -1,6 +1,9 @@
 package com.pixelfitquest.feature.workouts
 
 import androidx.lifecycle.viewModelScope
+import com.pixelfitquest.feature.progress.data.LiftHistoryDao
+import com.pixelfitquest.feature.progress.data.ProgressRepository
+import com.pixelfitquest.feature.progress.model.ProgressOverview
 import com.pixelfitquest.feature.workout.model.Workout
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutTemplate
 import com.pixelfitquest.firebase.repository.WorkoutRepository
@@ -18,6 +21,8 @@ import javax.inject.Inject
 class WorkoutsHistoryViewModel @Inject constructor(
     private val workoutRepository: WorkoutRepository,
     private val templateRepository: WorkoutTemplateRepository,
+    private val progressRepository: ProgressRepository,
+    private val liftHistoryDao: LiftHistoryDao,
 ) : PixelFitViewModel() {
 
     private val _workouts = MutableStateFlow<List<Workout>>(emptyList())
@@ -26,12 +31,19 @@ class WorkoutsHistoryViewModel @Inject constructor(
     private val _templates = MutableStateFlow<List<WorkoutTemplate>>(emptyList())
     val templates: StateFlow<List<WorkoutTemplate>> = _templates.asStateFlow()
 
+    private val _progressionOverview = MutableStateFlow<ProgressOverview?>(null)
+    val progressionOverview: StateFlow<ProgressOverview?> = _progressionOverview.asStateFlow()
+
+    private val _exerciseLastReps = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val exerciseLastReps: StateFlow<Map<String, Int>> = _exerciseLastReps.asStateFlow()
+
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
         loadWorkouts()
         loadTemplates()
+        loadProgression()
     }
 
     fun loadWorkouts() {
@@ -41,9 +53,50 @@ class WorkoutsHistoryViewModel @Inject constructor(
                 workoutRepository.getWorkouts().collect { list ->
                     _workouts.value = list.filter { it.totalExercises > 0 }.sortedByDescending { it.date }
                     _isLoading.value = false
+                    loadProgression()
                 }
             } catch (e: Exception) {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    fun loadProgression() {
+        viewModelScope.launch {
+            try {
+                val overview = progressRepository.loadOverview()
+                _progressionOverview.value = overview
+            } catch (_: Exception) {
+            }
+        }
+        loadExerciseLastReps()
+    }
+
+    fun loadExerciseLastReps() {
+        viewModelScope.launch {
+            try {
+                val records = liftHistoryDao.getAll()
+                if (records.isEmpty()) {
+                    _exerciseLastReps.value = emptyMap()
+                    return@launch
+                }
+                val grouped = records.groupBy { it.exerciseType }
+                val resultMap = mutableMapOf<String, Int>()
+
+                for ((exerciseType, list) in grouped) {
+                    val latestRecord = list.maxByOrNull { it.timestampMillis } ?: continue
+                    val latestWorkoutId = latestRecord.workoutId
+                    val sessionSets = if (latestWorkoutId.isNotBlank()) {
+                        list.filter { it.workoutId == latestWorkoutId }
+                    } else {
+                        val sessionWindow = 3 * 3600 * 1000L
+                        list.filter { kotlin.math.abs(it.timestampMillis - latestRecord.timestampMillis) <= sessionWindow }
+                    }
+                    val maxRepsInSession = sessionSets.maxOfOrNull { it.reps } ?: 0
+                    resultMap[exerciseType] = maxRepsInSession
+                }
+                _exerciseLastReps.value = resultMap
+            } catch (_: Exception) {
             }
         }
     }

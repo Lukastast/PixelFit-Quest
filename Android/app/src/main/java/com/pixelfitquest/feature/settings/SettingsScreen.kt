@@ -46,6 +46,8 @@ import com.pixelfitquest.R
 import com.pixelfitquest.components.molecules.ExitAppCard
 import com.pixelfitquest.components.molecules.GodModeCard
 import com.pixelfitquest.components.molecules.LandscapeWorkoutCard
+import com.pixelfitquest.components.molecules.PreWorkoutWeightCheckCard
+import com.pixelfitquest.components.molecules.WeightProgressionSettingsCard
 import com.pixelfitquest.components.molecules.RemoveAccountCard
 import com.pixelfitquest.components.molecules.SettingsActionCard
 import com.pixelfitquest.components.molecules.VolumeCard
@@ -74,6 +76,9 @@ fun SettingsScreen(
     val musicVolume = userSettings?.musicVolume ?: 50
     val signedIn = user.id.isNotBlank()
     val workoutLandscapeEnabled by viewModel.workoutLandscapeEnabled.collectAsState()
+    val preWorkoutWeightCheckEnabled by viewModel.preWorkoutWeightCheckEnabled.collectAsState()
+    val weightSuggestionEnabled by viewModel.weightSuggestionEnabled.collectAsState()
+    val weightSuggestionRepThreshold by viewModel.weightSuggestionRepThreshold.collectAsState()
     val godModeEnabled by viewModel.godModeEnabled.collectAsState()
     val weeklyStreak by weeklyStreakViewModel.snapshot.collectAsState()
     val context = LocalContext.current
@@ -165,6 +170,20 @@ fun SettingsScreen(
                         LandscapeWorkoutCard(
                             enabled = workoutLandscapeEnabled,
                             onToggle = { viewModel.setWorkoutLandscapeEnabled(it) },
+                            modifier = cardModifier,
+                        )
+
+                        PreWorkoutWeightCheckCard(
+                            enabled = preWorkoutWeightCheckEnabled,
+                            onToggle = { viewModel.setPreWorkoutWeightCheckEnabled(it) },
+                            modifier = cardModifier,
+                        )
+
+                        WeightProgressionSettingsCard(
+                            suggestionEnabled = weightSuggestionEnabled,
+                            onSuggestionToggle = { viewModel.setWeightSuggestionEnabled(it) },
+                            repThreshold = weightSuggestionRepThreshold,
+                            onThresholdChange = { viewModel.setWeightSuggestionRepThreshold(it) },
                             modifier = cardModifier,
                         )
 
@@ -304,6 +323,20 @@ fun SettingsScreen(
                 LandscapeWorkoutCard(
                     enabled = workoutLandscapeEnabled,
                     onToggle = { viewModel.setWorkoutLandscapeEnabled(it) },
+                    modifier = cardModifier,
+                )
+
+                PreWorkoutWeightCheckCard(
+                    enabled = preWorkoutWeightCheckEnabled,
+                    onToggle = { viewModel.setPreWorkoutWeightCheckEnabled(it) },
+                    modifier = cardModifier,
+                )
+
+                WeightProgressionSettingsCard(
+                    suggestionEnabled = weightSuggestionEnabled,
+                    onSuggestionToggle = { viewModel.setWeightSuggestionEnabled(it) },
+                    repThreshold = weightSuggestionRepThreshold,
+                    onThresholdChange = { viewModel.setWeightSuggestionRepThreshold(it) },
                     modifier = cardModifier,
                 )
 

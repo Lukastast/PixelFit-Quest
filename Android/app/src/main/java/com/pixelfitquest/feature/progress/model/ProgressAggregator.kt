@@ -31,6 +31,14 @@ object ProgressAggregator {
                         val working = weights.maxOrNull() ?: 0f
                         val rom = sets.map { it.romScore }.filter { it > 0f }
                         val stability = sets.map { it.stabilityScore }.filter { it > 0f }
+                        val est1Rm = sets.maxOfOrNull { set ->
+                            if (set.reps > 0 && set.weightKg > 0f) {
+                                set.weightKg * (1f + set.reps / 30f)
+                            } else {
+                                set.weightKg
+                            }
+                        } ?: working
+                        val totalReps = sets.sumOf { it.reps }
                         SessionProgressPoint(
                             workoutId = workoutId,
                             timestampMillis = sets.minOf { it.timestampMillis },
@@ -39,6 +47,8 @@ object ProgressAggregator {
                             avgRomScore = if (rom.isEmpty()) 0f else rom.average().toFloat(),
                             avgStabilityScore = if (stability.isEmpty()) 0f else stability.average().toFloat(),
                             setCount = sets.size,
+                            est1RmKg = est1Rm,
+                            totalReps = totalReps,
                         )
                     }
                     .sortedBy { it.timestampMillis }

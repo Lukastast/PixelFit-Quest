@@ -122,6 +122,24 @@ fun ProgressLineChart(
 
         if (points.isEmpty()) return@Canvas
 
+        if (!stub && points.size >= 2) {
+            val fillPath = Path()
+            fillPath.moveTo(xFor(0), origin.y)
+            points.forEachIndexed { index, point ->
+                fillPath.lineTo(xFor(index), yFor(point.value))
+            }
+            fillPath.lineTo(xFor(points.size - 1), origin.y)
+            fillPath.close()
+            drawPath(
+                path = fillPath,
+                brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                    colors = listOf(lineColor.copy(alpha = 0.24f), Color.Transparent),
+                    startY = topPad,
+                    endY = origin.y
+                )
+            )
+        }
+
         val path = Path()
         points.forEachIndexed { index, point ->
             val x = xFor(index)
@@ -142,7 +160,7 @@ fun ProgressLineChart(
             val y = yFor(point.value)
             val radius = if (index == highlight) 6.dp.toPx() else 4.dp.toPx()
             drawCircle(color = lineColor.copy(alpha = if (stub) 0.5f else 1f), radius = radius, center = Offset(x, y))
-            drawCircle(color = Color(0xFF1A1A1A), radius = radius * 0.4f, center = Offset(x, y))
+            drawCircle(color = Color(0xFF121822), radius = radius * 0.4f, center = Offset(x, y))
         }
 
         val labelIndices = xLabelIndices(points.size)
@@ -163,9 +181,27 @@ fun ProgressLineChart(
             val y = yFor(point.value)
             val text = point.markerLabel.ifBlank { formatAxisValue(point.value, yUnit) }
             val textWidth = labelPaint.measureText(text)
-            val tx = (x - textWidth / 2f).coerceIn(leftPad, size.width - textWidth - 4.dp.toPx())
-            val ty = (y - 12.dp.toPx()).coerceAtLeast(topPad + 14.dp.toPx())
-            drawContext.canvas.nativeCanvas.drawText(text, tx, ty, labelPaint)
+            val tx = (x - textWidth / 2f).coerceIn(leftPad, size.width - textWidth - 8.dp.toPx())
+            val ty = (y - 12.dp.toPx()).coerceAtLeast(topPad + 18.dp.toPx())
+            val padX = 6.dp.toPx()
+            val padY = 4.dp.toPx()
+            val boxTop = ty - 22.dp.toPx()
+            val boxHeight = 26.dp.toPx()
+            val boxWidth = textWidth + 2 * padX
+            drawRoundRect(
+                color = Color(0xFF121822),
+                topLeft = Offset(tx - padX, boxTop),
+                size = androidx.compose.ui.geometry.Size(boxWidth, boxHeight),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx(), 4.dp.toPx()),
+            )
+            drawRoundRect(
+                color = Color(0xFF384A5C),
+                topLeft = Offset(tx - padX, boxTop),
+                size = androidx.compose.ui.geometry.Size(boxWidth, boxHeight),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx(), 4.dp.toPx()),
+                style = Stroke(width = 1.dp.toPx()),
+            )
+            drawContext.canvas.nativeCanvas.drawText(text, tx, ty - 4.dp.toPx(), labelPaint)
         }
     }
 }

@@ -3,6 +3,7 @@ package com.pixelfitquest.feature.workout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,12 +34,17 @@ import com.pixelfitquest.feature.workout.analysis.CoachingTags
 import com.pixelfitquest.feature.workout.analysis.DetectedRep
 import com.pixelfitquest.feature.workout.analysis.TAG_CLIP_POSE
 import com.pixelfitquest.feature.workout.model.SetReviewState
+import com.pixelfitquest.ui.theme.ImperialGold
 import com.pixelfitquest.ui.theme.LocalSpacing
+import com.pixelfitquest.ui.theme.VitalGreen
 import com.pixelfitquest.ui.theme.determination
+import java.util.Locale
 
 @Composable
 fun SetReviewOverlay(
     review: SetReviewState,
+    currentWeight: Float = 0f,
+    onAdjustWeight: ((Float) -> Unit)? = null,
     onAcceptCandidate: (Int) -> Unit,
     onRemove: (Int) -> Unit,
     onMerge: (Int) -> Unit,
@@ -109,6 +116,8 @@ fun SetReviewOverlay(
                 )
                 SetReviewActions(
                     review = review,
+                    currentWeight = currentWeight,
+                    onAdjustWeight = onAdjustWeight,
                     onAdd = onAdd,
                     onRedo = onRedo,
                     onConfirm = onConfirm,
@@ -132,6 +141,8 @@ fun SetReviewOverlay(
                 )
                 SetReviewActions(
                     review = review,
+                    currentWeight = currentWeight,
+                    onAdjustWeight = onAdjustWeight,
                     onAdd = onAdd,
                     onRedo = onRedo,
                     onConfirm = onConfirm,
@@ -146,6 +157,8 @@ fun SetReviewOverlay(
 @Composable
 private fun SetReviewActions(
     review: SetReviewState,
+    currentWeight: Float,
+    onAdjustWeight: ((Float) -> Unit)?,
     onAdd: () -> Unit,
     onRedo: () -> Unit,
     onConfirm: () -> Unit,
@@ -184,6 +197,59 @@ private fun SetReviewActions(
                 color = Color.Gray,
                 fontSize = 12.sp,
             )
+        }
+
+        if (onAdjustWeight != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(spacing.cornerXs))
+                    .background(Color(0xFF252525))
+                    .padding(horizontal = spacing.xs, vertical = spacing.scale(4)),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "WEIGHT",
+                    fontFamily = determination,
+                    fontSize = 11.sp,
+                    color = Color.LightGray,
+                    fontWeight = FontWeight.Bold
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(spacing.scale(3))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(spacing.cornerXs))
+                            .background(Color(0xFF383838))
+                            .clickable { onAdjustWeight(-2.5f) }
+                            .padding(horizontal = spacing.scale(5), vertical = spacing.scale(2)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("-2.5", fontFamily = determination, fontSize = 10.sp, color = Color.White)
+                    }
+                    Text(
+                        text = if (currentWeight % 1f == 0f) "${currentWeight.toInt()} kg" else String.format(Locale.US, "%.1f kg", currentWeight),
+                        fontFamily = determination,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ImperialGold,
+                        modifier = Modifier.padding(horizontal = spacing.xxs)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(spacing.cornerXs))
+                            .background(Color(0xFF383838))
+                            .clickable { onAdjustWeight(2.5f) }
+                            .padding(horizontal = spacing.scale(5), vertical = spacing.scale(2)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("+2.5", fontFamily = determination, fontSize = 10.sp, color = VitalGreen)
+                    }
+                }
+            }
         }
         if (stacked) {
             Spacer(Modifier.height(spacing.xxs))

@@ -383,6 +383,18 @@ class WorkoutViewModel @Inject constructor(
         _error.value = message
     }
 
+    fun adjustWeight(deltaKg: Float) {
+        val current = _workoutState.value.weight
+        val newWeight = (current + deltaKg).coerceAtLeast(0f)
+        val rounded = Math.round(newWeight * 100f) / 100f
+        _workoutState.value = _workoutState.value.copy(weight = rounded)
+    }
+
+    fun setWeight(newWeightKg: Float) {
+        val rounded = Math.round(newWeightKg.coerceAtLeast(0f) * 100f) / 100f
+        _workoutState.value = _workoutState.value.copy(weight = rounded)
+    }
+
     private fun mutateReview(transform: (List<DetectedRep>) -> List<DetectedRep>) {
         val review = _workoutState.value.review ?: return
         val updated = transform(review.reps)
@@ -418,7 +430,7 @@ class WorkoutViewModel @Inject constructor(
             type = type,
             profileId = type.type,
             totalSets = item.sets,
-            weight = item.weight,
+            weight = _workoutState.value.weight.takeIf { it > 0f } ?: item.weight,
         )
         savedExerciseForIndex = currentExerciseIndex
         launchCatching {
