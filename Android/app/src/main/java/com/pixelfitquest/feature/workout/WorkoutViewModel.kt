@@ -7,7 +7,6 @@ import com.pixelfitquest.feature.customization.model.CharacterData
 import com.pixelfitquest.feature.workout.analysis.DetectedRep
 import com.pixelfitquest.feature.workout.analysis.ExerciseProfiles
 import com.pixelfitquest.feature.workout.analysis.FullRomStore
-import com.pixelfitquest.feature.workout.analysis.credibleFullRom
 import com.pixelfitquest.feature.workout.analysis.RomUnit
 import com.pixelfitquest.feature.workout.analysis.SetAnalysis
 import com.pixelfitquest.feature.workout.analysis.SetAnalyzer
@@ -21,7 +20,6 @@ import com.pixelfitquest.feature.workout.model.Workout
 import com.pixelfitquest.feature.workout.model.WorkoutPhase
 import com.pixelfitquest.feature.workout.model.WorkoutSet
 import com.pixelfitquest.feature.workout.model.enums.ExerciseType
-import com.pixelfitquest.feature.workout.model.enums.WorkoutFeedback
 import com.pixelfitquest.feature.workout.sensor.ImuSample
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.feature.progress.data.LiftHistoryDao
@@ -32,14 +30,12 @@ import com.pixelfitquest.firebase.repository.WorkoutRepository
 import com.pixelfitquest.feature.achievements.AchievementSyncService
 import com.pixelfitquest.viewmodel.PixelFitViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.util.UUID
@@ -60,11 +56,6 @@ class WorkoutViewModel @Inject constructor(
 
     private val _workoutState = MutableStateFlow(WorkoutState())
     val workoutState: StateFlow<WorkoutState> = _workoutState.asStateFlow()
-
-    private val _feedbackEvent = Channel<WorkoutFeedback>(Channel.BUFFERED)
-    val feedbackEvent = _feedbackEvent.receiveAsFlow()
-    private val _countdownEvent = Channel<Unit>(Channel.BUFFERED)
-    val countdownEvent = _countdownEvent.receiveAsFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -93,6 +84,8 @@ class WorkoutViewModel @Inject constructor(
     private var exerciseSetCount = 0
     private var exerciseVolume = 0f
     private val sideByExercise = mutableMapOf<Int, String>()
+    /** True after setRom(100%)/replace in the current review; confirm must not raise above that baseline. */
+    private var fullRomRecalibratedThisReview = false
 
     init {
         launchCatching {
@@ -151,26 +144,16 @@ class WorkoutViewModel @Inject constructor(
             showLogOnlyReview(sampleCount = 0)
             return
         }
+        // No 3-2-1 countdown (#170): start IMU recording immediately.
         samples.clear()
         _workoutState.value = _workoutState.value.copy(
-            phase = WorkoutPhase.Countdown,
+            phase = WorkoutPhase.Recording,
             sampleCount = 0,
             recordingSeconds = 0f,
             review = null,
             restRemainingMs = 0L,
             restPaused = false,
             restAutostart = false,
-        )
-        viewModelScope.launch { _countdownEvent.send(Unit) }
-    }
-
-    fun onCountdownFinished() {
-        if (_workoutState.value.phase != WorkoutPhase.Countdown) return
-        samples.clear()
-        _workoutState.value = _workoutState.value.copy(
-            phase = WorkoutPhase.Recording,
-            sampleCount = 0,
-            recordingSeconds = 0f,
         )
     }
 
@@ -199,6 +182,7 @@ class WorkoutViewModel @Inject constructor(
             profile = profile,
             fullRom = fullRomStore.get(type.type),
         )
+        fullRomRecalibratedThisReview = false
         val review = SetReviewState(
             analysis = analysis,
             reps = analysis.reps,
@@ -225,6 +209,7 @@ class WorkoutViewModel @Inject constructor(
 
     fun redoSet() {
         if (_workoutState.value.phase != WorkoutPhase.Reviewing) return
+        fullRomRecalibratedThisReview = false
         samples.clear()
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Idle,
@@ -325,6 +310,7 @@ class WorkoutViewModel @Inject constructor(
         if (percent >= 100 && current.romEstimate > 1e-4f) {
             val baseline = current.romEstimate
             currentExerciseType?.let { fullRomStore.replace(it.type, baseline) }
+            fullRomRecalibratedThisReview = true
             logEdit(
                 "recalibrate_rom",
                 mapOf(
@@ -416,9 +402,13 @@ class WorkoutViewModel @Inject constructor(
         val accepted = review.reps.filter { it.accepted }
         _workoutState.value.side?.let { sideByExercise[currentExerciseIndex] = it }
         currentExerciseType?.let { type ->
-            val peak = credibleFullRom(accepted.map { it.romEstimate })
-            fullRomStore.raise(type.type, peak)
+            fullRomStore.raiseFromConfirmedSet(
+                exerciseId = type.type,
+                acceptedAmplitudes = accepted.map { it.romEstimate },
+                userRecalibrated = fullRomRecalibratedThisReview,
+            )
         }
+        fullRomRecalibratedThisReview = false
         logEdit(
             "confirm",
             mapOf(
@@ -430,8 +420,6 @@ class WorkoutViewModel @Inject constructor(
             ),
         )
         saveConfirmedSet(review, accepted)
-        triggerSetFeedback(review.meanFormScore)
-
         val plan = currentPlan ?: return
         val currentItem = plan.items.getOrNull(currentExerciseIndex) ?: return
         val wasLastSet = currentSetNumber == currentItem.sets
@@ -622,6 +610,7 @@ class WorkoutViewModel @Inject constructor(
             flags = review.analysis.flags,
             repRecords = records,
             side = _workoutState.value.side,
+            // TODO(workout-notes): pass review notes when a TextField is wired in SetReviewOverlay.
         )
         val repsCount = accepted.size
         sessionRepCount += repsCount
@@ -719,6 +708,7 @@ class WorkoutViewModel @Inject constructor(
      * profile — that would invent form scores. User adds reps on the review overlay.
      */
     private fun showLogOnlyReview(sampleCount: Int) {
+        fullRomRecalibratedThisReview = false
         val type = currentExerciseType ?: return
         val review = SetReviewState(
             analysis = SetAnalysis(
@@ -737,17 +727,6 @@ class WorkoutViewModel @Inject constructor(
             recordingSeconds = 0f,
             review = review,
         )
-    }
-
-    private fun triggerSetFeedback(score: Float) {
-        val feedback = when {
-            score >= 90 -> WorkoutFeedback.PERFECT
-            score >= 80 -> WorkoutFeedback.EXCELLENT
-            score >= 70 -> WorkoutFeedback.GREAT
-            score >= 50 -> WorkoutFeedback.GOOD
-            else -> WorkoutFeedback.MISS
-        }
-        viewModelScope.launch { _feedbackEvent.send(feedback) }
     }
 
     private fun loadCharacterData() {

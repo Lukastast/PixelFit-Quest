@@ -3,14 +3,11 @@ package com.pixelfitquest.feature.workout
 import android.content.Context
 import android.hardware.SensorManager
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,12 +33,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -57,16 +51,13 @@ import com.pixelfitquest.components.atoms.CharacterIdleAnimation
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.feature.workout.catalog.ExerciseCatalog
 import com.pixelfitquest.feature.workout.model.WorkoutPhase
-import com.pixelfitquest.feature.workout.model.enums.WorkoutFeedback
 import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationLock
 import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationPrefs
 import com.pixelfitquest.feature.workout.sensor.SensorSession
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.ui.navigation.HOME_SCREEN
-import com.pixelfitquest.ui.theme.determination
 import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun WorkoutScreen(
@@ -103,9 +94,6 @@ fun WorkoutScreen(
     }
 
     val characterData by viewModel.characterData.collectAsState()
-    var currentFeedback by remember { mutableStateOf<WorkoutFeedback?>(null) }
-    val animState = remember { Animatable(0f) }
-    var countdownNumber by remember { mutableStateOf<Int?>(null) }
 
     val currentItem = plan.items.getOrNull(state.currentExerciseIndex)
     val currentDefinition = currentItem?.exercise?.let { ExerciseCatalog.definition(it) }
@@ -113,38 +101,6 @@ fun WorkoutScreen(
     val currentImu = currentDefinition?.imuSupported == true
     val currentSets = currentItem?.sets ?: 0
     val currentWeight = state.weight
-
-    LaunchedEffect(Unit) {
-        viewModel.countdownEvent.collectLatest {
-            countdownNumber = 3
-            repeat(3) { i ->
-                delay(1000L)
-                countdownNumber = 3 - i - 1
-            }
-            countdownNumber = -1
-            viewModel.onCountdownFinished()
-            delay(1000L)
-            countdownNumber = null
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.feedbackEvent.collect { feedback ->
-            if (animState.isRunning) {
-                animState.snapTo(1f)
-                animState.animateTo(0f)
-            }
-            currentFeedback = feedback
-            animState.snapTo(0f)
-            animState.animateTo(
-                targetValue = 1f,
-                animationSpec = spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = 500f),
-            )
-            delay(300L)
-            animState.animateTo(0f)
-            currentFeedback = null
-        }
-    }
 
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { workoutId ->
@@ -183,9 +139,10 @@ fun WorkoutScreen(
     LaunchedEffect(state.phase, state.restPaused) {
         if (state.phase != WorkoutPhase.Resting || state.restPaused) return@LaunchedEffect
         while (true) {
+            // Delay before the first tick so a 90s rest is not short by 200ms.
+            delay(200)
             val left = viewModel.tickRest(200)
             if (left <= 0L) break
-            delay(200)
         }
         viewModel.onRestFinished()
     }
@@ -237,11 +194,6 @@ fun WorkoutScreen(
                     currentSets,
                     currentWeight,
                     state.recordingSeconds,
-                )
-                WorkoutPhase.Countdown -> stringResource(
-                    R.string.workout_status_countdown,
-                    state.currentSetNumber,
-                    currentSets,
                 )
                 WorkoutPhase.Reviewing -> stringResource(
                     R.string.workout_status_review,
@@ -395,39 +347,6 @@ fun WorkoutScreen(
                 variant = characterData.variant,
                 isAnimating = true,
             )
-        }
-
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            countdownNumber?.let { number ->
-                val text = if (number >= 0) "$number" else stringResource(R.string.workout_go)
-                val color = if (number >= 0) Color.Yellow else Color.Green
-                Text(
-                    text = text,
-                    fontSize = if (landscape) 72.sp else 120.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = color,
-                    fontFamily = determination,
-                    modifier = Modifier
-                        .scale(1.2f)
-                        .padding(bottom = spacing.scale(10))
-                        .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(spacing.lg))
-                        .padding(horizontal = spacing.xxl, vertical = spacing.sm),
-                )
-            }
-
-            currentFeedback?.let { feedback ->
-                Text(
-                    text = feedback.text,
-                    fontFamily = determination,
-                    fontSize = 48.sp,
-                    color = feedback.color,
-                    modifier = Modifier.graphicsLayer {
-                        scaleX = animState.value * feedback.scale
-                        scaleY = animState.value * feedback.scale
-                        alpha = animState.value
-                    },
-                )
-            }
         }
 
         if (state.phase == WorkoutPhase.Recording) {
