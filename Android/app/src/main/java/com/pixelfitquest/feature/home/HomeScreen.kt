@@ -42,7 +42,6 @@ import com.pixelfitquest.feature.levels.XpStatusDialog
 import com.pixelfitquest.feature.streak.WeeklyStreakDialog
 import com.pixelfitquest.feature.streak.WeeklyStreakViewModel
 import com.pixelfitquest.ui.theme.spacing
-import kotlinx.coroutines.delay
 
 @Composable
 fun HomeScreen(
@@ -118,12 +117,7 @@ fun HomeScreen(
     )
     val coins = userData?.coins ?: 0
     val streak = weeklyStreak.currentStreakWeeks
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(30000L)
-            viewModel.refreshHealthMetrics()
-        }
-    }
+    // P1-5: no 30s HC poll — refresh on initialize + ON_RESUME with ViewModel TTL cache.
 
     val displayLevel = if (level >= LevelCurve.MAX_LEVEL) stringResource(R.string.max_level) else level.toString()
     val progressIndex = levelsState.progress.xpBarIndex
