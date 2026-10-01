@@ -35,7 +35,7 @@ import com.pixelfitquest.local.db.entity.UserProfileEntity
         LevelStateEntity::class,
         UnlockedCosmeticEntity::class,
     ],
-    version = 11,
+    version = 12,
     exportSchema = false,
 )
 abstract class PixelFitDatabase : RoomDatabase() {
@@ -86,6 +86,75 @@ abstract class PixelFitDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE user_profile ADD COLUMN skillRespecDate TEXT NOT NULL DEFAULT ''")
                 db.execSQL("ALTER TABLE user_profile ADD COLUMN rewardedSetsDate TEXT NOT NULL DEFAULT ''")
                 db.execSQL("ALTER TABLE user_profile ADD COLUMN rewardedSetsCount INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        val MIGRATION_11_12 = object : androidx.room.migration.Migration(11, 12) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS user_profile_new (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        musicVolume INTEGER NOT NULL,
+                        level INTEGER NOT NULL,
+                        coins INTEGER NOT NULL,
+                        exp INTEGER NOT NULL,
+                        streak INTEGER NOT NULL,
+                        lastActivityDate TEXT NOT NULL,
+                        lastStepsRewardDate TEXT NOT NULL,
+                        lastSleepRewardDate TEXT NOT NULL,
+                        lastWeeklyHeartRewardWeek TEXT NOT NULL,
+                        lastVitalityBonusDate TEXT NOT NULL,
+                        lastStreakUpdateDate TEXT NOT NULL,
+                        characterGender TEXT NOT NULL,
+                        characterVariant TEXT NOT NULL,
+                        unlockedVariantsCsv TEXT NOT NULL,
+                        equippedHomeUpgrade TEXT NOT NULL,
+                        unlockedHomeUpgradesCsv TEXT NOT NULL,
+                        equippedGym TEXT NOT NULL,
+                        unlockedGymsCsv TEXT NOT NULL,
+                        equippedAppBackground TEXT NOT NULL,
+                        unlockedAppBackgroundsCsv TEXT NOT NULL,
+                        dwellingLegacyMigrated INTEGER NOT NULL,
+                        skillForm INTEGER NOT NULL,
+                        skillIron INTEGER NOT NULL,
+                        skillVitality INTEGER NOT NULL,
+                        skillRespecDate TEXT NOT NULL,
+                        rewardedSetsDate TEXT NOT NULL,
+                        rewardedSetsCount INTEGER NOT NULL
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL(
+                    """
+                    INSERT INTO user_profile_new (
+                        id, musicVolume, level, coins, exp, streak,
+                        lastActivityDate, lastStepsRewardDate, lastSleepRewardDate,
+                        lastWeeklyHeartRewardWeek, lastVitalityBonusDate, lastStreakUpdateDate,
+                        characterGender, characterVariant, unlockedVariantsCsv,
+                        equippedHomeUpgrade, unlockedHomeUpgradesCsv,
+                        equippedGym, unlockedGymsCsv,
+                        equippedAppBackground, unlockedAppBackgroundsCsv,
+                        dwellingLegacyMigrated,
+                        skillForm, skillIron, skillVitality, skillRespecDate,
+                        rewardedSetsDate, rewardedSetsCount
+                    )
+                    SELECT
+                        id, musicVolume, level, coins, exp, streak,
+                        lastActivityDate, lastStepsRewardDate, lastSleepRewardDate,
+                        lastWeeklyHeartRewardWeek, lastVitalityBonusDate, lastStreakUpdateDate,
+                        characterGender, characterVariant, unlockedVariantsCsv,
+                        equippedHomeUpgrade, unlockedHomeUpgradesCsv,
+                        equippedGym, unlockedGymsCsv,
+                        equippedAppBackground, unlockedAppBackgroundsCsv,
+                        dwellingLegacyMigrated,
+                        skillForm, skillIron, skillVitality, skillRespecDate,
+                        rewardedSetsDate, rewardedSetsCount
+                    FROM user_profile
+                    """.trimIndent(),
+                )
+                db.execSQL("DROP TABLE user_profile")
+                db.execSQL("ALTER TABLE user_profile_new RENAME TO user_profile")
             }
         }
     }

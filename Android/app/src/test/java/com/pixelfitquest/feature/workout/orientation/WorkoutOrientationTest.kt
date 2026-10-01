@@ -32,6 +32,7 @@ class WorkoutOrientationTest {
             WorkoutPhase.Idle,
             WorkoutPhase.Countdown,
             WorkoutPhase.Reviewing,
+            WorkoutPhase.Resting,
         ).forEach { phase ->
             assertEquals(
                 "phase=$phase",

@@ -51,6 +51,10 @@ fun SetReviewOverlay(
     onAdd: () -> Unit,
     onAdjustRom: (Int, Int) -> Unit,
     onSetRom: (Int, Int) -> Unit,
+    onToggleAssisted: (Int) -> Unit,
+    unilateral: Boolean = false,
+    side: String? = null,
+    onSide: (String) -> Unit = {},
     onRedo: () -> Unit,
     onConfirm: () -> Unit,
 ) {
@@ -87,6 +91,24 @@ fun SetReviewOverlay(
                         fontSize = 12.sp,
                     )
                 }
+                if (unilateral) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = spacing.xxs),
+                    ) {
+                        RomChip(
+                            label = stringResource(R.string.set_side_left),
+                            selected = side == "L",
+                            onClick = { onSide("L") },
+                        )
+                        RomChip(
+                            label = stringResource(R.string.set_side_right),
+                            selected = side == "R",
+                            onClick = { onSide("R") },
+                        )
+                    }
+                }
             }
             items(review.reps, key = { it.index }) { rep ->
                 val rowIndex = review.reps.indexOfFirst { it.index == rep.index }
@@ -98,6 +120,7 @@ fun SetReviewOverlay(
                     onMerge = { onMerge(rep.index) },
                     onAdjustRom = { delta -> onAdjustRom(rep.index, delta) },
                     onSetRom = { percent -> onSetRom(rep.index, percent) },
+                    onToggleAssisted = { onToggleAssisted(rep.index) },
                 )
             }
         }
@@ -309,6 +332,7 @@ private fun RepRow(
     onMerge: () -> Unit,
     onAdjustRom: (Int) -> Unit,
     onSetRom: (Int) -> Unit,
+    onToggleAssisted: () -> Unit,
 ) {
     val spacing = LocalSpacing.current
     val bg = if (rep.accepted) Color(0xFF2A3A4A) else Color(0xFF4A2A2A)
@@ -374,6 +398,11 @@ private fun RepRow(
             if (!rep.accepted) {
                 TextLink(stringResource(R.string.set_review_accept), Color(0xFF81C784), onAccept)
             }
+            TextLink(
+                stringResource(if (rep.assisted) R.string.set_review_assisted else R.string.set_review_assist),
+                if (rep.assisted) ImperialGold else Color(0xFFFFE082),
+                onToggleAssisted,
+            )
             TextLink(stringResource(R.string.set_review_remove), Color(0xFFEF9A9A), onRemove)
             if (canMerge) {
                 TextLink(stringResource(R.string.set_review_merge), Color(0xFF90CAF9), onMerge)

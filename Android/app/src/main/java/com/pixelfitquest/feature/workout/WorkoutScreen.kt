@@ -14,6 +14,8 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -178,6 +180,16 @@ fun WorkoutScreen(
         landscapeEnabled = landscapeEnabled,
     )
 
+    LaunchedEffect(state.phase, state.restPaused) {
+        if (state.phase != WorkoutPhase.Resting || state.restPaused) return@LaunchedEffect
+        while (true) {
+            val left = viewModel.tickRest(200)
+            if (left <= 0L) break
+            delay(200)
+        }
+        viewModel.onRestFinished()
+    }
+
     LaunchedEffect(state.phase) {
         if (state.phase == WorkoutPhase.Recording) {
             session.clear()
@@ -236,6 +248,11 @@ fun WorkoutScreen(
                     state.currentSetNumber,
                     currentSets,
                 )
+                WorkoutPhase.Resting -> stringResource(
+                    R.string.workout_status_resting,
+                    state.currentSetNumber,
+                    currentSets,
+                )
                 WorkoutPhase.Idle -> stringResource(
                     if (currentImu) R.string.workout_status_idle else R.string.workout_status_idle_log,
                     state.currentSetNumber,
@@ -277,7 +294,7 @@ fun WorkoutScreen(
                             pressedRes = R.drawable.pause_button_clicked,
                             modifier = Modifier.size(buttonSize),
                         )
-                        WorkoutPhase.Idle -> PixelArtButton(
+                        WorkoutPhase.Idle, WorkoutPhase.Resting -> PixelArtButton(
                             onClick = { viewModel.startSet() },
                             imageRes = R.drawable.play_button_unclicked,
                             pressedRes = R.drawable.play_button_clicked,
@@ -317,11 +334,30 @@ fun WorkoutScreen(
                     )
                 }
 
-                if (state.phase == WorkoutPhase.Idle) {
+                if (state.phase == WorkoutPhase.Idle || state.phase == WorkoutPhase.Resting) {
                     Spacer(modifier = Modifier.height(spacing.xs))
                     BetweenSetsWeightHud(
                         weight = state.weight,
                         onAdjustWeight = viewModel::adjustWeight,
+                    )
+                    if (currentDefinition?.unilateral == true) {
+                        Spacer(modifier = Modifier.height(spacing.xs))
+                        SidePicker(
+                            side = state.side,
+                            onSide = viewModel::setSide,
+                        )
+                    }
+                }
+                if (state.phase == WorkoutPhase.Resting) {
+                    Spacer(modifier = Modifier.height(spacing.sm))
+                    RestTimerCard(
+                        remainingMs = state.restRemainingMs,
+                        paused = state.restPaused,
+                        autostart = state.restAutostart,
+                        onPause = viewModel::pauseRest,
+                        onResume = viewModel::resumeRest,
+                        onStopAutostart = viewModel::stopRestAutostart,
+                        modifier = Modifier.padding(horizontal = spacing.md),
                     )
                 }
             }
@@ -424,10 +460,44 @@ fun WorkoutScreen(
                     onAdd = viewModel::addRep,
                     onAdjustRom = viewModel::adjustRom,
                     onSetRom = viewModel::setRom,
+                    onToggleAssisted = viewModel::toggleAssisted,
+                    unilateral = currentDefinition?.unilateral == true,
+                    side = state.side,
+                    onSide = viewModel::setSide,
                     onRedo = viewModel::redoSet,
                     onConfirm = viewModel::confirmSet,
                 )
             }
         }
     }
+}
+
+@Composable
+private fun SidePicker(
+    side: String?,
+    onSide: (String) -> Unit,
+) {
+    val spacing = MaterialTheme.spacing
+    Row(horizontalArrangement = Arrangement.spacedBy(spacing.xs)) {
+        SideChip(stringResource(R.string.set_side_left), side == "L") { onSide("L") }
+        SideChip(stringResource(R.string.set_side_right), side == "R") { onSide("R") }
+    }
+}
+
+@Composable
+private fun SideChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    val spacing = MaterialTheme.spacing
+    Text(
+        text = label,
+        color = Color.White,
+        fontWeight = FontWeight.Bold,
+        fontSize = 13.sp,
+        modifier = Modifier
+            .background(
+                if (selected) Color(0xFF1565C0) else Color.Black.copy(alpha = 0.7f),
+                RoundedCornerShape(spacing.cornerSm),
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = spacing.sm, vertical = spacing.xxs),
+    )
 }

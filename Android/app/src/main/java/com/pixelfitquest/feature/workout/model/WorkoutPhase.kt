@@ -5,4 +5,5 @@ enum class WorkoutPhase {
     Countdown,
     Recording,
     Reviewing,
+    Resting,
 }

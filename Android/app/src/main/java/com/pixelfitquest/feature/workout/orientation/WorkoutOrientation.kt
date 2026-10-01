@@ -38,7 +38,8 @@ fun workoutOrientationMode(
         // All other phases: stay landscape (device was already set to landscape above).
         WorkoutPhase.Idle,
         WorkoutPhase.Countdown,
-        WorkoutPhase.Reviewing -> WorkoutOrientationMode.Landscape
+        WorkoutPhase.Reviewing,
+        WorkoutPhase.Resting -> WorkoutOrientationMode.Landscape
     }
 }
 

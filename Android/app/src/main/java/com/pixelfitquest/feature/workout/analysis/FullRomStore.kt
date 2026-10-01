@@ -4,7 +4,11 @@ import android.content.SharedPreferences
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** Per-exercise high-water mark of confirmed IMU amplitude. Only ever rises. */
+/**
+ * Per-exercise learned full-range amplitude.
+ * Confirming a set only raises it. Marking a rep as 100% replaces it, and
+ * Settings can clear it. Deleting workouts does not touch this store.
+ */
 @Singleton
 class FullRomStore @Inject constructor(
     private val prefs: SharedPreferences,
@@ -23,5 +27,31 @@ class FullRomStore @Inject constructor(
         }
     }
 
-    private fun key(exerciseId: String) = "full_rom_$exerciseId"
+    /** User said this amplitude is full range, including when the stored mark is too high. */
+    fun replace(exerciseId: String, amplitude: Float) {
+        if (amplitude <= 1e-4f) return
+        prefs.edit().putFloat(key(exerciseId), amplitude).apply()
+    }
+
+    fun clearAll() {
+        val editor = prefs.edit()
+        prefs.all.keys.filter { it.startsWith(PREFIX) }.forEach { editor.remove(it) }
+        editor.apply()
+    }
+
+    private fun key(exerciseId: String) = "$PREFIX$exerciseId"
+
+    private companion object {
+        const val PREFIX = "full_rom_"
+    }
+}
+
+/** Deepest rep in the set, ignoring one spike so a bad rep cannot poison the learned range. */
+fun credibleFullRom(amplitudes: List<Float>): Float {
+    val positive = amplitudes.filter { it > 1e-4f }
+    if (positive.isEmpty()) return 0f
+    val sorted = positive.sorted()
+    val median = sorted[sorted.size / 2]
+    val cap = median * 1.45f
+    return positive.filter { it <= cap }.maxOrNull() ?: median
 }

@@ -13,7 +13,6 @@ class SetAnalyzer @Inject constructor() {
     fun analyzeSet(
         samples: List<ImuSample>,
         profile: ExerciseProfile,
-        user: AnalyzerUser,
         calibration: BarCalibration? = null,
         fullRom: Float? = null,
     ): SetAnalysis {
@@ -30,9 +29,12 @@ class SetAnalyzer @Inject constructor() {
         val clipOk = clipPoseOk(samples, prepared.still)
         val yawRef = openingStillMean(prepared.yaw, prepared.still)
 
-        val reps = cycles.mapIndexed { index, cycle ->
-            classifyAndScore(index, cycle, prepared, profile, fullRom, clipOk, yawRef)
-        }.filter { it.accepted || "candidate" in it.tags || "truncated" in it.tags }
+        val reps = applyClusterGate(
+            cycles.map { cycle ->
+                classifyAndScore(0, cycle, prepared, profile, fullRom, clipOk, yawRef)
+            },
+            profile,
+        ).filter { it.accepted || "candidate" in it.tags || "truncated" in it.tags || "setup" in it.tags }
             .mapIndexed { index, rep -> rep.copy(index = index) }
 
         val accepted = reps.filter { it.accepted }
@@ -75,7 +77,7 @@ class SetAnalyzer @Inject constructor() {
         }
 
         val durationOk = durationMs in profile.minRepDurationMs..profile.maxRepDurationMs
-        val fullAmp = cycle.amplitude >= profile.minAmplitude && !cycle.truncated && durationOk
+        val fullAmp = cycle.amplitude >= profile.minAmplitude && !cycle.truncated && durationOk && !cycle.setup
         val nearAmp = cycle.amplitude >= profile.minAmplitude * 0.4f
         val accepted = fullAmp
         val candidate = !accepted && nearAmp
@@ -129,6 +131,7 @@ class SetAnalyzer @Inject constructor() {
 
         val tags = mutableListOf<String>()
         if (cycle.truncated) tags += "truncated"
+        if (cycle.setup) tags += "setup"
         if (baseline != null && romScore < 70f) tags += "short_rom"
         if (Tempo.dropped(eccentricMs)) tags += Tempo.TAG_DROPPED
         if (wantsLevel) {
@@ -138,7 +141,7 @@ class SetAnalyzer @Inject constructor() {
                 barQuality = barQuality,
             )
         }
-        if (!accepted && candidate) tags += "candidate"
+        if (!accepted && (candidate || cycle.setup)) tags += "candidate"
 
         val includeTempo = QualityMetric.TEMPO in profile.quality
         val formScore = formScoreFrom(
@@ -167,6 +170,45 @@ class SetAnalyzer @Inject constructor() {
             confidence = confidence,
             accepted = accepted,
         )
+    }
+
+    /**
+     * Real reps in one set share a depth. Fragments much smaller than the deepest
+     * reps (bar wobble, a bounce off the hooks) stay out of the accepted count.
+     */
+    private fun applyClusterGate(reps: List<DetectedRep>, profile: ExerciseProfile): List<DetectedRep> {
+        val pool = reps.filter {
+            "setup" !in it.tags && "truncated" !in it.tags && it.romEstimate > 1e-4f
+        }
+        if (pool.size < 3) return reps
+        val top = pool.map { it.romEstimate }.sortedDescending().take(3)
+        val reference = top.sorted()[top.size / 2]
+        if (reference < profile.minAmplitude) return reps
+        val keepFloor = reference * 0.62f
+        val dropFloor = reference * 0.40f
+        val promoteFloor = maxOf(profile.minAmplitude * 0.70f, reference * 0.55f)
+        return reps.mapNotNull { rep ->
+            if ("setup" in rep.tags || "truncated" in rep.tags || rep.isManual) return@mapNotNull rep
+            val durationOk = rep.durationMs in profile.minRepDurationMs..profile.maxRepDurationMs
+            when {
+                rep.accepted && rep.romEstimate < keepFloor -> {
+                    if (rep.romEstimate < dropFloor) null
+                    else rep.copy(
+                        accepted = false,
+                        tags = (rep.tags + "candidate").distinct(),
+                        confidence = 0.4f,
+                    )
+                }
+                !rep.accepted && "candidate" in rep.tags && durationOk && rep.romEstimate >= promoteFloor ->
+                    rep.copy(
+                        accepted = true,
+                        tags = rep.tags - "candidate",
+                        confidence = 0.7f,
+                    )
+                !rep.accepted && "candidate" in rep.tags && rep.romEstimate < dropFloor -> null
+                else -> rep
+            }
+        }
     }
 }
 

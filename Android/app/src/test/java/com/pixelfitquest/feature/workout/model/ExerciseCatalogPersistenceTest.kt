@@ -76,6 +76,7 @@ class ExerciseCatalogPersistenceTest {
             formScore = 81f,
             twistDeg = 12f,
             levelDeg = -8f,
+            side = "L",
             repRecords = listOf(
                 RepRecord(
                     index = 0,
@@ -91,6 +92,7 @@ class ExerciseCatalogPersistenceTest {
                     levelDeg = -8f,
                     twistDeg = 12f,
                     formScore = 81f,
+                    assisted = true,
                 ),
             ),
         )
@@ -98,6 +100,8 @@ class ExerciseCatalogPersistenceTest {
         assertNotNull(parsed)
         assertEquals(12f, parsed!!.twistDeg, 0.01f)
         assertEquals(-8f, parsed.levelDeg, 0.01f)
+        assertEquals("L", parsed.side)
+        assertEquals(true, parsed.repRecords.single().assisted)
         assertEquals(12f, parsed.repRecords.first().twistDeg!!, 0.01f)
         assertEquals(-8f, parsed.repRecords.first().levelDeg!!, 0.01f)
     }

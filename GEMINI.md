@@ -16,7 +16,7 @@
 
 ## 3. Preview Boxes & Clearances (`HeroStage`)
 - **Landscape HeroStage Layout**: Title and status badges centered at the top; character sprite on the left; secondary controls (such as Gender toggle) stacked vertically on the right.
-- **Portrait Space Preservation**: Combine single-action buttons and calibration cards side-by-side on one line (`46dp` height) to preserve vertical space for the grid below.
+- **Portrait Space Preservation**: Keep the equip action full width under the hero (`46dp` height) so the item grid keeps the remaining vertical space.
 - **Locked Banner Clearance**: When an overlay banner (e.g. locked status) is anchored at `Alignment.TopCenter`, apply dedicated top padding/clearance (`spacing.scale(28–30)`) to the inner content column to guarantee the avatar/item sprite never collides or overlaps with the banner.
 - **Element Spacing Hierarchy**: Maintain clear separation between sprite and title (`14–16dp`), and tight pairing between title/bonus and controls (`4dp`).
 

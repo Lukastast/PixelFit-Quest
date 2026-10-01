@@ -16,7 +16,9 @@ import com.pixelfitquest.firebase.model.User
 import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.firebase.service.AccountService
 import com.pixelfitquest.firebase.repository.UserRepository
+import com.pixelfitquest.feature.workout.RestTimerPrefs
 import com.pixelfitquest.feature.workout.WorkoutWeightPrefs
+import com.pixelfitquest.feature.workout.analysis.FullRomStore
 import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationPrefs
 import com.pixelfitquest.local.CloudBackup
 import com.pixelfitquest.viewmodel.PixelFitViewModel
@@ -33,8 +35,11 @@ class SettingsViewModel @Inject constructor(
     private val accountService: AccountService,
     private val userRepository: UserRepository,
     private val cloudBackup: CloudBackup,
+    private val fullRomStore: FullRomStore,
     @ApplicationContext context: Context,
 ) : PixelFitViewModel() {
+
+    private val appContext = context
 
     private val prefs: SharedPreferences =
         context.getSharedPreferences(WorkoutOrientationPrefs.PREFS_NAME, Context.MODE_PRIVATE)
@@ -60,6 +65,15 @@ class SettingsViewModel @Inject constructor(
 
     private val _godModeEnabled = MutableStateFlow(GodModePrefs.isEnabled(prefs))
     val godModeEnabled: StateFlow<Boolean> = _godModeEnabled.asStateFlow()
+
+    private val _restTimerEnabled = MutableStateFlow(RestTimerPrefs.isEnabled(prefs))
+    val restTimerEnabled: StateFlow<Boolean> = _restTimerEnabled.asStateFlow()
+
+    private val _restTimerSeconds = MutableStateFlow(RestTimerPrefs.getSeconds(prefs))
+    val restTimerSeconds: StateFlow<Int> = _restTimerSeconds.asStateFlow()
+
+    private val _restAutostart = MutableStateFlow(RestTimerPrefs.isAutostartEnabled(prefs))
+    val restAutostart: StateFlow<Boolean> = _restAutostart.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -154,19 +168,6 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
-    fun setHeight(height: Int) {
-        viewModelScope.launch {
-            try {
-                userRepository.updateUserData(
-                    mapOf("height" to height)
-                )
-                loadUserData()
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to update height"
-            }
-        }
-    }
-
     fun setMusicVolume(volume: Int) {
         viewModelScope.launch {
             try {
@@ -204,6 +205,27 @@ class SettingsViewModel @Inject constructor(
     fun setGodModeEnabled(enabled: Boolean) {
         GodModePrefs.setEnabled(prefs, enabled)
         _godModeEnabled.value = enabled
+    }
+
+    fun setRestTimerEnabled(enabled: Boolean) {
+        RestTimerPrefs.setEnabled(prefs, enabled)
+        _restTimerEnabled.value = enabled
+    }
+
+    fun setRestTimerSeconds(seconds: Int) {
+        val clamped = RestTimerPrefs.coerceSeconds(seconds)
+        RestTimerPrefs.setSeconds(prefs, clamped)
+        _restTimerSeconds.value = clamped
+    }
+
+    fun setRestAutostart(enabled: Boolean) {
+        RestTimerPrefs.setAutostartEnabled(prefs, enabled)
+        _restAutostart.value = enabled
+    }
+
+    fun resetLearnedRange() {
+        fullRomStore.clearAll()
+        SnackbarManager.showMessage(appContext.getString(R.string.settings_rom_reset_done))
     }
 
 }
