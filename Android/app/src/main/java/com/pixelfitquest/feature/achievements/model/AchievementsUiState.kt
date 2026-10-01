@@ -31,10 +31,16 @@ data class AchievementsUiState(
 
     val selectedItem: AchievementItem?
         get() {
-            val fromVisible = selectedId?.let { id -> visibleItems.find { it.definition.id == id } }
-            return fromVisible
+            if (selectedId != null) {
+                val fromVisible = visibleItems.find { it.definition.id == selectedId }
+                return fromVisible
+                    ?: visibleItems.firstOrNull()
+                    ?: items.find { it.definition.id == selectedId }
+                    ?: items.firstOrNull()
+            }
+            return visibleItems.firstOrNull { it.isUnlocked }
                 ?: visibleItems.firstOrNull()
-                ?: (selectedId?.let { id -> items.find { it.definition.id == id } })
+                ?: items.firstOrNull { it.isUnlocked }
                 ?: items.firstOrNull()
         }
 

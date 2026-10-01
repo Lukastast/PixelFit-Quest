@@ -94,4 +94,64 @@ class AchievementsUiStateTest {
         assertEquals(sampleItems.size, state.totalCount)
         assertEquals(sampleItems.count { it.isUnlocked }, state.unlockedCount)
     }
+
+    @Test
+    fun selectedItemShowsFirstUnlockedBeforeTapping() {
+        val lockedFirst = AchievementItem(
+            definition = AchievementCatalog.all[0],
+            progress = AchievementProgress(
+                achievementId = AchievementCatalog.all[0].id,
+                currentValue = 0,
+                unlockedAtEpochMs = null,
+            ),
+        )
+        val unlockedSecond = AchievementItem(
+            definition = AchievementCatalog.all[1],
+            progress = AchievementProgress(
+                achievementId = AchievementCatalog.all[1].id,
+                currentValue = AchievementCatalog.all[1].threshold,
+                unlockedAtEpochMs = 1000L,
+            ),
+        )
+
+        val stateBeforeTap = AchievementsUiState(
+            items = listOf(lockedFirst, unlockedSecond),
+            selectedId = null,
+        )
+
+        // Before tapping: should show the first unlocked achievement
+        assertEquals(unlockedSecond.definition.id, stateBeforeTap.selectedItem?.definition?.id)
+
+        // After tapping the locked first achievement: should show the tapped achievement
+        val stateAfterTap = stateBeforeTap.copy(selectedId = lockedFirst.definition.id)
+        assertEquals(lockedFirst.definition.id, stateAfterTap.selectedItem?.definition?.id)
+    }
+
+    @Test
+    fun selectedItemFallsBackToFirstWhenNoUnlockedBeforeTapping() {
+        val lockedFirst = AchievementItem(
+            definition = AchievementCatalog.all[0],
+            progress = AchievementProgress(
+                achievementId = AchievementCatalog.all[0].id,
+                currentValue = 0,
+                unlockedAtEpochMs = null,
+            ),
+        )
+        val lockedSecond = AchievementItem(
+            definition = AchievementCatalog.all[1],
+            progress = AchievementProgress(
+                achievementId = AchievementCatalog.all[1].id,
+                currentValue = 0,
+                unlockedAtEpochMs = null,
+            ),
+        )
+
+        val state = AchievementsUiState(
+            items = listOf(lockedFirst, lockedSecond),
+            selectedId = null,
+        )
+
+        // If none unlocked, falls back to the first visible achievement
+        assertEquals(lockedFirst.definition.id, state.selectedItem?.definition?.id)
+    }
 }
