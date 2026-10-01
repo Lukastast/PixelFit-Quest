@@ -91,6 +91,7 @@ abstract class PixelFitDatabase : RoomDatabase() {
 
         val MIGRATION_11_12 = object : androidx.room.migration.Migration(11, 12) {
             override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS user_profile_new")
                 db.execSQL(
                     """
                     CREATE TABLE IF NOT EXISTS user_profile_new (

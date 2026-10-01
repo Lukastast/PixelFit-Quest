@@ -401,4 +401,73 @@ class SetAnalyzerTest {
         assertEquals(8, analysis.acceptedReps.size)
         assertTrue(analysis.flags.contains("no_gyro"))
     }
+
+    @Test
+    fun clusterGate_demotesFragmentToCandidate_insteadOfDeleting() {
+        fun rep(amp: Float, accepted: Boolean, vararg tags: String) = DetectedRep(
+            index = 0,
+            tStartNanos = 0L,
+            tEndNanos = 1_500_000_000L,
+            durationMs = 1500L,
+            romEstimate = amp,
+            romUnit = RomUnit.METERS,
+            concentricMs = 750L,
+            eccentricMs = 750L,
+            pathDeviation = 0f,
+            romScore = 100f,
+            formScore = 90f,
+            tags = tags.toList(),
+            confidence = if (accepted) 0.8f else 0.45f,
+            accepted = accepted,
+        )
+        // Reference from top-3 median ≈ 0.40 → dropFloor 0.16, keepFloor 0.248
+        val input = listOf(
+            rep(0.40f, true),
+            rep(0.39f, true),
+            rep(0.41f, true),
+            rep(0.38f, true),
+            rep(0.12f, true), // below dropFloor — must demote, not delete
+            rep(0.10f, false, "candidate"), // below dropFloor candidate — keep
+            rep(0.40f, true),
+        )
+        val out = analyzer.applyClusterGate(input, ExerciseProfiles.benchPress)
+        assertEquals("must not silently drop fragments: ${out.map { it.romEstimate }}", 7, out.size)
+        val demoted = out.first { kotlin.math.abs(it.romEstimate - 0.12f) < 1e-4f }
+        assertTrue(!demoted.accepted)
+        assertTrue("candidate" in demoted.tags)
+        val keptCandidate = out.first { kotlin.math.abs(it.romEstimate - 0.10f) < 1e-4f }
+        assertTrue(!keptCandidate.accepted)
+        assertTrue("candidate" in keptCandidate.tags)
+    }
+
+    @Test
+    fun clusterGate_keepsSetupAndTruncateUnchanged() {
+        fun rep(amp: Float, vararg tags: String) = DetectedRep(
+            index = 0,
+            tStartNanos = 0L,
+            tEndNanos = 1_500_000_000L,
+            durationMs = 1500L,
+            romEstimate = amp,
+            romUnit = RomUnit.METERS,
+            concentricMs = 750L,
+            eccentricMs = 750L,
+            pathDeviation = 0f,
+            romScore = 100f,
+            formScore = 90f,
+            tags = tags.toList(),
+            confidence = 0.4f,
+            accepted = false,
+        )
+        val input = listOf(
+            rep(0.40f, "setup", "candidate"),
+            rep(0.39f),
+            rep(0.41f),
+            rep(0.38f),
+            rep(0.08f, "truncated"),
+        ).mapIndexed { i, r -> r.copy(index = i, accepted = i in 1..3) }
+        val out = analyzer.applyClusterGate(input, ExerciseProfiles.benchPress)
+        assertEquals(5, out.size)
+        assertTrue("setup" in out[0].tags && !out[0].accepted)
+        assertTrue("truncated" in out[4].tags)
+    }
 }

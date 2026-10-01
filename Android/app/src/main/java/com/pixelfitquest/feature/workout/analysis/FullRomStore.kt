@@ -27,6 +27,20 @@ class FullRomStore @Inject constructor(
         }
     }
 
+    /**
+     * Confirm path: raise from accepted amps unless the user already marked 100% ROM
+     * in this review ([userRecalibrated]). In that case [replace] already wrote their
+     * baseline — taller peer amps must not push full-ROM above it.
+     */
+    fun raiseFromConfirmedSet(
+        exerciseId: String,
+        acceptedAmplitudes: List<Float>,
+        userRecalibrated: Boolean,
+    ) {
+        if (userRecalibrated) return
+        raise(exerciseId, credibleFullRom(acceptedAmplitudes))
+    }
+
     /** User said this amplitude is full range, including when the stored mark is too high. */
     fun replace(exerciseId: String, amplitude: Float) {
         if (amplitude <= 1e-4f) return

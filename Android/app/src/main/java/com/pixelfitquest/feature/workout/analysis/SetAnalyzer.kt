@@ -174,9 +174,11 @@ class SetAnalyzer @Inject constructor() {
 
     /**
      * Real reps in one set share a depth. Fragments much smaller than the deepest
-     * reps (bar wobble, a bounce off the hooks) stay out of the accepted count.
+     * reps (bar wobble, a bounce off the hooks) are demoted to candidate so the
+     * user can still accept them — never silently deleted. Setup/truncated pass
+     * through unchanged (hard-drop elsewhere is intentional).
      */
-    private fun applyClusterGate(reps: List<DetectedRep>, profile: ExerciseProfile): List<DetectedRep> {
+    internal fun applyClusterGate(reps: List<DetectedRep>, profile: ExerciseProfile): List<DetectedRep> {
         val pool = reps.filter {
             "setup" !in it.tags && "truncated" !in it.tags && it.romEstimate > 1e-4f
         }
@@ -187,25 +189,27 @@ class SetAnalyzer @Inject constructor() {
         val keepFloor = reference * 0.62f
         val dropFloor = reference * 0.40f
         val promoteFloor = maxOf(profile.minAmplitude * 0.70f, reference * 0.55f)
-        return reps.mapNotNull { rep ->
-            if ("setup" in rep.tags || "truncated" in rep.tags || rep.isManual) return@mapNotNull rep
+        return reps.map { rep ->
+            if ("setup" in rep.tags || "truncated" in rep.tags || rep.isManual) return@map rep
             val durationOk = rep.durationMs in profile.minRepDurationMs..profile.maxRepDurationMs
             when {
-                rep.accepted && rep.romEstimate < keepFloor -> {
-                    if (rep.romEstimate < dropFloor) null
-                    else rep.copy(
+                rep.accepted && rep.romEstimate < keepFloor ->
+                    rep.copy(
                         accepted = false,
                         tags = (rep.tags + "candidate").distinct(),
-                        confidence = 0.4f,
+                        confidence = if (rep.romEstimate < dropFloor) 0.3f else 0.4f,
                     )
-                }
                 !rep.accepted && "candidate" in rep.tags && durationOk && rep.romEstimate >= promoteFloor ->
                     rep.copy(
                         accepted = true,
                         tags = rep.tags - "candidate",
                         confidence = 0.7f,
                     )
-                !rep.accepted && "candidate" in rep.tags && rep.romEstimate < dropFloor -> null
+                !rep.accepted && "candidate" in rep.tags && rep.romEstimate < dropFloor ->
+                    rep.copy(
+                        accepted = false,
+                        confidence = minOf(rep.confidence, 0.3f),
+                    )
                 else -> rep
             }
         }
