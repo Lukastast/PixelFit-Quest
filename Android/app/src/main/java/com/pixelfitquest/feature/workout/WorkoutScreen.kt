@@ -140,9 +140,10 @@ fun WorkoutScreen(
     LaunchedEffect(state.phase, state.restPaused) {
         if (state.phase != WorkoutPhase.Resting || state.restPaused) return@LaunchedEffect
         while (true) {
-            // Delay before the first tick so a 90s rest is not short by 200ms.
-            delay(200)
-            val left = viewModel.tickRest(200)
+            // Display is second-granularity; 500ms is enough (P1-1). Delay before first
+            // tick so a 90s rest is not short by one interval.
+            delay(500)
+            val left = viewModel.tickRest(500)
             if (left <= 0L) break
         }
         viewModel.onRestFinished()
