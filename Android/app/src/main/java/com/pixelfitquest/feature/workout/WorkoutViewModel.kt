@@ -406,8 +406,12 @@ class WorkoutViewModel @Inject constructor(
     }
 
     fun confirmSet() {
-        val review = _workoutState.value.review ?: return
-        if (_workoutState.value.phase != WorkoutPhase.Reviewing) return
+        val state = _workoutState.value
+        val review = state.review ?: return
+        if (state.phase != WorkoutPhase.Reviewing) return
+        // Drop Reviewing immediately so a second tap cannot save the set twice
+        // while finishWorkout() is still in flight.
+        _workoutState.value = state.copy(phase = WorkoutPhase.Idle)
 
         val accepted = review.reps.filter { it.accepted }
         _workoutState.value.side?.let { sideByExercise[currentExerciseIndex] = it }
@@ -438,6 +442,7 @@ class WorkoutViewModel @Inject constructor(
             currentExerciseIndex++
             currentSetNumber = 1
             if (currentExerciseIndex >= plan.items.size) {
+                _workoutState.value = _workoutState.value.copy(review = null)
                 finishWorkout()
                 return
             }
