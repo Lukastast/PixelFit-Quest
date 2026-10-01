@@ -1,7 +1,9 @@
 package com.pixelfitquest.feature.workoutBuilder
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -10,7 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,11 +27,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -45,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -52,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -63,6 +65,17 @@ import com.pixelfitquest.feature.workout.catalog.ExerciseDefinition
 import com.pixelfitquest.feature.workout.catalog.HeroPoseVisuals
 import com.pixelfitquest.feature.workout.model.enums.ExerciseType
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlanItem
+import com.pixelfitquest.ui.theme.HeartRuby
+import com.pixelfitquest.ui.theme.ImperialGold
+import com.pixelfitquest.ui.theme.SilverSlate
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateBorder
+import com.pixelfitquest.ui.theme.SlateBorderSubtle
+import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.SlateGroove
+import com.pixelfitquest.ui.theme.SlateSurface
+import com.pixelfitquest.ui.theme.VitalGreen
+import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 
 private enum class TrackingFilter { ALL, IMU, LOG, SELECTED }
@@ -92,22 +105,36 @@ fun ExerciseCatalogPicker(
     }
     val grouped = remember(visible) { ExerciseCatalog.grouped(visible) }
 
+    val spacing = MaterialTheme.spacing
+
     if (showImuInfoDialog) {
         AlertDialog(
             onDismissRequest = { showImuInfoDialog = false },
-            title = { Text(stringResource(R.string.imu_info_title)) },
+            containerColor = SlateDeep,
+            titleContentColor = ImperialGold,
+            textContentColor = SilverSteel,
+            shape = RoundedCornerShape(spacing.cornerMd),
+            modifier = Modifier.border(BorderStroke(1.5.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd)),
+            title = {
+                Text(
+                    text = stringResource(R.string.imu_info_title),
+                    fontWeight = FontWeight.Bold,
+                    color = ImperialGold
+                )
+            },
             text = {
                 Text(
-                    stringResource(
+                    text = stringResource(
                         R.string.imu_info_body,
                         ExerciseCatalog.all.size,
                         ExerciseCatalog.imuSupportedCount,
-                    )
+                    ),
+                    color = SilverSteel
                 )
             },
             confirmButton = {
                 TextButton(onClick = { showImuInfoDialog = false }) {
-                    Text("Got it")
+                    Text("Got it", color = ImperialGold, fontWeight = FontWeight.Bold)
                 }
             }
         )
@@ -117,16 +144,13 @@ fun ExerciseCatalogPicker(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-                .padding(horizontal = 16.dp),
+                .height(spacing.scale(48))
+                .padding(horizontal = spacing.md)
+                .clip(RoundedCornerShape(spacing.cornerSm))
+                .background(SlateGroove)
+                .border(BorderStroke(1.dp, SlateBorder), RoundedCornerShape(spacing.cornerSm)),
             contentAlignment = Alignment.Center,
         ) {
-            Image(
-                painter = painterResource(R.drawable.inputfield),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds,
-            )
             TextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -134,12 +158,14 @@ fun ExerciseCatalogPicker(
                 placeholder = {
                     Text(
                         text = stringResource(R.string.exercise_search_hint),
-                        color = Color.Black.copy(alpha = 0.55f),
+                        color = SilverSlate,
                         style = typography.bodyMedium,
                     )
                 },
-                modifier = Modifier.fillMaxWidth(0.96f),
-                textStyle = typography.bodyMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = spacing.xs),
+                textStyle = typography.bodyMedium.copy(color = Color.White),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
@@ -149,21 +175,21 @@ fun ExerciseCatalogPicker(
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    cursorColor = Color.Black,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = SilverSteel,
+                    cursorColor = ImperialGold,
                 ),
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(spacing.xs))
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(horizontal = spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(spacing.xs),
         ) {
             CatalogChip(
                 label = stringResource(R.string.exercise_filter_all),
@@ -181,14 +207,14 @@ fun ExerciseCatalogPicker(
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(spacing.xxs))
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(horizontal = spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(spacing.xs),
         ) {
             CatalogChip(
                 label = stringResource(R.string.exercise_filter_imu),
@@ -217,24 +243,24 @@ fun ExerciseCatalogPicker(
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(spacing.xs))
 
         LazyColumn(
             state = listState,
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 16.dp)
-                .padding(end = 16.dp)
+                .padding(horizontal = spacing.md)
+                .padding(end = spacing.xs)
                 .simpleVerticalScrollbar(listState),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(spacing.xs),
         ) {
             if (visible.isEmpty()) {
                 item(key = "empty") {
                     Text(
                         text = stringResource(R.string.exercise_no_matches),
                         style = typography.bodyMedium,
-                        color = Color.White,
-                        modifier = Modifier.padding(16.dp),
+                        color = SilverSlate,
+                        modifier = Modifier.padding(spacing.md),
                     )
                 }
             } else {
@@ -243,8 +269,9 @@ fun ExerciseCatalogPicker(
                         Text(
                             text = category.label.uppercase(),
                             style = typography.bodyMedium,
-                            color = Color.White,
-                            modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
+                            fontWeight = FontWeight.Bold,
+                            color = ImperialGold,
+                            modifier = Modifier.padding(top = spacing.xs, bottom = spacing.xxs),
                         )
                     }
                     items(defs, key = { it.type.name }) { definition ->
@@ -269,29 +296,34 @@ private fun CatalogChip(
     onClick: () -> Unit,
     onInfoClick: (() -> Unit)? = null,
 ) {
+    val spacing = MaterialTheme.spacing
+    val bg = if (selected) SlateSurface else SlateGroove.copy(alpha = 0.85f)
+    val borderStroke = if (selected) BorderStroke(1.5.dp, ImperialGold) else BorderStroke(1.dp, SlateBorder)
+    val textColor = if (selected) ImperialGold else SilverSteel
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .background(
-                if (selected) Color.White else Color.Black.copy(alpha = 0.55f),
-                RoundedCornerShape(8.dp),
-            )
+            .clip(RoundedCornerShape(spacing.cornerSm))
+            .background(bg)
+            .border(borderStroke, RoundedCornerShape(spacing.cornerSm))
             .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 6.dp),
+            .padding(horizontal = spacing.scale(10), vertical = spacing.scale(6)),
     ) {
         Text(
             text = label,
             style = typography.bodyMedium,
-            color = if (selected) Color.Black else Color.White,
+            color = textColor,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
         )
         if (onInfoClick != null) {
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width(spacing.xxs))
             Icon(
                 imageVector = Icons.Default.Info,
                 contentDescription = "IMU Info",
-                tint = if (selected) Color.Black else Color.White.copy(alpha = 0.85f),
+                tint = if (selected) ImperialGold else SilverSlate,
                 modifier = Modifier
-                    .size(16.dp)
+                    .size(spacing.scale(16))
                     .clickable { onInfoClick() }
             )
         }
@@ -300,18 +332,25 @@ private fun CatalogChip(
 
 @Composable
 private fun TrackingBadge(imuSupported: Boolean) {
+    val spacing = MaterialTheme.spacing
     val label = stringResource(
         if (imuSupported) R.string.exercise_badge_imu else R.string.exercise_badge_log,
     )
-    val bg = if (imuSupported) Color(0xFF1B5E20) else Color(0xFF424242)
+    val bg = if (imuSupported) VitalGreen.copy(alpha = 0.25f) else SlateGroove
+    val borderColor = if (imuSupported) VitalGreen else SlateBorder
+    val textColor = if (imuSupported) VitalGreen else SilverSlate
+
     Text(
         text = label,
         style = typography.bodyMedium,
-        color = Color.White,
+        color = textColor,
+        fontWeight = FontWeight.Bold,
         fontSize = 11.sp,
         modifier = Modifier
-            .background(bg, RoundedCornerShape(6.dp))
-            .padding(horizontal = 6.dp, vertical = 2.dp),
+            .clip(RoundedCornerShape(spacing.cornerXs))
+            .background(bg)
+            .border(BorderStroke(1.dp, borderColor), RoundedCornerShape(spacing.cornerXs))
+            .padding(horizontal = spacing.scale(6), vertical = spacing.scale(2)),
     )
 }
 
@@ -345,167 +384,170 @@ private fun ExercisePickerRow(
 
     val focusRequesterSets = remember { FocusRequester() }
     val focusRequesterWeight = remember { FocusRequester() }
+    val spacing = MaterialTheme.spacing
+
+    val cardBg = if (isSelected) SlateSurface.copy(alpha = 0.94f) else SlateDeep.copy(alpha = 0.94f)
+    val cardBorder = if (isSelected) BorderStroke(1.5.dp, ImperialGold) else BorderStroke(1.dp, SlateBorder)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(if (isSelected) 156.dp else 96.dp),
+            .clip(RoundedCornerShape(spacing.cornerMd))
+            .background(cardBg)
+            .border(cardBorder, RoundedCornerShape(spacing.cornerMd))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    isSelected = !isSelected
+                    onToggle(
+                        exercise,
+                        localSets.toIntOrNull() ?: 3,
+                        localWeight.toFloatOrNull() ?: 0f,
+                    )
+                },
+            )
+            .padding(spacing.sm),
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.info_background_wider_workout),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds,
-        )
-        Card(
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = {
-                        isSelected = !isSelected
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = {
+                        isSelected = it
                         onToggle(
                             exercise,
                             localSets.toIntOrNull() ?: 3,
                             localWeight.toFloatOrNull() ?: 0f,
                         )
                     },
-                ),
-            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        ) {
-            Column(modifier = Modifier.padding(8.dp)) {
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = ImperialGold,
+                        uncheckedColor = SilverSteel.copy(alpha = 0.7f),
+                        checkmarkColor = SlateDeep,
+                    ),
+                )
+                HeroPoseVisuals.poseRes(exercise)?.let { poseRes ->
+                    Image(
+                        painter = painterResource(id = poseRes),
+                        contentDescription = definition.displayName,
+                        modifier = Modifier
+                            .size(spacing.scale(52))
+                            .padding(end = spacing.xs),
+                        contentScale = ContentScale.Fit,
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = definition.displayName.uppercase(),
+                        style = typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isSelected) ImperialGold else Color.White,
+                    )
+                    Text(
+                        text = definition.subtitle,
+                        style = typography.bodyMedium,
+                        color = SilverSlate,
+                        fontSize = 12.sp,
+                    )
+                }
+                TrackingBadge(imuSupported = definition.imuSupported)
+                Spacer(modifier = Modifier.width(spacing.xs))
+            }
+
+            if (isSelected) {
+                Spacer(modifier = Modifier.height(spacing.xs))
                 Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                        .clip(RoundedCornerShape(spacing.cornerSm))
+                        .background(SlateGroove.copy(alpha = 0.6f))
+                        .padding(horizontal = spacing.sm, vertical = spacing.xs),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    Checkbox(
-                        checked = isSelected,
-                        onCheckedChange = {
-                            isSelected = it
-                            onToggle(
-                                exercise,
-                                localSets.toIntOrNull() ?: 3,
-                                localWeight.toFloatOrNull() ?: 0f,
-                            )
-                        },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = Color.Black,
-                            uncheckedColor = Color.Black,
-                        ),
+                    Text(
+                        text = stringResource(R.string.sets_input_label),
+                        style = typography.bodyMedium,
+                        color = SilverSteel,
+                        fontWeight = FontWeight.Bold,
                     )
-                    HeroPoseVisuals.poseRes(exercise)?.let { poseRes ->
-                        Image(
-                            painter = painterResource(id = poseRes),
-                            contentDescription = definition.displayName,
-                            modifier = Modifier
-                                .size(56.dp)
-                                .padding(end = 6.dp),
-                            contentScale = ContentScale.Fit,
-                        )
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = definition.displayName.uppercase(),
-                            style = typography.bodyMedium,
-                            color = Color.Black,
-                        )
-                        Text(
-                            text = definition.subtitle,
-                            style = typography.bodyMedium,
-                            color = Color.Black.copy(alpha = 0.7f),
-                            fontSize = 12.sp,
-                        )
-                    }
-                    TrackingBadge(imuSupported = definition.imuSupported)
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
-                if (isSelected) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                    ) {
-                        Text(
-                            stringResource(R.string.sets_input_label),
-                            style = typography.bodyMedium,
-                            color = Color.Black,
-                        )
-                        OutlinedTextField(
-                            value = localSets,
-                            onValueChange = { newValue: String ->
-                                localSets = newValue.filter { char -> char.isDigit() }
-                            },
-                            modifier = Modifier
-                                .width(60.dp)
-                                .height(50.dp)
-                                .focusRequester(focusRequesterSets)
-                                .onFocusChanged { focusState ->
-                                    if (!focusState.isFocused) {
-                                        val finalSets = localSets.toIntOrNull() ?: 3
-                                        onUpdateSets(exercise, finalSets)
-                                    }
-                                },
-                            textStyle = typography.bodyMedium,
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number,
-                                imeAction = ImeAction.Done,
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = {
-                                    focusRequesterSets.freeFocus()
+                    OutlinedTextField(
+                        value = localSets,
+                        onValueChange = { newValue: String ->
+                            localSets = newValue.filter { char -> char.isDigit() }
+                        },
+                        modifier = Modifier
+                            .width(spacing.scale(60))
+                            .height(spacing.scale(48))
+                            .focusRequester(focusRequesterSets)
+                            .onFocusChanged { focusState ->
+                                if (!focusState.isFocused) {
                                     val finalSets = localSets.toIntOrNull() ?: 3
                                     onUpdateSets(exercise, finalSets)
-                                },
-                            ),
-                            colors = catalogFieldColors(),
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            stringResource(R.string.weight_input_label),
-                            style = typography.bodyMedium,
-                            color = Color.Black,
-                        )
-                        OutlinedTextField(
-                            value = localWeight,
-                            onValueChange = { newValue: String ->
-                                localWeight =
-                                    newValue.filter { char -> char.isDigit() || char == '.' }
+                                }
                             },
-                            modifier = Modifier
-                                .width(75.dp)
-                                .height(50.dp)
-                                .focusRequester(focusRequesterWeight)
-                                .onFocusChanged { focusState ->
-                                    if (!focusState.isFocused) {
-                                        val finalWeight = localWeight.toFloatOrNull() ?: 0f
-                                        onUpdateWeight(exercise, finalWeight)
-                                    }
-                                },
-                            textStyle = typography.bodyMedium,
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Decimal,
-                                imeAction = ImeAction.Done,
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = {
-                                    focusRequesterWeight.freeFocus()
+                        textStyle = typography.bodyMedium.copy(color = Color.White),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done,
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusRequesterSets.freeFocus()
+                                val finalSets = localSets.toIntOrNull() ?: 3
+                                onUpdateSets(exercise, finalSets)
+                            },
+                        ),
+                        colors = catalogFieldColors(),
+                    )
+                    Spacer(modifier = Modifier.width(spacing.xs))
+                    Text(
+                        text = stringResource(R.string.weight_input_label),
+                        style = typography.bodyMedium,
+                        color = SilverSteel,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    OutlinedTextField(
+                        value = localWeight,
+                        onValueChange = { newValue: String ->
+                            localWeight =
+                                newValue.filter { char -> char.isDigit() || char == '.' }
+                        },
+                        modifier = Modifier
+                            .width(spacing.scale(75))
+                            .height(spacing.scale(48))
+                            .focusRequester(focusRequesterWeight)
+                            .onFocusChanged { focusState ->
+                                if (!focusState.isFocused) {
                                     val finalWeight = localWeight.toFloatOrNull() ?: 0f
                                     onUpdateWeight(exercise, finalWeight)
-                                },
-                            ),
-                            colors = catalogFieldColors(),
-                        )
-                        Text(
-                            stringResource(R.string.kg_unit),
-                            style = typography.bodyMedium,
-                            color = Color.Black,
-                        )
-                    }
+                                }
+                            },
+                        textStyle = typography.bodyMedium.copy(color = Color.White),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Decimal,
+                            imeAction = ImeAction.Done,
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusRequesterWeight.freeFocus()
+                                val finalWeight = localWeight.toFloatOrNull() ?: 0f
+                                onUpdateWeight(exercise, finalWeight)
+                            },
+                        ),
+                        colors = catalogFieldColors(),
+                    )
+                    Text(
+                        text = stringResource(R.string.kg_unit),
+                        style = typography.bodyMedium,
+                        color = SilverSlate,
+                    )
                 }
             }
         }
@@ -514,13 +556,15 @@ private fun ExercisePickerRow(
 
 @Composable
 private fun catalogFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedTextColor = Color.Black,
-    unfocusedTextColor = Color.Black,
-    disabledTextColor = Color.Black,
-    errorTextColor = Color.Black,
-    cursorColor = Color.Black,
-    focusedBorderColor = Color.Black,
-    unfocusedBorderColor = Color.Black,
-    disabledBorderColor = Color.Black,
-    errorBorderColor = Color.Black,
+    focusedTextColor = Color.White,
+    unfocusedTextColor = SilverSteel,
+    disabledTextColor = SilverSlate,
+    errorTextColor = HeartRuby,
+    cursorColor = ImperialGold,
+    focusedBorderColor = ImperialGold,
+    unfocusedBorderColor = SlateBorder,
+    disabledBorderColor = SlateBorderSubtle,
+    errorBorderColor = HeartRuby,
+    focusedContainerColor = SlateGroove,
+    unfocusedContainerColor = SlateGroove,
 )
