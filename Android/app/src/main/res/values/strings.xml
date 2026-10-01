@@ -266,6 +266,8 @@
     <string name="set_review_confirm">Confirm</string>
     <string name="set_review_assist">Assist</string>
     <string name="set_review_assisted">Assisted</string>
+    <string name="set_notes_title">Set Notes</string>
+    <string name="set_notes_hint">Add notes for this set (RPE, cues, form)...</string>
     <string name="set_side_left">Left</string>
     <string name="set_side_right">Right</string>
     <string name="set_assisted_count">Assisted %1$d</string>
@@ -447,6 +449,15 @@
     <string name="settings_weight_progression_subtitle">Suggest +2.5 kg upon hitting rep target</string>
     <string name="settings_rep_threshold_title">Progression Rep Target</string>
     <string name="settings_rep_threshold_hint">Hitting %1$d reps in a session suggests +2.5 kg next time</string>
+    <string name="settings_progression_preset_strength">Strength</string>
+    <string name="settings_progression_preset_strength_sub">~5 reps</string>
+    <string name="settings_progression_preset_hypertrophy">Hypertrophy</string>
+    <string name="settings_progression_preset_hypertrophy_sub">~10–12 reps</string>
+    <string name="settings_progression_preset_hypertrophy_active">%1$d reps</string>
+    <string name="settings_progression_custom_slider">Custom Target</string>
+    <string name="settings_rep_badge_strength">%1$d REPS · STRENGTH</string>
+    <string name="settings_rep_badge_hypertrophy">%1$d REPS · HYPERTROPHY</string>
+    <string name="settings_rep_badge_custom">%1$d REPS · CUSTOM</string>
     <string name="loadout_title">PRE-WORKOUT LOADOUT</string>
     <string name="loadout_subtitle">Calibrate starting weights &amp; review suggestions</string>
     <string name="loadout_progression_hit_title">PROGRESSION GOAL HIT!</string>
