@@ -80,9 +80,9 @@
 
 ## P1 — After P0
 
-### P1-1. Rest timer UI isolation
-- **Where:** `WorkoutScreen` `LaunchedEffect` 200 ms + `RestTimerCard` reading `state.restRemainingMs`
-- **Change:** Dedicated `restMs` flow; only `RestTimerCard` subscribes; optionally tick 250–500 ms (display is second-granularity).
+### P1-1. Rest timer UI isolation — **DONE**
+- **Where:** `WorkoutScreen` `LaunchedEffect` + `RestTimerHud` / `RestTimerCard`
+- **Done:** Dedicated `restRemainingMs` flow + leaf collector (with P0-1); tick **500 ms** (was 200 ms; display is second-granularity).
 - **Impact:** Rest-phase jank gone; tiny battery.
 - **Risk:** **Low** (don’t change autostart/finish transitions).
 - **Model:** Antigravity / high.
@@ -94,39 +94,38 @@
 - **Risk:** **Low** (visual); keep FilterQuality.None for sprites.
 - **Model:** Antigravity.
 
-### P1-3. APK dead / deferred assets
-- **`cape_hero_walk.png`:** **5504×768** ≈ **16 MB** decode, **1.3 MB** on disk; only referenced in `character_skin_manifest.json`. Runtime walk is bob+slide (`PixelCharacterMotion`) — sheet **not loaded** yet but ships in APK.
-- **`splash_image.png`:** 1080×1920 ≈ **8 MB** decode (used once).
-- **Coaching clips:** many 3840×480 pairs (~7 MB each when opened) — decode only when review shows that tag.
-- **Change:** Keep walk sheet out of eager load; optional compress/WebP; lazy-load clips in review; consider stripping walk from APK until Path B animator ships.
-- **Impact:** APK size + avoid accidental decode.
-- **Risk:** **None** if not loaded; **Low** if removing from APK before walk feature.
+### P1-3. APK dead / deferred assets — **DONE (safe subset)**
+- **`cape_hero_walk.png`:** still in APK / manifest with `eagerLoad: false`; runtime walk remains bob+slide (`PixelCharacterMotion`) — **not decoded**.
+- **Coaching clips:** `FormClipVisual` now `remember`-caches `ImageBitmap` per resolved tag (no re-decode on recomposition).
+- **Skipped here:** strip walk from APK / WebP / splash policy (optional follow-ups).
+- **Impact:** Avoid accidental walk decode + cheaper clip recomposition.
+- **Risk:** **None**.
 - **Model:** high / Antigravity.
 
-### P1-4. `FLAG_KEEP_SCREEN_ON` scope
-- **Where:** `WorkoutOrientationLock` sets keep-screen-on for **entire** workout composition lifetime
-- **Change:** Only while `Recording` or `Resting` (or user pref); clear on Review/Idle.
+### P1-4. `FLAG_KEEP_SCREEN_ON` scope — **DONE**
+- **Where:** `WorkoutOrientationLock`
+- **Done:** Keep-screen-on only while `Recording` or `Resting`; cleared on Review/Idle and on leave.
 - **Impact:** Battery during long review/notes.
 - **Risk:** **None** to reps.
 - **Model:** high.
 
-### P1-5. Health Connect read cadence & shape
-- **Where:** `HomeScreen` polls `refreshHealthMetrics()` every **30 s** + `ON_RESUME`; `readTodayMetrics()` can paginate HR (`pageSize = 5000`) over 7 days + exercise/sleep intervals
-- **Change:** Poll 5–15 min or only on resume / Quest tab focus; cache metrics with TTL; prefer aggregate APIs; cap HR pages; don’t block home composition.
+### P1-5. Health Connect read cadence & shape — **DONE**
+- **Where:** `HomeScreen` / `HomeViewModel` / `HealthConnectRepository`
+- **Done:** Dropped 30 s Home poll; refresh on initialize + `ON_RESUME` with **5 min TTL** cache; resting-HR pagination capped (`pageSize=1000`, max 3 pages / 2500 samples). Health bonus timing may lag by up to TTL.
 - **Impact:** Battery + home hitch when returning to app.
-- **Risk:** **None** to reps; health bonus timing may lag (document).
+- **Risk:** **None** to reps.
 - **Model:** Grok high (logic) / Antigravity (UI trigger).
 
-### P1-6. Enable R8 minify + resource shrink (release only)
-- **Where:** `app/build.gradle.kts` `isMinifyEnabled = false`; no `isShrinkResources`; `proguard-rules.pro` minimal
-- **Change:** Turn on minify + shrink for release; add keep rules for Gson/Firestore/Room/Hilt/Health Connect; smoke test sign-in, workout save, HC.
+### P1-6. Enable R8 minify + resource shrink (release only) — **DONE**
+- **Where:** `app/build.gradle.kts` + `proguard-rules.pro`
+- **Done:** `isMinifyEnabled = true`, `isShrinkResources = true` for release; keep rules for Gson/Firestore/Room/Hilt/Health Connect (+ Credential Manager). Device smoke test still recommended before Play.
 - **Impact:** APK size / some methoding; not runtime jank.
 - **Risk:** **Medium** (reflection/crash) — not rep math, but ship risk.
 - **Model:** high; validate on device.
 
-### P1-7. Gradle throughput
-- **Where:** `gradle.properties` — `org.gradle.parallel` commented; no configuration cache / build cache flags
-- **Change:** `org.gradle.parallel=true`, `org.gradle.caching=true`; consider configuration-cache when AGP-stable.
+### P1-7. Gradle throughput — **DONE**
+- **Where:** `Android/gradle.properties`
+- **Done:** `org.gradle.parallel=true`, `org.gradle.caching=true`. Configuration-cache still deferred.
 - **Impact:** Dev build time only.
 - **Risk:** **None** to app.
 - **Model:** high (trivial).
@@ -170,9 +169,9 @@
 1. **P0-1 + P0-2** (Recording jank) — UI, no analyzer touch  
 2. **P0-3** (navbar/slides → nodpi) — verify UI scale  
 3. ~~**P0-4 alloc-only** SensorSession (no rate change)~~ **done**  
-4. **P1-1, P1-4, P1-5** (rest / screen-on / HC)  
-5. **P1-2, P1-3** (decode / dead assets)  
-6. **P1-6, P1-7** (R8 + Gradle) before any Play track  
+4. ~~**P1-1, P1-4, P1-5** (rest / screen-on / HC)~~ **done**  
+5. ~~**P1-3** (lazy clips / walk not eager)~~ **done** (safe subset); **P1-2** skipped (subsample/Coil)  
+6. ~~**P1-6, P1-7** (R8 + Gradle)~~ **done** (device smoke before Play)  
 7. **P2-4 / P2-5** only with fixture A/B on rep counts  
 
 ---
@@ -193,6 +192,13 @@
 | **P0-3** navbar / slides / quest boards / info_background* → `drawable-nodpi` | Done |
 | **P0-4** SensorSession SoA stream buffers (no per-sample TimedVec3/Quat; clear reuses capacity) | Done |
 | Trivial asset deletes (furniture stubs, `background_home_screen1`) | Done |
+| **P1-1** Rest HUD isolation (P0-1) + 500 ms tick | Done |
+| **P1-3** Walk not eager; `FormClipVisual` remember-cache decode | Done (safe subset) |
+| **P1-4** `FLAG_KEEP_SCREEN_ON` only Recording/Resting | Done |
+| **P1-5** Drop 30 s HC poll; 5 min TTL; cap resting-HR pages | Done |
+| **P1-6** Release minify + shrinkResources + keep rules | Done |
+| **P1-7** Gradle parallel + caching | Done |
+| **P1-2** Subsampled decode / Coil | **Skipped** (risky without Coil wiring) |
 
 **Not touched:** `SetAnalyzer`, `Signal`, SensorSession rates / registered sensors / interpolate edge, Play upload. Capped drop-oldest ring deferred (would change long-set samples).
 
@@ -204,8 +210,8 @@
 |--------|----------------|
 | `drawable/` | ~728 KB, was 91 files (−4 furniture) |
 | `drawable-nodpi/` | ~27 MB, 77→76 files (−1 unused BG) |
-| Release minify | **off** |
+| Release minify | **on** (+ shrinkResources) |
 | Modules | `:app` only |
 | Sensor policy | FASTEST preferred, 4 sensors |
-| Keep screen on | Whole workout screen |
-| HC refresh | 30 s loop on Home + resume |
+| Keep screen on | Recording + Resting only |
+| HC refresh | initialize + resume, **5 min TTL**; no 30 s loop |
