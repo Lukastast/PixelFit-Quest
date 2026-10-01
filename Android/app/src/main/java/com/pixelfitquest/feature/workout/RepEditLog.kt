@@ -8,7 +8,10 @@ import javax.inject.Singleton
 
 /**
  * Append-only record of rep corrections (merge, ROM, assist, side) so detection
- * can be tuned from real sessions. One JSON object per line in app storage.
+ * can be tuned from real sessions. One JSON object per line in app private
+ * storage (`rep_edits.jsonl`). Never uploaded by the app; included in local
+ * JSON export as `repEdits` when the user exports. Rotates when the file grows
+ * past [MAX_BYTES] so storage stays bounded without breaking [snapshot].
  */
 @Singleton
 class RepEditLog @Inject constructor(
@@ -26,11 +29,19 @@ class RepEditLog @Inject constructor(
         }
         synchronized(LOCK) {
             file.appendText(line)
+            rotateIfNeeded()
         }
     }
 
+    /** Current JSONL contents for local export (`repEdits`). Empty if none. */
     fun snapshot(): String = synchronized(LOCK) {
         if (!file.exists()) "" else file.readText()
+    }
+
+    private fun rotateIfNeeded() {
+        if (!file.exists() || file.length() <= MAX_BYTES) return
+        val rotated = rotateJsonlContent(file.readText(), MAX_BYTES)
+        file.writeText(rotated)
     }
 
     private fun escape(value: String): String = buildString(value.length) {
@@ -45,8 +56,27 @@ class RepEditLog @Inject constructor(
         }
     }
 
-    private companion object {
+    companion object {
         const val FILE_NAME = "rep_edits.jsonl"
-        val LOCK = Any()
+        /** Soft cap (~500 KiB). Oldest lines are dropped on overflow. */
+        const val MAX_BYTES = 500 * 1024
+        private val LOCK = Any()
+
+        /**
+         * Keep a trailing window of [maxBytes] (or less), cutting at a newline
+         * so every remaining line stays valid JSONL.
+         */
+        fun rotateJsonlContent(text: String, maxBytes: Int): String {
+            if (maxBytes <= 0 || text.length <= maxBytes) return text
+            val keepFrom = (text.length - maxBytes).coerceAtLeast(0)
+            // Prefer cutting after a prior newline so the first kept line is whole JSON.
+            val start = if (keepFrom == 0) {
+                0
+            } else {
+                val priorNl = text.lastIndexOf('\n', keepFrom - 1)
+                if (priorNl >= 0) priorNl + 1 else keepFrom
+            }
+            return text.substring(start)
+        }
     }
 }

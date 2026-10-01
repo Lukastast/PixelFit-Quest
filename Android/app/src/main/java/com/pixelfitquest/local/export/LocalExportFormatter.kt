@@ -26,7 +26,7 @@ data class LocalExportSnapshot(
     val templates: List<WorkoutTemplate>,
     val exportedAt: String = Instant.now().toString(),
     val schemaVersion: Int = 1,
-    /** JSON lines of rep corrections, included so a session can be used to tune detection. */
+    /** On-device rep_edits.jsonl snapshot (JSONL string). Local only unless user exports. */
     val repEdits: String = "",
 )
 
