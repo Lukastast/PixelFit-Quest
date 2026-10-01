@@ -551,7 +551,10 @@ fun NavGraphBuilder.pixelFitGraph(
  */
 @Composable
 private fun Modifier.navBarPortraitBackground(): Modifier {
-    val navBarBitmap = ImageBitmap.imageResource(id = R.drawable.navbar)
+    val resources = LocalContext.current.resources
+    val navBarBitmap = remember {
+        ImageBitmap.imageResource(resources, R.drawable.navbar)
+    }
     return this.drawBehind {
         val dstWidth = size.width.toInt()
         val dstHeight = size.height.toInt()
@@ -616,7 +619,10 @@ private fun Modifier.navBarPortraitBackground(): Modifier {
  */
 @Composable
 private fun Modifier.navBarVerticalBackground(): Modifier {
-    val navBarBitmap = ImageBitmap.imageResource(id = R.drawable.navbar_vertical)
+    val resources = LocalContext.current.resources
+    val navBarBitmap = remember {
+        ImageBitmap.imageResource(resources, R.drawable.navbar_vertical)
+    }
     return this.drawBehind {
         val dstWidth = size.width.toInt()
         val dstHeight = size.height.toInt()

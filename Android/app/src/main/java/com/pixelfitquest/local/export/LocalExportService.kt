@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
 import com.pixelfitquest.R
+import com.pixelfitquest.feature.workout.RepEditLog
 import com.pixelfitquest.local.LocalPixelFitStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
@@ -20,8 +21,9 @@ import javax.inject.Singleton
 class LocalExportService @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val store: LocalPixelFitStore,
+    private val repEditLog: RepEditLog,
 ) {
-    suspend fun buildJson(): String = LocalExportFormatter.toJson(store.snapshotForExport())
+    suspend fun buildJson(): String = LocalExportFormatter.toJson(snapshot())
 
     suspend fun buildCsv(): String = LocalExportFormatter.toCsv(store.snapshotForExport())
 
@@ -41,7 +43,7 @@ class LocalExportService @Inject constructor(
      * cache-path `exports/` — do not register a second provider.
      */
     suspend fun prepareExports(format: ExportFormat): List<PreparedExport> {
-        val snapshot = store.snapshotForExport()
+        val snapshot = snapshot()
         val stamp = fileStamp(Date())
         val dir = File(appContext.cacheDir, CACHE_DIR).apply { mkdirs() }
         val prepared = mutableListOf<PreparedExport>()
@@ -119,6 +121,9 @@ class LocalExportService @Inject constructor(
         val files = prepareExports(ExportFormat.CSV)
         sharePrepared(activityContext, files)
     }
+
+    private suspend fun snapshot() =
+        store.snapshotForExport().copy(repEdits = repEditLog.snapshot())
 
     private fun Intent.attachExportUris(uris: List<Uri>) {
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

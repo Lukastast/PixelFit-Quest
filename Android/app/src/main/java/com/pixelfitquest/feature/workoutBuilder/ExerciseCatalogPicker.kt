@@ -60,6 +60,7 @@ import com.pixelfitquest.R
 import com.pixelfitquest.feature.workout.catalog.ExerciseCatalog
 import com.pixelfitquest.feature.workout.catalog.ExerciseCategory
 import com.pixelfitquest.feature.workout.catalog.ExerciseDefinition
+import com.pixelfitquest.feature.workout.catalog.HeroPoseVisuals
 import com.pixelfitquest.feature.workout.model.enums.ExerciseType
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlanItem
 import com.pixelfitquest.ui.theme.typography
@@ -395,6 +396,16 @@ private fun ExercisePickerRow(
                             uncheckedColor = Color.Black,
                         ),
                     )
+                    HeroPoseVisuals.poseRes(exercise)?.let { poseRes ->
+                        Image(
+                            painter = painterResource(id = poseRes),
+                            contentDescription = definition.displayName,
+                            modifier = Modifier
+                                .size(56.dp)
+                                .padding(end = 6.dp),
+                            contentScale = ContentScale.Fit,
+                        )
+                    }
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = definition.displayName.uppercase(),

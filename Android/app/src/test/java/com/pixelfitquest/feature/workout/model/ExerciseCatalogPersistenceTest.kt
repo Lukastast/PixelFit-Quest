@@ -76,6 +76,7 @@ class ExerciseCatalogPersistenceTest {
             formScore = 81f,
             twistDeg = 12f,
             levelDeg = -8f,
+            side = "L",
             repRecords = listOf(
                 RepRecord(
                     index = 0,
@@ -91,6 +92,7 @@ class ExerciseCatalogPersistenceTest {
                     levelDeg = -8f,
                     twistDeg = 12f,
                     formScore = 81f,
+                    assisted = true,
                 ),
             ),
         )
@@ -98,7 +100,63 @@ class ExerciseCatalogPersistenceTest {
         assertNotNull(parsed)
         assertEquals(12f, parsed!!.twistDeg, 0.01f)
         assertEquals(-8f, parsed.levelDeg, 0.01f)
+        assertEquals("L", parsed.side)
+        assertEquals(true, parsed.repRecords.single().assisted)
         assertEquals(12f, parsed.repRecords.first().twistDeg!!, 0.01f)
         assertEquals(-8f, parsed.repRecords.first().levelDeg!!, 0.01f)
+    }
+
+    @Test
+    fun workoutSetRoundTripKeepsNotes() {
+        val original = WorkoutSet(
+            id = "s-notes-1",
+            exerciseId = "e-1",
+            workoutId = "w-1",
+            setNumber = 1,
+            reps = 10,
+            notes = "Felt smooth, RPE 7. Keep elbow tucked.",
+        )
+        val map = original.toMap()
+        assertEquals("Felt smooth, RPE 7. Keep elbow tucked.", map["notes"])
+
+        val parsed = WorkoutSet.fromMap(map)
+        assertNotNull(parsed)
+        assertEquals("Felt smooth, RPE 7. Keep elbow tucked.", parsed!!.notes)
+    }
+
+    @Test
+    fun workoutSetRoundTripWithNullNotes() {
+        val original = WorkoutSet(
+            id = "s-notes-2",
+            exerciseId = "e-1",
+            workoutId = "w-1",
+            setNumber = 2,
+            reps = 8,
+            notes = null,
+        )
+        val map = original.toMap()
+        org.junit.Assert.assertNull(map["notes"])
+
+        val parsed = WorkoutSet.fromMap(map)
+        assertNotNull(parsed)
+        org.junit.Assert.assertNull(parsed!!.notes)
+    }
+
+    @Test
+    fun setReviewStateCarriesNotes() {
+        val reviewDefault = SetReviewState(
+            analysis = com.pixelfitquest.feature.workout.analysis.SetAnalysis(
+                reps = emptyList(),
+                meanFormScore = 85f,
+            ),
+            reps = emptyList(),
+            sampleCount = 100,
+            setNumber = 1,
+            exerciseName = "Bench Press",
+        )
+        assertEquals("", reviewDefault.notes)
+
+        val reviewWithNotes = reviewDefault.copy(notes = "Pause at bottom felt solid")
+        assertEquals("Pause at bottom felt solid", reviewWithNotes.notes)
     }
 }

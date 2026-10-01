@@ -106,21 +106,24 @@ class HealthConnectRepository @Inject constructor(
                     emptyList()
                 }
 
-                // 3. Read heart rate samples, paginating with most recent first
+                // 3. Read heart rate samples, paginating with most recent first.
+                // P1-5: smaller pages + hard caps — enough for resting percentile, less I/O.
                 val nonWorkoutSamples = mutableListOf<Long>()
                 val sleepSamples = mutableListOf<Long>()
                 var pageToken: String? = null
+                var pages = 0
 
                 do {
                     val hrRecords = client.readRecords(
                         ReadRecordsRequest(
                             recordType = HeartRateRecord::class,
                             timeRangeFilter = rolling7TimeRange,
-                            pageSize = 5000,
+                            pageSize = HR_RESTING_PAGE_SIZE,
                             pageToken = pageToken,
                             ascendingOrder = false,
                         )
                     )
+                    pages++
                     for (record in hrRecords.records) {
                         for (sample in record.samples) {
                             val time = sample.time
@@ -145,7 +148,11 @@ class HealthConnectRepository @Inject constructor(
                         }
                     }
                     pageToken = hrRecords.pageToken
-                } while (pageToken != null && nonWorkoutSamples.size < 10000)
+                } while (
+                    pageToken != null &&
+                        pages < HR_RESTING_MAX_PAGES &&
+                        nonWorkoutSamples.size < HR_RESTING_MAX_SAMPLES
+                )
 
                 // If sleep HR samples exist, use the 25th percentile of sleep HR (clinical resting HR standard)
                 if (sleepSamples.isNotEmpty()) {
@@ -299,5 +306,9 @@ class HealthConnectRepository @Inject constructor(
 
     private companion object {
         const val TAG = "HealthConnect"
+        /** P1-5: cap resting-HR pagination (was pageSize=5000 / 10k samples). */
+        const val HR_RESTING_PAGE_SIZE = 1000
+        const val HR_RESTING_MAX_PAGES = 3
+        const val HR_RESTING_MAX_SAMPLES = 2500
     }
 }

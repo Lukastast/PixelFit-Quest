@@ -79,9 +79,42 @@ object CustomizationCatalog {
             minLevel = 12,
         ),
         CharacterItem(
+            id = "iron_oak",
+            name = "Iron Oak",
+            description = "Bodybuilder oak with leaf badge and sweatband.",
+            bonusDescription = null,
+            unlockType = UnlockType.LEVEL,
+            minLevel = 10,
+        ),
+        CharacterItem(
+            id = "cape_hero",
+            name = "Cape Hero",
+            description = "Original quest cape adventurer. No trademarked heroes.",
+            bonusDescription = null,
+            unlockType = UnlockType.COINS,
+            minLevel = 15,
+            coinPrice = 420,
+        ),
+        CharacterItem(
+            id = "ember_sparrow",
+            name = "Ember Sparrow",
+            description = "Gym-bird trainer with amber crest tuft. Original archetype.",
+            bonusDescription = null,
+            unlockType = UnlockType.LEVEL,
+            minLevel = 18,
+        ),
+        CharacterItem(
+            id = "coil_shade",
+            name = "Coil Shade",
+            description = "Mist ninja wraps and teal sash. Original archetype.",
+            bonusDescription = null,
+            unlockType = UnlockType.LEVEL,
+            minLevel = 22,
+        ),
+        CharacterItem(
             id = "premium",
             name = "Hero",
-            description = "Legendary cape warrior armor.",
+            description = "More legendary skins coming later.",
             bonusDescription = null,
             unlockType = UnlockType.COMING_SOON,
             isPremium = true,
@@ -206,6 +239,10 @@ object CustomizationCatalog {
             variant.contains("fitness") -> "fitness"
             variant.contains("premium") -> "premium"
             variant == "shadow" -> "shadow"
+            variant == "iron_oak" -> "iron_oak"
+            variant == "cape_hero" -> "cape_hero"
+            variant == "ember_sparrow" -> "ember_sparrow"
+            variant == "coil_shade" -> "coil_shade"
             else -> "basic"
         }
     }

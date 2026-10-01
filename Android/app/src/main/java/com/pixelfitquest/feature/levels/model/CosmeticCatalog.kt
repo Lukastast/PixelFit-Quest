@@ -18,6 +18,10 @@ object CosmeticCatalog {
     const val SKIN_BASIC = DEFAULT_SKIN_ID
     const val SKIN_FITNESS = "skin_fitness"
     const val SKIN_SHADOW = "skin_shadow"
+    const val SKIN_CAPE_HERO = "skin_cape_hero"
+    const val SKIN_IRON_OAK = "skin_iron_oak"
+    const val SKIN_EMBER_SPARROW = "skin_ember_sparrow"
+    const val SKIN_COIL_SHADE = "skin_coil_shade"
 
     const val TITLE_ROOKIE = DEFAULT_TITLE_ID
     const val TITLE_SCOUT = "title_scout"
@@ -85,6 +89,41 @@ object CosmeticCatalog {
             unlockLevel = 12,
             name = "Shadow",
             description = "Silhouette fighter look.",
+        ),
+        cosmetic(
+            id = SKIN_FITNESS,
+            kind = CosmeticKind.CHARACTER_SKIN,
+            unlockLevel = 8,
+            name = "Gym Fit",
+            description = "High-performance training gear.",
+        ),
+        cosmetic(
+            id = SKIN_IRON_OAK,
+            kind = CosmeticKind.CHARACTER_SKIN,
+            unlockLevel = 10,
+            name = "Iron Oak",
+            description = "Bodybuilder oak with leaf badge and sweatband.",
+        ),
+        cosmetic(
+            id = SKIN_CAPE_HERO,
+            kind = CosmeticKind.CHARACTER_SKIN,
+            unlockLevel = 15,
+            name = "Cape Hero",
+            description = "Original quest cape adventurer — no celebrity likeness.",
+        ),
+        cosmetic(
+            id = SKIN_EMBER_SPARROW,
+            kind = CosmeticKind.CHARACTER_SKIN,
+            unlockLevel = 18,
+            name = "Ember Sparrow",
+            description = "Gym-bird trainer with amber crest. Original archetype.",
+        ),
+        cosmetic(
+            id = SKIN_COIL_SHADE,
+            kind = CosmeticKind.CHARACTER_SKIN,
+            unlockLevel = 22,
+            name = "Coil Shade",
+            description = "Mist ninja wraps and teal sash. Original archetype.",
         ),
         cosmetic(
             id = TITLE_ROOKIE,

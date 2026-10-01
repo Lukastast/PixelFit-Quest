@@ -3,17 +3,16 @@ package com.pixelfitquest.feature.workout
 import android.content.Context
 import android.hardware.SensorManager
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -34,12 +33,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -55,16 +51,14 @@ import com.pixelfitquest.components.atoms.CharacterIdleAnimation
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.feature.workout.catalog.ExerciseCatalog
 import com.pixelfitquest.feature.workout.model.WorkoutPhase
-import com.pixelfitquest.feature.workout.model.enums.WorkoutFeedback
 import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationLock
 import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationPrefs
 import com.pixelfitquest.feature.workout.sensor.SensorSession
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.ui.navigation.HOME_SCREEN
-import com.pixelfitquest.ui.theme.determination
 import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun WorkoutScreen(
@@ -101,9 +95,6 @@ fun WorkoutScreen(
     }
 
     val characterData by viewModel.characterData.collectAsState()
-    var currentFeedback by remember { mutableStateOf<WorkoutFeedback?>(null) }
-    val animState = remember { Animatable(0f) }
-    var countdownNumber by remember { mutableStateOf<Int?>(null) }
 
     val currentItem = plan.items.getOrNull(state.currentExerciseIndex)
     val currentDefinition = currentItem?.exercise?.let { ExerciseCatalog.definition(it) }
@@ -111,38 +102,6 @@ fun WorkoutScreen(
     val currentImu = currentDefinition?.imuSupported == true
     val currentSets = currentItem?.sets ?: 0
     val currentWeight = state.weight
-
-    LaunchedEffect(Unit) {
-        viewModel.countdownEvent.collectLatest {
-            countdownNumber = 3
-            repeat(3) { i ->
-                delay(1000L)
-                countdownNumber = 3 - i - 1
-            }
-            countdownNumber = -1
-            viewModel.onCountdownFinished()
-            delay(1000L)
-            countdownNumber = null
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.feedbackEvent.collect { feedback ->
-            if (animState.isRunning) {
-                animState.snapTo(1f)
-                animState.animateTo(0f)
-            }
-            currentFeedback = feedback
-            animState.snapTo(0f)
-            animState.animateTo(
-                targetValue = 1f,
-                animationSpec = spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = 500f),
-            )
-            delay(300L)
-            animState.animateTo(0f)
-            currentFeedback = null
-        }
-    }
 
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { workoutId ->
@@ -178,6 +137,18 @@ fun WorkoutScreen(
         landscapeEnabled = landscapeEnabled,
     )
 
+    LaunchedEffect(state.phase, state.restPaused) {
+        if (state.phase != WorkoutPhase.Resting || state.restPaused) return@LaunchedEffect
+        while (true) {
+            // Display is second-granularity; 500ms is enough (P1-1). Delay before first
+            // tick so a 90s rest is not short by one interval.
+            delay(500)
+            val left = viewModel.tickRest(500)
+            if (left <= 0L) break
+        }
+        viewModel.onRestFinished()
+    }
+
     LaunchedEffect(state.phase) {
         if (state.phase == WorkoutPhase.Recording) {
             session.clear()
@@ -211,48 +182,19 @@ fun WorkoutScreen(
             contentScale = ContentScale.Crop,
         )
 
-        Row(
+        WorkoutStatusHud(
+            phase = state.phase,
+            currentSetNumber = state.currentSetNumber,
+            currentSets = currentSets,
+            currentWeight = currentWeight,
+            currentImu = currentImu,
+            recordingHud = viewModel.recordingHud,
             modifier = Modifier
                 .statusBarsPadding()
                 .displayCutoutPadding()
                 .padding(top = spacing.xs, start = spacing.md, end = spacing.md)
                 .align(Alignment.TopCenter),
-        ) {
-            val status = when (state.phase) {
-                WorkoutPhase.Recording -> stringResource(
-                    R.string.workout_status_recording,
-                    state.currentSetNumber,
-                    currentSets,
-                    currentWeight,
-                    state.recordingSeconds,
-                )
-                WorkoutPhase.Countdown -> stringResource(
-                    R.string.workout_status_countdown,
-                    state.currentSetNumber,
-                    currentSets,
-                )
-                WorkoutPhase.Reviewing -> stringResource(
-                    R.string.workout_status_review,
-                    state.currentSetNumber,
-                    currentSets,
-                )
-                WorkoutPhase.Idle -> stringResource(
-                    if (currentImu) R.string.workout_status_idle else R.string.workout_status_idle_log,
-                    state.currentSetNumber,
-                    currentSets,
-                    currentWeight,
-                )
-            }
-            Text(
-                text = status,
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(spacing.cornerSm))
-                    .padding(horizontal = spacing.scale(10)),
-            )
-        }
+        )
 
         if (state.phase != WorkoutPhase.Reviewing) {
             Column(
@@ -277,7 +219,7 @@ fun WorkoutScreen(
                             pressedRes = R.drawable.pause_button_clicked,
                             modifier = Modifier.size(buttonSize),
                         )
-                        WorkoutPhase.Idle -> PixelArtButton(
+                        WorkoutPhase.Idle, WorkoutPhase.Resting -> PixelArtButton(
                             onClick = { viewModel.startSet() },
                             imageRes = R.drawable.play_button_unclicked,
                             pressedRes = R.drawable.play_button_clicked,
@@ -317,24 +259,45 @@ fun WorkoutScreen(
                     )
                 }
 
-                if (state.phase == WorkoutPhase.Idle) {
+                if (state.phase == WorkoutPhase.Idle || state.phase == WorkoutPhase.Resting) {
                     Spacer(modifier = Modifier.height(spacing.xs))
                     BetweenSetsWeightHud(
                         weight = state.weight,
                         onAdjustWeight = viewModel::adjustWeight,
+                    )
+                    if (currentDefinition?.unilateral == true) {
+                        Spacer(modifier = Modifier.height(spacing.xs))
+                        SidePicker(
+                            side = state.side,
+                            onSide = viewModel::setSide,
+                        )
+                    }
+                }
+                if (state.phase == WorkoutPhase.Resting) {
+                    Spacer(modifier = Modifier.height(spacing.sm))
+                    RestTimerHud(
+                        restRemainingMs = viewModel.restRemainingMs,
+                        paused = state.restPaused,
+                        autostart = state.restAutostart,
+                        onPause = viewModel::pauseRest,
+                        onResume = viewModel::resumeRest,
+                        onStopAutostart = viewModel::stopRestAutostart,
+                        modifier = Modifier.padding(horizontal = spacing.md),
                     )
                 }
             }
         }
 
         val isRecording = state.phase == WorkoutPhase.Recording
-        val workoutBob = if (isRecording) {
+        // P0-2: no infinite bob during Recording — IMU→HUD updates already stress the frame budget.
+        // Light bob only while idle / resting (not reviewing).
+        val workoutBob = if (!isRecording && state.phase != WorkoutPhase.Reviewing) {
             val transition = rememberInfiniteTransition(label = "workoutMotion")
             val bob by transition.animateFloat(
-                initialValue = -10f,
-                targetValue = 10f,
+                initialValue = -6f,
+                targetValue = 6f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(500, easing = FastOutSlowInEasing),
+                    animation = tween(700, easing = FastOutSlowInEasing),
                     repeatMode = RepeatMode.Reverse,
                 ),
                 label = "workoutBob",
@@ -357,41 +320,8 @@ fun WorkoutScreen(
                     .graphicsLayer { translationY = workoutBob },
                 gender = characterData.gender,
                 variant = characterData.variant,
-                isAnimating = true,
+                isAnimating = !isRecording,
             )
-        }
-
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            countdownNumber?.let { number ->
-                val text = if (number >= 0) "$number" else stringResource(R.string.workout_go)
-                val color = if (number >= 0) Color.Yellow else Color.Green
-                Text(
-                    text = text,
-                    fontSize = if (landscape) 72.sp else 120.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = color,
-                    fontFamily = determination,
-                    modifier = Modifier
-                        .scale(1.2f)
-                        .padding(bottom = spacing.scale(10))
-                        .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(spacing.lg))
-                        .padding(horizontal = spacing.xxl, vertical = spacing.sm),
-                )
-            }
-
-            currentFeedback?.let { feedback ->
-                Text(
-                    text = feedback.text,
-                    fontFamily = determination,
-                    fontSize = 48.sp,
-                    color = feedback.color,
-                    modifier = Modifier.graphicsLayer {
-                        scaleX = animState.value * feedback.scale
-                        scaleY = animState.value * feedback.scale
-                        alpha = animState.value
-                    },
-                )
-            }
         }
 
         if (state.phase == WorkoutPhase.Recording) {
@@ -424,10 +354,119 @@ fun WorkoutScreen(
                     onAdd = viewModel::addRep,
                     onAdjustRom = viewModel::adjustRom,
                     onSetRom = viewModel::setRom,
+                    onToggleAssisted = viewModel::toggleAssisted,
+                    unilateral = currentDefinition?.unilateral == true,
+                    side = state.side,
+                    onSide = viewModel::setSide,
+                    onNotesChanged = viewModel::updateNotes,
                     onRedo = viewModel::redoSet,
                     onConfirm = viewModel::confirmSet,
                 )
             }
         }
     }
+}
+
+
+@Composable
+private fun WorkoutStatusHud(
+    phase: WorkoutPhase,
+    currentSetNumber: Int,
+    currentSets: Int,
+    currentWeight: Float,
+    currentImu: Boolean,
+    recordingHud: StateFlow<WorkoutViewModel.RecordingHud>,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = MaterialTheme.spacing
+    // Only this leaf recomposes on throttled recording ticks.
+    val hud by recordingHud.collectAsState()
+    val status = when (phase) {
+        WorkoutPhase.Recording -> stringResource(
+            R.string.workout_status_recording,
+            currentSetNumber,
+            currentSets,
+            currentWeight,
+            hud.recordingSeconds,
+        )
+        WorkoutPhase.Reviewing -> stringResource(
+            R.string.workout_status_review,
+            currentSetNumber,
+            currentSets,
+        )
+        WorkoutPhase.Resting -> stringResource(
+            R.string.workout_status_resting,
+            currentSetNumber,
+            currentSets,
+        )
+        WorkoutPhase.Idle -> stringResource(
+            if (currentImu) R.string.workout_status_idle else R.string.workout_status_idle_log,
+            currentSetNumber,
+            currentSets,
+            currentWeight,
+        )
+    }
+    Row(modifier = modifier) {
+        Text(
+            text = status,
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(spacing.cornerSm))
+                .padding(horizontal = spacing.scale(10)),
+        )
+    }
+}
+
+@Composable
+private fun RestTimerHud(
+    restRemainingMs: StateFlow<Long>,
+    paused: Boolean,
+    autostart: Boolean,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
+    onStopAutostart: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val remainingMs by restRemainingMs.collectAsState()
+    RestTimerCard(
+        remainingMs = remainingMs,
+        paused = paused,
+        autostart = autostart,
+        onPause = onPause,
+        onResume = onResume,
+        onStopAutostart = onStopAutostart,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun SidePicker(
+    side: String?,
+    onSide: (String) -> Unit,
+) {
+    val spacing = MaterialTheme.spacing
+    Row(horizontalArrangement = Arrangement.spacedBy(spacing.xs)) {
+        SideChip(stringResource(R.string.set_side_left), side == "L") { onSide("L") }
+        SideChip(stringResource(R.string.set_side_right), side == "R") { onSide("R") }
+    }
+}
+
+@Composable
+private fun SideChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    val spacing = MaterialTheme.spacing
+    Text(
+        text = label,
+        color = Color.White,
+        fontWeight = FontWeight.Bold,
+        fontSize = 13.sp,
+        modifier = Modifier
+            .background(
+                if (selected) Color(0xFF1565C0) else Color.Black.copy(alpha = 0.7f),
+                RoundedCornerShape(spacing.cornerSm),
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = spacing.sm, vertical = spacing.xxs),
+    )
 }
