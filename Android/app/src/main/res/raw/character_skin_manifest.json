@@ -35,7 +35,8 @@
           688,
           768
         ],
-        "note": "Gemini detailed walk strip already in drawable-nodpi"
+        "note": "P1-3 deferred: ships in drawable-nodpi but MUST NOT be eagerly decoded. Runtime walk is bob+slide (PixelCharacterMotion) until Path B animator.",
+        "eagerLoad": false
       }
     },
     "iron_oak": {
