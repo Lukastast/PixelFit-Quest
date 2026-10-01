@@ -67,13 +67,13 @@
 - **Risk to reps:** **None** (visual scale may change slightly — verify navbar hit targets).
 - **Model:** Antigravity / pure asset move OK on high.
 
-### P0-4. SensorSession alloc + main-thread listener pressure (careful)
-- **Where:** `SensorSession.onSensorChanged` — `ArrayList += TimedVec3/TimedQuat` under lock; prefers `SENSOR_DELAY_FASTEST` for **4** listeners (accel, gyro, rot, linear); `onAccelTick` → UI
+### P0-4. SensorSession alloc + main-thread listener pressure (careful) — **DONE (alloc-only)**
+- **Where:** `SensorSession.onSensorChanged` — was `ArrayList += TimedVec3/TimedQuat` under lock; prefers `SENSOR_DELAY_FASTEST` for **4** listeners (accel, gyro, rot, linear); `onAccelTick` → UI
 - **Problem:** At FASTEST, tens of thousands of small objects/min; lock contended; UI already throttled but sensor thread still allocates. Buffers grow unboundedly for long sets (pre-size 4096 then grow).
-- **Safe wins (low risk):** pre-allocate / ring buffer with max duration; avoid `+=` operator (use `add`); copy `event.values` once; move tick callback off composing path (already VM).
-- **Do NOT without tracking review:** lowering rate below what analysis was tuned for; dropping gyro/rot/linear; changing interpolate edge (`EDGE_NS = 20 ms`).
+- **Done:** SoA `TimedVec3Buffer` / `TimedQuatBuffer` — primitive storage during recording, `add` (no `+=`), copy `event.values` to locals once, `clear()` reuses capacity; box to `TimedVec3`/`TimedQuat` only in `snapshotInterpolated`. Rates / sensors / interpolate unchanged.
+- **Deferred (tracking review):** capped drop-oldest ring by max duration; lowering rate; dropping gyro/rot/linear; changing `EDGE_NS`.
 - **Impact:** Medium–high jank/GC during long sets; battery secondary.
-- **Risk to reps:** **Medium–High** if sampling rate or streams change; **Low** for alloc-only.
+- **Risk to reps:** **Low** (alloc-only; sequence-preserving buffer tests).
 - **Model:** **Grok high** (tracking-adjacent).
 
 ---
@@ -169,7 +169,7 @@
 
 1. **P0-1 + P0-2** (Recording jank) — UI, no analyzer touch  
 2. **P0-3** (navbar/slides → nodpi) — verify UI scale  
-3. **P0-4 alloc-only** SensorSession (no rate change)  
+3. ~~**P0-4 alloc-only** SensorSession (no rate change)~~ **done**  
 4. **P1-1, P1-4, P1-5** (rest / screen-on / HC)  
 5. **P1-2, P1-3** (decode / dead assets)  
 6. **P1-6, P1-7** (R8 + Gradle) before any Play track  
@@ -191,9 +191,10 @@
 | **P0-1** Recording/rest HUD split (`recordingHud` + `restRemainingMs` flows; leaf collectors) | Done |
 | **P0-2** `remember` sprite sheet decode; pause idle anim + bob during Recording | Done |
 | **P0-3** navbar / slides / quest boards / info_background* → `drawable-nodpi` | Done |
+| **P0-4** SensorSession SoA stream buffers (no per-sample TimedVec3/Quat; clear reuses capacity) | Done |
 | Trivial asset deletes (furniture stubs, `background_home_screen1`) | Done |
 
-**Not touched:** `SetAnalyzer`, `Signal`, `SensorSession` rates / data semantics, Play upload. **P0-4** still open.
+**Not touched:** `SetAnalyzer`, `Signal`, SensorSession rates / registered sensors / interpolate edge, Play upload. Capped drop-oldest ring deferred (would change long-set samples).
 
 ---
 
