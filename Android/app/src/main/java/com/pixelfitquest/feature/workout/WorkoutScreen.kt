@@ -58,6 +58,7 @@ import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.ui.navigation.HOME_SCREEN
 import com.pixelfitquest.ui.theme.spacing
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun WorkoutScreen(
@@ -180,48 +181,19 @@ fun WorkoutScreen(
             contentScale = ContentScale.Crop,
         )
 
-        Row(
+        WorkoutStatusHud(
+            phase = state.phase,
+            currentSetNumber = state.currentSetNumber,
+            currentSets = currentSets,
+            currentWeight = currentWeight,
+            currentImu = currentImu,
+            recordingHud = viewModel.recordingHud,
             modifier = Modifier
                 .statusBarsPadding()
                 .displayCutoutPadding()
                 .padding(top = spacing.xs, start = spacing.md, end = spacing.md)
                 .align(Alignment.TopCenter),
-        ) {
-            val status = when (state.phase) {
-                WorkoutPhase.Recording -> stringResource(
-                    R.string.workout_status_recording,
-                    state.currentSetNumber,
-                    currentSets,
-                    currentWeight,
-                    state.recordingSeconds,
-                )
-                WorkoutPhase.Reviewing -> stringResource(
-                    R.string.workout_status_review,
-                    state.currentSetNumber,
-                    currentSets,
-                )
-                WorkoutPhase.Resting -> stringResource(
-                    R.string.workout_status_resting,
-                    state.currentSetNumber,
-                    currentSets,
-                )
-                WorkoutPhase.Idle -> stringResource(
-                    if (currentImu) R.string.workout_status_idle else R.string.workout_status_idle_log,
-                    state.currentSetNumber,
-                    currentSets,
-                    currentWeight,
-                )
-            }
-            Text(
-                text = status,
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(spacing.cornerSm))
-                    .padding(horizontal = spacing.scale(10)),
-            )
-        }
+        )
 
         if (state.phase != WorkoutPhase.Reviewing) {
             Column(
@@ -302,8 +274,8 @@ fun WorkoutScreen(
                 }
                 if (state.phase == WorkoutPhase.Resting) {
                     Spacer(modifier = Modifier.height(spacing.sm))
-                    RestTimerCard(
-                        remainingMs = state.restRemainingMs,
+                    RestTimerHud(
+                        restRemainingMs = viewModel.restRemainingMs,
                         paused = state.restPaused,
                         autostart = state.restAutostart,
                         onPause = viewModel::pauseRest,
@@ -316,13 +288,15 @@ fun WorkoutScreen(
         }
 
         val isRecording = state.phase == WorkoutPhase.Recording
-        val workoutBob = if (isRecording) {
+        // P0-2: no infinite bob during Recording — IMU→HUD updates already stress the frame budget.
+        // Light bob only while idle / resting (not reviewing).
+        val workoutBob = if (!isRecording && state.phase != WorkoutPhase.Reviewing) {
             val transition = rememberInfiniteTransition(label = "workoutMotion")
             val bob by transition.animateFloat(
-                initialValue = -10f,
-                targetValue = 10f,
+                initialValue = -6f,
+                targetValue = 6f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(500, easing = FastOutSlowInEasing),
+                    animation = tween(700, easing = FastOutSlowInEasing),
                     repeatMode = RepeatMode.Reverse,
                 ),
                 label = "workoutBob",
@@ -345,7 +319,7 @@ fun WorkoutScreen(
                     .graphicsLayer { translationY = workoutBob },
                 gender = characterData.gender,
                 variant = characterData.variant,
-                isAnimating = true,
+                isAnimating = !isRecording,
             )
         }
 
@@ -389,6 +363,80 @@ fun WorkoutScreen(
             }
         }
     }
+}
+
+
+@Composable
+private fun WorkoutStatusHud(
+    phase: WorkoutPhase,
+    currentSetNumber: Int,
+    currentSets: Int,
+    currentWeight: Float,
+    currentImu: Boolean,
+    recordingHud: StateFlow<WorkoutViewModel.RecordingHud>,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = MaterialTheme.spacing
+    // Only this leaf recomposes on throttled recording ticks.
+    val hud by recordingHud.collectAsState()
+    val status = when (phase) {
+        WorkoutPhase.Recording -> stringResource(
+            R.string.workout_status_recording,
+            currentSetNumber,
+            currentSets,
+            currentWeight,
+            hud.recordingSeconds,
+        )
+        WorkoutPhase.Reviewing -> stringResource(
+            R.string.workout_status_review,
+            currentSetNumber,
+            currentSets,
+        )
+        WorkoutPhase.Resting -> stringResource(
+            R.string.workout_status_resting,
+            currentSetNumber,
+            currentSets,
+        )
+        WorkoutPhase.Idle -> stringResource(
+            if (currentImu) R.string.workout_status_idle else R.string.workout_status_idle_log,
+            currentSetNumber,
+            currentSets,
+            currentWeight,
+        )
+    }
+    Row(modifier = modifier) {
+        Text(
+            text = status,
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(spacing.cornerSm))
+                .padding(horizontal = spacing.scale(10)),
+        )
+    }
+}
+
+@Composable
+private fun RestTimerHud(
+    restRemainingMs: StateFlow<Long>,
+    paused: Boolean,
+    autostart: Boolean,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
+    onStopAutostart: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val remainingMs by restRemainingMs.collectAsState()
+    RestTimerCard(
+        remainingMs = remainingMs,
+        paused = paused,
+        autostart = autostart,
+        onPause = onPause,
+        onResume = onResume,
+        onStopAutostart = onStopAutostart,
+        modifier = modifier,
+    )
 }
 
 @Composable

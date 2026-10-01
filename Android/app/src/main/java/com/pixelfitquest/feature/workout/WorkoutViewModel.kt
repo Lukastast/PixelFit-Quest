@@ -57,6 +57,14 @@ class WorkoutViewModel @Inject constructor(
     private val _workoutState = MutableStateFlow(WorkoutState())
     val workoutState: StateFlow<WorkoutState> = _workoutState.asStateFlow()
 
+    /** Hot path during Recording — do not fold into [workoutState] (avoids full-tree recomposition). */
+    private val _recordingHud = MutableStateFlow(RecordingHud())
+    val recordingHud: StateFlow<RecordingHud> = _recordingHud.asStateFlow()
+
+    /** Hot path during Rest — second-granularity display; isolate from [workoutState]. */
+    private val _restRemainingMs = MutableStateFlow(0L)
+    val restRemainingMs: StateFlow<Long> = _restRemainingMs.asStateFlow()
+
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
@@ -146,12 +154,11 @@ class WorkoutViewModel @Inject constructor(
         }
         // No 3-2-1 countdown (#170): start IMU recording immediately.
         samples.clear()
+        _recordingHud.value = RecordingHud()
+        _restRemainingMs.value = 0L
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Recording,
-            sampleCount = 0,
-            recordingSeconds = 0f,
             review = null,
-            restRemainingMs = 0L,
             restPaused = false,
             restAutostart = false,
         )
@@ -161,10 +168,7 @@ class WorkoutViewModel @Inject constructor(
         if (_workoutState.value.phase != WorkoutPhase.Recording) return
         if (count % 8 != 0) return
         val seconds = if (count < 2) 0f else (lastNanos - firstNanos) / 1_000_000_000f
-        _workoutState.value = _workoutState.value.copy(
-            sampleCount = count,
-            recordingSeconds = seconds,
-        )
+        _recordingHud.value = RecordingHud(sampleCount = count, recordingSeconds = seconds)
     }
 
     fun finishSet(recorded: List<ImuSample>) {
@@ -190,9 +194,9 @@ class WorkoutViewModel @Inject constructor(
             setNumber = currentSetNumber,
             exerciseName = ExerciseCatalog.definition(type).displayName,
         )
+        _recordingHud.value = RecordingHud(sampleCount = samples.size, recordingSeconds = _recordingHud.value.recordingSeconds)
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Reviewing,
-            sampleCount = samples.size,
             review = review,
         )
         logEdit(
@@ -211,10 +215,9 @@ class WorkoutViewModel @Inject constructor(
         if (_workoutState.value.phase != WorkoutPhase.Reviewing) return
         fullRomRecalibratedThisReview = false
         samples.clear()
+        _recordingHud.value = RecordingHud()
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Idle,
-            sampleCount = 0,
-            recordingSeconds = 0f,
             review = null,
         )
     }
@@ -379,15 +382,15 @@ class WorkoutViewModel @Inject constructor(
 
     fun tickRest(deltaMs: Long): Long {
         val state = _workoutState.value
-        if (state.phase != WorkoutPhase.Resting || state.restPaused) return state.restRemainingMs
-        val next = (state.restRemainingMs - deltaMs).coerceAtLeast(0L)
-        _workoutState.value = state.copy(restRemainingMs = next)
+        if (state.phase != WorkoutPhase.Resting || state.restPaused) return _restRemainingMs.value
+        val next = (_restRemainingMs.value - deltaMs).coerceAtLeast(0L)
+        _restRemainingMs.value = next
         return next
     }
 
     fun onRestFinished() {
         val state = _workoutState.value
-        if (state.phase != WorkoutPhase.Resting || state.restPaused || state.restRemainingMs > 0L) return
+        if (state.phase != WorkoutPhase.Resting || state.restPaused || _restRemainingMs.value > 0L) return
         if (state.restAutostart) startSet()
     }
 
@@ -448,15 +451,14 @@ class WorkoutViewModel @Inject constructor(
         samples.clear()
         val resting = RestTimerPrefs.isEnabled(prefs)
         val nextSide = rememberedSide()
+        _recordingHud.value = RecordingHud()
+        _restRemainingMs.value = if (resting) RestTimerPrefs.getSeconds(prefs) * 1000L else 0L
         _workoutState.value = _workoutState.value.copy(
             phase = if (resting) WorkoutPhase.Resting else WorkoutPhase.Idle,
             currentSetNumber = currentSetNumber,
             currentExerciseIndex = currentExerciseIndex,
-            sampleCount = 0,
-            recordingSeconds = 0f,
             review = null,
             side = nextSide,
-            restRemainingMs = if (resting) RestTimerPrefs.getSeconds(prefs) * 1000L else 0L,
             restPaused = false,
             restAutostart = resting && RestTimerPrefs.isAutostartEnabled(prefs),
         )
@@ -466,10 +468,14 @@ class WorkoutViewModel @Inject constructor(
         samples.clear()
         val wasTracking = _workoutState.value.isTracking
         val shouldDiscard = wasTracking && (sessionSetCount == 0 || sessionRepCount == 0)
+        _recordingHud.value = RecordingHud()
+        _restRemainingMs.value = 0L
         _workoutState.value = _workoutState.value.copy(
             isTracking = false,
             phase = WorkoutPhase.Idle,
             review = null,
+            restPaused = false,
+            restAutostart = false,
         )
         if (shouldDiscard && workoutId.isNotBlank()) {
             launchCatching {
@@ -721,10 +727,9 @@ class WorkoutViewModel @Inject constructor(
             setNumber = currentSetNumber,
             exerciseName = ExerciseCatalog.definition(type).displayName,
         )
+        _recordingHud.value = RecordingHud(sampleCount = sampleCount, recordingSeconds = 0f)
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Reviewing,
-            sampleCount = sampleCount,
-            recordingSeconds = 0f,
             review = review,
         )
     }
@@ -744,13 +749,16 @@ class WorkoutViewModel @Inject constructor(
         val totalSets: Int = 0,
         val currentExerciseIndex: Int = 0,
         val weight: Float = 0f,
-        val sampleCount: Int = 0,
-        val recordingSeconds: Float = 0f,
         val review: SetReviewState? = null,
         val notes: String? = null,
         val side: String? = null,
-        val restRemainingMs: Long = 0L,
         val restPaused: Boolean = false,
         val restAutostart: Boolean = false,
+    )
+
+    /** Narrow Recording HUD — updated on throttled sensor ticks only. */
+    data class RecordingHud(
+        val sampleCount: Int = 0,
+        val recordingSeconds: Float = 0f,
     )
 }
