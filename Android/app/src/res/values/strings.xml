@@ -59,4 +59,6 @@
     <string name="coins_reward_desc">Coins reward</string>
     <string name="exp_label">EXP</string>
     <string name="achievements_title">Achievements</string>
+    <string name="set_notes_title">Set Notes</string>
+    <string name="set_notes_hint">Add notes for this set (RPE, cues, form)...</string>
 </resources>

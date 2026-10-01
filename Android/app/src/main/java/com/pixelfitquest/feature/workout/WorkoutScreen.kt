@@ -358,6 +358,7 @@ fun WorkoutScreen(
                     unilateral = currentDefinition?.unilateral == true,
                     side = state.side,
                     onSide = viewModel::setSide,
+                    onNotesChanged = viewModel::updateNotes,
                     onRedo = viewModel::redoSet,
                     onConfirm = viewModel::confirmSet,
                 )

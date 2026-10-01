@@ -52,6 +52,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -772,6 +773,34 @@ private fun FormTabContent(
                     }
                 }
             }
+
+            if (!currentSet.notes.isNullOrBlank()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(spacing.cornerSm))
+                            .background(SlateSurface.copy(alpha = 0.94f))
+                            .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
+                            .padding(spacing.sm),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(spacing.xxs)) {
+                            Text(
+                                text = "Set ${currentSet.setNumber} Notes",
+                                color = ImperialGold,
+                                fontFamily = determination,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                text = currentSet.notes,
+                                color = SilverSteel,
+                                fontSize = 12.sp,
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         if (showHeroStage) {
@@ -981,6 +1010,18 @@ private fun SetsTabContent(
                                             text = "Tap to inspect clip 🔍",
                                             color = SilverSlate,
                                             fontSize = 10.sp,
+                                        )
+                                    }
+
+                                    if (!set.notes.isNullOrBlank()) {
+                                        Text(
+                                            text = "“${set.notes}”",
+                                            color = SilverSteel,
+                                            fontSize = 11.sp,
+                                            fontStyle = FontStyle.Italic,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.padding(top = spacing.xxxs),
                                         )
                                     }
                                 }

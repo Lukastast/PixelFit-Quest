@@ -193,11 +193,13 @@ class WorkoutViewModel @Inject constructor(
             sampleCount = samples.size,
             setNumber = currentSetNumber,
             exerciseName = ExerciseCatalog.definition(type).displayName,
+            notes = "",
         )
         _recordingHud.value = RecordingHud(sampleCount = samples.size, recordingSeconds = _recordingHud.value.recordingSeconds)
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Reviewing,
             review = review,
+            notes = "",
         )
         logEdit(
             "detected",
@@ -219,6 +221,7 @@ class WorkoutViewModel @Inject constructor(
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Idle,
             review = null,
+            notes = null,
         )
     }
 
@@ -362,6 +365,14 @@ class WorkoutViewModel @Inject constructor(
         logEdit("side", mapOf("side" to side))
     }
 
+    fun updateNotes(notes: String) {
+        val review = _workoutState.value.review ?: return
+        _workoutState.value = _workoutState.value.copy(
+            review = review.copy(notes = notes),
+            notes = notes,
+        )
+    }
+
     fun pauseRest() {
         val state = _workoutState.value
         if (state.phase != WorkoutPhase.Resting || state.restPaused) return
@@ -433,7 +444,7 @@ class WorkoutViewModel @Inject constructor(
             currentExerciseIndex++
             currentSetNumber = 1
             if (currentExerciseIndex >= plan.items.size) {
-                _workoutState.value = _workoutState.value.copy(review = null)
+                _workoutState.value = _workoutState.value.copy(review = null, notes = null)
                 finishWorkout()
                 return
             }
@@ -458,6 +469,7 @@ class WorkoutViewModel @Inject constructor(
             currentSetNumber = currentSetNumber,
             currentExerciseIndex = currentExerciseIndex,
             review = null,
+            notes = null,
             side = nextSide,
             restPaused = false,
             restAutostart = resting && RestTimerPrefs.isAutostartEnabled(prefs),
@@ -474,6 +486,7 @@ class WorkoutViewModel @Inject constructor(
             isTracking = false,
             phase = WorkoutPhase.Idle,
             review = null,
+            notes = null,
             restPaused = false,
             restAutostart = false,
         )
@@ -616,7 +629,7 @@ class WorkoutViewModel @Inject constructor(
             flags = review.analysis.flags,
             repRecords = records,
             side = _workoutState.value.side,
-            // TODO(workout-notes): pass review notes when a TextField is wired in SetReviewOverlay.
+            notes = review.notes.trim().ifEmpty { null },
         )
         val repsCount = accepted.size
         sessionRepCount += repsCount
@@ -726,11 +739,13 @@ class WorkoutViewModel @Inject constructor(
             sampleCount = sampleCount,
             setNumber = currentSetNumber,
             exerciseName = ExerciseCatalog.definition(type).displayName,
+            notes = "",
         )
         _recordingHud.value = RecordingHud(sampleCount = sampleCount, recordingSeconds = 0f)
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Reviewing,
             review = review,
+            notes = "",
         )
     }
 
