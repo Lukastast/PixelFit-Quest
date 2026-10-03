@@ -59,14 +59,11 @@ fun CharacterCustomizationPanel(
     unlockedVariants: Set<String>,
     userCoins: Int,
     userLevel: Int,
-    heightCm: Int,
-    armLengthCm: Int,
     unlockedLevelSkinIds: Set<String>,
     onSelectGender: (String) -> Unit,
     onSelectCharacter: (String) -> Unit,
     onEquipCharacter: (String) -> Unit,
     onBuyCharacter: (String, Int) -> Unit,
-    onOpenStats: () -> Unit,
     modifier: Modifier = Modifier,
     isTwoPane: Boolean = false,
 ) {
@@ -367,61 +364,6 @@ fun CharacterCustomizationPanel(
     }
 
     @Composable
-    fun BodyCalibrationCard(
-        modifier: Modifier = Modifier,
-        height: androidx.compose.ui.unit.Dp = spacing.scale(46),
-    ) {
-        val cardModifier = modifier.fillMaxWidth().height(height)
-
-        Box(
-            modifier = cardModifier
-                .clip(RoundedCornerShape(spacing.cornerSm))
-                .background(SlateDeep.copy(alpha = 0.92f))
-                .border(BorderStroke(1.dp, SlateBorder), RoundedCornerShape(spacing.cornerSm))
-                .clickable(onClick = onOpenStats)
-                .padding(horizontal = spacing.xs, vertical = spacing.xxs),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(
-                    modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(spacing.xxs),
-                ) {
-                    Text("📏", fontSize = if (isTwoPane) 13.sp else 14.sp)
-                    Column {
-                        Text(
-                            text = "Body Stats",
-                            color = SilverSteel,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = if (isTwoPane) 11.sp else 12.sp,
-                            maxLines = 1,
-                        )
-                        Text(
-                            text = "${heightCm} cm · Arm ${armLengthCm} cm",
-                            color = SilverSlate,
-                            fontSize = if (isTwoPane) 9.sp else 9.5.sp,
-                            maxLines = 1,
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(spacing.xxs))
-                Text(
-                    text = "EDIT ⚙",
-                    color = ImperialGold,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = if (isTwoPane) 9.sp else 9.5.sp,
-                    maxLines = 1,
-                )
-            }
-        }
-    }
-
-    @Composable
     fun ActionButton(
         modifier: Modifier = Modifier,
         buttonWidth: androidx.compose.ui.unit.Dp? = null,
@@ -561,7 +503,7 @@ fun CharacterCustomizationPanel(
                 .padding(horizontal = spacing.sm),
             horizontalArrangement = Arrangement.spacedBy(spacing.sm),
         ) {
-            // Left Pane (Preview & Controls): HeroStage with GenderToggle inside, then Action & Calibration side-by-side
+            // Left pane: preview, then the equip action.
             Column(
                 modifier = Modifier
                     .weight(0.48f)
@@ -577,19 +519,10 @@ fun CharacterCustomizationPanel(
 
                 Spacer(modifier = Modifier.height(spacing.xs))
 
-                Row(
+                ActionButton(
+                    buttonHeight = spacing.scale(46),
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(spacing.xs),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    ActionButton(
-                        buttonHeight = spacing.scale(46),
-                        modifier = Modifier.weight(0.42f),
-                    )
-                    BodyCalibrationCard(
-                        modifier = Modifier.weight(0.58f),
-                    )
-                }
+                )
             }
 
             // Right Pane (Items Grid)
@@ -610,20 +543,10 @@ fun CharacterCustomizationPanel(
         ) {
             HeroStage()
             Spacer(modifier = Modifier.height(spacing.xs))
-            // Equip and Body Stats on one line
-            Row(
+            ActionButton(
+                buttonHeight = spacing.scale(46),
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(spacing.xs),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                ActionButton(
-                    buttonHeight = spacing.scale(46),
-                    modifier = Modifier.weight(0.44f),
-                )
-                BodyCalibrationCard(
-                    modifier = Modifier.weight(0.56f),
-                )
-            }
+            )
             Spacer(modifier = Modifier.height(spacing.sm))
             CharacterGrid(modifier = Modifier.weight(1f))
         }

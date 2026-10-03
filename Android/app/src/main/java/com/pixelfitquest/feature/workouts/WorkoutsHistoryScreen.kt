@@ -6,13 +6,25 @@ import androidx.compose.ui.platform.LocalContext
 import com.pixelfitquest.feature.workout.PreWorkoutLoadoutScreen
 import com.pixelfitquest.feature.workout.WorkoutWeightPrefs
 import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationPrefs
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import com.pixelfitquest.ui.theme.HeartRuby
+import com.pixelfitquest.ui.theme.ImperialGold
+import com.pixelfitquest.ui.theme.SilverSlate
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateBorder
+import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.SlateGroove
+import com.pixelfitquest.ui.theme.SlateSurface
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,9 +54,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -61,7 +71,6 @@ import com.pixelfitquest.feature.workout.model.Workout
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutTemplate
 import com.pixelfitquest.ui.theme.PixelFitWidthClass
-import com.pixelfitquest.ui.theme.RewardGold
 import com.pixelfitquest.ui.theme.spacing
 
 enum class WorkoutsTab {
@@ -141,7 +150,7 @@ fun WorkoutsHistoryScreen(
                     text = stringResource(R.string.workouts_tab_templates) + if (templates.isNotEmpty()) " (${templates.size})" else "",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = ImperialGold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(bottom = spacing.xs)
@@ -186,7 +195,7 @@ fun WorkoutsHistoryScreen(
                     text = stringResource(R.string.workouts_tab_history) + if (workouts.isNotEmpty()) " (${workouts.size})" else "",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = ImperialGold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(bottom = spacing.xs)
@@ -238,7 +247,7 @@ fun WorkoutsHistoryScreen(
                 },
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = ImperialGold,
                 modifier = Modifier.padding(vertical = spacing.xs)
             )
 
@@ -352,8 +361,24 @@ fun WorkoutsHistoryScreen(
     templateToDelete?.let { template ->
         AlertDialog(
             onDismissRequest = { templateToDelete = null },
-            title = { Text(stringResource(R.string.delete_template_desc)) },
-            text = { Text("Are you sure you want to delete template \"${template.name}\"?") },
+            containerColor = SlateDeep,
+            titleContentColor = ImperialGold,
+            textContentColor = SilverSteel,
+            shape = RoundedCornerShape(spacing.cornerMd),
+            modifier = Modifier.border(BorderStroke(1.5.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd)),
+            title = {
+                Text(
+                    text = stringResource(R.string.delete_template_desc),
+                    fontWeight = FontWeight.Bold,
+                    color = ImperialGold
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to delete template \"${template.name}\"?",
+                    color = SilverSteel
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -361,12 +386,12 @@ fun WorkoutsHistoryScreen(
                         templateToDelete = null
                     }
                 ) {
-                    Text("Delete", color = Color.Red, fontWeight = FontWeight.Bold)
+                    Text("Delete", color = HeartRuby, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { templateToDelete = null }) {
-                    Text("Cancel")
+                    Text("Cancel", color = SilverSlate)
                 }
             }
         )
@@ -392,7 +417,7 @@ private fun TemplatesList(
                     text = stringResource(R.string.no_templates_msg),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.85f),
+                    color = SilverSteel,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = spacing.md)
                 )
@@ -400,7 +425,7 @@ private fun TemplatesList(
                 Text(
                     text = stringResource(R.string.create_first_template_hint),
                     fontSize = 13.sp,
-                    color = Color.White.copy(alpha = 0.6f),
+                    color = SilverSlate,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = spacing.lg)
                 )
@@ -439,7 +464,7 @@ private fun HistoryList(
             modifier = modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = Color.White)
+            CircularProgressIndicator(color = ImperialGold)
         }
     } else {
         LazyColumn(
@@ -468,13 +493,13 @@ private fun HistoryList(
                                 text = "No workouts yet!",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White.copy(alpha = 0.8f)
+                                color = SilverSteel
                             )
                             Spacer(modifier = Modifier.height(spacing.xs))
                             Text(
                                 text = "Complete your first workout session to earn XP, coins, and level up your dwelling!",
                                 fontSize = 13.sp,
-                                color = Color.White.copy(alpha = 0.6f),
+                                color = SilverSlate,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(horizontal = spacing.lg)
                             )
@@ -506,19 +531,14 @@ private fun WorkoutTemplateRow(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(spacing.scale(80))
+            .clip(RoundedCornerShape(spacing.cornerMd))
+            .background(SlateDeep.copy(alpha = 0.94f))
+            .border(BorderStroke(1.5.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd))
             .clickable { onStart() }
+            .padding(horizontal = spacing.md, vertical = spacing.sm)
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.info_background_higher),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds
-        )
         Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = spacing.sm),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -527,8 +547,8 @@ private fun WorkoutTemplateRow(
             ) {
                 Text(
                     text = template.name,
-                    color = Color.White,
-                    fontSize = 14.sp,
+                    color = ImperialGold,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -536,38 +556,48 @@ private fun WorkoutTemplateRow(
                 Spacer(modifier = Modifier.height(spacing.xxxs))
                 Text(
                     text = stringResource(R.string.template_stats, template.plan.items.size, totalSets),
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 11.sp,
+                    color = SilverSteel.copy(alpha = 0.8f),
+                    fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
 
+            Spacer(modifier = Modifier.width(spacing.xs))
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(spacing.xxxs)
+                horizontalArrangement = Arrangement.spacedBy(spacing.xs)
             ) {
                 IconButton(
                     onClick = onEdit,
-                    modifier = Modifier.size(spacing.scale(32))
+                    modifier = Modifier
+                        .size(spacing.scale(32))
+                        .clip(RoundedCornerShape(spacing.cornerXs))
+                        .background(SlateGroove)
+                        .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerXs))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = stringResource(R.string.edit_template_desc),
-                        tint = Color.White.copy(alpha = 0.85f),
-                        modifier = Modifier.size(spacing.scale(18))
+                        tint = ImperialGold,
+                        modifier = Modifier.size(spacing.scale(16))
                     )
                 }
 
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier.size(spacing.scale(32))
+                    modifier = Modifier
+                        .size(spacing.scale(32))
+                        .clip(RoundedCornerShape(spacing.cornerXs))
+                        .background(SlateGroove)
+                        .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerXs))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = stringResource(R.string.delete_template_desc),
-                        tint = Color(0xFFFF6B6B),
-                        modifier = Modifier.size(spacing.scale(18))
+                        tint = HeartRuby,
+                        modifier = Modifier.size(spacing.scale(16))
                     )
                 }
 
@@ -578,8 +608,8 @@ private fun WorkoutTemplateRow(
                     imageRes = R.drawable.button_unclicked,
                     pressedRes = R.drawable.button_clicked,
                     modifier = Modifier
-                        .width(spacing.scale(64))
-                        .height(spacing.scale(34))
+                        .width(spacing.scale(68))
+                        .height(spacing.scale(36))
                 ) {
                     Text(
                         text = stringResource(R.string.start_template),
@@ -603,19 +633,14 @@ private fun WorkoutHistoryRow(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(spacing.scale(74))
+            .clip(RoundedCornerShape(spacing.cornerMd))
+            .background(SlateDeep.copy(alpha = 0.94f))
+            .border(BorderStroke(1.5.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd))
             .clickable { onClick() }
+            .padding(horizontal = spacing.md, vertical = spacing.sm)
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.info_background_higher),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds
-        )
         Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = spacing.md),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -624,7 +649,7 @@ private fun WorkoutHistoryRow(
             ) {
                 Text(
                     text = workout.name,
-                    color = Color.White,
+                    color = SilverSteel,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -633,7 +658,7 @@ private fun WorkoutHistoryRow(
                 Spacer(modifier = Modifier.height(spacing.xxxs))
                 Text(
                     text = workout.date.formatDate(),
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = SilverSlate,
                     fontSize = 12.sp,
                     maxLines = 1
                 )
@@ -641,7 +666,7 @@ private fun WorkoutHistoryRow(
             Spacer(modifier = Modifier.width(spacing.xs))
             Text(
                 text = "View >",
-                color = RewardGold,
+                color = ImperialGold,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )

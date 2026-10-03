@@ -1,7 +1,9 @@
 package com.pixelfitquest.feature.workoutBuilder
 
-import androidx.compose.foundation.Image
+import android.content.res.Configuration
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,9 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -33,7 +36,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,23 +43,24 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.PixelArtButton
-import android.content.res.Configuration
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.platform.LocalConfiguration
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
+import com.pixelfitquest.ui.theme.HeartRuby
+import com.pixelfitquest.ui.theme.ImperialGold
 import com.pixelfitquest.ui.theme.PixelFitWidthClass
+import com.pixelfitquest.ui.theme.SilverSlate
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateBorder
+import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.SlateGroove
 import com.pixelfitquest.ui.theme.spacing
 import com.pixelfitquest.ui.theme.typography
 import kotlinx.coroutines.launch
@@ -149,19 +152,14 @@ fun WorkoutCustomizationScreen(
             Box(
                 modifier = modifier
                     .fillMaxWidth()
-                    .height(spacing.barLg),
+                    .clip(RoundedCornerShape(spacing.cornerMd))
+                    .background(SlateDeep.copy(alpha = 0.94f))
+                    .border(BorderStroke(1.5.dp, SlateBorder), RoundedCornerShape(spacing.cornerMd))
+                    .padding(horizontal = spacing.md, vertical = spacing.sm),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(R.drawable.info_background_higher),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.FillBounds
-                )
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(spacing.xs),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -171,23 +169,21 @@ fun WorkoutCustomizationScreen(
                             stringResource(R.string.template_name_label)
                         },
                         style = typography.bodyMedium,
-                        color = Color.White
+                        fontWeight = FontWeight.Bold,
+                        color = ImperialGold
                     )
 
                     Spacer(modifier = Modifier.height(spacing.xs))
 
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(0.92f)
-                            .height(spacing.inputHeight),
+                            .fillMaxWidth()
+                            .height(spacing.inputHeight)
+                            .clip(RoundedCornerShape(spacing.cornerSm))
+                            .background(SlateGroove)
+                            .border(BorderStroke(1.dp, SlateBorder), RoundedCornerShape(spacing.cornerSm)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Image(
-                            painter = painterResource(R.drawable.inputfield),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillBounds
-                        )
                         TextField(
                             singleLine = true,
                             value = uiState.templateName,
@@ -195,13 +191,15 @@ fun WorkoutCustomizationScreen(
                             placeholder = {
                                 Text(
                                     text = stringResource(R.string.default_workout_name),
-                                    color = Color.Black.copy(alpha = 0.5f),
+                                    color = SilverSlate,
                                     style = typography.bodyMedium
                                 )
                             },
                             modifier = Modifier
                                 .fillMaxHeight()
-                                .fillMaxWidth(0.96f),
+                                .fillMaxWidth()
+                                .padding(horizontal = spacing.xs),
+                            textStyle = typography.bodyMedium.copy(color = Color.White),
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
@@ -211,11 +209,11 @@ fun WorkoutCustomizationScreen(
                                 unfocusedIndicatorColor = Color.Transparent,
                                 disabledIndicatorColor = Color.Transparent,
                                 errorIndicatorColor = Color.Transparent,
-                                focusedTextColor = Color.Black,
-                                unfocusedTextColor = Color.Black,
-                                disabledTextColor = Color.Black,
-                                errorTextColor = Color.Black,
-                                cursorColor = Color.Black
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = SilverSteel,
+                                disabledTextColor = SilverSlate,
+                                errorTextColor = HeartRuby,
+                                cursorColor = ImperialGold
                             )
                         )
                     }
@@ -462,20 +460,25 @@ fun WorkoutCustomizationScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(spacing.cornerSm))
-                            .background(Color.Black.copy(alpha = 0.5f))
+                            .background(SlateGroove.copy(alpha = 0.85f))
+                            .border(BorderStroke(1.dp, SlateBorder), RoundedCornerShape(spacing.cornerSm))
                             .padding(horizontal = spacing.sm, vertical = spacing.xs),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "${uiState.selections.size} Exercises Selected",
-                            color = Color.White,
+                            color = ImperialGold,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
 
                     if (uiState.isSaving) {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        LinearProgressIndicator(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = ImperialGold,
+                            trackColor = SlateGroove,
+                        )
                     }
 
                     ActionButtons(isVertical = true)
@@ -509,7 +512,11 @@ fun WorkoutCustomizationScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         if (uiState.isSaving) {
-                            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                            LinearProgressIndicator(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = ImperialGold,
+                                trackColor = SlateGroove,
+                            )
                             Spacer(modifier = Modifier.height(spacing.xs))
                         }
 

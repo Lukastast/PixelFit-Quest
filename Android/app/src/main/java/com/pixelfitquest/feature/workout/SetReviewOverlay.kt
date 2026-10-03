@@ -1,6 +1,7 @@
 package com.pixelfitquest.feature.workout
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,15 +19,23 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
 import com.pixelfitquest.feature.workout.analysis.BAR_EVEN_DEG
@@ -36,6 +45,12 @@ import com.pixelfitquest.feature.workout.analysis.TAG_CLIP_POSE
 import com.pixelfitquest.feature.workout.model.SetReviewState
 import com.pixelfitquest.ui.theme.ImperialGold
 import com.pixelfitquest.ui.theme.LocalSpacing
+import com.pixelfitquest.ui.theme.SilverSlate
+import com.pixelfitquest.ui.theme.SilverSteel
+import com.pixelfitquest.ui.theme.SlateBorder
+import com.pixelfitquest.ui.theme.SlateBorderSubtle
+import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.SlateGroove
 import com.pixelfitquest.ui.theme.VitalGreen
 import com.pixelfitquest.ui.theme.determination
 import java.util.Locale
@@ -51,6 +66,11 @@ fun SetReviewOverlay(
     onAdd: () -> Unit,
     onAdjustRom: (Int, Int) -> Unit,
     onSetRom: (Int, Int) -> Unit,
+    onToggleAssisted: (Int) -> Unit,
+    unilateral: Boolean = false,
+    side: String? = null,
+    onSide: (String) -> Unit = {},
+    onNotesChanged: (String) -> Unit = {},
     onRedo: () -> Unit,
     onConfirm: () -> Unit,
 ) {
@@ -87,6 +107,24 @@ fun SetReviewOverlay(
                         fontSize = 12.sp,
                     )
                 }
+                if (unilateral) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = spacing.xxs),
+                    ) {
+                        RomChip(
+                            label = stringResource(R.string.set_side_left),
+                            selected = side == "L",
+                            onClick = { onSide("L") },
+                        )
+                        RomChip(
+                            label = stringResource(R.string.set_side_right),
+                            selected = side == "R",
+                            onClick = { onSide("R") },
+                        )
+                    }
+                }
             }
             items(review.reps, key = { it.index }) { rep ->
                 val rowIndex = review.reps.indexOfFirst { it.index == rep.index }
@@ -98,6 +136,15 @@ fun SetReviewOverlay(
                     onMerge = { onMerge(rep.index) },
                     onAdjustRom = { delta -> onAdjustRom(rep.index, delta) },
                     onSetRom = { percent -> onSetRom(rep.index, percent) },
+                    onToggleAssisted = { onToggleAssisted(rep.index) },
+                )
+            }
+            item(key = "set_notes_section") {
+                SetNotesCard(
+                    setNumber = review.setNumber,
+                    initialNotes = review.notes,
+                    onNotesChanged = onNotesChanged,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
@@ -309,6 +356,7 @@ private fun RepRow(
     onMerge: () -> Unit,
     onAdjustRom: (Int) -> Unit,
     onSetRom: (Int) -> Unit,
+    onToggleAssisted: () -> Unit,
 ) {
     val spacing = LocalSpacing.current
     val bg = if (rep.accepted) Color(0xFF2A3A4A) else Color(0xFF4A2A2A)
@@ -374,6 +422,11 @@ private fun RepRow(
             if (!rep.accepted) {
                 TextLink(stringResource(R.string.set_review_accept), Color(0xFF81C784), onAccept)
             }
+            TextLink(
+                stringResource(if (rep.assisted) R.string.set_review_assisted else R.string.set_review_assist),
+                if (rep.assisted) ImperialGold else Color(0xFFFFE082),
+                onToggleAssisted,
+            )
             TextLink(stringResource(R.string.set_review_remove), Color(0xFFEF9A9A), onRemove)
             if (canMerge) {
                 TextLink(stringResource(R.string.set_review_merge), Color(0xFF90CAF9), onMerge)
@@ -497,5 +550,79 @@ private fun twistLabel(deg: Float): String {
         deg > BAR_EVEN_DEG -> "$mag° toward head"
         deg < -BAR_EVEN_DEG -> "$mag° toward hip"
         else -> "even"
+    }
+}
+
+@Composable
+private fun SetNotesCard(
+    setNumber: Int,
+    initialNotes: String,
+    onNotesChanged: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = LocalSpacing.current
+    var text by rememberSaveable(setNumber) { mutableStateOf(initialNotes) }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(spacing.cornerSm))
+            .background(SlateDeep, RoundedCornerShape(spacing.cornerSm))
+            .border(1.dp, SlateBorderSubtle, RoundedCornerShape(spacing.cornerSm))
+            .padding(spacing.xs),
+        verticalArrangement = Arrangement.spacedBy(spacing.xxs),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = stringResource(R.string.set_notes_title),
+                color = ImperialGold,
+                fontFamily = determination,
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp,
+            )
+            if (text.isNotBlank()) {
+                Text(
+                    text = "${text.length} chars",
+                    color = SilverSlate,
+                    fontSize = 10.sp,
+                )
+            }
+        }
+
+        OutlinedTextField(
+            value = text,
+            onValueChange = {
+                text = it
+                onNotesChanged(it)
+            },
+            placeholder = {
+                Text(
+                    text = stringResource(R.string.set_notes_hint),
+                    color = SilverSlate.copy(alpha = 0.65f),
+                    fontSize = 12.sp,
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 2,
+            maxLines = 4,
+            textStyle = TextStyle(
+                color = Color.White,
+                fontSize = 12.sp,
+            ),
+            shape = RoundedCornerShape(spacing.cornerXs),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = ImperialGold,
+                unfocusedBorderColor = SlateBorder,
+                focusedContainerColor = SlateGroove,
+                unfocusedContainerColor = SlateGroove,
+                cursorColor = ImperialGold,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+            ),
+        )
     }
 }

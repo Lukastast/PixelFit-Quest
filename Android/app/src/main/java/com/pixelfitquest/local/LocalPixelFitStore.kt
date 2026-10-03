@@ -85,8 +85,6 @@ class LocalPixelFitStore @Inject constructor(
     suspend fun getUserField(field: String): Any? {
         val profile = ensureProfile()
         return when (field) {
-            "height" -> profile.height
-            "armLength" -> profile.armLength
             "musicVolume" -> profile.musicVolume
             "level" -> profile.level
             "coins" -> profile.coins
@@ -398,8 +396,6 @@ class LocalPixelFitStore @Inject constructor(
         var next = current
         updates.forEach { (key, value) ->
             next = when (key) {
-                "height" -> next.copy(height = intValue(value, next.height))
-                "armLength" -> next.copy(armLength = floatValue(value))
                 "musicVolume" -> next.copy(musicVolume = intValue(value, next.musicVolume))
                 "level" -> next.copy(level = intValue(value, next.level))
                 "coins" -> next.copy(coins = intValue(value, next.coins))
@@ -450,12 +446,6 @@ class LocalPixelFitStore @Inject constructor(
         is Number -> value.toInt()
         is String -> value.toIntOrNull() ?: fallback
         else -> fallback
-    }
-
-    private fun floatValue(value: Any): Float? = when (value) {
-        is Number -> value.toFloat()
-        is String -> value.toFloatOrNull()
-        else -> null
     }
 
     private fun UserProfileEntity.rankOf(branch: SkillBranch): Int = when (branch) {

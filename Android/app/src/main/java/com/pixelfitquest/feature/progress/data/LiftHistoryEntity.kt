@@ -47,13 +47,17 @@ fun LiftSetRecord.toEntity(): LiftHistoryEntity = LiftHistoryEntity(
     stabilityScore = stabilityScore,
 )
 
+/** Reps that count toward weight-progression suggestions (assisted excluded). */
+fun WorkoutSet.progressionRepCount(): Int =
+    if (repRecords.isNotEmpty()) repRecords.count { !it.assisted } else reps
+
 fun WorkoutSet.toLiftHistoryEntity(exerciseType: ExerciseType): LiftHistoryEntity = LiftHistoryEntity(
     id = id,
     workoutId = workoutId,
     exerciseType = exerciseType.type,
     timestampMillis = timestamp,
     weightKg = weight,
-    reps = reps,
+    reps = progressionRepCount(),
     romScore = romScore,
     stabilityScore = stabilityScore,
 )

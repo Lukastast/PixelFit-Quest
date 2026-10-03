@@ -68,6 +68,7 @@ object AppModule {
                 PixelFitDatabase.MIGRATION_8_9,
                 PixelFitDatabase.MIGRATION_9_10,
                 PixelFitDatabase.MIGRATION_10_11,
+                PixelFitDatabase.MIGRATION_11_12,
             )
             .fallbackToDestructiveMigration()
             .build()

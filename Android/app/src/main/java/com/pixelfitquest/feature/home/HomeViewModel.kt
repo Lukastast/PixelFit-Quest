@@ -1,6 +1,7 @@
 package com.pixelfitquest.feature.home
 
 import android.content.Context
+import android.os.SystemClock
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.viewModelScope
@@ -234,13 +235,30 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun refreshHealthMetrics() {
+    /** ElapsedRealtime of last successful HC metrics read; 0 = never. */
+    private var lastHealthMetricsAtElapsedMs: Long = 0L
+
+    /**
+     * Refresh Health Connect metrics.
+     * P1-5: TTL cache (default 5 min) so resume/focus does not re-hit HC every time.
+     * Health bonus timing may lag by up to the TTL when [force] is false.
+     */
+    fun refreshHealthMetrics(force: Boolean = false) {
         viewModelScope.launch {
             try {
-                _healthStatus.value = healthRepository.availability()
-                if (_healthStatus.value == HealthConnectStatus.AVAILABLE) {
-                    _healthMetrics.value = healthRepository.readTodayMetrics()
-                    checkAndAwardHealthRewards()
+                val now = SystemClock.elapsedRealtime()
+                val cacheFresh = !force &&
+                    lastHealthMetricsAtElapsedMs > 0L &&
+                    (now - lastHealthMetricsAtElapsedMs) < HEALTH_METRICS_TTL_MS
+                if (cacheFresh) {
+                    Log.d("HomeVM", "Health metrics cache hit (TTL ${HEALTH_METRICS_TTL_MS}ms)")
+                } else {
+                    _healthStatus.value = healthRepository.availability()
+                    if (_healthStatus.value == HealthConnectStatus.AVAILABLE) {
+                        _healthMetrics.value = healthRepository.readTodayMetrics()
+                        lastHealthMetricsAtElapsedMs = SystemClock.elapsedRealtime()
+                        checkAndAwardHealthRewards()
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("HomeVM", "Health Connect refresh failed", e)
@@ -397,5 +415,10 @@ class HomeViewModel @Inject constructor(
         weeklyMissionService.sync(_workouts.value, _healthMetrics.value.weeklySteps)
         val steps = maxOf(_healthMetrics.value.steps, _healthMetrics.value.weeklySteps)
         achievementSyncService.sync(_workouts.value, steps)
+    }
+
+    private companion object {
+        /** P1-5: skip HC read when resumed within this window. */
+        const val HEALTH_METRICS_TTL_MS = 5 * 60 * 1000L
     }
 }
