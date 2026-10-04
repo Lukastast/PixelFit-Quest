@@ -25,7 +25,7 @@
 <body>
   <h1>Privacy Policy — PixelFit Quest</h1>
   <p class="meta"><strong>Effective date:</strong> 24 September 2026<br />
-  <strong>Last updated:</strong> 1 October 2026<br />
+  <strong>Last updated:</strong> 4 October 2026<br />
   <strong>Controller:</strong> Tast Studio / Lukas Tast (Denmark)<br />
   <strong>Contact:</strong> <a href="mailto:lukastast@gmail.com">lukastast@gmail.com</a> (preferred) · lukasrtast@yahoo.dk</p>
 
@@ -70,7 +70,7 @@
   <p>If you choose Google Sign-In, Google and Firebase Authentication process identifiers such as Google account email, display name, profile photo URL (if provided), and a Firebase user ID.</p>
   <p>Purpose: optional account linking / future Pro sync identity — <strong>not</strong> required to start workouts.</p>
   <p><span class="todo">TODO: Confirm whether anonymous Firebase sessions are created automatically on first launch; if yes, disclose that here.</span></p>
-  <p>Account deletion: the app exposes delete-account / sign-out flows that call Firebase Auth deletion for the signed-in user.
+  <p>Account deletion: Settings includes <strong>Delete my data</strong> (on-device wipe; also tries to delete a signed-in Firebase Auth user) and, when signed in, <strong>Delete</strong> (Firebase Auth user only; workouts on the phone are kept).
   <span class="todo">TODO: Also offer email deletion requests (e.g. lukastast@gmail.com, subject “PixelFit account deletion”) for Play User Data expectations.</span></p>
 
   <h3>3.3 Health Connect (optional)</h3>
@@ -148,6 +148,14 @@
 
   <h2>12. Changes</h2>
   <p>We may update this policy. The “Last updated” date will change; material changes should be highlighted in-app or on this page when feasible.</p>
+
+
+  <h2>How to delete your data</h2>
+  <p>Open <strong>Settings</strong>, then <strong>Delete my data</strong>. The dialog lists what will be removed. <strong>Cancel</strong> is the default. Choose <strong>Delete my data</strong> again to confirm.</p>
+  <p>That action removes data stored on this phone: workout history (workouts, exercises, sets), templates, lift history, profile and progression, streaks, achievements, levels, app settings in <code>pixelfitquest_prefs</code> (including learned range of motion), health-bonus records stored by the app, the rep-edit log (<code>rep_edits.jsonl</code>), and export files in the app cache. Sensor samples used during a set stay in memory for that set only; the app does not keep raw IMU files.</p>
+  <p>If no account is signed in, nothing is deleted in the cloud. This build does not store workout history in the cloud.</p>
+  <p>If an account is signed in, the same action also tries to delete that Firebase Authentication user. If that fails, data on the phone is still removed and the app says the account was not removed. It does not delete cloud workout documents, because this build does not write them.</p>
+  <p><strong>Delete</strong> under account actions (only while signed in) removes the signed-in account and keeps workouts on this phone. Health Connect data stays in Health Connect. You can also email <a href="mailto:lukastast@gmail.com">lukastast@gmail.com</a>.</p>
 
   <h2>13. Contact</h2>
   <p><strong>Tast Studio / Lukas Tast</strong><br />

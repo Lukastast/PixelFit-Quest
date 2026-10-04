@@ -17,8 +17,14 @@
     <string name="sign_out_description">You\'ll stay in the app as a guest. Workouts on this phone are kept.</string>
     <string name="delete_account">Delete</string>
     <string name="delete_account_title">Delete account?</string>
-    <string name="delete_account_description">You will lose all your notes and your account will be deleted. This action is irreversible.</string>
+    <string name="delete_account_description">Deletes the signed-in account. Workouts on this phone are kept.</string>
     <string name="cancel">Cancel</string>
+    <string name="delete_my_data">Delete my data</string>
+    <string name="delete_my_data_subtitle">Workouts, logs, and settings on this phone</string>
+    <string name="delete_my_data_title">Delete my data?</string>
+    <string name="delete_my_data_body_local">Removes workout history, templates, progression, settings, learned range, the rep-edit log, and export files on this phone. Cannot be undone.</string>
+    <string name="delete_my_data_body_no_account">No account is signed in. Nothing is deleted in the cloud.</string>
+    <string name="delete_my_data_body_account">Also tries to delete the signed-in account. Workout history is not stored in the cloud.</string>
     <string name="account_center">Account center</string>
     <string name="profile_name">Display name</string>
     <string name="profile_email">Email: %1$s</string>
