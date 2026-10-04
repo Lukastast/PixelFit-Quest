@@ -264,6 +264,15 @@
     <string name="set_review_add">Add rep</string>
     <string name="set_review_redo">Redo set</string>
     <string name="set_review_confirm">Confirm</string>
+    <string name="set_review_share_trace">Share trace</string>
+    <string name="settings_sleeve_title">Bar sleeve</string>
+    <string name="settings_sleeve_subtitle">Screen faces the floor, phone long axis along the bar. Left or right flips tilt and twist. Unset still counts reps and hides those angles.</string>
+    <string name="settings_sleeve_unset">Not set</string>
+    <string name="settings_sleeve_left">Left</string>
+    <string name="settings_sleeve_right">Right</string>
+    <string name="settings_trace_export_title">Developer trace export</string>
+    <string name="settings_trace_export_on">Share raw IMU zip from set review</string>
+    <string name="settings_trace_export_off">Off — turn on to share a raw IMU zip</string>
     <string name="set_review_assist">Assist</string>
     <string name="set_review_assisted">Assisted</string>
     <string name="set_side_left">Left</string>

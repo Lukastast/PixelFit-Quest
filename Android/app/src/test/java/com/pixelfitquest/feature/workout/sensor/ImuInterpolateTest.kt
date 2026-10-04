@@ -50,5 +50,22 @@ class ImuInterpolateTest {
         )
         assertNotNull(fused[0].qw)
         assertEquals(0.9239f, fused[0].qw!!, 0.02f)
+        assertNull(fused[0].gqw)
+    }
+
+    @Test
+    fun gameRotationStaysOffTheAnalyzerQuaternion() {
+        val accel = listOf(TimedVec3(10_000_000L, 0f, 0f, 9.81f))
+        val mag = listOf(TimedQuat(0L, 0f, 0f, 0f, 1f), TimedQuat(20_000_000L, 0f, 0f, 0f, 1f))
+        val game = listOf(
+            TimedQuat(0L, 0.2f, 0f, 0f, 0.9797959f),
+            TimedQuat(20_000_000L, 0.2f, 0f, 0f, 0.9797959f),
+        )
+        val fused = ImuInterpolate.ontoAccel(
+            ImuTrace(accel, emptyList(), mag, emptyList(), gameRotation = game),
+        )
+        assertEquals(1f, fused[0].qw!!, 1e-4f)
+        assertEquals(0f, fused[0].qx!!, 1e-4f)
+        assertEquals(0.2f, fused[0].gqx!!, 1e-3f)
     }
 }

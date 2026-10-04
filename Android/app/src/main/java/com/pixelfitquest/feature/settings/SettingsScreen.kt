@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.BuildConfig
 import com.pixelfitquest.R
+import com.pixelfitquest.components.molecules.BarSleeveCard
+import com.pixelfitquest.components.molecules.DeveloperTraceCard
 import com.pixelfitquest.components.molecules.ExitAppCard
 import com.pixelfitquest.components.molecules.GodModeCard
 import com.pixelfitquest.components.molecules.LandscapeWorkoutCard
@@ -82,6 +84,8 @@ fun SettingsScreen(
     val weightSuggestionEnabled by viewModel.weightSuggestionEnabled.collectAsState()
     val weightSuggestionRepThreshold by viewModel.weightSuggestionRepThreshold.collectAsState()
     val godModeEnabled by viewModel.godModeEnabled.collectAsState()
+    val mountSide by viewModel.mountSide.collectAsState()
+    val traceExportEnabled by viewModel.traceExportEnabled.collectAsState()
     val restTimerEnabled by viewModel.restTimerEnabled.collectAsState()
     val restTimerSeconds by viewModel.restTimerSeconds.collectAsState()
     val restAutostart by viewModel.restAutostart.collectAsState()
@@ -204,6 +208,18 @@ fun SettingsScreen(
 
                         RomCalibrationSettingsCard(
                             onReset = viewModel::resetLearnedRange,
+                            modifier = cardModifier,
+                        )
+
+                        BarSleeveCard(
+                            side = mountSide,
+                            onSelect = viewModel::setMountSide,
+                            modifier = cardModifier,
+                        )
+
+                        DeveloperTraceCard(
+                            enabled = traceExportEnabled,
+                            onToggle = viewModel::setTraceExportEnabled,
                             modifier = cardModifier,
                         )
 
@@ -372,6 +388,18 @@ fun SettingsScreen(
 
                 RomCalibrationSettingsCard(
                     onReset = viewModel::resetLearnedRange,
+                    modifier = cardModifier,
+                )
+
+                BarSleeveCard(
+                    side = mountSide,
+                    onSelect = viewModel::setMountSide,
+                    modifier = cardModifier,
+                )
+
+                DeveloperTraceCard(
+                    enabled = traceExportEnabled,
+                    onToggle = viewModel::setTraceExportEnabled,
                     modifier = cardModifier,
                 )
 

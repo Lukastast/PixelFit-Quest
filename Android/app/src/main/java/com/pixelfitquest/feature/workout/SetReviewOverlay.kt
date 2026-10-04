@@ -57,6 +57,7 @@ fun SetReviewOverlay(
     onSide: (String) -> Unit = {},
     onRedo: () -> Unit,
     onConfirm: () -> Unit,
+    onShareTrace: (() -> Unit)? = null,
 ) {
     val spacing = LocalSpacing.current
     BoxWithConstraints(
@@ -144,6 +145,7 @@ fun SetReviewOverlay(
                     onAdd = onAdd,
                     onRedo = onRedo,
                     onConfirm = onConfirm,
+                    onShareTrace = onShareTrace,
                     modifier = Modifier
                         .width(spacing.scale(180))
                         .fillMaxHeight(),
@@ -169,6 +171,7 @@ fun SetReviewOverlay(
                     onAdd = onAdd,
                     onRedo = onRedo,
                     onConfirm = onConfirm,
+                    onShareTrace = onShareTrace,
                     modifier = Modifier.fillMaxWidth(),
                     stacked = false,
                 )
@@ -185,6 +188,7 @@ private fun SetReviewActions(
     onAdd: () -> Unit,
     onRedo: () -> Unit,
     onConfirm: () -> Unit,
+    onShareTrace: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     stacked: Boolean,
 ) {
@@ -295,6 +299,14 @@ private fun SetReviewActions(
                 onConfirm,
                 Modifier.fillMaxWidth(),
             )
+            if (onShareTrace != null) {
+                OverlayAction(
+                    stringResource(R.string.set_review_share_trace),
+                    Color(0xFF455A64),
+                    onShareTrace,
+                    Modifier.fillMaxWidth(),
+                )
+            }
         } else {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -317,6 +329,14 @@ private fun SetReviewActions(
                     Color(0xFF1565C0),
                     onConfirm,
                     Modifier.weight(1f),
+                )
+            }
+            if (onShareTrace != null) {
+                OverlayAction(
+                    stringResource(R.string.set_review_share_trace),
+                    Color(0xFF455A64),
+                    onShareTrace,
+                    Modifier.fillMaxWidth(),
                 )
             }
         }

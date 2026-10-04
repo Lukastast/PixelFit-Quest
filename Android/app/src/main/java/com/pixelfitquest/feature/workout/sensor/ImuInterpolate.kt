@@ -17,10 +17,12 @@ object ImuInterpolate {
         if (trace.accel.isEmpty()) return emptyList()
         val gyroT = LongArray(trace.gyro.size) { trace.gyro[it].tNanos }
         val rotT = LongArray(trace.rotation.size) { trace.rotation[it].tNanos }
+        val gameT = LongArray(trace.gameRotation.size) { trace.gameRotation[it].tNanos }
         val linT = LongArray(trace.linearAccel.size) { trace.linearAccel[it].tNanos }
         return trace.accel.map { a ->
             val g = lerpVec(trace.gyro, gyroT, a.tNanos)
             val q = slerpQuat(trace.rotation, rotT, a.tNanos)
+            val gq = slerpQuat(trace.gameRotation, gameT, a.tNanos)
             val lin = lerpVec(trace.linearAccel, linT, a.tNanos)
             ImuSample(
                 tNanos = a.tNanos,
@@ -37,6 +39,10 @@ object ImuInterpolate {
                 lx = lin?.get(0),
                 ly = lin?.get(1),
                 lz = lin?.get(2),
+                gqx = gq?.get(0),
+                gqy = gq?.get(1),
+                gqz = gq?.get(2),
+                gqw = gq?.get(3),
             )
         }
     }

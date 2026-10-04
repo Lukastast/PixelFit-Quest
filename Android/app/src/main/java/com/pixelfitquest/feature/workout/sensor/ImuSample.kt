@@ -7,6 +7,7 @@ data class TimedVec3(
     val x: Float,
     val y: Float,
     val z: Float,
+    val accuracy: Int = 0,
 )
 
 data class TimedQuat(
@@ -15,14 +16,23 @@ data class TimedQuat(
     val y: Float,
     val z: Float,
     val w: Float,
+    val accuracy: Int = 0,
 )
 
-/** Raw phone-IMU streams, sensor timestamps in ns (boot time). */
+/**
+ * Raw phone-IMU streams, sensor timestamps in ns (elapsed realtime).
+ * [gameRotation] is recorded separately from the magnetometer rotation vector.
+ * [linearAccel] is unused by analysis and is no longer registered; the field
+ * stays so older interpolated snapshots still parse.
+ */
 data class ImuTrace(
     val accel: List<TimedVec3>,
     val gyro: List<TimedVec3>,
     val rotation: List<TimedQuat>,
-    val linearAccel: List<TimedVec3>,
+    val linearAccel: List<TimedVec3> = emptyList(),
+    val gameRotation: List<TimedQuat> = emptyList(),
+    val gyroUncalibrated: List<TimedGyroUncal> = emptyList(),
+    val accuracy: List<AccuracyEvent> = emptyList(),
 )
 
 enum class MountSide {
@@ -32,8 +42,11 @@ enum class MountSide {
 }
 
 /**
- * Optional clip pose: phone long-axis along the bar. Identity means
- * device axes already match bar (x along bar, z up).
+ * Sleeve the phone is clipped to. Screen faces the floor: device +Y lies along
+ * the bar, device +Z points down, device +X is horizontal and perpendicular to
+ * the bar. [qx]..[qw] is an optional extra clip rotation (identity = axes already
+ * match that mount). Y can point either way along the bar; [mountSide] picks the
+ * lateral/twist sign. [UNKNOWN] does not guess.
  */
 data class BarCalibration(
     val mountSide: MountSide = MountSide.UNKNOWN,
@@ -62,9 +75,17 @@ data class ImuSample(
     val lx: Float? = null,
     val ly: Float? = null,
     val lz: Float? = null,
+    /** Game rotation vector (no magnetometer). Null when that sensor did not report. */
+    val gqx: Float? = null,
+    val gqy: Float? = null,
+    val gqz: Float? = null,
+    val gqw: Float? = null,
 ) {
     val hasRotationVector: Boolean
         get() = qx != null && qy != null && qz != null && qw != null
+
+    val hasGameRotationVector: Boolean
+        get() = gqx != null && gqy != null && gqz != null && gqw != null
 
     val hasGyro: Boolean
         get() = gx != null && gy != null && gz != null

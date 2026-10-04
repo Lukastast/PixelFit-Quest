@@ -27,6 +27,20 @@ class FullRomStore @Inject constructor(
         }
     }
 
+    /**
+     * Confirming a set raises the stored full range to [credibleFullRom] of the
+     * accepted reps. A 100% mark in the same review already called [replace], so
+     * that confirm must not raise past it.
+     */
+    fun raiseFromConfirmedSet(
+        exerciseId: String,
+        acceptedAmplitudes: List<Float>,
+        userRecalibrated: Boolean,
+    ) {
+        if (userRecalibrated) return
+        raise(exerciseId, credibleFullRom(acceptedAmplitudes))
+    }
+
     /** User said this amplitude is full range, including when the stored mark is too high. */
     fun replace(exerciseId: String, amplitude: Float) {
         if (amplitude <= 1e-4f) return

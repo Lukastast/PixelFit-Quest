@@ -20,6 +20,9 @@ import com.pixelfitquest.feature.workout.RestTimerPrefs
 import com.pixelfitquest.feature.workout.WorkoutWeightPrefs
 import com.pixelfitquest.feature.workout.analysis.FullRomStore
 import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationPrefs
+import com.pixelfitquest.feature.workout.sensor.MountSide
+import com.pixelfitquest.feature.workout.sensor.MountSidePrefs
+import com.pixelfitquest.feature.workout.sensor.TraceExportPrefs
 import com.pixelfitquest.local.CloudBackup
 import com.pixelfitquest.viewmodel.PixelFitViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -65,6 +68,12 @@ class SettingsViewModel @Inject constructor(
 
     private val _godModeEnabled = MutableStateFlow(GodModePrefs.isEnabled(prefs))
     val godModeEnabled: StateFlow<Boolean> = _godModeEnabled.asStateFlow()
+
+    private val _mountSide = MutableStateFlow(MountSidePrefs.get(prefs))
+    val mountSide: StateFlow<MountSide> = _mountSide.asStateFlow()
+
+    private val _traceExportEnabled = MutableStateFlow(TraceExportPrefs.isEnabled(prefs))
+    val traceExportEnabled: StateFlow<Boolean> = _traceExportEnabled.asStateFlow()
 
     private val _restTimerEnabled = MutableStateFlow(RestTimerPrefs.isEnabled(prefs))
     val restTimerEnabled: StateFlow<Boolean> = _restTimerEnabled.asStateFlow()
@@ -205,6 +214,16 @@ class SettingsViewModel @Inject constructor(
     fun setGodModeEnabled(enabled: Boolean) {
         GodModePrefs.setEnabled(prefs, enabled)
         _godModeEnabled.value = enabled
+    }
+
+    fun setMountSide(side: MountSide) {
+        MountSidePrefs.set(prefs, side)
+        _mountSide.value = side
+    }
+
+    fun setTraceExportEnabled(enabled: Boolean) {
+        TraceExportPrefs.setEnabled(prefs, enabled)
+        _traceExportEnabled.value = enabled
     }
 
     fun setRestTimerEnabled(enabled: Boolean) {

@@ -2,6 +2,7 @@ package com.pixelfitquest.feature.workout
 
 import android.content.Context
 import android.hardware.SensorManager
+import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -46,14 +47,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.pixelfitquest.BuildConfig
 import com.pixelfitquest.R
+import com.pixelfitquest.debug.GodModePrefs
 import com.pixelfitquest.components.atoms.CharacterIdleAnimation
 import com.pixelfitquest.components.atoms.PixelArtButton
 import com.pixelfitquest.feature.workout.catalog.ExerciseCatalog
 import com.pixelfitquest.feature.workout.model.WorkoutPhase
 import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationLock
 import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationPrefs
+import com.pixelfitquest.feature.workout.sensor.MountSidePrefs
+import com.pixelfitquest.feature.workout.sensor.RawTrace
 import com.pixelfitquest.feature.workout.sensor.SensorSession
+import com.pixelfitquest.feature.workout.sensor.TraceArchive
+import com.pixelfitquest.feature.workout.sensor.TraceExportPrefs
+import com.pixelfitquest.feature.workout.sensor.TraceLabel
+import com.pixelfitquest.feature.workout.sensor.TraceMetadata
+import com.pixelfitquest.feature.workout.sensor.TraceShare
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.ui.navigation.HOME_SCREEN
 import com.pixelfitquest.ui.theme.spacing
@@ -79,6 +89,9 @@ fun WorkoutScreen(
         WorkoutOrientationPrefs.isEnabled(
             context.getSharedPreferences(WorkoutOrientationPrefs.PREFS_NAME, Context.MODE_PRIVATE),
         )
+    }
+    val devicePrefs = remember {
+        context.getSharedPreferences(WorkoutOrientationPrefs.PREFS_NAME, Context.MODE_PRIVATE)
     }
     val sensorManager = remember {
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -385,6 +398,40 @@ fun WorkoutScreen(
                     onSide = viewModel::setSide,
                     onRedo = viewModel::redoSet,
                     onConfirm = viewModel::confirmSet,
+                    onShareTrace = if (
+                        BuildConfig.DEBUG ||
+                        TraceExportPrefs.isEnabled(devicePrefs) ||
+                        GodModePrefs.isGodModeActive
+                    ) {
+                        {
+                            val dump = session.snapshotRaw()
+                            val trace = RawTrace(
+                                metadata = TraceMetadata(
+                                    deviceModel = Build.MODEL ?: "",
+                                    apiLevel = Build.VERSION.SDK_INT,
+                                    sensors = dump.sensors,
+                                    exerciseId = currentItem?.exercise?.type ?: "",
+                                    weightKg = currentWeight,
+                                    mountSide = MountSidePrefs.get(devicePrefs).name,
+                                    label = TraceLabel(
+                                        trueRepCount = null,
+                                        failedRepIndices = emptyList(),
+                                        notes = "",
+                                    ),
+                                ),
+                                accel = dump.accel,
+                                gyro = dump.gyro,
+                                gyroUncalibrated = dump.gyroUncalibrated,
+                                rotationVector = dump.rotationVector,
+                                gameRotationVector = dump.gameRotationVector,
+                                accuracy = dump.accuracy,
+                            )
+                            val file = TraceArchive.writeSingle(context.filesDir, trace)
+                            TraceShare.share(context, file)
+                        }
+                    } else {
+                        null
+                    },
                 )
             }
         }
