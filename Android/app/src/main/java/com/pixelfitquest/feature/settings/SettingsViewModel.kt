@@ -21,6 +21,7 @@ import com.pixelfitquest.feature.workout.WorkoutWeightPrefs
 import com.pixelfitquest.feature.workout.analysis.FullRomStore
 import com.pixelfitquest.feature.workout.orientation.WorkoutOrientationPrefs
 import com.pixelfitquest.local.CloudBackup
+import com.pixelfitquest.local.deletion.DataDeletionService
 import com.pixelfitquest.viewmodel.PixelFitViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -36,6 +37,7 @@ class SettingsViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val cloudBackup: CloudBackup,
     private val fullRomStore: FullRomStore,
+    private val dataDeletion: DataDeletionService,
     @ApplicationContext context: Context,
 ) : PixelFitViewModel() {
 
@@ -108,6 +110,30 @@ class SettingsViewModel @Inject constructor(
             _user.value = User()
             SnackbarManager.showMessage("Account removed. Local workouts were kept.")
         }
+    }
+
+    fun onDeleteMyData() {
+        launchCatching(
+            onError = {
+                SnackbarManager.showMessage("Could not delete data on this phone.")
+            }
+        ) {
+            val result = dataDeletion.deleteMyData()
+            reloadLocalPrefs()
+            _user.value = runCatching { accountService.getUserProfile() }.getOrDefault(User())
+            SnackbarManager.showMessage(result.message)
+        }
+    }
+
+    private fun reloadLocalPrefs() {
+        _workoutLandscapeEnabled.value = WorkoutOrientationPrefs.isEnabled(prefs)
+        _preWorkoutWeightCheckEnabled.value = WorkoutWeightPrefs.isPreWorkoutCheckEnabled(prefs)
+        _weightSuggestionEnabled.value = WorkoutWeightPrefs.isWeightSuggestionEnabled(prefs)
+        _weightSuggestionRepThreshold.value = WorkoutWeightPrefs.getRepThreshold(prefs)
+        _godModeEnabled.value = GodModePrefs.isEnabled(prefs)
+        _restTimerEnabled.value = RestTimerPrefs.isEnabled(prefs)
+        _restTimerSeconds.value = RestTimerPrefs.getSeconds(prefs)
+        _restAutostart.value = RestTimerPrefs.isAutostartEnabled(prefs)
     }
 
     fun onGoogleSignIn(credential: Credential) {

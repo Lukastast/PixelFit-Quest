@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pixelfitquest.BuildConfig
 import com.pixelfitquest.R
+import com.pixelfitquest.components.molecules.DeleteMyDataCard
 import com.pixelfitquest.components.molecules.ExitAppCard
 import com.pixelfitquest.components.molecules.GodModeCard
 import com.pixelfitquest.components.molecules.LandscapeWorkoutCard
@@ -310,6 +311,12 @@ fun SettingsScreen(
 
                         LocalExportCard(modifier = cardModifier)
 
+                        DeleteMyDataCard(
+                            signedIn = signedIn,
+                            onDeleteMyData = { viewModel.onDeleteMyData() },
+                            modifier = cardModifier,
+                        )
+
                         if (signedIn) {
                             SettingsSectionHeader(title = "ACCOUNT ACTIONS")
 
@@ -471,6 +478,12 @@ fun SettingsScreen(
                 SettingsSectionHeader(title = "DATA & STORAGE")
 
                 LocalExportCard(modifier = cardModifier)
+
+                DeleteMyDataCard(
+                    signedIn = signedIn,
+                    onDeleteMyData = { viewModel.onDeleteMyData() },
+                    modifier = cardModifier,
+                )
 
                 if (signedIn) {
                     SettingsSectionHeader(title = "ACCOUNT ACTIONS")
