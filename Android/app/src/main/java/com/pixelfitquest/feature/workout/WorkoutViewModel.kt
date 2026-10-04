@@ -8,6 +8,7 @@ import com.pixelfitquest.feature.workout.analysis.DetectedRep
 import com.pixelfitquest.feature.workout.analysis.ExerciseProfiles
 import com.pixelfitquest.feature.workout.analysis.FullRomStore
 import com.pixelfitquest.feature.workout.analysis.RomUnit
+import com.pixelfitquest.feature.workout.analysis.perSetRom
 import com.pixelfitquest.feature.workout.analysis.SetAnalysis
 import com.pixelfitquest.feature.workout.analysis.SetAnalyzer
 import com.pixelfitquest.feature.workout.analysis.formScoreFrom
@@ -600,6 +601,7 @@ class WorkoutViewModel @Inject constructor(
         val type = currentExerciseType ?: return
         val records = accepted.map { RepRecord.fromDetected(it) }
         val rom = accepted.map { it.romScore }.averageOrZero()
+        val measuredRom = perSetRom(accepted)
         val stability = accepted.mapNotNull { it.stabilityScore }.averageOrZero()
         val tempo = accepted.mapNotNull { it.tempoScore }.averageOrZero()
         val form = review.meanFormScore
@@ -619,6 +621,8 @@ class WorkoutViewModel @Inject constructor(
             userCorrected = review.edited,
             weight = weight,
             romScore = rom,
+            romEstimate = measuredRom?.estimate,
+            romUnit = measuredRom?.unit?.name,
             stabilityScore = stability,
             tempoScore = tempo,
             formScore = form,

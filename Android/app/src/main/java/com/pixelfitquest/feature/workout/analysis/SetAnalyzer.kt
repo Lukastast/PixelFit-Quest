@@ -25,7 +25,10 @@ class SetAnalyzer @Inject constructor() {
         }
 
         val prepared = Signal.prepare(samples, profile.primaryMotion, calibration)
-        val cycles = Signal.segmentCycles(prepared.primary, prepared.tNanos, profile)
+        val cycles = SetupTrim.trim(
+            Signal.segmentCycles(prepared.primary, prepared.tNanos, profile),
+            profile,
+        )
         val clipOk = clipPoseOk(samples, prepared.still)
         val yawRef = openingStillMean(prepared.yaw, prepared.still)
 

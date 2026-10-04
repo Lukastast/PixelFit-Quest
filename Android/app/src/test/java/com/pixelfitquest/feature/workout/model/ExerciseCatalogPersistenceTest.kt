@@ -159,4 +159,43 @@ class ExerciseCatalogPersistenceTest {
         val reviewWithNotes = reviewDefault.copy(notes = "Pause at bottom felt solid")
         assertEquals("Pause at bottom felt solid", reviewWithNotes.notes)
     }
+
+    @Test
+    fun workoutSetRoundTripKeepsPerSetRom() {
+        val original = WorkoutSet(
+            id = "s-rom",
+            exerciseId = "e1",
+            workoutId = "w1",
+            setNumber = 1,
+            reps = 5,
+            romScore = 92f,
+            romEstimate = 0.42f,
+            romUnit = "METERS",
+        )
+        val parsed = WorkoutSet.fromMap(original.toMap())
+        assertNotNull(parsed)
+        assertEquals(0.42f, parsed!!.romEstimate!!, 0.0001f)
+        assertEquals("METERS", parsed.romUnit)
+        assertEquals(92f, parsed.romScore, 0.01f)
+    }
+
+    @Test
+    fun workoutSetWithoutRomMetric_loadsAsNull() {
+        val legacy = WorkoutSet(
+            id = "s-old",
+            exerciseId = "e1",
+            workoutId = "w1",
+            setNumber = 1,
+            reps = 8,
+            romScore = 100f,
+        ).toMap().toMutableMap()
+        legacy.remove("romEstimate")
+        legacy.remove("romUnit")
+        val parsed = WorkoutSet.fromMap(legacy)
+        assertNotNull(parsed)
+        org.junit.Assert.assertNull(parsed!!.romEstimate)
+        org.junit.Assert.assertNull(parsed.romUnit)
+        assertEquals(100f, parsed.romScore, 0.01f)
+    }
+
 }

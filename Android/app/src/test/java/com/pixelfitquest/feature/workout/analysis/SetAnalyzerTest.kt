@@ -73,7 +73,10 @@ class SetAnalyzerTest {
             7,
             analysis.acceptedReps.size,
         )
-        assertTrue(analysis.reps.any { "setup" in it.tags && !it.accepted })
+        assertTrue(
+            "unrack must not be an accepted rep: ${analysis.reps.map { it.tags to it.accepted }}",
+            analysis.acceptedReps.none { "setup" in it.tags || it.romEstimate > 0.5f },
+        )
     }
 
     @Test
