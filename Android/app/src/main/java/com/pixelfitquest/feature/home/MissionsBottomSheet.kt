@@ -28,6 +28,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,13 +81,15 @@ fun MissionsDialog(
                         color = ImperialGold,
                         fontWeight = FontWeight.Bold,
                     )
+                    val closeDesc = stringResource(R.string.close_desc)
                     Text(
                         text = "✕",
                         fontSize = 18.sp,
                         color = SilverSteel,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
-                            .clickable { onDismiss() }
+                            .clickable(role = Role.Button) { onDismiss() }
+                            .clearAndSetSemantics { contentDescription = closeDesc }
                             .padding(spacing.xxs),
                     )
                 }

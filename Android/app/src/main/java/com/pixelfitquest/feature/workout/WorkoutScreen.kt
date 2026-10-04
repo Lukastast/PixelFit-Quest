@@ -218,12 +218,14 @@ fun WorkoutScreen(
                             imageRes = R.drawable.pause_button_unclicked,
                             pressedRes = R.drawable.pause_button_clicked,
                             modifier = Modifier.size(buttonSize),
+                            contentDescription = stringResource(R.string.workout_pause_desc),
                         )
                         WorkoutPhase.Idle, WorkoutPhase.Resting -> PixelArtButton(
                             onClick = { viewModel.startSet() },
                             imageRes = R.drawable.play_button_unclicked,
                             pressedRes = R.drawable.play_button_clicked,
                             modifier = Modifier.size(buttonSize),
+                            contentDescription = stringResource(R.string.workout_play_desc),
                         )
                         else -> Box(Modifier.size(buttonSize))
                     }
@@ -256,6 +258,7 @@ fun WorkoutScreen(
                         imageRes = R.drawable.stop_button_unclicked,
                         pressedRes = R.drawable.stop_button_clicked,
                         modifier = Modifier.size(buttonSize),
+                        contentDescription = stringResource(R.string.workout_stop_desc),
                     )
                 }
 

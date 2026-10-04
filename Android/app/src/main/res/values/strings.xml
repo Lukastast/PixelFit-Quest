@@ -134,6 +134,8 @@
 
     <string name="total_users_count">/ %1$d users</string>
     <string name="achievements_button_desc">Achievements</string>
+    <string name="close_desc">Close</string>
+    <string name="dwelling_pose_cycle_desc">Cycle character pose</string>
     <string name="no_workouts_yet">No completed workouts yet</string>
     <string name="daily_missions_title">Weekly Missions</string>
     <string name="quest_center_title">Quest Center</string>
@@ -208,6 +210,8 @@
     <string name="achievements_filter_in_progress">In Progress</string>
     <string name="achievements_filter_unlocked">Unlocked</string>
     <string name="achievements_select_category">Select Category</string>
+    <string name="achievements_previous_category">Previous category</string>
+    <string name="achievements_next_category">Next category</string>
     <string name="achievements_no_items">No achievements in this filter.</string>
 
     <!-- Levels / cosmetics -->
@@ -231,6 +235,9 @@
 
     <!-- Workout Screen -->
     <string name="workout_go">GO!</string>
+    <string name="workout_play_desc">Start set</string>
+    <string name="workout_pause_desc">Finish set</string>
+    <string name="workout_stop_desc">Leave workout</string>
     <string name="workout_status_idle">Set: %1$d / %2$d · tap play · %3$.1f Kg</string>
     <string name="workout_status_idle_log">Set: %1$d / %2$d · tap play to log · %3$.1f Kg</string>
     <string name="workout_status_countdown">Set: %1$d / %2$d · get ready</string>
@@ -344,7 +351,7 @@
     <string name="delete_workout_description">This session will be removed from your log and gym progress. XP and coins already earned stay.</string>
     <string name="delete_workout_confirm">Delete</string>
     <string name="deleting_workout">Deleting…</string>
-    <string name="feedback_rom_low">Go deeper — full range = max gains!</string>
+    <string name="feedback_rom_low">Go deeper — short range of motion.</string>
     <string name="feedback_rom_perfect">Perfect range! 🎯</string>
     <string name="feedback_tilt_right">Pushing more to the right</string>
     <string name="feedback_tilt_left">Pushing more to the left</string>
