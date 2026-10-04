@@ -285,6 +285,7 @@ private fun CategoryCarousel(
             imageRes = R.drawable.unclicked_customization_button_left,
             pressedRes = R.drawable.clicked_customization_button_left,
             modifier = Modifier.size(width = 24.dp, height = 34.dp),
+            contentDescription = stringResource(R.string.achievements_previous_category),
         )
 
         Box(
@@ -325,6 +326,7 @@ private fun CategoryCarousel(
             imageRes = R.drawable.unclicked_customization_button_right,
             pressedRes = R.drawable.clicked_customization_button_right,
             modifier = Modifier.size(width = 24.dp, height = 34.dp),
+            contentDescription = stringResource(R.string.achievements_next_category),
         )
     }
 }

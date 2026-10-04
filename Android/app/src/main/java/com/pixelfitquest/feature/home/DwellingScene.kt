@@ -13,6 +13,11 @@ import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import com.pixelfitquest.R
 import com.pixelfitquest.components.atoms.DwellingCharacterSprite
 import com.pixelfitquest.feature.home.model.CharacterPose
 import com.pixelfitquest.feature.home.model.DwellingTier
@@ -46,6 +51,7 @@ fun DwellingScene(
         // Layer 2: Interactive Character in dwelling
         val (anchorX, anchorY) = DwellingVisuals.characterAnchor(tier, pose, isLandscape)
         val interactionSource = remember { MutableInteractionSource() }
+        val poseCycleDesc = stringResource(R.string.dwelling_pose_cycle_desc)
 
         Box(
             modifier = Modifier
@@ -64,9 +70,11 @@ fun DwellingScene(
                     .clickable(
                         interactionSource = interactionSource,
                         indication = null,
+                        role = Role.Button,
                     ) {
                         onPoseCycle()
                     }
+                    .semantics { contentDescription = poseCycleDesc }
             )
         }
 
