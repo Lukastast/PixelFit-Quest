@@ -1,0 +1,44 @@
+# Debug unit tests only. No release build, signing, or Play upload.
+# JDK 17 matches AGP 9.4 (minimum and default) and the app toolchain
+# (JavaVersion.VERSION_17 / kotlin jvmToolchain(17)).
+# Android/gradle/gradle-daemon-jvm.properties asks for a JDK 21 Gradle daemon;
+# Gradle may provision that JVM itself. The app still compiles as 17.
+name: Unit tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: unit-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-tests:
+    name: Debug unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+          cache-dependency-path: |
+            Android/**/*.gradle*
+            Android/**/gradle-wrapper.properties
+            Android/**/*.toml
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+
+      - name: Run unit tests
+        working-directory: Android
+        run: ./gradlew :app:testDebugUnitTest --stacktrace
