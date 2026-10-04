@@ -89,3 +89,25 @@ data class SetAnalysis(
     val acceptedReps: List<DetectedRep> get() = reps.filter { it.accepted }
     val candidateReps: List<DetectedRep> get() = reps.filter { !it.accepted }
 }
+
+/**
+ * Physical range for one set: mean amplitude of accepted, measured reps.
+ * This is not [DetectedRep.romScore] (percent of the learned full-ROM baseline).
+ * Null when the set has no measured rep, so older logs stay distinguishable.
+ */
+data class PerSetRom(
+    val estimate: Float,
+    val unit: RomUnit,
+)
+
+fun perSetRom(reps: List<DetectedRep>): PerSetRom? {
+    val measured = reps.filter { it.accepted && !it.isManual && it.romEstimate > 1e-4f }
+    if (measured.isEmpty()) return null
+    val unit = measured.first().romUnit
+    val sameUnit = measured.filter { it.romUnit == unit }
+    if (sameUnit.isEmpty()) return null
+    return PerSetRom(
+        estimate = sameUnit.map { it.romEstimate }.average().toFloat(),
+        unit = unit,
+    )
+}

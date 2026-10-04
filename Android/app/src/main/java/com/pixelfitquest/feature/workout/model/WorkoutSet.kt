@@ -29,6 +29,14 @@ data class WorkoutSet(
     val notes: String? = null,
     /** "L" or "R" for one-sided exercises. Null on bilateral lifts. */
     val side: String? = null,
+    /**
+     * Mean measured range of the accepted reps (meters or radians).
+     * Null on older sets and on sets with no measured rep. Distinct from [romScore],
+     * which is a percent of the learned full-ROM baseline.
+     */
+    val romEstimate: Float? = null,
+    /** [com.pixelfitquest.feature.workout.analysis.RomUnit] name. Null when [romEstimate] is null. */
+    val romUnit: String? = null,
 ) {
     fun toMap(): Map<String, Any?> = mapOf(
         "id" to id,
@@ -54,6 +62,8 @@ data class WorkoutSet(
         "repRecords" to repRecords.map { it.toMap() },
         "notes" to notes,
         "side" to side,
+        "romEstimate" to romEstimate,
+        "romUnit" to romUnit,
     )
 
     companion object {
@@ -93,6 +103,8 @@ data class WorkoutSet(
                 repRecords = records,
                 notes = map["notes"] as? String,
                 side = (map["side"] as? String)?.takeIf { it == "L" || it == "R" },
+                romEstimate = (map["romEstimate"] as? Number)?.toFloat(),
+                romUnit = (map["romUnit"] as? String)?.takeIf { it.isNotBlank() },
             )
         }
     }
