@@ -75,6 +75,47 @@ class WorkoutWeightPrefsTest {
         assertEquals(30, WorkoutWeightPrefs.getRepThreshold(fakePrefs))
     }
 
+    @Test
+    fun defaultProgressionPresetIsHypertrophy() {
+        assertEquals(WorkoutWeightPrefs.ProgressionPreset.HYPERTROPHY, WorkoutWeightPrefs.getProgressionPreset(fakePrefs))
+    }
+
+    @Test
+    fun progressionPresetClassification() {
+        assertEquals(WorkoutWeightPrefs.ProgressionPreset.STRENGTH, WorkoutWeightPrefs.ProgressionPreset.fromThreshold(5))
+        assertEquals(WorkoutWeightPrefs.ProgressionPreset.HYPERTROPHY, WorkoutWeightPrefs.ProgressionPreset.fromThreshold(10))
+        assertEquals(WorkoutWeightPrefs.ProgressionPreset.HYPERTROPHY, WorkoutWeightPrefs.ProgressionPreset.fromThreshold(11))
+        assertEquals(WorkoutWeightPrefs.ProgressionPreset.HYPERTROPHY, WorkoutWeightPrefs.ProgressionPreset.fromThreshold(12))
+        assertEquals(WorkoutWeightPrefs.ProgressionPreset.CUSTOM, WorkoutWeightPrefs.ProgressionPreset.fromThreshold(6))
+        assertEquals(WorkoutWeightPrefs.ProgressionPreset.CUSTOM, WorkoutWeightPrefs.ProgressionPreset.fromThreshold(8))
+        assertEquals(WorkoutWeightPrefs.ProgressionPreset.CUSTOM, WorkoutWeightPrefs.ProgressionPreset.fromThreshold(15))
+        assertEquals(WorkoutWeightPrefs.ProgressionPreset.CUSTOM, WorkoutWeightPrefs.ProgressionPreset.fromThreshold(30))
+    }
+
+    @Test
+    fun applyStrengthPresetUpdatesPreference() {
+        WorkoutWeightPrefs.setRepThreshold(fakePrefs, 10)
+        WorkoutWeightPrefs.applyStrengthPreset(fakePrefs)
+        assertEquals(5, WorkoutWeightPrefs.getRepThreshold(fakePrefs))
+        assertEquals(WorkoutWeightPrefs.ProgressionPreset.STRENGTH, WorkoutWeightPrefs.getProgressionPreset(fakePrefs))
+    }
+
+    @Test
+    fun applyHypertrophyPresetTogglesBetweenTenAndTwelve() {
+        WorkoutWeightPrefs.setRepThreshold(fakePrefs, 5)
+        WorkoutWeightPrefs.applyHypertrophyPreset(fakePrefs)
+        assertEquals(10, WorkoutWeightPrefs.getRepThreshold(fakePrefs))
+        assertEquals(WorkoutWeightPrefs.ProgressionPreset.HYPERTROPHY, WorkoutWeightPrefs.getProgressionPreset(fakePrefs))
+
+        WorkoutWeightPrefs.applyHypertrophyPreset(fakePrefs)
+        assertEquals(12, WorkoutWeightPrefs.getRepThreshold(fakePrefs))
+        assertEquals(WorkoutWeightPrefs.ProgressionPreset.HYPERTROPHY, WorkoutWeightPrefs.getProgressionPreset(fakePrefs))
+
+        WorkoutWeightPrefs.applyHypertrophyPreset(fakePrefs)
+        assertEquals(10, WorkoutWeightPrefs.getRepThreshold(fakePrefs))
+        assertEquals(WorkoutWeightPrefs.ProgressionPreset.HYPERTROPHY, WorkoutWeightPrefs.getProgressionPreset(fakePrefs))
+    }
+
     private class FakeSharedPreferences : SharedPreferences {
         private val data = mutableMapOf<String, Any>()
 

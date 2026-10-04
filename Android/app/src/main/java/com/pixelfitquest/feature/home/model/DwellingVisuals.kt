@@ -79,27 +79,31 @@ object DwellingVisuals {
             when (tier) {
                 DwellingTier.TARP -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.60f, 0.85f)
-                    CharacterPose.SITTING -> Pair(0.60f, 0.88f)
+                    // Campfire / warm spot on the right (#169)
+                    CharacterPose.SITTING -> Pair(0.70f, 0.88f)
                     CharacterPose.LYING -> Pair(0.19f, 0.94f)
                 }
                 DwellingTier.TENT -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.55f, 0.85f)
-                    CharacterPose.SITTING -> Pair(0.55f, 0.88f)
+                    CharacterPose.SITTING -> Pair(0.62f, 0.88f)
                     CharacterPose.LYING -> Pair(0.12f, 0.70f)
                 }
                 DwellingTier.SHACK -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.58f, 0.88f)
-                    CharacterPose.SITTING -> Pair(0.60f, 0.95f)
+                    // Hearth / stove left-of-center (#169)
+                    CharacterPose.SITTING -> Pair(0.42f, 0.90f)
                     CharacterPose.LYING -> Pair(0.16f, 0.64f)
                 }
                 DwellingTier.COTTAGE -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.55f, 0.85f)
-                    CharacterPose.SITTING -> Pair(0.55f, 0.88f)
+                    // Rug in front of the right fireplace (#169)
+                    CharacterPose.SITTING -> Pair(0.78f, 0.88f)
                     CharacterPose.LYING -> Pair(0.13f, 0.70f)
                 }
                 DwellingTier.CASTLE -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.55f, 0.85f)
-                    CharacterPose.SITTING -> Pair(0.55f, 0.88f)
+                    // Grand hearth on the right (#169)
+                    CharacterPose.SITTING -> Pair(0.78f, 0.88f)
                     CharacterPose.LYING -> Pair(0.15f, 0.63f)
                 }
                 DwellingTier.GYM -> Pair(0.65f, 0.63f)
@@ -108,27 +112,30 @@ object DwellingVisuals {
             when (tier) {
                 DwellingTier.TARP -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.50f, 0.87f)
-                    CharacterPose.SITTING -> Pair(0.50f, 0.87f)
+                    CharacterPose.SITTING -> Pair(0.58f, 0.87f)
                     CharacterPose.LYING -> Pair(0.12f, 0.85f)
                 }
                 DwellingTier.TENT -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.50f, 0.87f)
-                    CharacterPose.SITTING -> Pair(0.50f, 0.87f)
+                    CharacterPose.SITTING -> Pair(0.58f, 0.87f)
                     CharacterPose.LYING -> Pair(0.31f, 0.80f)
                 }
                 DwellingTier.SHACK -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.50f, 0.75f)
-                    CharacterPose.SITTING -> Pair(0.50f, 0.76f)
+                    // Hearth on the right (#169)
+                    CharacterPose.SITTING -> Pair(0.78f, 0.76f)
                     CharacterPose.LYING -> Pair(0.14f, 0.56f)
                 }
                 DwellingTier.COTTAGE -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.50f, 0.82f)
-                    CharacterPose.SITTING -> Pair(0.50f, 0.82f)
+                    // Fireplace on the right (#169)
+                    CharacterPose.SITTING -> Pair(0.72f, 0.82f)
                     CharacterPose.LYING -> Pair(0.15f, 0.66f)
                 }
                 DwellingTier.CASTLE -> when (pose) {
                     CharacterPose.STANDING -> Pair(0.50f, 0.82f)
-                    CharacterPose.SITTING -> Pair(0.50f, 0.82f)
+                    // Grand hearth on the right (#169)
+                    CharacterPose.SITTING -> Pair(0.72f, 0.82f)
                     CharacterPose.LYING -> Pair(0.15f, 0.66f)
                 }
                 DwellingTier.GYM -> Pair(0.80f, 0.69f)

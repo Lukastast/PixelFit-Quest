@@ -26,6 +26,8 @@ data class LocalExportSnapshot(
     val templates: List<WorkoutTemplate>,
     val exportedAt: String = Instant.now().toString(),
     val schemaVersion: Int = 1,
+    /** On-device rep_edits.jsonl snapshot (JSONL string). Local only unless user exports. */
+    val repEdits: String = "",
 )
 
 object LocalExportFormatter {
@@ -37,8 +39,6 @@ object LocalExportFormatter {
             "schemaVersion" to snapshot.schemaVersion,
             "source" to "local",
             "profile" to mapOf(
-                "height" to snapshot.profile.height,
-                "armLength" to snapshot.profile.armLength,
                 "musicVolume" to snapshot.profile.musicVolume,
                 "level" to snapshot.profile.level,
                 "coins" to snapshot.profile.coins,
@@ -60,6 +60,7 @@ object LocalExportFormatter {
                 )
             },
             "templates" to snapshot.templates.map { it.toMap() },
+            "repEdits" to snapshot.repEdits,
         )
         return gson.toJson(payload)
     }
@@ -78,6 +79,8 @@ object LocalExportFormatter {
             "formScore",
             "romScore",
             "userCorrected",
+            "side",
+            "assistedReps",
         ).joinToString(",")
 
         val rows = snapshot.workouts.flatMap { workoutExport ->
@@ -88,6 +91,9 @@ object LocalExportFormatter {
                         workout.id,
                         workout.date,
                         workout.name,
+                        "",
+                        "",
+                        "",
                         "",
                         "",
                         "",
@@ -117,6 +123,8 @@ object LocalExportFormatter {
                                 "",
                                 "",
                                 "",
+                                "",
+                                "",
                             )
                         )
                     } else {
@@ -134,6 +142,8 @@ object LocalExportFormatter {
                                 set.formScore.toString(),
                                 set.romScore.toString(),
                                 set.userCorrected.toString(),
+                                set.side.orEmpty(),
+                                set.repRecords.count { it.assisted }.toString(),
                             )
                         }
                     }

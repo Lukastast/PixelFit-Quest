@@ -80,7 +80,7 @@ class ProgressRepository @Inject constructor(
                         exerciseType = type.type,
                         timestampMillis = timestamp,
                         weightKg = set.weight,
-                        reps = set.reps,
+                        reps = set.progressionRepCount(),
                         romScore = set.romScore,
                         stabilityScore = set.stabilityScore,
                     )

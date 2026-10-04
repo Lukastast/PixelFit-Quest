@@ -22,6 +22,27 @@ object WorkoutWeightPrefs {
     const val KEY_WEIGHT_SUGGESTION_REP_THRESHOLD = "weight_suggestion_rep_threshold"
     const val DEFAULT_WEIGHT_SUGGESTION_REP_THRESHOLD = 10
 
+    const val MIN_REP_THRESHOLD = 5
+    const val MAX_REP_THRESHOLD = 30
+
+    const val PRESET_STRENGTH_REPS = 5
+    const val PRESET_HYPERTROPHY_DEFAULT_REPS = 10
+    const val PRESET_HYPERTROPHY_HIGH_REPS = 12
+
+    enum class ProgressionPreset {
+        STRENGTH,
+        HYPERTROPHY,
+        CUSTOM;
+
+        companion object {
+            fun fromThreshold(reps: Int): ProgressionPreset = when {
+                reps == PRESET_STRENGTH_REPS -> STRENGTH
+                reps in 10..12 -> HYPERTROPHY
+                else -> CUSTOM
+            }
+        }
+    }
+
     fun isPreWorkoutCheckEnabled(prefs: SharedPreferences): Boolean =
         prefs.getBoolean(KEY_PRE_WORKOUT_CHECK_ENABLED, DEFAULT_PRE_WORKOUT_CHECK_ENABLED)
 
@@ -43,6 +64,23 @@ object WorkoutWeightPrefs {
         prefs.getInt(KEY_WEIGHT_SUGGESTION_REP_THRESHOLD, DEFAULT_WEIGHT_SUGGESTION_REP_THRESHOLD)
 
     fun setRepThreshold(prefs: SharedPreferences, threshold: Int) {
-        prefs.edit().putInt(KEY_WEIGHT_SUGGESTION_REP_THRESHOLD, threshold.coerceIn(5, 30)).apply()
+        prefs.edit().putInt(KEY_WEIGHT_SUGGESTION_REP_THRESHOLD, threshold.coerceIn(MIN_REP_THRESHOLD, MAX_REP_THRESHOLD)).apply()
+    }
+
+    fun getProgressionPreset(prefs: SharedPreferences): ProgressionPreset =
+        ProgressionPreset.fromThreshold(getRepThreshold(prefs))
+
+    fun applyStrengthPreset(prefs: SharedPreferences) {
+        setRepThreshold(prefs, PRESET_STRENGTH_REPS)
+    }
+
+    fun applyHypertrophyPreset(prefs: SharedPreferences) {
+        val current = getRepThreshold(prefs)
+        val target = if (current == PRESET_HYPERTROPHY_DEFAULT_REPS) {
+            PRESET_HYPERTROPHY_HIGH_REPS
+        } else {
+            PRESET_HYPERTROPHY_DEFAULT_REPS
+        }
+        setRepThreshold(prefs, target)
     }
 }
