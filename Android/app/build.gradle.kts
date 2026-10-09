@@ -7,6 +7,12 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.google.services)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
+}
+
+// Room copies exported schemas here after KSP (see schemas/<db>/<version>.json).
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 // Release signing is read from Android/local.properties (gitignored) or the environment.
@@ -130,6 +136,26 @@ android {
         buildConfig = true
     }
     buildToolsVersion = "36.0.0"
+
+    // Room's plugin only adds schemas to androidTest assets. Robolectric reads
+    // android_merged_assets, which AGP builds from main + debug, not the test source set.
+    sourceSets {
+        getByName("test").assets.directories.add("$projectDir/schemas")
+        getByName("debug").assets.directories.add("$projectDir/schemas")
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            // JDK 17 unit tests: Robolectric reflects into java.base (Gradle no longer opens it).
+            all {
+                it.jvmArgs(
+                    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                    "--add-opens=java.base/java.util=ALL-UNNAMED",
+                )
+            }
+        }
+    }
 }
 
 kotlin {
@@ -195,4 +221,7 @@ dependencies {
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    testImplementation(libs.androidx.room.testing)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.robolectric)
 }
