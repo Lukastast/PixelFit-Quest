@@ -3,7 +3,6 @@ package com.pixelfitquest.feature.workout
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.feature.customization.model.CharacterData
-import com.pixelfitquest.feature.workout.analysis.AnalyzerUser
 import com.pixelfitquest.feature.workout.analysis.DetectedRep
 import com.pixelfitquest.feature.workout.analysis.ExerciseProfiles
 import com.pixelfitquest.feature.workout.analysis.FullRomStore
@@ -190,14 +189,9 @@ class WorkoutViewModel @Inject constructor(
             return
         }
         val profile = ExerciseProfiles.forType(type)
-        val user = _userData.value
         val analysis = setAnalyzer.analyzeSet(
             samples = samples.toList(),
             profile = profile,
-            user = AnalyzerUser(
-                heightCm = user?.height ?: 178,
-                armLengthCm = user?.armLength,
-            ),
             fullRom = fullRomStore.get(type.type),
         )
         val review = SetReviewState(

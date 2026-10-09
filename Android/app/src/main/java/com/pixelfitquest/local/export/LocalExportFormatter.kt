@@ -37,8 +37,6 @@ object LocalExportFormatter {
             "schemaVersion" to snapshot.schemaVersion,
             "source" to "local",
             "profile" to mapOf(
-                "height" to snapshot.profile.height,
-                "armLength" to snapshot.profile.armLength,
                 "musicVolume" to snapshot.profile.musicVolume,
                 "level" to snapshot.profile.level,
                 "coins" to snapshot.profile.coins,

@@ -56,7 +56,6 @@ object ExerciseProfiles {
         minAmplitude = 0.25f,
         typicalAmplitude = 0.90f,
         romFactor = 0.50f,
-        usesArmLength = true,
         quality = cableQuality,
     )
 
@@ -87,7 +86,6 @@ object ExerciseProfiles {
         minAmplitude = 0.50f,
         typicalAmplitude = 2.0f,
         romFactor = 0.18f,
-        usesArmLength = true,
         quality = barbellQuality,
     )
 
@@ -103,7 +101,6 @@ object ExerciseProfiles {
         minAmplitude = 0.40f,
         typicalAmplitude = 1.6f,
         romFactor = 0.20f,
-        usesArmLength = true,
         quality = cableQuality,
     )
 
