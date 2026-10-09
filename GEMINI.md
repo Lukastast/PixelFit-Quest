@@ -1,4 +1,14 @@
-# PixelFit Quest - UI & Responsive Design Rules
+# PixelFit Quest - Gemini / Antigravity instructions
+
+Read [`AGENTS.md`](AGENTS.md) first. It has the project overview, Gradle commands, package map, product rules, Room rules, PR rules, definition of done and safety rules. They apply to you too.
+
+@./AGENTS.md
+
+When you plan a task, write the plan to `docs/plans/<issue>-<slug>.md` in this repo using `docs/plans/TEMPLATE.md` (not only to your own brain folder), then stop for Lukas's approval. See `docs/plans/README.md`.
+
+The rules below are the UI and responsive-design rules. Every tool must follow them for UI work.
+
+# UI & Responsive Design Rules
 
 ## 1. Pixel Art Buttons & Asset Sizing Parity
 - **State Consistency**: Active or "EQUIPPED" buttons must use dedicated pixel-art assets (e.g., `button_green_clicked.png`) rather than flat Compose `Box` background colors.

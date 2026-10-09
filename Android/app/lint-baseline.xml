@@ -1,0 +1,3757 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 9.4.0" type="baseline" client="gradle" dependencies="false" name="AGP (9.4.0)" variant="all" version="9.4.0">
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        String.format(&quot;%.1f&quot;, value)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/progress/ProgressChart.kt"
+            line="253"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="    return if (abs(value - value.toInt()) &lt; 0.05f) value.toInt().toString() else String.format(&quot;%.1f&quot;, value)"
+        errorLine2="                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/progress/ProgressChart.kt"
+            line="259"
+            column="82"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Field requires API level 34, or core library desugaring (current min is 29): `java.time.LocalDate#EPOCH`"
+        errorLine1="            weekStart = LocalDate.EPOCH,"
+        errorLine2="                        ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/streak/model/WeeklyStreakModels.kt"
+            line="56"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Field requires API level 34, or core library desugaring (current min is 29): `java.time.LocalDate#EPOCH`"
+        errorLine1="        if (streakSnapshot.weekStart == LocalDate.EPOCH) {"
+        errorLine2="                                        ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/levels/XpStatusDialog.kt"
+            line="96"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="OldTargetApi"
+        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
+        errorLine1="        targetSdk = 36"
+        errorLine2="        ~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="79"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HighSamplingRate"
+        message="Most apps don&apos;t need access to high sensor sampling rate."
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.HIGH_SAMPLING_RATE_SENSORS&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="15"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="VectorRaster"
+        message="Limit vector icons sizes to 200×200 to keep icon drawing fast; see https://developer.android.com/studio/write/vector-asset-studio#when for more"
+        errorLine1="    android:width=&quot;1200dp&quot;"
+        errorLine2="                   ~~~~~~">
+        <location
+            file="src/main/res/drawable/navbartest.xml"
+            line="2"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="AndroidGradlePluginVersion"
+        message="A newer version of Gradle than 9.6.0 is available: 9.8.1"
+        errorLine1="distributionUrl=https\://services.gradle.org/distributions/gradle-9.6.0-bin.zip"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="../gradle/wrapper/gradle-wrapper.properties"
+            line="4"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="AndroidGradlePluginVersion"
+        message="A newer version of com.android.application than 9.4.0 is available: 9.4.1"
+        errorLine1="agp = &quot;9.4.0&quot;"
+        errorLine2="      ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="3"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of `compileSdk` than 36 is available: 37"
+        errorLine1="    compileSdk = 36"
+        errorLine2="    ~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="74"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of com.google.firebase:firebase-bom than 34.11.0 is available: 35.0.0"
+        errorLine1="    implementation(platform(&quot;com.google.firebase:firebase-bom:34.11.0&quot;))"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="170"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.work:work-runtime-ktx than 2.11.1 is available: 2.12.0"
+        errorLine1="    implementation(&quot;androidx.work:work-runtime-ktx:2.11.1&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="174"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.hilt:hilt-navigation-compose than 1.3.0 is available: 1.4.0"
+        errorLine1="    implementation(&quot;androidx.hilt:hilt-navigation-compose:1.3.0&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="183"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of com.google.gms.google-services than 4.4.4 is available: 4.5.0"
+        errorLine1="googleServices = &quot;4.4.4&quot;"
+        errorLine2="                 ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="7"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.core:core-ktx than 1.18.0 is available: 1.19.1"
+        errorLine1="coreKtx = &quot;1.18.0&quot;"
+        errorLine2="          ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="10"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.10.0 is available: 2.11.0"
+        errorLine1="lifecycleRuntimeKtx = &quot;2.10.0&quot;"
+        errorLine2="                      ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="11"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.lifecycle:lifecycle-process than 2.10.0 is available: 2.11.0"
+        errorLine1="lifecycleProcess = &quot;2.10.0&quot;"
+        errorLine2="                   ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="12"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.compose:compose-bom than 2026.03.00 is available: 2026.09.00"
+        errorLine1="composeBom = &quot;2026.03.00&quot;"
+        errorLine2="             ~~~~~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="16"
+            column="14"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.navigation:navigation-runtime-ktx than 2.9.7 is available: 2.10.2"
+        errorLine1="navigationRuntimeKtx = &quot;2.9.7&quot;"
+        errorLine2="                       ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="19"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.navigation:navigation-compose than 2.9.7 is available: 2.10.2"
+        errorLine1="navigationCompose = &quot;2.9.7&quot;"
+        errorLine2="                    ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="20"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.room:room-compiler than 2.8.4 is available: 2.8.5"
+        errorLine1="roomKtx = &quot;2.8.4&quot;"
+        errorLine2="          ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="23"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.room:room-ktx than 2.8.4 is available: 2.8.5"
+        errorLine1="roomKtx = &quot;2.8.4&quot;"
+        errorLine2="          ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="23"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.room:room-runtime than 2.8.4 is available: 2.8.5"
+        errorLine1="roomKtx = &quot;2.8.4&quot;"
+        errorLine2="          ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="23"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.hilt:hilt-common than 1.3.0 is available: 1.4.0"
+        errorLine1="hiltCommon = &quot;1.3.0&quot;"
+        errorLine2="             ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="24"
+            column="14"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.credentials:credentials than 1.5.0 is available: 1.6.0"
+        errorLine1="credentials = &quot;1.5.0&quot;"
+        errorLine2="              ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="32"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.credentials:credentials-play-services-auth than 1.5.0 is available: 1.6.0"
+        errorLine1="credentialsPlayServicesAuth = &quot;1.5.0&quot;"
+        errorLine2="                              ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="33"
+            column="31"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of com.google.android.libraries.identity.googleid:googleid than 1.2.0 is available: 1.2.1"
+        errorLine1="googleid = &quot;1.2.0&quot;"
+        errorLine2="           ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="34"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-core than 1.10.2 is available: 1.11.0"
+        errorLine1="    testImplementation(&quot;org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2&quot;)"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="205"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of org.jetbrains.kotlin.android than 2.3.20 is available: 2.4.21"
+        errorLine1="kotlin = &quot;2.3.20&quot;"
+        errorLine2="         ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="4"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of org.jetbrains.kotlin.plugin.compose than 2.3.20 is available: 2.4.21"
+        errorLine1="kotlin = &quot;2.3.20&quot;"
+        errorLine2="         ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="4"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of com.google.dagger.hilt.android than 2.59.2 is available: 2.60.1"
+        errorLine1="hilt = &quot;2.59.2&quot;"
+        errorLine2="       ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="6"
+            column="8"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of com.google.dagger:hilt-android than 2.59.2 is available: 2.60.1"
+        errorLine1="hilt = &quot;2.59.2&quot;"
+        errorLine2="       ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="6"
+            column="8"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of com.google.dagger:hilt-android-compiler than 2.59.2 is available: 2.60.1"
+        errorLine1="hilt = &quot;2.59.2&quot;"
+        errorLine2="       ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="6"
+            column="8"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of com.google.code.gson:gson than 2.13.2 is available: 2.14.0"
+        errorLine1="gson = &quot;2.13.2&quot;"
+        errorLine2="       ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="28"
+            column="8"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-play-services than 1.10.2 is available: 1.11.0"
+        errorLine1="kotlinxCoroutinesPlayServices = &quot;1.10.2&quot;"
+        errorLine2="                                ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="29"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="SourceLockedOrientationActivity"
+        message="You should not lock orientation of your activities, so that you can support a good user experience for any device or orientation"
+        errorLine1="        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/ui/OrientationLock.kt"
+            line="15"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="ConfigurationScreenWidthHeight"
+        message="Using Configuration.screenWidthDp instead of LocalWindowInfo.current.containerSize"
+        errorLine1="    val widthDp = configuration.screenWidthDp"
+        errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/ui/theme/Spacing.kt"
+            line="159"
+            column="19"/>
+    </issue>
+
+    <issue
+        id="ConfigurationScreenWidthHeight"
+        message="Using Configuration.screenHeightDp instead of LocalWindowInfo.current.containerSize"
+        errorLine1="    val heightDp = configuration.screenHeightDp"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/ui/theme/Spacing.kt"
+            line="160"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="LocalContextGetResourceValueCall"
+        message="Querying resource values using LocalContext.current"
+        errorLine1="                        context.getString(R.string.export_share_ready, event.fileCount)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/local/export/ui/LocalExportCard.kt"
+            line="99"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="LocalContextGetResourceValueCall"
+        message="Querying resource values using LocalContext.current"
+        errorLine1="                viewModel.setError(context.getString(R.string.no_accelerometer_error))"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/workout/WorkoutScreen.kt"
+            line="98"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="LocalContextGetResourceValueCall"
+        message="Querying resource values using LocalContext.current"
+        errorLine1="            viewModel.setError(context.getString(R.string.no_plan_error))"
+        errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/workout/WorkoutScreen.kt"
+            line="159"
+            column="32"/>
+    </issue>
+
+    <issue
+        id="ModifierFactoryExtensionFunction"
+        message="Modifier factory functions should be extensions on Modifier"
+        errorLine1="private fun characterMotionModifier("
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/components/atoms/PixelCharacterMotion.kt"
+            line="99"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/achievements/AchievementsScreen.kt"
+            line="78"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/components/atoms/DwellingCharacterSprite.kt"
+            line="19"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/health/HealthCenterScreen.kt"
+            line="227"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/health/HealthCenterScreen.kt"
+            line="594"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/local/export/ui/LocalExportCard.kt"
+            line="76"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/components/atoms/PixelArtButton.kt"
+            line="31"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/helpers/TypewriterText.kt"
+            line="31"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/workoutBuilder/WorkoutCustomizationScreen.kt"
+            line="101"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/workoutResume/WorkoutResumeScreen.kt"
+            line="101"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/workoutResume/WorkoutResumeScreen.kt"
+            line="484"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Optional Modifier parameter should have a default value of `Modifier`"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/workoutResume/WorkoutResumeScreen.kt"
+            line="1320"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/workout/WorkoutScreen.kt"
+            line="75"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        message="Fixed screen orientations will be ignored in most cases, starting from Android 16. Android is moving toward a model where apps are expected to adapt to various orientations, display sizes, and aspect ratios."
+        errorLine1="            android:screenOrientation=&quot;unspecified&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="54"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="StringFormatInvalid"
+        message="Incorrect formatting string `skill_vitality`; missing conversion character in &apos;`% s`&apos;?"
+        errorLine1="    &lt;string name=&quot;skill_vitality&quot;>Vitality · +5% step and sleep coins&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="160"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;weeks&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;weekly_streak_weeks&quot;>%1$d weeks&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="88"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;sessions&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;weekly_streak_progress&quot;>%1$d / %2$d sessions&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="90"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;weeks&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;weekly_streak_longest&quot;>Best: %1$d weeks&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="91"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;weeks&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;weekly_streak_skin_locked&quot;>Unlocks at %1$d weeks&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="100"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;weeks&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;weekly_streak_hud_desc&quot;>Weekly streak, %1$d weeks&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="104"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;coins&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;health_bonus_total&quot;>Extras +%1$d XP · +%2$d coins&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="131"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;users&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;total_users_count&quot;>/ %1$d users&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="143"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;coins&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;skill_respec&quot;>Respec · %1$d coins&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="165"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;days&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;skill_respec_wait&quot;>Respec in %1$d days&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="166"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;coins&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;health_mission_reward_line&quot;>+%1$d XP · +%2$d coins&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="175"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;steps&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;health_mission_steps_left&quot;>%1$d steps to go&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="177"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;points&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;health_mission_heart_left&quot;>%1$d points to go this week&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="183"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;unlocked&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;achievements_progress_count&quot;>%1$d / %2$d unlocked&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="202"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;cosmetics&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;levels_progress_count&quot;>%1$d / %2$d cosmetics&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="223"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;coins&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;levels_level_up_coins&quot;>+%1$d coins&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="234"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;reps&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;set_review_count&quot;>%1$d reps accepted&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="252"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;samples&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;set_review_samples&quot;>%1$d samples&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="254"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;file&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;export_share_ready&quot;>Ready to share %1$d file(s)&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="298"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;Coins&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;coins_reward&quot;>+%1$d Coins&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="320"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;sets&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;sets_completed_count&quot;>%1$d sets completed&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="322"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;lifts&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;imu_info_body&quot;>%1$d lifts available (%2$d IMU-enabled).\n\nIMU lifts automatically track your reps, range of motion, and tilt balance using sensors. Log-only lifts record your sets and weight.&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="382"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;lifts&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;exercise_catalog_stats&quot;>%1$d lifts · %2$d IMU&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="398"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;sessions&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;progress_weight_chart_desc&quot;>Working weight over time for %1$s, %2$d sessions&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="412"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;sessions&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;progress_stat_sessions&quot;>%1$d sessions&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="420"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;reps&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;settings_rep_threshold_hint&quot;>Hitting %1$d reps in a session suggests +2.5 kg next time&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="446"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;reps&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;loadout_progression_hit_desc&quot;>Hit %1$d reps last session (target: %2$d). Ready for +2.5 kg!&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="450"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="This folder configuration (`v26`) is unnecessary; `minSdkVersion` is 29. Merge all the resources in this folder into `mipmap-anydpi`.">
+        <location
+            file="src/main/res/mipmap-anydpi-v26"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var currentFrame by remember { mutableStateOf(0) }"
+        errorLine2="                                   ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/components/atoms/IdleAnimation.kt"
+            line="37"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var currentFrame by remember { mutableStateOf(0) }"
+        errorLine2="                                   ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/components/atoms/IdleAnimation.kt"
+            line="87"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var currentSlide by remember { mutableStateOf(0) }"
+        errorLine2="                                   ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/intro/IntroScreen.kt"
+            line="57"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.mipmap.app_icon` appears to be unused">
+        <location
+            file="src/main/res/mipmap-hdpi/app_icon.webp"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.background_home_screen1` appears to be unused">
+        <location
+            file="src/main/res/drawable/background_home_screen1.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.button_signup_clicked` appears to be unused">
+        <location
+            file="src/main/res/drawable/button_signup_clicked.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.cape_hero_walk` appears to be unused">
+        <location
+            file="src/main/res/drawable/cape_hero_walk.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.character_male_workout_classic` appears to be unused">
+        <location
+            file="src/main/res/drawable/character_male_workout_classic.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.purple_200` appears to be unused"
+        errorLine1="    &lt;color name=&quot;purple_200&quot;>#FFBB86FC&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="3"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.purple_500` appears to be unused"
+        errorLine1="    &lt;color name=&quot;purple_500&quot;>#FF6200EE&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="4"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.purple_700` appears to be unused"
+        errorLine1="    &lt;color name=&quot;purple_700&quot;>#FF3700B3&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="5"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.teal_200` appears to be unused"
+        errorLine1="    &lt;color name=&quot;teal_200&quot;>#FF03DAC5&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="6"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.teal_700` appears to be unused"
+        errorLine1="    &lt;color name=&quot;teal_700&quot;>#FF018786&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="7"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.black` appears to be unused"
+        errorLine1="    &lt;color name=&quot;black&quot;>#FF000000&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="8"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.white` appears to be unused"
+        errorLine1="    &lt;color name=&quot;white&quot;>#FFFFFFFF&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="9"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.dwelling_castle_furniture` appears to be unused">
+        <location
+            file="src/main/res/drawable/dwelling_castle_furniture.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.dwelling_cottage_furniture` appears to be unused">
+        <location
+            file="src/main/res/drawable/dwelling_cottage_furniture.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.dwelling_shack_furniture` appears to be unused">
+        <location
+            file="src/main/res/drawable/dwelling_shack_furniture.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.dwelling_tent_furniture` appears to be unused">
+        <location
+            file="src/main/res/drawable/dwelling_tent_furniture.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.first_place` appears to be unused">
+        <location
+            file="src/main/res/drawable/first_place.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_balance_scale` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/ic_balance_scale.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_check_circle` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/ic_check_circle.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_launcher_background` appears to be unused"
+        errorLine1="&lt;vector"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/ic_launcher_background.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_pushup_person` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/ic_pushup_person.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.info_background_even_even_higher` appears to be unused">
+        <location
+            file="src/main/res/drawable/info_background_even_even_higher.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.info_background_even_higher` appears to be unused">
+        <location
+            file="src/main/res/drawable/info_background_even_higher.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.menu_background_sheet` appears to be unused">
+        <location
+            file="src/main/res/drawable/menu_background_sheet.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.navbartest` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/navbartest.xml"
+            line="1"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.pixelfiticon` appears to be unused">
+        <location
+            file="src/main/res/drawable/pixelfiticon.jpg"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.questloginboard_wider` appears to be unused">
+        <location
+            file="src/main/res/drawable/questloginboard_wider.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.second_place` appears to be unused">
+        <location
+            file="src/main/res/drawable/second_place.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.authenticate` appears to be unused"
+        errorLine1="    &lt;string name=&quot;authenticate&quot;>Authenticate&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="3"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.email` appears to be unused"
+        errorLine1="    &lt;string name=&quot;email&quot;>Email&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="4"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.password` appears to be unused"
+        errorLine1="    &lt;string name=&quot;password&quot;>Password&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="5"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.confirm_password` appears to be unused"
+        errorLine1="    &lt;string name=&quot;confirm_password&quot;>Confirm password&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="6"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.sign_in` appears to be unused"
+        errorLine1="    &lt;string name=&quot;sign_in&quot;>Sign in&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="7"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.log_in` appears to be unused"
+        errorLine1="    &lt;string name=&quot;log_in&quot;>Log in&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="8"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.login_with_google` appears to be unused"
+        errorLine1="    &lt;string name=&quot;login_with_google&quot;>Google&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="9"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.sign_up` appears to be unused"
+        errorLine1="    &lt;string name=&quot;sign_up&quot;>Sign up&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="12"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.sign_up_description` appears to be unused"
+        errorLine1="    &lt;string name=&quot;sign_up_description&quot;>Don\&apos;t have an account? Click here to Sign Up!&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="13"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.login_description` appears to be unused"
+        errorLine1="    &lt;string name=&quot;login_description&quot;>Already have an account? Click here to Login!&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="14"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.account_center` appears to be unused"
+        errorLine1="    &lt;string name=&quot;account_center&quot;>Account center&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="22"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.profile_email` appears to be unused"
+        errorLine1="    &lt;string name=&quot;profile_email&quot;>Email: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="24"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.profile_uid` appears to be unused"
+        errorLine1="    &lt;string name=&quot;profile_uid&quot;>UID: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="25"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.profile_provider` appears to be unused"
+        errorLine1="    &lt;string name=&quot;profile_provider&quot;>Account provider: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="26"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.or` appears to be unused"
+        errorLine1="    &lt;string name=&quot;or&quot;>or&lt;/string>"
+        errorLine2="            ~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="28"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.sign_up_with_google` appears to be unused"
+        errorLine1="    &lt;string name=&quot;sign_up_with_google&quot;>Google&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="29"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.choose_character` appears to be unused"
+        errorLine1="    &lt;string name=&quot;choose_character&quot;>Choose Your Character&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="36"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.customization_tab_stats` appears to be unused"
+        errorLine1="    &lt;string name=&quot;customization_tab_stats&quot;>Stats&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="41"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.gym_upgrade_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;gym_upgrade_title&quot;>Iron Gym Dwelling&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="42"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.gym_upgrade_desc` appears to be unused"
+        errorLine1="    &lt;string name=&quot;gym_upgrade_desc&quot;>Upgrade your home to a 16-bit iron gym with weight equipment and workout bench.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="43"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.gym_upgrade_equipped` appears to be unused"
+        errorLine1="    &lt;string name=&quot;gym_upgrade_equipped&quot;>Equipped&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="44"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.gym_upgrade_equip` appears to be unused"
+        errorLine1="    &lt;string name=&quot;gym_upgrade_equip&quot;>Equip&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="45"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.gym_upgrade_use_default` appears to be unused"
+        errorLine1="    &lt;string name=&quot;gym_upgrade_use_default&quot;>Level Dwelling&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="46"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.gym_upgrade_not_enough_coins` appears to be unused"
+        errorLine1="    &lt;string name=&quot;gym_upgrade_not_enough_coins&quot;>Need more coins&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="47"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.metric_cm_value` appears to be unused"
+        errorLine1="    &lt;string name=&quot;metric_cm_value&quot;>%1$s: %2$d cm&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="51"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.fitness_bonus` appears to be unused"
+        errorLine1="    &lt;string name=&quot;fitness_bonus&quot;>+2 coins &amp;amp; +2 exp per reward&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="54"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.set_height` appears to be unused"
+        errorLine1="    &lt;string name=&quot;set_height&quot;>Set Height&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="60"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.splash_screen_desc` appears to be unused"
+        errorLine1="    &lt;string name=&quot;splash_screen_desc&quot;>Splash Screen&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="63"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.login_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;login_title&quot;>Login&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="72"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.email_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;email_label&quot;>Email:&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="73"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.password_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;password_label&quot;>Password:&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="74"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.signup_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;signup_title&quot;>Sign Up&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="77"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.confirm_password_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;confirm_password_label&quot;>Confirm Password:&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="78"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.signup_button` appears to be unused"
+        errorLine1="    &lt;string name=&quot;signup_button&quot;>Sign Up&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="79"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.steps_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;steps_label&quot;>Steps&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="111"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.steps_progress` appears to be unused"
+        errorLine1="    &lt;string name=&quot;steps_progress&quot;>%1$d / %2$d&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="112"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.steps_reward_hint` appears to be unused"
+        errorLine1="    &lt;string name=&quot;steps_reward_hint&quot;>+50 EXP, +10 Coins&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="113"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.steps_hr_reward_hint` appears to be unused"
+        errorLine1="    &lt;string name=&quot;steps_hr_reward_hint&quot;>HR %1$d bpm · +50 EXP, +10 Coins&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="114"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.health_connect_grant_hint` appears to be unused"
+        errorLine1="    &lt;string name=&quot;health_connect_grant_hint&quot;>Tap to connect Health Connect&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="120"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.total_users_count` appears to be unused"
+        errorLine1="    &lt;string name=&quot;total_users_count&quot;>/ %1$d users&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="143"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.achievements_button_desc` appears to be unused"
+        errorLine1="    &lt;string name=&quot;achievements_button_desc&quot;>Achievements&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="144"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.no_workouts_yet` appears to be unused"
+        errorLine1="    &lt;string name=&quot;no_workouts_yet&quot;>No completed workouts yet&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="145"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.quest_center_subtitle` appears to be unused"
+        errorLine1="    &lt;string name=&quot;quest_center_subtitle&quot;>Missions, achievements, and health&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="148"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.daily_reward_clipped` appears to be unused"
+        errorLine1="    &lt;string name=&quot;daily_reward_clipped&quot;>Some of this workout is past today\&apos;s reward. Those reps are saved and pay nothing.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="156"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.skill_form` appears to be unused"
+        errorLine1="    &lt;string name=&quot;skill_form&quot;>Form · +3% XP on sets scored 90+&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="158"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.skill_iron` appears to be unused"
+        errorLine1="    &lt;string name=&quot;skill_iron&quot;>Iron · +4% workout coins&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="159"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.skill_vitality` appears to be unused"
+        errorLine1="    &lt;string name=&quot;skill_vitality&quot;>Vitality · +5% step and sleep coins&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="160"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.skill_spend` appears to be unused"
+        errorLine1="    &lt;string name=&quot;skill_spend&quot;>+&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="164"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.skill_respec` appears to be unused"
+        errorLine1="    &lt;string name=&quot;skill_respec&quot;>Respec · %1$d coins&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="165"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.skill_respec_wait` appears to be unused"
+        errorLine1="    &lt;string name=&quot;skill_respec_wait&quot;>Respec in %1$d days&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="166"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.skill_respec_empty` appears to be unused"
+        errorLine1="    &lt;string name=&quot;skill_respec_empty&quot;>Spend a point before respec&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="167"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.health_mission_reward_line` appears to be unused"
+        errorLine1="    &lt;string name=&quot;health_mission_reward_line&quot;>+%1$d XP · +%2$d coins&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="175"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.achievements_locked` appears to be unused"
+        errorLine1="    &lt;string name=&quot;achievements_locked&quot;>Locked&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="211"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.achievements_unlocked` appears to be unused"
+        errorLine1="    &lt;string name=&quot;achievements_unlocked&quot;>Unlocked&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="212"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.achievements_reward_pending` appears to be unused"
+        errorLine1="    &lt;string name=&quot;achievements_reward_pending&quot;>Prize pending on this device&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="214"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.levels_header_level` appears to be unused"
+        errorLine1="    &lt;string name=&quot;levels_header_level&quot;>Level %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="222"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.levels_progress_count` appears to be unused"
+        errorLine1="    &lt;string name=&quot;levels_progress_count&quot;>%1$d / %2$d cosmetics&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="223"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.levels_filter_all` appears to be unused"
+        errorLine1="    &lt;string name=&quot;levels_filter_all&quot;>All&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="224"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.levels_filter_home` appears to be unused"
+        errorLine1="    &lt;string name=&quot;levels_filter_home&quot;>Home&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="225"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.levels_filter_skins` appears to be unused"
+        errorLine1="    &lt;string name=&quot;levels_filter_skins&quot;>Skins&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="226"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.levels_filter_titles` appears to be unused"
+        errorLine1="    &lt;string name=&quot;levels_filter_titles&quot;>Titles&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="227"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.levels_equipped` appears to be unused"
+        errorLine1="    &lt;string name=&quot;levels_equipped&quot;>Equipped&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="229"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.levels_equip` appears to be unused"
+        errorLine1="    &lt;string name=&quot;levels_equip&quot;>Equip&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="230"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.levels_locked_level` appears to be unused"
+        errorLine1="    &lt;string name=&quot;levels_locked_level&quot;>Lv %1$d&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="231"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.levels_level_up_body` appears to be unused"
+        errorLine1="    &lt;string name=&quot;levels_level_up_body&quot;>You reached level %1$d&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="233"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.levels_view_rewards` appears to be unused"
+        errorLine1="    &lt;string name=&quot;levels_view_rewards&quot;>View rewards&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="236"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.levels_later` appears to be unused"
+        errorLine1="    &lt;string name=&quot;levels_later&quot;>Later&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="237"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.levels_shadow_skin` appears to be unused"
+        errorLine1="    &lt;string name=&quot;levels_shadow_skin&quot;>Shadow&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="238"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.settings_landscape_on` appears to be unused"
+        errorLine1="    &lt;string name=&quot;settings_landscape_on&quot;>ON&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="277"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.settings_landscape_off` appears to be unused"
+        errorLine1="    &lt;string name=&quot;settings_landscape_off&quot;>OFF&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="278"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.continue_without_account` appears to be unused"
+        errorLine1="    &lt;string name=&quot;continue_without_account&quot;>Continue without account&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="279"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.guest_profile_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;guest_profile_title&quot;>Playing offline (guest)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="280"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.guest_profile_subtitle` appears to be unused"
+        errorLine1="    &lt;string name=&quot;guest_profile_subtitle&quot;>Workouts stay on this phone&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="281"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.body_metrics_card_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;body_metrics_card_title&quot;>Body measurements&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="305"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.body_metrics_card_subtitle` appears to be unused"
+        errorLine1="    &lt;string name=&quot;body_metrics_card_subtitle&quot;>Height and arm length for IMU tracking&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="306"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.arm_length_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;arm_length_label&quot;>Arm length (cm)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="310"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.leaderboard_pro_badge` appears to be unused"
+        errorLine1="    &lt;string name=&quot;leaderboard_pro_badge&quot;>PRO&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="312"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.leaderboard_pro_hint` appears to be unused"
+        errorLine1="    &lt;string name=&quot;leaderboard_pro_hint&quot;>Leaderboard&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="313"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.resume_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;resume_title&quot;>Resume&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="316"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.session_complete` appears to be unused"
+        errorLine1="    &lt;string name=&quot;session_complete&quot;>Session Complete!&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="318"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.exercise_feedback_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;exercise_feedback_title&quot;>Exercise Feedback&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="321"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.rom_score_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;rom_score_title&quot;>ROM Score&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="324"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.set_score_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;set_score_title&quot;>Set Score&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="325"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.reps_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;reps_label&quot;>Reps&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="326"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.kg_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;kg_label&quot;>KG&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="327"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.feedback_rom_perfect` appears to be unused"
+        errorLine1="    &lt;string name=&quot;feedback_rom_perfect&quot;>Perfect range! 🎯&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="343"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.feedback_tilt_perfect` appears to be unused"
+        errorLine1="    &lt;string name=&quot;feedback_tilt_perfect&quot;>Perfect balance!&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="346"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.resume_tab_rewards` appears to be unused"
+        errorLine1="    &lt;string name=&quot;resume_tab_rewards&quot;>Rewards&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="352"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.select_set_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;select_set_label&quot;>Inspect Set:&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="360"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.customize_workout_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;customize_workout_title&quot;>Customize Workout&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="368"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.start_custom_workout` appears to be unused"
+        errorLine1="    &lt;string name=&quot;start_custom_workout&quot;>⚔ Create Custom Workout&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="377"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.create_workout_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;create_workout_title&quot;>Create Workout&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="379"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.choose_workout_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;choose_workout_title&quot;>Create Workout&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="380"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.exercise_catalog_hint` appears to be unused"
+        errorLine1="    &lt;string name=&quot;exercise_catalog_hint&quot;>IMU lifts record form. Log-only is sets and weight until a profile ships.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="397"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.exercise_catalog_stats` appears to be unused"
+        errorLine1="    &lt;string name=&quot;exercise_catalog_stats&quot;>%1$d lifts · %2$d IMU&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="398"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.progress_home_entry` appears to be unused"
+        errorLine1="    &lt;string name=&quot;progress_home_entry&quot;>Gym progress&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="405"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.progress_resume_cta` appears to be unused"
+        errorLine1="    &lt;string name=&quot;progress_resume_cta&quot;>View gym progress&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="406"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.progress_rom_chart_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;progress_rom_chart_title&quot;>ROM quality&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="415"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.progress_stability_chart_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;progress_stability_chart_title&quot;>Stability quality&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="416"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.progress_quality_stub` appears to be unused"
+        errorLine1="    &lt;string name=&quot;progress_quality_stub&quot;>Coming soon&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="417"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.progress_stat_latest` appears to be unused"
+        errorLine1="    &lt;string name=&quot;progress_stat_latest&quot;>Latest %1$s kg&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="418"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.progress_stat_delta` appears to be unused"
+        errorLine1="    &lt;string name=&quot;progress_stat_delta&quot;>%1$s kg vs first&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="419"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.progress_stat_sessions` appears to be unused"
+        errorLine1="    &lt;string name=&quot;progress_stat_sessions&quot;>%1$d sessions&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="420"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.loadout_subtitle` appears to be unused"
+        errorLine1="    &lt;string name=&quot;loadout_subtitle&quot;>Calibrate starting weights &amp;amp; review suggestions&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="448"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.third_place` appears to be unused">
+        <location
+            file="src/main/res/drawable/third_place.png"/>
+    </issue>
+
+    <issue
+        id="TypographyEllipsis"
+        message="Replace &quot;...&quot; with ellipsis character (…, &amp;#8230;) ?"
+        errorLine1="    &lt;string name=&quot;loading&quot;>Loading...&lt;/string>"
+        errorLine2="                           ~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="82"
+            column="28"/>
+    </issue>
+
+    <issue
+        id="TypographyEllipsis"
+        message="Replace &quot;...&quot; with ellipsis character (…, &amp;#8230;) ?"
+        errorLine1="    &lt;string name=&quot;invalid_plan_error&quot;>Error: Invalid workout plan. Returning to customization...&lt;/string>"
+        errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="249"
+            column="39"/>
+    </issue>
+
+    <issue
+        id="TypographyEllipsis"
+        message="Replace &quot;...&quot; with ellipsis character (…, &amp;#8230;) ?"
+        errorLine1="    &lt;string name=&quot;exercise_search_hint&quot;>Search lifts...&lt;/string>"
+        errorLine2="                                        ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="390"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="MonochromeLauncherIcon"
+        message="The application adaptive icon is missing a monochrome tag"
+        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/mipmap-anydpi-v26/ic_launcher.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="MonochromeLauncherIcon"
+        message="The application adaptive roundIcon is missing a monochrome tag"
+        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/achievement_bronze_workout_1_time.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/achievement_bronze_workout_1_time.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/achievement_button.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/achievement_button.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/achievement_gold_workout_50_times.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/achievement_gold_workout_50_times.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/achievement_silver_workout_10_times.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/achievement_silver_workout_10_times.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/background_home_screen1.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/background_home_screen1.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/bronze_workout_1.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/bronze_workout_1.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/button_clicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/button_clicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/button_green.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/button_green.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/button_green_clicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/button_green_clicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/button_signup_clicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/button_signup_clicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/button_signup_unclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/button_signup_unclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/button_unclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/button_unclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/cape_hero_walk.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/cape_hero_walk.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/character_male_idle.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/character_male_idle.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/character_male_lying.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/character_male_lying.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/character_male_lying_royal.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/character_male_lying_royal.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/character_male_lying_white.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/character_male_lying_white.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/character_male_sitting.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/character_male_sitting.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/character_male_workout.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/character_male_workout.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/character_male_workout_classic.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/character_male_workout_classic.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/character_woman_idle.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/character_woman_idle.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/character_woman_lying.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/character_woman_lying.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/character_woman_lying_royal.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/character_woman_lying_royal.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/character_woman_lying_white.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/character_woman_lying_white.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/character_woman_sitting.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/character_woman_sitting.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/character_woman_workout.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/character_woman_workout.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clicked_customization_button_left.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clicked_customization_button_left.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clicked_customization_button_right.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clicked_customization_button_right.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_clip_pose.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_clip_pose.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_clip_pose_woman.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_clip_pose_woman.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_dropped.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_dropped.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_dropped_woman.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_dropped_woman.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_form_even.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_form_even.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_form_even_woman.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_form_even_woman.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_short_rom.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_short_rom.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_short_rom_woman.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_short_rom_woman.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_tilt_left.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_tilt_left.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_tilt_left_woman.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_tilt_left_woman.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_tilt_right.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_tilt_right.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_tilt_right_woman.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_tilt_right_woman.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_twist_head.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_twist_head.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_twist_head_woman.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_twist_head_woman.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_twist_hip.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_twist_hip.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/clip_twist_hip_woman.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/clip_twist_hip_woman.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/coin.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/coin.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/customizationbuttonclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/customizationbuttonclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/customizationbuttonunclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/customizationbuttonunclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_castle_furniture.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_castle_furniture.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_castle_landscape.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_castle_landscape.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_castle_portrait.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_castle_portrait.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_cottage_furniture.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_cottage_furniture.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_cottage_landscape.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_cottage_landscape.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_cottage_portrait.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_cottage_portrait.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_gym_landscape.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_gym_landscape.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_shack_furniture.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_shack_furniture.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_shack_landscape.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_shack_landscape.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_shack_portrait.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_shack_portrait.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_tarp_landscape.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_tarp_landscape.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_tarp_portrait.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_tarp_portrait.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_tent_furniture.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_tent_furniture.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_tent_landscape.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_tent_landscape.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/dwelling_tent_portrait.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/dwelling_tent_portrait.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/first_place.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/first_place.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/fitness_character_male_idle.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/fitness_character_male_idle.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/fitness_character_male_workout.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/fitness_character_male_workout.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/fitness_character_woman_idle.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/fitness_character_woman_idle.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/fitness_character_woman_workout.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/fitness_character_woman_workout.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/fourth_and_more.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/fourth_and_more.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/gold_workout_50.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/gold_workout_50.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/gym_background.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/gym_background.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/gym_champion.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/gym_champion.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/gym_cyber.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/gym_cyber.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/gym_dungeon.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/gym_dungeon.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/gym_rooftop.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/gym_rooftop.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/healthbuttonclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/healthbuttonclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/healthbuttonunclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/healthbuttonunclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/home_theme_dusk_gym.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/home_theme_dusk_gym.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/home_theme_ember.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/home_theme_ember.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/home_theme_legend.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/home_theme_legend.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/home_theme_night.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/home_theme_night.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/homebuttonclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/homebuttonclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/homebuttonunclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/homebuttonunclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/info_background.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/info_background.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/info_background_even_even_higher.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/info_background_even_even_higher.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/info_background_even_higher.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/info_background_even_higher.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/info_background_higher.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/info_background_higher.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/info_background_wider_workout.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/info_background_wider_workout.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/inputfield.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/inputfield.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/iron_workout_5.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/iron_workout_5.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/level_10.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/level_10.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/level_100.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/level_100.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/level_20.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/level_20.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/level_40.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/level_40.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/level_5.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/level_5.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/level_60.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/level_60.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/level_80.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/level_80.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/locked_achievement.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/locked_achievement.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/locked_male_character_idle.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/locked_male_character_idle.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/locked_woman_character_idle.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/locked_woman_character_idle.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/logsigninbackground.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/logsigninbackground.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/menu_background_sheet.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/menu_background_sheet.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/navbar.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/navbar.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/navbar_vertical.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/navbar_vertical.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/pause_button_clicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/pause_button_clicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/pause_button_unclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/pause_button_unclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/pixelfiticon.jpg` in densityless folder">
+        <location
+            file="src/main/res/drawable/pixelfiticon.jpg"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/platinum_workout_100.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/platinum_workout_100.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/play_button_clicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/play_button_clicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/play_button_unclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/play_button_unclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/questloginboard.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/questloginboard.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/questloginboard_wider.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/questloginboard_wider.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/resting_heart_rate.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/resting_heart_rate.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/second_place.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/second_place.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/sets_10.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/sets_10.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/sets_200.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/sets_200.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/sets_50.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/sets_50.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/settingsbuttonclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/settingsbuttonclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/settingsbuttonunclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/settingsbuttonunclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/silver_workout_10.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/silver_workout_10.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/slide1.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/slide1.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/slide2.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/slide2.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/slide3.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/slide3.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/splash_image.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/splash_image.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/steel_workout_25.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/steel_workout_25.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/steps_10000.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/steps_10000.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/steps_100000.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/steps_100000.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/steps_5000.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/steps_5000.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/steps_50000.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/steps_50000.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/stop_button_clicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/stop_button_clicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/stop_button_unclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/stop_button_unclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/streak.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/streak.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/streak_14.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/streak_14.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/streak_3.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/streak_3.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/streak_30.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/streak_30.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/streak_7.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/streak_7.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/third_place.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/third_place.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/unclicked_customization_button_left.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/unclicked_customization_button_left.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/unclicked_customization_button_right.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/unclicked_customization_button_right.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/unique_3.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/unique_3.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/unique_8.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/unique_8.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/volume_1000.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/volume_1000.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/volume_10000.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/volume_10000.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/volume_50000.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/volume_50000.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/workoutbuttonclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/workoutbuttonclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/workoutbuttonunclicked.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/workoutbuttonunclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/xp_0_percent.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/xp_0_percent.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/xp_100_percent.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/xp_100_percent.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/xp_20_percent.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/xp_20_percent.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/xp_40_percent.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/xp_40_percent.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/xp_60_percent.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/xp_60_percent.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/xp_80_percent.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/xp_80_percent.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: button_clicked.png, button_signup_clicked.png">
+        <location
+            file="src/main/res/drawable/button_signup_clicked.png"/>
+        <location
+            file="src/main/res/drawable/button_clicked.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: button_signup_unclicked.png, button_unclicked.png">
+        <location
+            file="src/main/res/drawable/button_unclicked.png"/>
+        <location
+            file="src/main/res/drawable/button_signup_unclicked.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: character_male_workout.png, character_male_workout_classic.png">
+        <location
+            file="src/main/res/drawable/character_male_workout_classic.png"/>
+        <location
+            file="src/main/res/drawable/character_male_workout.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: dwelling_castle_furniture.png, dwelling_cottage_furniture.png, dwelling_shack_furniture.png, dwelling_tent_furniture.png">
+        <location
+            file="src/main/res/drawable/dwelling_tent_furniture.png"/>
+        <location
+            file="src/main/res/drawable/dwelling_shack_furniture.png"/>
+        <location
+            file="src/main/res/drawable/dwelling_cottage_furniture.png"/>
+        <location
+            file="src/main/res/drawable/dwelling_castle_furniture.png"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            prefs.edit().putFloat(key(exerciseId), amplitude).apply()"
+        errorLine2="            ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/workout/analysis/FullRomStore.kt"
+            line="22"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putBoolean(KEY_GOD_MODE, enabled).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/debug/GodModePrefs.kt"
+            line="33"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="            Uri.parse(&quot;market://details?id=$PLAY_STORE_PACKAGE&quot;),"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/health/HealthConnectIntents.kt"
+            line="21"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_STORE_WEB)))"
+        errorLine2="                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/health/HealthConnectIntents.kt"
+            line="26"
+            column="62"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                missionPrefs.edit().putString(&quot;last_steps_reward_date&quot;, today).apply()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/home/HomeViewModel.kt"
+            line="273"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                missionPrefs.edit().putString(&quot;last_sleep_reward_date&quot;, today).apply()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/home/HomeViewModel.kt"
+            line="286"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                missionPrefs.edit().putString(&quot;last_weekly_heart_reward_week&quot;, currentWeek).apply()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/home/HomeViewModel.kt"
+            line="299"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                missionPrefs.edit().putString(&quot;last_vitality_bonus_date&quot;, today).apply()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/home/HomeViewModel.kt"
+            line="312"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putBoolean(SessionRouter.INTRO_SEEN_KEY, true).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/intro/IntroViewModel.kt"
+            line="17"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putString(awardKey(workoutId), encodeBonuses(bonuses)).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/healthbonuses/SessionBonusStore.kt"
+            line="35"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putString(claimKey(day), encoded).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/healthbonuses/SessionBonusStore.kt"
+            line="49"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putString(claimKey(weekKey), ids.sorted().joinToString(&quot;,&quot;)).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/missions/WeeklyMissionService.kt"
+            line="148"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putString(swapKey(weekKey), &quot;${swap.fromId}|${swap.toId}&quot;).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/missions/WeeklyMissionService.kt"
+            line="164"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putBoolean(KEY_ENABLED, enabled).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/workout/orientation/WorkoutOrientation.kt"
+            line="17"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putBoolean(KEY_PRE_WORKOUT_CHECK_ENABLED, enabled).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/workout/WorkoutWeightPrefs.kt"
+            line="29"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putBoolean(KEY_WEIGHT_SUGGESTION_ENABLED, enabled).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/workout/WorkoutWeightPrefs.kt"
+            line="39"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putInt(KEY_WEIGHT_SUGGESTION_REP_THRESHOLD, threshold.coerceIn(5, 30)).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pixelfitquest/feature/workout/WorkoutWeightPrefs.kt"
+            line="46"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseTomlInstead"
+        message="Use version catalog instead"
+        errorLine1="    implementation(&quot;androidx.compose.material:material-icons-extended&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="159"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="UseTomlInstead"
+        message="Use version catalog instead"
+        errorLine1="    implementation(platform(&quot;com.google.firebase:firebase-bom:34.11.0&quot;))"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="170"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="UseTomlInstead"
+        message="Use version catalog instead"
+        errorLine1="    implementation(&quot;com.google.firebase:firebase-firestore&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="171"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="UseTomlInstead"
+        message="Use version catalog instead"
+        errorLine1="    implementation(&quot;androidx.work:work-runtime-ktx:2.11.1&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="174"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="UseTomlInstead"
+        message="Use version catalog instead"
+        errorLine1="    implementation(&quot;androidx.hilt:hilt-navigation-compose:1.3.0&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="183"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="UseTomlInstead"
+        message="Use version catalog instead"
+        errorLine1="    testImplementation(&quot;junit:junit:4.13.2&quot;)"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="204"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="UseTomlInstead"
+        message="Use version catalog instead"
+        errorLine1="    testImplementation(&quot;org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2&quot;)"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="205"
+            column="24"/>
+    </issue>
+
+</issues>
