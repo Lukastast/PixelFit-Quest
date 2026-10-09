@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.math.roundToInt
 
 @HiltViewModel
 class CustomizationViewModel @Inject constructor(
@@ -131,8 +130,6 @@ class CustomizationViewModel @Inject constructor(
                         current.copy(
                             userCoins = data.coins,
                             userLevel = data.level,
-                            heightCm = data.height,
-                            armLengthCm = data.armLength?.roundToInt() ?: ARM_CM_DEFAULT,
                         )
                     }
                 }
@@ -359,32 +356,6 @@ class CustomizationViewModel @Inject constructor(
         return meetsLevelGate(minLevel, level)
     }
 
-    // --- Body Stats Actions ---
-
-    fun setHeight(heightCm: Int) {
-        if (heightCm !in HEIGHT_CM_MIN..HEIGHT_CM_MAX) return
-        _uiState.update { it.copy(heightCm = heightCm) }
-        viewModelScope.launch {
-            userRepository.updateUserData(mapOf("height" to heightCm))
-        }
-    }
-
-    fun setArmLength(armLengthCm: Int) {
-        if (armLengthCm !in ARM_CM_MIN..ARM_CM_MAX) return
-        _uiState.update { it.copy(armLengthCm = armLengthCm) }
-        viewModelScope.launch {
-            userRepository.updateUserData(mapOf("armLength" to armLengthCm.toFloat()))
-        }
-    }
-
-    fun openStatsDialog() {
-        _uiState.update { it.copy(isStatsDialogOpen = true) }
-    }
-
-    fun closeStatsDialog() {
-        _uiState.update { it.copy(isStatsDialogOpen = false) }
-    }
-
     private fun saveData() {
         viewModelScope.launch {
             userRepository.saveCharacterData(_characterData.value)
@@ -392,11 +363,6 @@ class CustomizationViewModel @Inject constructor(
     }
 
     companion object {
-        const val HEIGHT_CM_MIN = 120
-        const val HEIGHT_CM_MAX = 220
-        const val ARM_CM_MIN = 20
-        const val ARM_CM_MAX = 120
-        const val ARM_CM_DEFAULT = 70
         const val GYM_UPGRADE_ID = "dwelling_gym"
         val GYM_UPGRADE_PRICE: Int get() = DwellingTier.GYM.coinPrice
     }

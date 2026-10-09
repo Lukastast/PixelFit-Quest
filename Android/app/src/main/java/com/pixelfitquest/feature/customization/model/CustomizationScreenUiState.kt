@@ -24,7 +24,4 @@ data class CustomizationScreenUiState(
     val unlockedBackgrounds: Set<String> = setOf("bg_classic", "bg_ember"),
     val userCoins: Int = 0,
     val userLevel: Int = 1,
-    val heightCm: Int = 178,
-    val armLengthCm: Int = 70,
-    val isStatsDialogOpen: Boolean = false,
 )
