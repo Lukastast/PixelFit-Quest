@@ -38,16 +38,12 @@
     <string name="customization_tab_home">Home</string>
     <string name="customization_tab_gym">Gym</string>
     <string name="customization_tab_background">Theme</string>
-    <string name="customization_tab_stats">Stats</string>
     <string name="gym_upgrade_title">Iron Gym Dwelling</string>
     <string name="gym_upgrade_desc">Upgrade your home to a 16-bit iron gym with weight equipment and workout bench.</string>
     <string name="gym_upgrade_equipped">Equipped</string>
     <string name="gym_upgrade_equip">Equip</string>
     <string name="gym_upgrade_use_default">Level Dwelling</string>
     <string name="gym_upgrade_not_enough_coins">Need more coins</string>
-    <string name="stats_title">Your stats</string>
-    <string name="height_label">Height</string>
-    <string name="stats_arm_length">Arm length</string>
     <string name="metric_cm_value">%1$s: %2$d cm</string>
     <string name="male">Male</string>
     <string name="female">Female</string>
@@ -55,9 +51,6 @@
     <string name="coming_soon">Coming Soon</string>
     <string name="select">Select</string>
     <string name="coins_label"> coins</string>
-    <string name="current_height">Current height: %1$s cm</string>
-    <string name="enter_height_hint">Enter height (e.g., 175)</string>
-    <string name="set_height">Set Height</string>
 
     <!-- Splash Screen -->
     <string name="splash_screen_desc">Splash Screen</string>
@@ -300,15 +293,6 @@
     <string name="export_saved">Workout log saved</string>
     <string name="export_failed">Export failed</string>
 
-    <!-- Body Metrics Screen -->
-    <string name="body_metrics_title">Body measurements</string>
-    <string name="body_metrics_card_title">Body measurements</string>
-    <string name="body_metrics_card_subtitle">Height and arm length for IMU tracking</string>
-    <string name="body_metrics_help">Arm length improves tracking for lat pulldown, bicep curl, and tricep extension. Height is used across IMU analysis.</string>
-    <string name="current_arm_length">Current arm length: %1$s cm</string>
-    <string name="enter_arm_length_hint">Enter arm length in cm (e.g., 68)</string>
-    <string name="arm_length_label">Arm length (cm)</string>
-    <string name="body_metrics_save">Save</string>
     <string name="leaderboard_pro_badge">PRO</string>
     <string name="leaderboard_pro_hint">Leaderboard</string>
 
