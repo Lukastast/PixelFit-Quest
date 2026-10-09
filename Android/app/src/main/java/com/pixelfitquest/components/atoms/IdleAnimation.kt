@@ -4,13 +4,15 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import com.pixelfitquest.R
 import kotlinx.coroutines.delay
@@ -30,21 +32,27 @@ fun IdleAnimation(
         "locked_woman" -> R.drawable.locked_woman_character_idle
         "fitness_character_male_idle" -> R.drawable.fitness_character_male_idle
         "fitness_character_woman_idle" -> R.drawable.fitness_character_woman_idle
+        "cape_hero_idle" -> R.drawable.cape_hero_idle
+        "iron_oak_idle" -> R.drawable.iron_oak_idle
+        "ember_sparrow_idle" -> R.drawable.ember_sparrow_idle
+        "coil_shade_idle" -> R.drawable.coil_shade_idle
         else -> R.drawable.character_woman_idle
     }
 
-    val spriteSheet = ImageBitmap.imageResource(spriteSheetId)
-    var currentFrame by remember { mutableStateOf(0) }
+    val resources = LocalContext.current.resources
+    val spriteSheet = remember(spriteSheetId) {
+        ImageBitmap.imageResource(resources, spriteSheetId)
+    }
+    var currentFrame by remember(spriteSheetId) { mutableIntStateOf(0) }
     val frameCount = 13
     val frameWidth = 6240f / frameCount
     val frameHeight = 480f
 
-    if (isAnimating) {
-        LaunchedEffect(Unit) {
-            while (true) {
-                delay(100L)
-                currentFrame = (currentFrame + 1) % frameCount
-            }
+    LaunchedEffect(isAnimating, spriteSheetId) {
+        if (!isAnimating) return@LaunchedEffect
+        while (true) {
+            delay(100L)
+            currentFrame = (currentFrame + 1) % frameCount
         }
     }
 
@@ -57,7 +65,7 @@ fun IdleAnimation(
             bottom = frameHeight
         ) {
             translate(left = -x, top = 0f) {
-                drawImage(spriteSheet)
+                drawImage(spriteSheet, filterQuality = FilterQuality.None)
             }
         }
     }
@@ -73,6 +81,10 @@ fun CharacterIdleAnimation(
     val spriteSheetId = when (variant) {
         "male_fitness" -> R.drawable.fitness_character_male_idle
         "female_fitness" -> R.drawable.fitness_character_woman_idle
+        "cape_hero" -> R.drawable.cape_hero_idle
+        "iron_oak" -> R.drawable.iron_oak_idle
+        "ember_sparrow" -> R.drawable.ember_sparrow_idle
+        "coil_shade" -> R.drawable.coil_shade_idle
         "shadow", "locked_male", "locked_woman" -> {
             if (gender == "male") R.drawable.locked_male_character_idle
             else R.drawable.locked_woman_character_idle
@@ -83,18 +95,20 @@ fun CharacterIdleAnimation(
         }
     }
 
-    val spriteSheet = ImageBitmap.imageResource(spriteSheetId)
-    var currentFrame by remember { mutableStateOf(0) }
+    val resources = LocalContext.current.resources
+    val spriteSheet = remember(spriteSheetId) {
+        ImageBitmap.imageResource(resources, spriteSheetId)
+    }
+    var currentFrame by remember(spriteSheetId) { mutableIntStateOf(0) }
     val frameCount = 13
     val frameWidth = 6240f / frameCount
     val frameHeight = 480f
 
-    if (isAnimating) {
-        LaunchedEffect(Unit) {
-            while (true) {
-                delay(100L)
-                currentFrame = (currentFrame + 1) % frameCount
-            }
+    LaunchedEffect(isAnimating, spriteSheetId) {
+        if (!isAnimating) return@LaunchedEffect
+        while (true) {
+            delay(100L)
+            currentFrame = (currentFrame + 1) % frameCount
         }
     }
 
@@ -102,7 +116,7 @@ fun CharacterIdleAnimation(
         val x = currentFrame * frameWidth
         clipRect(left = 0f, top = 0f, right = frameWidth, bottom = frameHeight) {
             translate(left = -x) {
-                drawImage(spriteSheet)
+                drawImage(spriteSheet, filterQuality = FilterQuality.None)
             }
         }
     }

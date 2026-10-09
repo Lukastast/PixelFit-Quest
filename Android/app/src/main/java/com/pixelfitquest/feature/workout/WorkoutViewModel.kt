@@ -1,9 +1,9 @@
 package com.pixelfitquest.feature.workout
 
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.pixelfitquest.feature.customization.model.CharacterData
-import com.pixelfitquest.feature.workout.analysis.AnalyzerUser
 import com.pixelfitquest.feature.workout.analysis.DetectedRep
 import com.pixelfitquest.feature.workout.analysis.ExerciseProfiles
 import com.pixelfitquest.feature.workout.analysis.FullRomStore
@@ -20,26 +20,22 @@ import com.pixelfitquest.feature.workout.model.Workout
 import com.pixelfitquest.feature.workout.model.WorkoutPhase
 import com.pixelfitquest.feature.workout.model.WorkoutSet
 import com.pixelfitquest.feature.workout.model.enums.ExerciseType
-import com.pixelfitquest.feature.workout.model.enums.WorkoutFeedback
 import com.pixelfitquest.feature.workout.sensor.ImuSample
 import com.pixelfitquest.feature.workoutBuilder.model.WorkoutPlan
 import com.pixelfitquest.feature.progress.data.LiftHistoryDao
 import com.pixelfitquest.feature.progress.data.toLiftHistoryEntity
 import com.pixelfitquest.feature.streak.data.WeeklyStreakRepository
-import com.pixelfitquest.firebase.model.UserData
 import com.pixelfitquest.firebase.repository.UserRepository
 import com.pixelfitquest.firebase.repository.WorkoutRepository
 import com.pixelfitquest.feature.achievements.AchievementSyncService
 import com.pixelfitquest.viewmodel.PixelFitViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.util.UUID
@@ -54,18 +50,20 @@ class WorkoutViewModel @Inject constructor(
     private val liftHistoryDao: LiftHistoryDao,
     private val achievementSyncService: AchievementSyncService,
     private val fullRomStore: FullRomStore,
+    private val prefs: SharedPreferences,
+    private val repEditLog: RepEditLog,
 ) : PixelFitViewModel() {
 
     private val _workoutState = MutableStateFlow(WorkoutState())
     val workoutState: StateFlow<WorkoutState> = _workoutState.asStateFlow()
 
-    private val _userData = MutableStateFlow<UserData?>(null)
-    val userData: StateFlow<UserData?> = _userData.asStateFlow()
+    /** Hot path during Recording — do not fold into [workoutState] (avoids full-tree recomposition). */
+    private val _recordingHud = MutableStateFlow(RecordingHud())
+    val recordingHud: StateFlow<RecordingHud> = _recordingHud.asStateFlow()
 
-    private val _feedbackEvent = Channel<WorkoutFeedback>(Channel.BUFFERED)
-    val feedbackEvent = _feedbackEvent.receiveAsFlow()
-    private val _countdownEvent = Channel<Unit>(Channel.BUFFERED)
-    val countdownEvent = _countdownEvent.receiveAsFlow()
+    /** Hot path during Rest — second-granularity display; isolate from [workoutState]. */
+    private val _restRemainingMs = MutableStateFlow(0L)
+    val restRemainingMs: StateFlow<Long> = _restRemainingMs.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -93,10 +91,12 @@ class WorkoutViewModel @Inject constructor(
     private var exerciseFormSum = 0f
     private var exerciseSetCount = 0
     private var exerciseVolume = 0f
+    private val sideByExercise = mutableMapOf<Int, String>()
+    /** True after setRom(100%)/replace in the current review; confirm must not raise above that baseline. */
+    private var fullRomRecalibratedThisReview = false
 
     init {
         launchCatching {
-            loadUserData()
             loadCharacterData()
         }
     }
@@ -127,6 +127,7 @@ class WorkoutViewModel @Inject constructor(
         exerciseFormSum = 0f
         exerciseSetCount = 0
         exerciseVolume = 0f
+        sideByExercise.clear()
 
         val initialWeight = plan.items.firstOrNull()?.weight ?: 0f
         _workoutState.value = WorkoutState(
@@ -142,7 +143,8 @@ class WorkoutViewModel @Inject constructor(
     }
 
     fun startSet() {
-        if (_workoutState.value.phase != WorkoutPhase.Idle) return
+        val phase = _workoutState.value.phase
+        if (phase != WorkoutPhase.Idle && phase != WorkoutPhase.Resting) return
         ensureExerciseSaved()
         val type = currentExerciseType ?: return
         if (!ExerciseCatalog.hasImuSupport(type)) {
@@ -150,23 +152,15 @@ class WorkoutViewModel @Inject constructor(
             showLogOnlyReview(sampleCount = 0)
             return
         }
+        // No 3-2-1 countdown (#170): start IMU recording immediately.
         samples.clear()
-        _workoutState.value = _workoutState.value.copy(
-            phase = WorkoutPhase.Countdown,
-            sampleCount = 0,
-            recordingSeconds = 0f,
-            review = null,
-        )
-        viewModelScope.launch { _countdownEvent.send(Unit) }
-    }
-
-    fun onCountdownFinished() {
-        if (_workoutState.value.phase != WorkoutPhase.Countdown) return
-        samples.clear()
+        _recordingHud.value = RecordingHud()
+        _restRemainingMs.value = 0L
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Recording,
-            sampleCount = 0,
-            recordingSeconds = 0f,
+            review = null,
+            restPaused = false,
+            restAutostart = false,
         )
     }
 
@@ -174,10 +168,7 @@ class WorkoutViewModel @Inject constructor(
         if (_workoutState.value.phase != WorkoutPhase.Recording) return
         if (count % 8 != 0) return
         val seconds = if (count < 2) 0f else (lastNanos - firstNanos) / 1_000_000_000f
-        _workoutState.value = _workoutState.value.copy(
-            sampleCount = count,
-            recordingSeconds = seconds,
-        )
+        _recordingHud.value = RecordingHud(sampleCount = count, recordingSeconds = seconds)
     }
 
     fun finishSet(recorded: List<ImuSample>) {
@@ -190,53 +181,66 @@ class WorkoutViewModel @Inject constructor(
             return
         }
         val profile = ExerciseProfiles.forType(type)
-        val user = _userData.value
         val analysis = setAnalyzer.analyzeSet(
             samples = samples.toList(),
             profile = profile,
-            user = AnalyzerUser(
-                heightCm = user?.height ?: 178,
-                armLengthCm = user?.armLength,
-            ),
             fullRom = fullRomStore.get(type.type),
         )
+        fullRomRecalibratedThisReview = false
         val review = SetReviewState(
             analysis = analysis,
             reps = analysis.reps,
             sampleCount = samples.size,
             setNumber = currentSetNumber,
             exerciseName = ExerciseCatalog.definition(type).displayName,
+            notes = "",
         )
+        _recordingHud.value = RecordingHud(sampleCount = samples.size, recordingSeconds = _recordingHud.value.recordingSeconds)
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Reviewing,
-            sampleCount = samples.size,
             review = review,
+            notes = "",
+        )
+        logEdit(
+            "detected",
+            mapOf(
+                "accepted" to analysis.acceptedReps.size.toString(),
+                "shown" to review.reps.size.toString(),
+                "reps" to repSummary(review.reps),
+                "flags" to analysis.flags.joinToString(","),
+            ),
         )
         Log.d("WorkoutVM", "Analyzed set $currentSetNumber: ${analysis.acceptedReps.size} accepted, ${analysis.candidateReps.size} candidates")
     }
 
     fun redoSet() {
         if (_workoutState.value.phase != WorkoutPhase.Reviewing) return
+        fullRomRecalibratedThisReview = false
         samples.clear()
+        _recordingHud.value = RecordingHud()
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Idle,
-            sampleCount = 0,
-            recordingSeconds = 0f,
             review = null,
+            notes = null,
         )
     }
 
     fun acceptCandidate(repIndex: Int) = mutateReview { reps ->
-        reps.map { if (it.index == repIndex) it.copy(accepted = true, tags = it.tags - "candidate") else it }
+        logEdit("accept", mapOf("rep" to repIndex.toString(), "before" to repSummary(reps)))
+        reps.map {
+            if (it.index == repIndex) it.copy(accepted = true, tags = it.tags - "candidate") else it
+        }
     }
 
     fun removeRep(repIndex: Int) = mutateReview { reps ->
+        logEdit("remove", mapOf("rep" to repIndex.toString(), "before" to repSummary(reps)))
         reps.filterNot { it.index == repIndex }.reindex()
     }
 
     fun mergeWithNext(repIndex: Int) = mutateReview { reps ->
         val i = reps.indexOfFirst { it.index == repIndex }
         if (i < 0 || i >= reps.lastIndex) return@mutateReview reps
+        logEdit("merge", mapOf("rep" to repIndex.toString(), "before" to repSummary(reps)))
         val a = reps[i]
         val b = reps[i + 1]
         val tempo = averageOrNull(a.tempoScore, b.tempoScore)
@@ -261,11 +265,13 @@ class WorkoutViewModel @Inject constructor(
             tags = (a.tags + b.tags + "merged").distinct() - "candidate",
             accepted = true,
             confidence = maxOf(a.confidence, b.confidence),
+            assisted = a.assisted || b.assisted,
         )
         (reps.take(i) + merged + reps.drop(i + 2)).reindex()
     }
 
     fun addRep() = mutateReview { reps ->
+        logEdit("add", mapOf("before" to repSummary(reps)))
         val last = reps.lastOrNull()
         val stub = DetectedRep(
             index = reps.size,
@@ -289,6 +295,16 @@ class WorkoutViewModel @Inject constructor(
     }
 
     fun adjustRom(repIndex: Int, delta: Int) = mutateReview { reps ->
+        val current = reps.firstOrNull { it.index == repIndex }
+        logEdit(
+            "adjust_rom",
+            mapOf(
+                "rep" to repIndex.toString(),
+                "from" to (current?.romScore?.toInt() ?: 0).toString(),
+                "delta" to delta.toString(),
+                "amp" to (current?.romEstimate ?: 0f).toString(),
+            ),
+        )
         reps.map { rep ->
             if (rep.index != repIndex) rep
             else rep.withRomPercent(rep.romScore + delta)
@@ -296,28 +312,128 @@ class WorkoutViewModel @Inject constructor(
     }
 
     fun setRom(repIndex: Int, percent: Int) = mutateReview { reps ->
-        val current = reps.firstOrNull { it.index == repIndex }
-        if (percent >= 100 && current != null) {
-            currentExerciseType?.let { fullRomStore.raise(it.type, current.romEstimate) }
+        val current = reps.firstOrNull { it.index == repIndex } ?: return@mutateReview reps
+        if (percent >= 100 && current.romEstimate > 1e-4f) {
+            val baseline = current.romEstimate
+            currentExerciseType?.let { fullRomStore.replace(it.type, baseline) }
+            fullRomRecalibratedThisReview = true
+            logEdit(
+                "recalibrate_rom",
+                mapOf(
+                    "rep" to repIndex.toString(),
+                    "baseline" to baseline.toString(),
+                    "before" to repSummary(reps),
+                ),
+            )
+            return@mutateReview reps.map { rep ->
+                when {
+                    rep.index == repIndex -> rep.withRomPercent(100f)
+                    rep.isManual || "rom_override" in rep.tags -> rep
+                    else -> rep.scoredAgainst(baseline)
+                }
+            }
         }
+        logEdit(
+            "set_rom",
+            mapOf(
+                "rep" to repIndex.toString(),
+                "percent" to percent.toString(),
+                "amp" to current.romEstimate.toString(),
+            ),
+        )
         reps.map { rep ->
             if (rep.index != repIndex) rep
             else rep.withRomPercent(percent.toFloat())
         }
     }
 
-    fun confirmSet() {
+    fun toggleAssisted(repIndex: Int) = mutateReview { reps ->
+        val next = reps.map { rep ->
+            if (rep.index != repIndex) rep else rep.copy(assisted = !rep.assisted)
+        }
+        val assisted = next.firstOrNull { it.index == repIndex }?.assisted == true
+        logEdit("assisted", mapOf("rep" to repIndex.toString(), "on" to assisted.toString()))
+        next
+    }
+
+    fun setSide(side: String) {
+        if (side != "L" && side != "R") return
+        val type = currentExerciseType ?: return
+        if (!ExerciseCatalog.definition(type).unilateral) return
+        sideByExercise[currentExerciseIndex] = side
+        _workoutState.value = _workoutState.value.copy(side = side)
+        logEdit("side", mapOf("side" to side))
+    }
+
+    fun updateNotes(notes: String) {
         val review = _workoutState.value.review ?: return
-        if (_workoutState.value.phase != WorkoutPhase.Reviewing) return
+        _workoutState.value = _workoutState.value.copy(
+            review = review.copy(notes = notes),
+            notes = notes,
+        )
+    }
+
+    fun pauseRest() {
+        val state = _workoutState.value
+        if (state.phase != WorkoutPhase.Resting || state.restPaused) return
+        _workoutState.value = state.copy(restPaused = true)
+    }
+
+    fun resumeRest() {
+        val state = _workoutState.value
+        if (state.phase != WorkoutPhase.Resting || !state.restPaused) return
+        _workoutState.value = state.copy(restPaused = false)
+    }
+
+    fun stopRestAutostart() {
+        val state = _workoutState.value
+        if (state.phase != WorkoutPhase.Resting) return
+        _workoutState.value = state.copy(restAutostart = false)
+    }
+
+    fun tickRest(deltaMs: Long): Long {
+        val state = _workoutState.value
+        if (state.phase != WorkoutPhase.Resting || state.restPaused) return _restRemainingMs.value
+        val next = (_restRemainingMs.value - deltaMs).coerceAtLeast(0L)
+        _restRemainingMs.value = next
+        return next
+    }
+
+    fun onRestFinished() {
+        val state = _workoutState.value
+        if (state.phase != WorkoutPhase.Resting || state.restPaused || _restRemainingMs.value > 0L) return
+        if (state.restAutostart) startSet()
+    }
+
+    fun confirmSet() {
+        val state = _workoutState.value
+        val review = state.review ?: return
+        if (state.phase != WorkoutPhase.Reviewing) return
+        // Drop Reviewing immediately so a second tap cannot save the set twice
+        // while finishWorkout() is still in flight.
+        _workoutState.value = state.copy(phase = WorkoutPhase.Idle)
 
         val accepted = review.reps.filter { it.accepted }
+        _workoutState.value.side?.let { sideByExercise[currentExerciseIndex] = it }
         currentExerciseType?.let { type ->
-            val peak = accepted.maxOfOrNull { it.romEstimate } ?: 0f
-            fullRomStore.raise(type.type, peak)
+            fullRomStore.raiseFromConfirmedSet(
+                exerciseId = type.type,
+                acceptedAmplitudes = accepted.map { it.romEstimate },
+                userRecalibrated = fullRomRecalibratedThisReview,
+            )
         }
+        fullRomRecalibratedThisReview = false
+        logEdit(
+            "confirm",
+            mapOf(
+                "accepted" to accepted.size.toString(),
+                "shown" to review.reps.size.toString(),
+                "reps" to repSummary(accepted),
+                "side" to (_workoutState.value.side ?: ""),
+                "assisted" to accepted.count { it.assisted }.toString(),
+            ),
+        )
         saveConfirmedSet(review, accepted)
-        triggerSetFeedback(review.meanFormScore)
-
         val plan = currentPlan ?: return
         val currentItem = plan.items.getOrNull(currentExerciseIndex) ?: return
         val wasLastSet = currentSetNumber == currentItem.sets
@@ -328,6 +444,7 @@ class WorkoutViewModel @Inject constructor(
             currentExerciseIndex++
             currentSetNumber = 1
             if (currentExerciseIndex >= plan.items.size) {
+                _workoutState.value = _workoutState.value.copy(review = null, notes = null)
                 finishWorkout()
                 return
             }
@@ -343,13 +460,19 @@ class WorkoutViewModel @Inject constructor(
         }
 
         samples.clear()
+        val resting = RestTimerPrefs.isEnabled(prefs)
+        val nextSide = rememberedSide()
+        _recordingHud.value = RecordingHud()
+        _restRemainingMs.value = if (resting) RestTimerPrefs.getSeconds(prefs) * 1000L else 0L
         _workoutState.value = _workoutState.value.copy(
-            phase = WorkoutPhase.Idle,
+            phase = if (resting) WorkoutPhase.Resting else WorkoutPhase.Idle,
             currentSetNumber = currentSetNumber,
             currentExerciseIndex = currentExerciseIndex,
-            sampleCount = 0,
-            recordingSeconds = 0f,
             review = null,
+            notes = null,
+            side = nextSide,
+            restPaused = false,
+            restAutostart = resting && RestTimerPrefs.isAutostartEnabled(prefs),
         )
     }
 
@@ -357,10 +480,15 @@ class WorkoutViewModel @Inject constructor(
         samples.clear()
         val wasTracking = _workoutState.value.isTracking
         val shouldDiscard = wasTracking && (sessionSetCount == 0 || sessionRepCount == 0)
+        _recordingHud.value = RecordingHud()
+        _restRemainingMs.value = 0L
         _workoutState.value = _workoutState.value.copy(
             isTracking = false,
             phase = WorkoutPhase.Idle,
             review = null,
+            notes = null,
+            restPaused = false,
+            restAutostart = false,
         )
         if (shouldDiscard && workoutId.isNotBlank()) {
             launchCatching {
@@ -393,6 +521,36 @@ class WorkoutViewModel @Inject constructor(
     fun setWeight(newWeightKg: Float) {
         val rounded = Math.round(newWeightKg.coerceAtLeast(0f) * 100f) / 100f
         _workoutState.value = _workoutState.value.copy(weight = rounded)
+    }
+
+    private fun rememberedSide(): String? {
+        val type = currentExerciseType ?: return null
+        if (!ExerciseCatalog.definition(type).unilateral) return null
+        return sideByExercise[currentExerciseIndex]
+    }
+
+    private fun repSummary(reps: List<DetectedRep>): String =
+        reps.joinToString("|") { rep ->
+            val flag = when {
+                rep.assisted && rep.accepted -> "as"
+                rep.accepted -> "a"
+                else -> "c"
+            }
+            "${rep.index}:$flag:${rep.romEstimate}:${rep.romScore.toInt()}:${rep.durationMs}:${rep.tags.joinToString(",")}"
+        }
+
+    private fun logEdit(action: String, fields: Map<String, String> = emptyMap()) {
+        try {
+            repEditLog.append(
+                action,
+                fields + mapOf(
+                    "exercise" to (currentExerciseType?.type ?: ""),
+                    "set" to currentSetNumber.toString(),
+                ),
+            )
+        } catch (e: Exception) {
+            Log.w("WorkoutVM", "Rep edit log skipped", e)
+        }
     }
 
     private fun mutateReview(transform: (List<DetectedRep>) -> List<DetectedRep>) {
@@ -470,6 +628,8 @@ class WorkoutViewModel @Inject constructor(
             levelDeg = level,
             flags = review.analysis.flags,
             repRecords = records,
+            side = _workoutState.value.side,
+            notes = review.notes.trim().ifEmpty { null },
         )
         val repsCount = accepted.size
         sessionRepCount += repsCount
@@ -567,6 +727,7 @@ class WorkoutViewModel @Inject constructor(
      * profile — that would invent form scores. User adds reps on the review overlay.
      */
     private fun showLogOnlyReview(sampleCount: Int) {
+        fullRomRecalibratedThisReview = false
         val type = currentExerciseType ?: return
         val review = SetReviewState(
             analysis = SetAnalysis(
@@ -578,36 +739,14 @@ class WorkoutViewModel @Inject constructor(
             sampleCount = sampleCount,
             setNumber = currentSetNumber,
             exerciseName = ExerciseCatalog.definition(type).displayName,
+            notes = "",
         )
+        _recordingHud.value = RecordingHud(sampleCount = sampleCount, recordingSeconds = 0f)
         _workoutState.value = _workoutState.value.copy(
             phase = WorkoutPhase.Reviewing,
-            sampleCount = sampleCount,
-            recordingSeconds = 0f,
             review = review,
+            notes = "",
         )
-    }
-
-    private fun triggerSetFeedback(score: Float) {
-        val feedback = when {
-            score >= 90 -> WorkoutFeedback.PERFECT
-            score >= 80 -> WorkoutFeedback.EXCELLENT
-            score >= 70 -> WorkoutFeedback.GREAT
-            score >= 50 -> WorkoutFeedback.GOOD
-            else -> WorkoutFeedback.MISS
-        }
-        viewModelScope.launch { _feedbackEvent.send(feedback) }
-    }
-
-    private fun loadUserData() {
-        viewModelScope.launch {
-            try {
-                userRepository.getUserData().collect { data ->
-                    _userData.value = data
-                }
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to load user data"
-            }
-        }
     }
 
     private fun loadCharacterData() {
@@ -625,9 +764,16 @@ class WorkoutViewModel @Inject constructor(
         val totalSets: Int = 0,
         val currentExerciseIndex: Int = 0,
         val weight: Float = 0f,
-        val sampleCount: Int = 0,
-        val recordingSeconds: Float = 0f,
         val review: SetReviewState? = null,
         val notes: String? = null,
+        val side: String? = null,
+        val restPaused: Boolean = false,
+        val restAutostart: Boolean = false,
+    )
+
+    /** Narrow Recording HUD — updated on throttled sensor ticks only. */
+    data class RecordingHud(
+        val sampleCount: Int = 0,
+        val recordingSeconds: Float = 0f,
     )
 }

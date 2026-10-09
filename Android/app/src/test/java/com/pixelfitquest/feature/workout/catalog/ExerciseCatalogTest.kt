@@ -161,4 +161,12 @@ class ExerciseCatalogTest {
         assertEquals(setOf(ExerciseCategory.CORE), grouped.keys)
         assertTrue(grouped.getValue(ExerciseCategory.CORE).all { it.category == ExerciseCategory.CORE })
     }
+
+    @Test
+    fun oneSidedLiftsCanBeMarkedLeftOrRight() {
+        assertTrue(ExerciseCatalog.definition(ExerciseType.CABLE_LATERAL_RAISE).unilateral)
+        assertTrue(ExerciseCatalog.definition(ExerciseType.LATERAL_RAISE).unilateral)
+        assertFalse(ExerciseCatalog.definition(ExerciseType.BENCH_PRESS).unilateral)
+        assertFalse(ExerciseCatalog.definition(ExerciseType.SKULL_CRUSHER).unilateral)
+    }
 }

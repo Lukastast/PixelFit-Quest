@@ -25,7 +25,6 @@ object ExerciseProfiles {
         maxRepDurationMs = 5_000,
         minAmplitude = 0.15f,
         typicalAmplitude = 0.45f,
-        romFactor = 0.25f,
         quality = barbellQuality,
     )
 
@@ -40,7 +39,6 @@ object ExerciseProfiles {
         maxRepDurationMs = 6_000,
         minAmplitude = 0.20f,
         typicalAmplitude = 0.80f,
-        romFactor = 0.45f,
         quality = barbellQuality,
     )
 
@@ -55,8 +53,6 @@ object ExerciseProfiles {
         maxRepDurationMs = 5_000,
         minAmplitude = 0.25f,
         typicalAmplitude = 0.90f,
-        romFactor = 0.50f,
-        usesArmLength = true,
         quality = cableQuality,
     )
 
@@ -71,7 +67,6 @@ object ExerciseProfiles {
         maxRepDurationMs = 5_000,
         minAmplitude = 0.15f,
         typicalAmplitude = 0.60f,
-        romFactor = 0.35f,
         quality = cableQuality,
     )
 
@@ -86,8 +81,6 @@ object ExerciseProfiles {
         maxRepDurationMs = 4_500,
         minAmplitude = 0.50f,
         typicalAmplitude = 2.0f,
-        romFactor = 0.18f,
-        usesArmLength = true,
         quality = barbellQuality,
     )
 
@@ -102,8 +95,6 @@ object ExerciseProfiles {
         maxRepDurationMs = 4_500,
         minAmplitude = 0.40f,
         typicalAmplitude = 1.6f,
-        romFactor = 0.20f,
-        usesArmLength = true,
         quality = cableQuality,
     )
 
@@ -112,7 +103,6 @@ object ExerciseProfiles {
         displayName = "Overhead Press",
         minAmplitude = 0.12f,
         typicalAmplitude = 0.40f,
-        romFactor = 0.22f,
     )
 
     val seatedOverheadPress = overheadPress.copy(
@@ -124,7 +114,6 @@ object ExerciseProfiles {
         id = ExerciseType.CLOSE_GRIP_BENCH_PRESS.type,
         displayName = "Close-Grip Bench Press",
         typicalAmplitude = 0.48f,
-        romFactor = 0.27f,
     )
 
     val floorPress = benchPress.copy(
@@ -133,15 +122,14 @@ object ExerciseProfiles {
         maxRepDurationMs = 4_500,
         minAmplitude = 0.10f,
         typicalAmplitude = 0.28f,
-        romFactor = 0.16f,
     )
 
     val inclineBenchPress = benchPress.copy(
         id = ExerciseType.INCLINE_BENCH_PRESS.type,
         displayName = "Incline Bench Press",
-        minAmplitude = 0.12f,
-        typicalAmplitude = 0.35f,
-        romFactor = 0.20f,
+        // Incline travel is more horizontal, so the vertical component is shorter than flat bench.
+        minAmplitude = 0.09f,
+        typicalAmplitude = 0.30f,
     )
 
     val declineBenchPress = benchPress.copy(
@@ -149,14 +137,12 @@ object ExerciseProfiles {
         displayName = "Decline Bench Press",
         minAmplitude = 0.12f,
         typicalAmplitude = 0.32f,
-        romFactor = 0.18f,
     )
 
     val frontSquat = squat.copy(
         id = ExerciseType.FRONT_SQUAT.type,
         displayName = "Front Squat",
         typicalAmplitude = 0.75f,
-        romFactor = 0.42f,
     )
 
     val romanianDeadlift = benchPress.copy(
@@ -166,7 +152,6 @@ object ExerciseProfiles {
         maxRepDurationMs = 6_000,
         minAmplitude = 0.18f,
         typicalAmplitude = 0.40f,
-        romFactor = 0.22f,
     )
 
     val goodMorning = romanianDeadlift.copy(
@@ -187,7 +172,6 @@ object ExerciseProfiles {
         maxRepDurationMs = 6_000,
         minAmplitude = 0.25f,
         typicalAmplitude = 0.55f,
-        romFactor = 0.30f,
         quality = barbellQuality,
     )
 
@@ -195,7 +179,6 @@ object ExerciseProfiles {
         id = ExerciseType.SUMO_DEADLIFT.type,
         displayName = "Sumo Deadlift",
         typicalAmplitude = 0.50f,
-        romFactor = 0.28f,
     )
 
     val rackPull = deadlift.copy(
@@ -203,7 +186,6 @@ object ExerciseProfiles {
         displayName = "Rack Pull",
         minAmplitude = 0.12f,
         typicalAmplitude = 0.28f,
-        romFactor = 0.16f,
     )
 
     val hipThrust = deadlift.copy(
@@ -213,7 +195,6 @@ object ExerciseProfiles {
         maxRepDurationMs = 5_000,
         minAmplitude = 0.12f,
         typicalAmplitude = 0.30f,
-        romFactor = 0.17f,
     )
 
     val ezBarCurl = bicepCurl.copy(
@@ -242,9 +223,10 @@ object ExerciseProfiles {
         eccentricFirst = true,
         minRepDurationMs = 600,
         maxRepDurationMs = 4_500,
-        minAmplitude = 0.40f,
+        minAmplitude = 0.55f,
         typicalAmplitude = 1.5f,
-        romFactor = 0.16f,
+        // Elbow flexion wobble under ~35° must not split one skull crusher into several reps.
+        minReversal = 0.62f,
         quality = barbellQuality,
     )
 
@@ -259,7 +241,6 @@ object ExerciseProfiles {
         maxRepDurationMs = 5_000,
         minAmplitude = 0.15f,
         typicalAmplitude = 0.45f,
-        romFactor = 0.25f,
         quality = barbellQuality,
     )
 

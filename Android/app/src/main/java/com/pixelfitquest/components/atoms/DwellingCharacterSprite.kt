@@ -31,10 +31,12 @@ fun DwellingCharacterSprite(
             )
         }
         CharacterPose.SITTING -> {
-            val sheetRes = if (isFemale) {
-                R.drawable.character_woman_sitting
-            } else {
-                R.drawable.character_male_sitting
+            val sheetRes = when (variant) {
+                "cape_hero" -> R.drawable.cape_hero_sitting
+                "iron_oak" -> R.drawable.iron_oak_sitting
+                "ember_sparrow" -> R.drawable.ember_sparrow_sitting
+                "coil_shade" -> R.drawable.coil_shade_sitting
+                else -> if (isFemale) R.drawable.character_woman_sitting else R.drawable.character_male_sitting
             }
             SpriteSheetPlayer(
                 sheet = ImageBitmap.imageResource(sheetRes),

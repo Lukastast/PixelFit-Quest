@@ -101,18 +101,33 @@ class DwellingTierTest {
         // Cottage portrait anchors (bed left, fireplace right, rug center)
         val cottageLie = DwellingVisuals.characterAnchor(DwellingTier.COTTAGE, CharacterPose.LYING, isLandscape = false)
         val cottageStand = DwellingVisuals.characterAnchor(DwellingTier.COTTAGE, CharacterPose.STANDING, isLandscape = false)
+        val cottageSit = DwellingVisuals.characterAnchor(DwellingTier.COTTAGE, CharacterPose.SITTING, isLandscape = false)
         assertEquals(0.15f, cottageLie.first, 0.01f)
         assertEquals(0.66f, cottageLie.second, 0.01f)
         assertEquals(0.50f, cottageStand.first, 0.01f)
         assertEquals(0.82f, cottageStand.second, 0.01f)
+        // Sitting by the fireplace on the right (#169)
+        assertEquals(0.72f, cottageSit.first, 0.01f)
+        assertEquals(0.82f, cottageSit.second, 0.01f)
 
         // Castle portrait anchors (bed left, grand hearth right, carpet center)
         val castleLie = DwellingVisuals.characterAnchor(DwellingTier.CASTLE, CharacterPose.LYING, isLandscape = false)
         val castleStand = DwellingVisuals.characterAnchor(DwellingTier.CASTLE, CharacterPose.STANDING, isLandscape = false)
+        val castleSit = DwellingVisuals.characterAnchor(DwellingTier.CASTLE, CharacterPose.SITTING, isLandscape = false)
         assertEquals(0.15f, castleLie.first, 0.01f)
         assertEquals(0.66f, castleLie.second, 0.01f)
         assertEquals(0.50f, castleStand.first, 0.01f)
         assertEquals(0.82f, castleStand.second, 0.01f)
+        assertEquals(0.72f, castleSit.first, 0.01f)
+        assertEquals(0.82f, castleSit.second, 0.01f)
+
+        // Landscape cottage / castle: sit on the rug in front of the right hearth
+        val cottageSitLs = DwellingVisuals.characterAnchor(DwellingTier.COTTAGE, CharacterPose.SITTING, isLandscape = true)
+        val castleSitLs = DwellingVisuals.characterAnchor(DwellingTier.CASTLE, CharacterPose.SITTING, isLandscape = true)
+        assertEquals(0.78f, cottageSitLs.first, 0.01f)
+        assertEquals(0.88f, cottageSitLs.second, 0.01f)
+        assertEquals(0.78f, castleSitLs.first, 0.01f)
+        assertEquals(0.88f, castleSitLs.second, 0.01f)
     }
 
     @Test
