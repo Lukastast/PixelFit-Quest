@@ -130,6 +130,14 @@ android {
         buildConfig = true
     }
     buildToolsVersion = "36.0.0"
+
+    lint {
+        // Existing issues are recorded in lint-baseline.xml so CI starts green.
+        // New issues fail :app:lintDebug. Fix them; do not grow the baseline.
+        baseline = file("lint-baseline.xml")
+        abortOnError = true
+        checkDependencies = false
+    }
 }
 
 kotlin {
