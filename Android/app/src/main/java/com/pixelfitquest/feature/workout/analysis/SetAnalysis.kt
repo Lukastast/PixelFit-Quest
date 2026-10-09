@@ -2,11 +2,6 @@ package com.pixelfitquest.feature.workout.analysis
 
 const val ANALYSIS_VERSION = 3
 
-data class AnalyzerUser(
-    val heightCm: Int,
-    val armLengthCm: Float? = null,
-)
-
 data class DetectedRep(
     val index: Int,
     val tStartNanos: Long,

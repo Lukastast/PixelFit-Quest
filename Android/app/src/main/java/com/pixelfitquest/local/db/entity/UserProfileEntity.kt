@@ -10,8 +10,6 @@ const val LOCAL_PROFILE_ID = "local"
 @Entity(tableName = "user_profile")
 data class UserProfileEntity(
     @PrimaryKey val id: String = LOCAL_PROFILE_ID,
-    val height: Int = 178,
-    val armLength: Float? = null,
     val musicVolume: Int = 50,
     val level: Int = 1,
     val coins: Int = 0,
@@ -42,8 +40,6 @@ data class UserProfileEntity(
     val rewardedSetsCount: Int = 0,
 ) {
     fun toUserData(): UserData = UserData(
-        height = height,
-        armLength = armLength,
         musicVolume = musicVolume,
         level = level,
         coins = coins,
