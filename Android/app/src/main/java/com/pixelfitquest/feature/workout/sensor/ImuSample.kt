@@ -7,6 +7,7 @@ data class TimedVec3(
     val x: Float,
     val y: Float,
     val z: Float,
+    val accuracy: Int = 0,
 )
 
 data class TimedQuat(
@@ -15,14 +16,18 @@ data class TimedQuat(
     val y: Float,
     val z: Float,
     val w: Float,
+    val accuracy: Int = 0,
 )
 
-/** Raw phone-IMU streams, sensor timestamps in ns (boot time). */
+/**
+ * Streams the analyzer sees. Timestamps are elapsed-realtime nanoseconds.
+ * [linearAccel] is unused and defaults empty. Game rotation is not a field.
+ */
 data class ImuTrace(
     val accel: List<TimedVec3>,
     val gyro: List<TimedVec3>,
     val rotation: List<TimedQuat>,
-    val linearAccel: List<TimedVec3>,
+    val linearAccel: List<TimedVec3> = emptyList(),
 )
 
 enum class MountSide {

@@ -1,8 +1,16 @@
 package com.pixelfitquest.feature.workout.analysis
 
+import com.pixelfitquest.feature.workout.sensor.AnalyzerInput
+import com.pixelfitquest.feature.workout.sensor.ImuInterpolate
+import com.pixelfitquest.feature.workout.sensor.RawSensorDump
+import com.pixelfitquest.feature.workout.sensor.TimedGyroUncal
+import com.pixelfitquest.feature.workout.sensor.TimedQuat
+import com.pixelfitquest.feature.workout.sensor.TimedVec3
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.math.cos
+import kotlin.math.sin
 
 class SetAnalyzerTest {
 
@@ -360,5 +368,31 @@ class SetAnalyzerTest {
         )
         assertEquals(8, analysis.acceptedReps.size)
         assertTrue(analysis.flags.contains("no_gyro"))
+    }
+
+    @Test
+    fun addingGameRotationAndUncalGyroDoesNotChangeAnalysis() {
+        val samples = SyntheticWaveforms.cleanBench8()
+        val accel = samples.map { TimedVec3(it.tNanos, it.ax, it.ay, it.az) }
+        val gyro = samples.map { TimedVec3(it.tNanos, it.gx!!, it.gy!!, it.gz!!) }
+        val rotation = samples.map { TimedQuat(it.tNanos, it.qx!!, it.qy!!, it.qz!!, it.qw!!) }
+        val half = Math.toRadians(23.0).toFloat() / 2f
+        val plain = RawSensorDump(accel = accel, gyro = gyro, rotationVector = rotation)
+        val extra = plain.copy(
+            gameRotationVector = listOf(
+                TimedQuat(samples.first().tNanos, sin(half), 0f, 0f, cos(half)),
+            ),
+            gyroUncalibrated = gyro.map {
+                TimedGyroUncal(it.tNanos, it.x + 1f, it.y, it.z, 0.2f, -0.1f, 0.05f, accuracy = 1)
+            },
+        )
+        fun analyze(dump: RawSensorDump) = analyzer.analyzeSet(
+            ImuInterpolate.ontoAccel(AnalyzerInput.select(dump)),
+            ExerciseProfiles.benchPress,
+            user,
+        )
+        val without = analyze(plain)
+        assertEquals(without, analyze(extra))
+        assertEquals(8, without.acceptedReps.size)
     }
 }

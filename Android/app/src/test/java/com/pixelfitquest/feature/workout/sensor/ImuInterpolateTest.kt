@@ -51,4 +51,26 @@ class ImuInterpolateTest {
         assertNotNull(fused[0].qw)
         assertEquals(0.9239f, fused[0].qw!!, 0.02f)
     }
+
+    @Test
+    fun gameRotationStaysOffTheAnalyzerQuaternion() {
+        val accel = listOf(TimedVec3(10_000_000L, 0f, 0f, 9.81f))
+        val mag = listOf(
+            TimedQuat(0L, 0f, 0f, 0f, 1f),
+            TimedQuat(20_000_000L, 0f, 0f, 0f, 1f),
+        )
+        val half = Math.toRadians(23.0).toFloat() / 2f
+        val game = TimedQuat(10_000_000L, kotlin.math.sin(half), 0f, 0f, kotlin.math.cos(half))
+        val fused = ImuInterpolate.ontoAccel(
+            AnalyzerInput.select(
+                RawSensorDump(
+                    accel = accel,
+                    rotationVector = mag,
+                    gameRotationVector = listOf(game),
+                ),
+            ),
+        )
+        assertEquals(1f, fused[0].qw!!, 1e-4f)
+        assertEquals(0f, fused[0].qx!!, 1e-4f)
+    }
 }
