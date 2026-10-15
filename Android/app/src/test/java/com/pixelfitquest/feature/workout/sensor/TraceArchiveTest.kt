@@ -194,6 +194,26 @@ class TraceArchiveTest {
         assertTrue("zip bytes=${file.length()}", file.length() in 50_000L..8_000_000L)
     }
 
+    @Test fun newestKeptEvenWhenAloneOverByteCap() {
+        val entries = listOf(TraceRetention.Entry("old", 1, 10), TraceRetention.Entry("huge", 2, 500))
+        assertEquals(listOf("old"), TraceRetention.toDelete(entries, maxBytes = 100).map { it.name })
+        val root = folder.newFolder()
+        val written = TraceArchive.writeRetained(root, minimal(UUID.randomUUID().toString()), maxBytes = 1)
+        assertTrue(written != null && written.isFile)
+    }
+
+    @Test fun writeFailureLeavesNoPartialAndReturnsNull() {
+        val root = folder.newFolder()
+        val dir = File(root, TraceArchive.DIR_NAME).apply { mkdirs() }
+        assertTrue(dir.setWritable(false))
+        try {
+            assertNull(TraceArchive.writeRetained(root, minimal(UUID.randomUUID().toString())))
+        } finally {
+            dir.setWritable(true)
+        }
+        assertTrue(dir.listFiles().orEmpty().isEmpty())
+    }
+
     private fun minimal(id: String, at: String = "2026-10-15T12:00:00+02:00") = RawTrace(
         metadata = TraceMetadata(recordingId = id, recordedAt = at, sessionDate = "2026-10-15", exerciseId = "curl"),
     )

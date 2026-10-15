@@ -4,16 +4,11 @@
    for details.
 -->
 <data-extraction-rules>
+    <!-- Debug-only raw IMU traces stay on the device. -->
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="file" path="trace_exports/" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="file" path="trace_exports/" />
     </device-transfer>
-    -->
 </data-extraction-rules>

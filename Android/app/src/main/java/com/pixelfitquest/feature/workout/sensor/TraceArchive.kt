@@ -65,7 +65,8 @@ data class RawTrace(
 
 /**
  * Debug builds record. Default is [BuildConfig.DEBUG]. Tests set [enabled] false.
- * Writers also branch on [BuildConfig.DEBUG] so R8 can strip them.
+ * Writers also check [BuildConfig.DEBUG] directly, so release builds never write
+ * (minify is off, so the code stays in the APK but is unreachable).
  */
 object TraceRecording {
     var enabled: Boolean = BuildConfig.DEBUG
@@ -182,8 +183,17 @@ object TraceArchive {
         dir.listFiles()?.forEach { if (it.name.endsWith(".partial")) it.delete() }
         val dest = uniqueDest(dir, fileName(trace.metadata))
         val partial = File(dir, dest.name + ".partial")
-        writeZip(partial, trace)
-        if (!partial.renameTo(dest)) return null
+        try {
+            writeZip(partial, trace)
+            if (!partial.renameTo(dest)) {
+                partial.delete()
+                return null
+            }
+        } catch (e: Exception) {
+            partial.delete()
+            dest.delete()
+            return null
+        }
         var newest = 0L
         dir.listFiles()?.forEach { if (it != dest && it.lastModified() > newest) newest = it.lastModified() }
         // +1s so a coarse filesystem clock still orders this file last.

@@ -1,6 +1,9 @@
 package com.pixelfitquest.feature.workout.sensor
 
-/** Keep the newest [MAX_TRACES] and stay within [MAX_BYTES]. Oldest go first. */
+/**
+ * Keep the newest [MAX_TRACES] and stay within [MAX_BYTES]. Oldest go first.
+ * The newest entry is always kept, even if it alone exceeds [MAX_BYTES].
+ */
 object TraceRetention {
     const val MAX_TRACES = 40
     const val MAX_BYTES: Long = 200L * 1024 * 1024
@@ -17,7 +20,7 @@ object TraceRetention {
         var total = 0L
         for (entry in newestFirst) {
             if (keep.size >= maxTraces) break
-            if (total + entry.bytes > maxBytes) break
+            if (keep.isNotEmpty() && total + entry.bytes > maxBytes) break
             keep += entry.name
             total += entry.bytes
         }

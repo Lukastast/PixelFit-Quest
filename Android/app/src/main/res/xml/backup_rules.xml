@@ -6,8 +6,6 @@
    See https://developer.android.com/about/versions/12/backup-restore
 -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    <!-- Debug-only raw IMU traces stay on the device. -->
+    <exclude domain="file" path="trace_exports/" />
 </full-backup-content>
