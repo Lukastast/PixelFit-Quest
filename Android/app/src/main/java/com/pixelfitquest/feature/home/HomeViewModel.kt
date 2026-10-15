@@ -119,6 +119,9 @@ class HomeViewModel @Inject constructor(
     private val missionPrefs: SharedPreferences =
         context.getSharedPreferences("pixelfitquest_prefs", Context.MODE_PRIVATE)
 
+    // Home always starts lying (sleeping/relaxing in the bedroom-gym), matching
+    // the home_landscape_v2 mockup. TimeOfDayProvider pose selection is not used
+    // on Home; the user can still cycle poses via tap (cyclePose).
     private val _characterPose = MutableStateFlow(CharacterPose.LYING)
     val characterPose: StateFlow<CharacterPose> = _characterPose.asStateFlow()
 

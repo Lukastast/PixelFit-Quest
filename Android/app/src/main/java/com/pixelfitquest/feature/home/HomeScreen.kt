@@ -258,18 +258,18 @@ fun HomeScreenContent(
     val spacing = MaterialTheme.spacing
 
     Box(modifier = modifier.fillMaxSize()) {
-        // Layer 1: Dwelling Scene (Lifter relaxing in bedroom-gym)
-        DwellingScene(
-            tier = DwellingTier.GYM,
-            pose = characterPose,
-            gender = characterData.gender,
-            variant = characterData.variant,
-            isLandscape = isLandscape,
-            onPoseCycle = onPoseCycle,
-            modifier = Modifier.fillMaxSize()
-        )
-
         if (isLandscape) {
+            // Landscape: full-bleed dwelling; panel stacks on the right over the scene.
+            DwellingScene(
+                tier = DwellingTier.GYM,
+                pose = characterPose,
+                gender = characterData.gender,
+                variant = characterData.variant,
+                isLandscape = true,
+                onPoseCycle = onPoseCycle,
+                modifier = Modifier.fillMaxSize()
+            )
+
             // Landscape layout:
             // Status pills and single RetroPanel stacked on the right
             Column(
@@ -310,9 +310,9 @@ fun HomeScreenContent(
                 )
             }
         } else {
-            // Portrait layout:
-            // Top: Status pills row
-            // Bottom: Single RetroPanel
+            // Portrait: pills + dwelling band (bed/furniture above panel) + panel.
+            // Scene is not full-bleed behind the panel, so pre-H1b GYM anchors land
+            // on the bed in the visible band instead of floating on the wall / under the card.
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -324,7 +324,6 @@ fun HomeScreenContent(
                         top = spacing.sm,
                         bottom = spacing.navBar + spacing.sm
                     ),
-                verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row(
@@ -342,6 +341,22 @@ fun HomeScreenContent(
                         onClick = onLevelClick
                     )
                     MissionsPill(onClick = onMissionsClick)
+                }
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) {
+                    DwellingScene(
+                        tier = DwellingTier.GYM,
+                        pose = characterPose,
+                        gender = characterData.gender,
+                        variant = characterData.variant,
+                        isLandscape = false,
+                        onPoseCycle = onPoseCycle,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
 
                 HomeRetroPanel(

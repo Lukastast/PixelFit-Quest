@@ -15,7 +15,7 @@ Redesign the home screen into a sleek, gamified, landscape-first (lay-flat defau
 ## Product direction & Design Spec
 
 1. **Landscape-first (lay-flat default):** Follows `/workspace/mockups/home_landscape_v2.png` in landscape (`w891dp-h411dp-land`); portrait fallback follows `/workspace/mockups/home.png` (`w411dp-h891dp`).
-2. **Dwelling background:** The background MUST be the app's existing bedroom-gym dwelling scene drawable (`dwelling_gym_landscape.png`, `DwellingTier.GYM`), NOT the workout gym background (`gym.png`). The lifter relaxes/sleeps in bed (`CharacterPose.LYING`), cycling poses (sitting on bench, standing on floor) on tap.
+2. **Dwelling background:** The background MUST be the app's existing bedroom-gym dwelling scene drawable (`dwelling_gym_landscape.png`, `DwellingTier.GYM`), NOT the workout gym background (`gym.png`). **Home always defaults to the lying/sleeping pose** (`CharacterPose.LYING`) so the lifter is relaxing in bed (matches `home_landscape_v2.png`). `TimeOfDayProvider.getDefaultPoseForCurrentTime()` is **not** used on Home. Tap still cycles poses (sitting on bench, standing on floor, back to lying). Portrait GYM anchors must keep each pose on the bed/furniture (same pre-H1b values as landscape for this shared art); do not float the lifter against the brick wall.
 3. **ONE single RetroPanel** (panel body only — streak/level pills sit **above** the panel, matching `home_landscape_v2.png` / `home.png`):
    - **Next up header:** Cyan accent title (`NEXT UP`), large white pixel template name (`PUSH DAY`), and subtitle with relative completed time (`Last done Thu, 52 min`).
    - **Primary Start action:** Large pixel-art button (`button_unclicked.png` / `button_clicked.png`, label `START`), launching the workout directly.
@@ -69,6 +69,8 @@ H1a lands the shared components and calculator first (no HomeScreen rewrite). H1
 
 **Missions:** H1b keeps Missions reachable via a compact `Missions` RetroPill beside streak/level (not the old floating FAB, not deferred to H2).
 
+**Home pose (deliberate):** H1b starts the lifter as `CharacterPose.LYING` every time Home opens. This matches Lukas's dwelling-scene mockup (`home_landscape_v2`) where he is sleeping/relaxing. Time-of-day pose selection (`TimeOfDayProvider`) remains available for other screens but is not wired on Home. Tap on the character still cycles LYING → STANDING → SITTING → LYING.
+
 
 1. **Create shared `RetroPanel.kt`** in `com.pixelfitquest.components.molecules`:
    - `RetroPanel`: Slate background (`SlateDeep.copy(alpha = 0.94f)`), rounded corners, crisp bevel border (`SlateBorder`), inner padding. Supports caller-specified modifiers and column content.
@@ -80,6 +82,7 @@ H1a lands the shared components and calculator first (no HomeScreen rewrite). H1
    - Formats relative "Last done" text (e.g. "Last done Thu, 52 min" or "No recent workouts").
 3. **Update `HomeViewModel.kt`**:
    - Exposes `StateFlow<HomeDisplayState>` combining `workouts`, `templates`, `healthMetrics`, and `weeklyStreak`.
+   - **Deliberate:** initialize `_characterPose` to `CharacterPose.LYING` (not `TimeOfDayProvider`). Home shows the sleeping/relaxing dwelling scene by default; tap-to-cycle remains.
 4. **Update `HomeScreen.kt`**:
    - Background: `DwellingScene` with `tier = DwellingTier.GYM` (`dwelling_gym_landscape`) and character relaxing on the bed (`CharacterPose.LYING`).
    - Top pills: `RetroPill` for Weekly Streak (flame icon + count) and Level (level text + cyan progress bar). Tapping streak opens `WeeklyStreakDialog`; tapping level opens `XpStatusDialog`.
@@ -93,7 +96,7 @@ H1a lands the shared components and calculator first (no HomeScreen rewrite). H1
      - Stat row with Workouts and Sets boxes.
    - Layout:
      - Landscape (`useTwoPane = true` or `isLandscape`): Panel positioned on the right half, character visible on the left bed, pills top-right.
-     - Portrait: Pills at top, character centered above panel, single panel in lower section.
+     - Portrait: Pills at top, dwelling scene in a weighted band above the panel (not full-bleed behind it), single panel in lower section. GYM portrait crops the landscape dwelling with `CenterStart` so the bed stays in frame; furniture anchors match pre-H1b GYM values.
    - Remove `StatsHudBar` (coins/shop) and floating mission button.
 5. **Add Tests**:
    - `HomeDisplayStateTest.kt`: JVM unit test verifying date filtering for "This week" and fallback logic.
@@ -126,7 +129,7 @@ None. H1 to H3 require no Room database migrations or schema modifications. Exis
 ## Acceptance Criteria
 
 - [ ] Home screen background is the app's existing bedroom-gym dwelling scene (`dwelling_gym_landscape.png`), NOT the workout gym background (`gym.png`).
-- [ ] Lifter character is shown relaxing/sleeping in bed (`CharacterPose.LYING`), with tap to cycle poses.
+- [ ] Lifter character always starts relaxing/sleeping in bed (`CharacterPose.LYING`; time-of-day pose selection is not used on Home), with tap to cycle poses. Portrait anchors keep every pose on the bed/furniture.
 - [ ] ONE single `RetroPanel` contains the "Next up" template name, last completed timestamp, big pixel-art START button, "Choose another template", and "THIS WEEK" stats (Workouts, Sets).
 - [ ] Top status pills (`RetroPill`) display streak and level with progress bar.
 - [ ] Start button starts the next-up workout; "Choose another template" navigates to the templates tab.
