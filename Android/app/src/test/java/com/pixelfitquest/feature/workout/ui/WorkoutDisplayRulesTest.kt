@@ -83,12 +83,7 @@ class WorkoutDisplayRulesTest {
                 assertTrue(set.showRepsCounted && set.showTierBExplainer && set.showMountChip && set.showLiveCountSlot)
                 assertFalse(set.showBarLevel || set.showBarTwist || set.showFormScore)
                 assertTrue(r.isUncertain)
-                assertFalse(r.showRom || r.showRomEditChips || r.showTempo || r.showBarQuality || r.showBarLevel || r.showBarTwist)
-                assertNull(r.romPercent)
-                assertNull(r.eccentricSec)
-                assertNull(r.stabilityScore)
-                assertNull(r.levelDeg)
-                assertNull(r.twistDeg)
+                listOf(r.romPercent, r.eccentricSec, r.stabilityScore, r.levelDeg, r.twistDeg).forEach { assertNull(it) }
                 assertTrue(r.visibleTags.isEmpty())
             }
         }
@@ -105,25 +100,19 @@ class WorkoutDisplayRulesTest {
         assertTrue(set.showRepsCounted)
         assertFalse(set.showNotCountedReps || set.showTierBExplainer || set.showMountChip || set.showLiveCountSlot || set.showBarLevel || set.showBarTwist)
         assertFalse(r.isUncertain || r.showRom || r.showTempo || r.showBarQuality || r.showBarLevel || r.showBarTwist)
-        assertNull(r.romPercent)
-        assertNull(r.levelDeg)
-        assertNull(r.twistDeg)
+        listOf(r.romPercent, r.levelDeg, r.twistDeg).forEach { assertNull(it) }
         assertTrue(r.visibleTags.isEmpty())
     }
 
     @Test
     fun r4Regression_levelNull_twistNonNull_showsTwistOnly() {
         val r = WorkoutDisplayRules.createRepDisplay(rep(lvl = null, twst = 3f), MeasurementTier.TIER_A, MountSide.LEFT, true)
-        assertFalse(r.showBarLevel)
-        assertNull(r.levelDeg)
-        assertTrue(r.showBarTwist)
-        assertEquals(3f, r.twistDeg!!, 0.001f)
+        assertFalse(r.showBarLevel); assertNull(r.levelDeg)
+        assertTrue(r.showBarTwist); assertEquals(3f, r.twistDeg!!, 0.001f)
 
         val r2 = WorkoutDisplayRules.createRepDisplay(rep(lvl = 2.5f, twst = null), MeasurementTier.TIER_A, MountSide.RIGHT, true)
-        assertTrue(r2.showBarLevel)
-        assertEquals(2.5f, r2.levelDeg!!, 0.001f)
-        assertFalse(r2.showBarTwist)
-        assertNull(r2.twistDeg)
+        assertTrue(r2.showBarLevel); assertEquals(2.5f, r2.levelDeg!!, 0.001f)
+        assertFalse(r2.showBarTwist); assertNull(r2.twistDeg)
     }
 
     @Test
@@ -144,5 +133,66 @@ class WorkoutDisplayRulesTest {
         assertTrue(withTag.isUncertain)
         assertFalse(withoutTag.isUncertain)
         assertFalse("uncertain tag should be consumed by badge", "uncertain" in withTag.visibleTags)
+    }
+
+    @Test
+    fun notCounted_excludesSetupTaggedReps_inBothCountAndList() {
+        val setupRep = rep(tags = listOf("setup"), acc = false)
+        val shortRomRep = rep(tags = listOf("short_rom"), acc = false)
+        val acceptedRep = rep(acc = true)
+        val set = WorkoutDisplayRules.createSetDisplay(
+            analysis = SetAnalysis(reps = listOf(setupRep, shortRomRep, acceptedRep), meanFormScore = 80f),
+            exerciseProfile = profile(), mountSide = MountSide.LEFT, deviceTier = MeasurementTier.TIER_A,
+        )
+        assertEquals(1, set.notCountedCount)
+        assertEquals(listOf(shortRomRep.index), set.notCountedReps.map { it.index })
+        assertFalse(WorkoutDisplayRules.isNotCounted(setupRep))
+        assertTrue(WorkoutDisplayRules.isNotCounted(shortRomRep))
+        assertFalse(WorkoutDisplayRules.isNotCounted(acceptedRep))
+    }
+
+    @Test
+    fun logOnlySet_repsCounted_countsOnlyAcceptedReps() {
+        val set = WorkoutDisplayRules.createSetDisplay(
+            reps = listOf(rep(acc = true), rep(acc = false), rep(acc = true)),
+            exerciseProfile = null, mountSide = MountSide.LEFT,
+            deviceTier = MeasurementTier.TIER_A, isLogOnly = true,
+        )
+        assertEquals(2, set.repsCounted)
+        assertEquals(0, set.notCountedCount)
+        assertTrue(set.notCountedReps.isEmpty())
+    }
+
+    @Test
+    fun romPercent_rounding_roundsHalfUp() {
+        fun romPercent(rom: Float) = WorkoutDisplayRules.createRepDisplay(
+            rep(rom = rom), MeasurementTier.TIER_A, MountSide.LEFT, true,
+        ).romPercent
+        assertEquals(90, romPercent(89.5f))
+        assertEquals(90, romPercent(89.9f))
+        assertEquals(89, romPercent(89.4f))
+    }
+
+    @Test
+    fun showRom_hiddenWhenProfileLacksRomMetric() {
+        val noRomProfile = profile().copy(quality = setOf(QualityMetric.TEMPO, QualityMetric.PATH_TILT))
+        val set = WorkoutDisplayRules.createSetDisplay(
+            analysis = SetAnalysis(reps = listOf(rep(rom = 95f)), meanFormScore = 85f),
+            exerciseProfile = noRomProfile, mountSide = MountSide.LEFT, deviceTier = MeasurementTier.TIER_A,
+        )
+        val r = set.reps.first()
+        assertFalse(r.showRom || r.showRomEditChips)
+        assertNull(r.romPercent)
+    }
+
+    @Test
+    fun uncertainPrefixedTags_triggerBadgeAndHiddenFromVisibleTags() {
+        val r = WorkoutDisplayRules.createRepDisplay(
+            rep(tags = listOf("uncertain_speed", "uncertain_leg_amplitude")),
+            MeasurementTier.TIER_A, MountSide.LEFT, true,
+        )
+        assertTrue(r.isUncertain)
+        assertFalse("uncertain_speed" in r.visibleTags || "uncertain_leg_amplitude" in r.visibleTags)
+        assertTrue(r.visibleTags.isEmpty())
     }
 }

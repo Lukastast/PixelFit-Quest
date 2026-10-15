@@ -20,8 +20,8 @@ abstract class ScreenshotTestBase {
     val composeTestRule = createComposeRule()
 
     companion object {
-        const val QUALIFIER_LANDSCAPE = "w891dp-h411dp-land"
-        const val QUALIFIER_PORTRAIT = "w411dp-h891dp"
+        const val QUALIFIER_LANDSCAPE = "en-rUS-w891dp-h411dp-land-xxhdpi"
+        const val QUALIFIER_PORTRAIT = "en-rUS-w411dp-h891dp-xxhdpi"
         const val DEFAULT_ROBO_SDK = 35
         val DEFAULT_ROBORAZZI_OPTIONS = RoborazziOptions(
             compareOptions = RoborazziOptions.CompareOptions(changeThreshold = 0.01f),

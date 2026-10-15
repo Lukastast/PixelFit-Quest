@@ -8,8 +8,10 @@ import com.pixelfitquest.feature.workout.analysis.QualityMetric
 import com.pixelfitquest.feature.workout.analysis.SetAnalysis
 import com.pixelfitquest.feature.workout.sensor.MountSide
 
+import kotlin.math.roundToInt
+
 data class RepDisplay(
-    val index: Int, val accepted: Boolean, val isUncertain: Boolean,
+    val index: Int, val accepted: Boolean, val isUncertain: Boolean, val isSetup: Boolean = false,
     val showRom: Boolean, val romPercent: Int?, val showRomEditChips: Boolean,
     val showTempo: Boolean, val eccentricSec: Float?, val concentricSec: Float?,
     val showBarQuality: Boolean, val stabilityScore: Float?,
@@ -26,18 +28,22 @@ data class SetDisplay(
     val showBarLevel: Boolean, val showBarTwist: Boolean,
     val reps: List<RepDisplay>,
 ) {
-    val notCountedReps: List<RepDisplay> get() = reps.filter { !it.accepted }
+    val notCountedReps: List<RepDisplay>
+        get() = if (!showNotCountedReps) emptyList() else reps.filter { WorkoutDisplayRules.isNotCounted(it) }
 }
 
 object WorkoutDisplayRules {
     const val TAG_UNCERTAIN = "uncertain"
     const val TAG_CLIP_POSE = "clip_pose"
+    const val TAG_SETUP = "setup"
 
-    fun isUncertain(tags: List<String>): Boolean =
-        TAG_UNCERTAIN in tags || tags.any { it.startsWith("uncertain_") }
-
-    fun isSleeveKnown(mountSide: MountSide): Boolean =
-        mountSide == MountSide.LEFT || mountSide == MountSide.RIGHT
+    fun isSetup(tags: List<String>): Boolean = TAG_SETUP in tags
+    fun isNotCounted(accepted: Boolean, isSetup: Boolean): Boolean = !accepted && !isSetup
+    fun isNotCounted(rep: RepDisplay): Boolean = isNotCounted(rep.accepted, rep.isSetup)
+    fun isNotCounted(rep: DetectedRep): Boolean = isNotCounted(rep.accepted, isSetup(rep.tags))
+    fun isUncertainTag(tag: String): Boolean = tag == TAG_UNCERTAIN || tag.startsWith("uncertain_")
+    fun isUncertain(tags: List<String>): Boolean = tags.any { isUncertainTag(it) }
+    fun isSleeveKnown(mountSide: MountSide): Boolean = mountSide == MountSide.LEFT || mountSide == MountSide.RIGHT
 
     fun createRepDisplay(
         rep: DetectedRep,
@@ -45,10 +51,12 @@ object WorkoutDisplayRules {
         mountSide: MountSide,
         hasPathTilt: Boolean,
         isLogOnly: Boolean = false,
+        hasRom: Boolean = true,
     ): RepDisplay {
+        val isSetup = isSetup(rep.tags)
         if (isLogOnly) {
             return RepDisplay(
-                index = rep.index, accepted = rep.accepted, isUncertain = false,
+                index = rep.index, accepted = rep.accepted, isUncertain = false, isSetup = isSetup,
                 showRom = false, romPercent = null, showRomEditChips = false,
                 showTempo = false, eccentricSec = null, concentricSec = null,
                 showBarQuality = false, stabilityScore = null,
@@ -61,7 +69,7 @@ object WorkoutDisplayRules {
         val sleeveKnown = isSleeveKnown(mountSide)
         val canShowTiltTwist = isTierA && sleeveKnown && hasPathTilt
 
-        val showRom = isTierA
+        val showRom = isTierA && hasRom
         val showTempo = isTierA && (rep.eccentricMs > 0 || rep.concentricMs > 0 || rep.tempoScore != null)
         val showBarQuality = isTierA && rep.stabilityScore != null
         val showBarLevel = canShowTiltTwist && rep.levelDeg != null
@@ -70,21 +78,14 @@ object WorkoutDisplayRules {
         val visibleTags = filterVisibleTags(rep.tags, isTierA, sleeveKnown, hasPathTilt)
 
         return RepDisplay(
-            index = rep.index,
-            accepted = rep.accepted,
-            isUncertain = isUncertain(rep.tags),
-            showRom = showRom,
-            romPercent = if (showRom) rep.romScore.toInt() else null,
-            showRomEditChips = showRom,
-            showTempo = showTempo,
+            index = rep.index, accepted = rep.accepted, isUncertain = isUncertain(rep.tags), isSetup = isSetup,
+            showRom = showRom, romPercent = if (showRom) rep.romScore.roundToInt() else null,
+            showRomEditChips = showRom, showTempo = showTempo,
             eccentricSec = if (showTempo && rep.eccentricMs > 0) ((rep.eccentricMs / 100) / 10f) else null,
             concentricSec = if (showTempo && rep.concentricMs > 0) ((rep.concentricMs / 100) / 10f) else null,
-            showBarQuality = showBarQuality,
-            stabilityScore = if (showBarQuality) rep.stabilityScore else null,
-            showBarLevel = showBarLevel,
-            levelDeg = if (showBarLevel) rep.levelDeg else null,
-            showBarTwist = showBarTwist,
-            twistDeg = if (showBarTwist) rep.twistDeg else null,
+            showBarQuality = showBarQuality, stabilityScore = if (showBarQuality) rep.stabilityScore else null,
+            showBarLevel = showBarLevel, levelDeg = if (showBarLevel) rep.levelDeg else null,
+            showBarTwist = showBarTwist, twistDeg = if (showBarTwist) rep.twistDeg else null,
             visibleTags = visibleTags,
         )
     }
@@ -99,21 +100,19 @@ object WorkoutDisplayRules {
     ): SetDisplay {
         val effectiveTier = MeasurementTier.resolve(deviceTier, flags)
         val hasPathTilt = exerciseProfile?.quality?.contains(QualityMetric.PATH_TILT) == true
+        val hasRom = exerciseProfile?.quality?.contains(QualityMetric.ROM) == true
         val isBarSleeve = exerciseProfile?.mount == Mount.BAR_SLEEVE
 
         val repDisplays = reps.map { rep ->
-            createRepDisplay(rep, effectiveTier, mountSide, hasPathTilt, isLogOnly)
+            createRepDisplay(rep, effectiveTier, mountSide, hasPathTilt, isLogOnly, hasRom)
         }
 
-        val notCounted = if (isLogOnly) 0 else reps.count { !it.accepted && "setup" !in it.tags }
+        val notCounted = if (isLogOnly) 0 else repDisplays.count { isNotCounted(it) }
         return SetDisplay(
-            repsCounted = if (isLogOnly) reps.size else reps.count { it.accepted },
-            showRepsCounted = true,
-            notCountedCount = notCounted,
-            showNotCountedReps = !isLogOnly,
+            repsCounted = reps.count { it.accepted }, showRepsCounted = true,
+            notCountedCount = notCounted, showNotCountedReps = !isLogOnly,
             showTierBExplainer = !isLogOnly && effectiveTier == MeasurementTier.TIER_B,
-            showMountChip = !isLogOnly && isBarSleeve,
-            showLiveCountSlot = !isLogOnly,
+            showMountChip = !isLogOnly && isBarSleeve, showLiveCountSlot = !isLogOnly,
             showFormScore = false,
             showBarLevel = repDisplays.any { it.showBarLevel },
             showBarTwist = repDisplays.any { it.showBarTwist },
@@ -139,11 +138,11 @@ object WorkoutDisplayRules {
     private fun filterVisibleTags(
         tags: List<String>, isTierA: Boolean, sleeveKnown: Boolean, hasPathTilt: Boolean,
     ): List<String> = tags.filter { tag ->
-        when (tag) {
-            "dropped", "short_rom" -> isTierA
-            "tilt_right", "tilt_left", "twist_head", "twist_hip" -> isTierA && sleeveKnown && hasPathTilt
-            TAG_UNCERTAIN -> false
-            TAG_CLIP_POSE -> true
+        when {
+            tag == "dropped" || tag == "short_rom" -> isTierA
+            tag in setOf("tilt_right", "tilt_left", "twist_head", "twist_hip") -> isTierA && sleeveKnown && hasPathTilt
+            isUncertainTag(tag) -> false
+            tag == TAG_CLIP_POSE -> true
             else -> CoachingTags.labelRes(tag) != null
         }
     }
