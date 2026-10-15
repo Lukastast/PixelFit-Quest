@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -36,11 +37,19 @@ fun DwellingScene(
 
     Box(modifier = modifier.fillMaxSize()) {
         // Layer 1: Dwelling background
+        // Portrait crops a landscape dwelling strip; prefer the start (bed side)
+        // for GYM so furniture stays in frame. Landscape keeps centered crop.
+        val bgAlignment = if (!isLandscape && tier == DwellingTier.GYM) {
+            Alignment.CenterStart
+        } else {
+            Alignment.Center
+        }
         Image(
             painter = painterResource(id = bgRes),
             contentDescription = tier.displayName,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
+            alignment = bgAlignment,
         )
 
         // Layer 2: Interactive Character in dwelling

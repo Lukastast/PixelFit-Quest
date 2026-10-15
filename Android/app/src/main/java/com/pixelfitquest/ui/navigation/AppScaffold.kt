@@ -361,7 +361,7 @@ fun AppScaffold() {
     }
 }
 
-private fun workoutRoute(plan: WorkoutPlan, templateName: String?): String {
+internal fun workoutRoute(plan: WorkoutPlan, templateName: String?): String {
     val planJson = Uri.encode(Gson().toJson(plan))
     val name = Uri.encode(templateName?.takeIf { it.isNotBlank() } ?: "workout")
     return "$WORKOUT_SCREEN/$planJson/$name"
