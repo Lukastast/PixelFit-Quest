@@ -10,6 +10,7 @@ import com.pixelfitquest.local.export.ExerciseExport
 import com.pixelfitquest.local.export.LocalExportFormatter
 import com.pixelfitquest.local.export.LocalExportSnapshot
 import com.pixelfitquest.local.export.WorkoutExport
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -61,6 +62,8 @@ class LocalExportFormatterTest {
         val json = LocalExportFormatter.toJson(snapshot)
         assertTrue(json.contains("\"source\": \"local\""))
         assertTrue(json.contains("\"coins\": 15"))
+        assertFalse(json.contains("\"height\""))
+        assertFalse(json.contains("\"armLength\""))
         assertTrue(json.contains("w1"))
         assertTrue(json.contains("bench-press"))
     }

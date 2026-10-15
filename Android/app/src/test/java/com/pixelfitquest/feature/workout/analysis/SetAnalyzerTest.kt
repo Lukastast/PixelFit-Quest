@@ -7,14 +7,12 @@ import org.junit.Test
 class SetAnalyzerTest {
 
     private val analyzer = SetAnalyzer()
-    private val user = AnalyzerUser(heightCm = 178)
 
     @Test
     fun cleanEightRepBench_acceptsEight() {
         val analysis = analyzer.analyzeSet(
             SyntheticWaveforms.cleanBench8(),
             ExerciseProfiles.benchPress,
-            user,
         )
         assertEquals(
             "accepted=${analysis.acceptedReps.size} all=${analysis.reps.map { "${it.accepted}:${"%.2f".format(it.romEstimate)}" }}",
@@ -35,7 +33,6 @@ class SetAnalyzerTest {
         val analysis = analyzer.analyzeSet(
             SyntheticWaveforms.benchWithFalseDip(),
             ExerciseProfiles.benchPress,
-            user,
         )
         assertEquals(
             "accepted=${analysis.acceptedReps.size} candidates=${analysis.candidateReps.size} " +
@@ -54,7 +51,6 @@ class SetAnalyzerTest {
         val analysis = analyzer.analyzeSet(
             SyntheticWaveforms.benchTruncatedLast(),
             ExerciseProfiles.benchPress,
-            user,
         )
         assertEquals(8, analysis.acceptedReps.size)
         assertTrue(
@@ -66,8 +62,8 @@ class SetAnalyzerTest {
     @Test
     fun curlPitchProfile_segmentsOnAngleNotWorldUp() {
         val curlSamples = SyntheticWaveforms.cleanCurl8()
-        val curl = analyzer.analyzeSet(curlSamples, ExerciseProfiles.bicepCurl, user)
-        val asBench = analyzer.analyzeSet(curlSamples, ExerciseProfiles.benchPress, user)
+        val curl = analyzer.analyzeSet(curlSamples, ExerciseProfiles.bicepCurl)
+        val asBench = analyzer.analyzeSet(curlSamples, ExerciseProfiles.benchPress)
 
         assertEquals(
             "curl accepted=${curl.acceptedReps.size} amps=${curl.reps.map { "%.2f".format(it.romEstimate) }}",
@@ -89,7 +85,6 @@ class SetAnalyzerTest {
         val analysis = analyzer.analyzeSet(
             SyntheticWaveforms.verticalReps(repCount = 8, gravityLeak = 0.25f),
             ExerciseProfiles.benchPress,
-            user,
         )
         assertEquals(
             "accepted=${analysis.acceptedReps.size} ${analysis.reps.map { it.romScore.toInt() }}",
@@ -101,11 +96,10 @@ class SetAnalyzerTest {
     @Test
     fun fourDegreeTilt_doesNotDropForm() {
         val deg = (4.0 * Math.PI / 180.0).toFloat()
-        val clean = analyzer.analyzeSet(SyntheticWaveforms.cleanBench8(), ExerciseProfiles.benchPress, user)
+        val clean = analyzer.analyzeSet(SyntheticWaveforms.cleanBench8(), ExerciseProfiles.benchPress)
         val small = analyzer.analyzeSet(
             SyntheticWaveforms.verticalReps(repCount = 8, pitchRad = deg, yawRad = deg),
             ExerciseProfiles.benchPress,
-            user,
         )
         assertEquals(8, small.acceptedReps.size)
         small.acceptedReps.forEach { rep ->
@@ -124,7 +118,6 @@ class SetAnalyzerTest {
         val analysis = analyzer.analyzeSet(
             SyntheticWaveforms.verticalReps(repCount = 8, pitchRad = deg),
             ExerciseProfiles.benchPress,
-            user,
         )
         assertEquals(8, analysis.acceptedReps.size)
         analysis.acceptedReps.forEach {
@@ -136,11 +129,10 @@ class SetAnalyzerTest {
     @Test
     fun fifteenDegreeRightPitch_tagsTiltRightAndLowersForm() {
         val deg = (15.0 * Math.PI / 180.0).toFloat()
-        val clean = analyzer.analyzeSet(SyntheticWaveforms.cleanBench8(), ExerciseProfiles.benchPress, user)
+        val clean = analyzer.analyzeSet(SyntheticWaveforms.cleanBench8(), ExerciseProfiles.benchPress)
         val tilted = analyzer.analyzeSet(
             SyntheticWaveforms.verticalReps(repCount = 8, pitchRad = deg),
             ExerciseProfiles.benchPress,
-            user,
         )
         assertEquals(8, tilted.acceptedReps.size)
         tilted.acceptedReps.forEach { rep ->
@@ -160,11 +152,10 @@ class SetAnalyzerTest {
     @Test
     fun fifteenDegreeYaw_tagsTwistHeadAndLowersForm() {
         val deg = (15.0 * Math.PI / 180.0).toFloat()
-        val clean = analyzer.analyzeSet(SyntheticWaveforms.cleanBench8(), ExerciseProfiles.benchPress, user)
+        val clean = analyzer.analyzeSet(SyntheticWaveforms.cleanBench8(), ExerciseProfiles.benchPress)
         val twisted = analyzer.analyzeSet(
             SyntheticWaveforms.verticalReps(repCount = 8, yawRad = deg),
             ExerciseProfiles.benchPress,
-            user,
         )
         assertEquals(8, twisted.acceptedReps.size)
         twisted.acceptedReps.forEach { rep ->
@@ -186,7 +177,6 @@ class SetAnalyzerTest {
         val analysis = analyzer.analyzeSet(
             SyntheticWaveforms.verticalReps(repCount = 8, yawRad = deg),
             ExerciseProfiles.benchPress,
-            user,
         )
         analysis.acceptedReps.forEach { rep ->
             assertTrue("negative yaw → right hand toward hip: ${rep.twistDeg}", (rep.twistDeg ?: 0f) < -BAR_COACH_DEG)
@@ -200,12 +190,10 @@ class SetAnalyzerTest {
         val pitchOnly = analyzer.analyzeSet(
             SyntheticWaveforms.verticalReps(repCount = 8, pitchRad = deg),
             ExerciseProfiles.benchPress,
-            user,
         )
         val both = analyzer.analyzeSet(
             SyntheticWaveforms.verticalReps(repCount = 8, pitchRad = deg, yawRad = deg),
             ExerciseProfiles.benchPress,
-            user,
         )
         both.acceptedReps.forEach { rep ->
             assertTrue(BarImbalance.TAG_TILT_RIGHT in rep.tags)
@@ -223,7 +211,6 @@ class SetAnalyzerTest {
         val analysis = analyzer.analyzeSet(
             SyntheticWaveforms.verticalReps(repCount = 8, pitchRad = deg),
             ExerciseProfiles.benchPress,
-            user,
         )
         val rep = analysis.acceptedReps.first()
         val overridden = rep.withRomPercent(100f)
@@ -244,7 +231,6 @@ class SetAnalyzerTest {
         val analysis = analyzer.analyzeSet(
             SyntheticWaveforms.cleanBench8(),
             ExerciseProfiles.benchPress,
-            user,
         )
         analysis.acceptedReps.forEach { rep ->
             assertTrue("level ${rep.levelDeg}", kotlin.math.abs(rep.levelDeg ?: 99f) < 8f)
@@ -256,7 +242,7 @@ class SetAnalyzerTest {
 
     @Test
     fun noBouncedTag() {
-        val analysis = analyzer.analyzeSet(SyntheticWaveforms.cleanBench8(), ExerciseProfiles.benchPress, user)
+        val analysis = analyzer.analyzeSet(SyntheticWaveforms.cleanBench8(), ExerciseProfiles.benchPress)
         analysis.reps.forEach { rep ->
             assertTrue("bounced" !in rep.tags)
         }
@@ -267,7 +253,6 @@ class SetAnalyzerTest {
         val analysis = analyzer.analyzeSet(
             SyntheticWaveforms.verticalReps(repCount = 8, amplitude = 0.50f),
             ExerciseProfiles.latPulldown,
-            user,
         )
         assertTrue(analysis.acceptedReps.isNotEmpty())
         analysis.acceptedReps.forEach { rep ->
@@ -281,7 +266,6 @@ class SetAnalyzerTest {
         val analysis = analyzer.analyzeSet(
             SyntheticWaveforms.cleanCurl8(),
             ExerciseProfiles.bicepCurl,
-            user,
         )
         assertEquals(8, analysis.acceptedReps.size)
         analysis.acceptedReps.forEach { rep ->
@@ -292,7 +276,7 @@ class SetAnalyzerTest {
     @Test
     fun personalFullRom_gradesAgainstBaseline() {
         val samples = SyntheticWaveforms.verticalReps(repCount = 8, amplitude = 0.20f)
-        val ungraded = analyzer.analyzeSet(samples, ExerciseProfiles.benchPress, user)
+        val ungraded = analyzer.analyzeSet(samples, ExerciseProfiles.benchPress)
         ungraded.acceptedReps.forEach { rep ->
             assertTrue("short_rom" !in rep.tags)
             assertEquals(100f, rep.romScore, 0.01f)
@@ -300,7 +284,6 @@ class SetAnalyzerTest {
         val graded = analyzer.analyzeSet(
             samples,
             ExerciseProfiles.benchPress,
-            user,
             fullRom = 0.40f,
         )
         graded.acceptedReps.forEach { rep ->
@@ -315,7 +298,6 @@ class SetAnalyzerTest {
         val analysis = analyzer.analyzeSet(
             SyntheticWaveforms.verticalReps(repCount = 8, restPitchRad = deg),
             ExerciseProfiles.benchPress,
-            user,
         )
         assertTrue("flags=${analysis.flags}", TAG_CLIP_POSE in analysis.flags)
         analysis.reps.forEach { rep ->
@@ -326,8 +308,8 @@ class SetAnalyzerTest {
 
     @Test
     fun fiftyAndTwoHundredHz_sameRepCount() {
-        val at50 = analyzer.analyzeSet(SyntheticWaveforms.cleanBench8(hz = 50), ExerciseProfiles.benchPress, user)
-        val at200 = analyzer.analyzeSet(SyntheticWaveforms.cleanBench8(hz = 200), ExerciseProfiles.benchPress, user)
+        val at50 = analyzer.analyzeSet(SyntheticWaveforms.cleanBench8(hz = 50), ExerciseProfiles.benchPress)
+        val at200 = analyzer.analyzeSet(SyntheticWaveforms.cleanBench8(hz = 200), ExerciseProfiles.benchPress)
         assertEquals(8, at50.acceptedReps.size)
         assertEquals(
             "200 Hz accepted=${at200.acceptedReps.size}",
@@ -341,7 +323,6 @@ class SetAnalyzerTest {
         val analysis = analyzer.analyzeSet(
             SyntheticWaveforms.verticalReps(repCount = 8, includeRv = false),
             ExerciseProfiles.benchPress,
-            user,
         )
         assertEquals(
             "accepted=${analysis.acceptedReps.size} flags=${analysis.flags}",
@@ -356,7 +337,6 @@ class SetAnalyzerTest {
         val analysis = analyzer.analyzeSet(
             SyntheticWaveforms.verticalReps(repCount = 8, includeGyro = false),
             ExerciseProfiles.benchPress,
-            user,
         )
         assertEquals(8, analysis.acceptedReps.size)
         assertTrue(analysis.flags.contains("no_gyro"))

@@ -49,7 +49,6 @@ data class ExerciseProfile(
     val minAmplitude: Float,
     val typicalAmplitude: Float,
     val romFactor: Float,
-    val usesArmLength: Boolean = false,
     val quality: Set<QualityMetric>,
 ) {
     val romUnit: RomUnit

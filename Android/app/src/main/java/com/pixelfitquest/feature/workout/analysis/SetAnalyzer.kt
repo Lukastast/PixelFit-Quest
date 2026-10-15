@@ -13,7 +13,6 @@ class SetAnalyzer @Inject constructor() {
     fun analyzeSet(
         samples: List<ImuSample>,
         profile: ExerciseProfile,
-        user: AnalyzerUser,
         calibration: BarCalibration? = null,
         fullRom: Float? = null,
     ): SetAnalysis {

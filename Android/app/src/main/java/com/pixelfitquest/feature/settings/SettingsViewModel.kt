@@ -154,19 +154,6 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
-    fun setHeight(height: Int) {
-        viewModelScope.launch {
-            try {
-                userRepository.updateUserData(
-                    mapOf("height" to height)
-                )
-                loadUserData()
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to update height"
-            }
-        }
-    }
-
     fun setMusicVolume(volume: Int) {
         viewModelScope.launch {
             try {
