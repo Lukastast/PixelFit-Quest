@@ -32,13 +32,20 @@ import com.pixelfitquest.health.HealthRepository
 import com.pixelfitquest.health.HealthRewards
 import com.pixelfitquest.health.HealthTime
 import com.pixelfitquest.local.CloudSyncPolicy
+import com.pixelfitquest.feature.home.model.HomeDisplayState
+import com.pixelfitquest.feature.home.model.HomeStatsCalculator
+import com.pixelfitquest.feature.workoutBuilder.model.WorkoutTemplate
+import com.pixelfitquest.firebase.repository.WorkoutTemplateRepository
 import com.pixelfitquest.viewmodel.PixelFitViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -53,6 +60,7 @@ class HomeViewModel @Inject constructor(
     private val accountService: AccountService,
     private val userRepository: UserRepository,
     private val workoutRepository: WorkoutRepository,
+    private val templateRepository: WorkoutTemplateRepository,
     private val cloudSyncPolicy: CloudSyncPolicy,
     private val healthRepository: HealthRepository,
     private val weeklyStreakRepository: WeeklyStreakRepository,
@@ -76,6 +84,27 @@ class HomeViewModel @Inject constructor(
     private val _workouts = MutableStateFlow<List<Workout>>(emptyList())
     val workouts: StateFlow<List<Workout>> = _workouts.asStateFlow()
 
+    private val _templates = MutableStateFlow<List<WorkoutTemplate>>(emptyList())
+    val templates: StateFlow<List<WorkoutTemplate>> = _templates.asStateFlow()
+
+    val homeDisplayState: StateFlow<HomeDisplayState> = combine(
+        _workouts,
+        _templates
+    ) { workouts, templates ->
+        val weeklyStats = HomeStatsCalculator.computeWeeklyStats(workouts)
+        val nextUp = HomeStatsCalculator.resolveNextUpTemplate(templates)
+        val lastDone = HomeStatsCalculator.formatLastDone(workouts, nextUp.name)
+        HomeDisplayState(
+            nextUpTemplate = nextUp,
+            lastDoneFormatted = lastDone,
+            weeklyStats = weeklyStats
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = HomeDisplayState()
+    )
+
     private val _healthMetrics = MutableStateFlow(HealthMetrics.EMPTY)
     val healthMetrics: StateFlow<HealthMetrics> = _healthMetrics.asStateFlow()
 
@@ -87,7 +116,7 @@ class HomeViewModel @Inject constructor(
     private val missionPrefs: SharedPreferences =
         context.getSharedPreferences("pixelfitquest_prefs", Context.MODE_PRIVATE)
 
-    private val _characterPose = MutableStateFlow(TimeOfDayProvider.getDefaultPoseForCurrentTime())
+    private val _characterPose = MutableStateFlow(CharacterPose.LYING)
     val characterPose: StateFlow<CharacterPose> = _characterPose.asStateFlow()
 
     val weeklyBoard: StateFlow<WeeklyMissionBoard> = weeklyMissionService.board
@@ -126,6 +155,7 @@ class HomeViewModel @Inject constructor(
                 weeklyStreakRepository.reconcile()
 
                 fetchCompletedWorkouts()
+                loadTemplates()
 
                 _isLoading.value = false
             } catch (e: Exception) {
@@ -173,6 +203,18 @@ class HomeViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 Log.w("HomeVM", "Load character data error", e)
+            }
+        }
+    }
+
+    private fun loadTemplates() {
+        viewModelScope.launch {
+            try {
+                templateRepository.getTemplates().collect { list ->
+                    _templates.value = list
+                }
+            } catch (e: Exception) {
+                Log.w("HomeVM", "Load templates error", e)
             }
         }
     }

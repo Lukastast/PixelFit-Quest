@@ -455,4 +455,18 @@
     <string name="loadout_ready_badge">%1$d LIFT READY TO OVERLOAD</string>
     <string name="loadout_ready_badge_plural">%1$d LIFTS READY TO OVERLOAD</string>
     <string name="workout_set_weight_label">Set Weight</string>
+
+    <!-- Home Screen Redesign -->
+    <string name="home_next_up_header">NEXT UP</string>
+    <string name="home_start_button">START</string>
+    <string name="home_choose_another_template">Choose another template</string>
+    <string name="home_this_week_header">THIS WEEK</string>
+    <string name="home_stat_workouts">WORKOUTS</string>
+    <string name="home_stat_sets">SETS</string>
+    <string name="home_stat_km_run">KM RUN</string>
+    <string name="home_week_streak_pill">WEEK STREAK %1$d</string>
+    <string name="home_level_pill">LV %1$s</string>
+    <string name="home_no_workouts_yet">No workouts yet</string>
+    <string name="home_no_recent_workouts">No recent workouts</string>
+    <string name="home_last_done_format">Last done %1$s, %2$d min</string>
 </resources>
