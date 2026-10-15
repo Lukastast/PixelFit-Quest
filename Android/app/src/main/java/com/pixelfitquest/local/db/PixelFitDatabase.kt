@@ -36,7 +36,7 @@ import com.pixelfitquest.local.db.entity.UserProfileEntity
         UnlockedCosmeticEntity::class,
     ],
     version = 11,
-    exportSchema = false,
+    exportSchema = true,
 )
 abstract class PixelFitDatabase : RoomDatabase() {
     abstract fun userProfileDao(): UserProfileDao
