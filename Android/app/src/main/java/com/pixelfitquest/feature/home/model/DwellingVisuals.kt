@@ -69,9 +69,9 @@ object DwellingVisuals {
                 }
             } else {
                 when (pose) {
-                    CharacterPose.STANDING -> Pair(0.50f, 0.88f)
-                    CharacterPose.SITTING -> Pair(0.64f, 0.66f)
-                    CharacterPose.LYING -> Pair(0.20f, 0.72f)
+                    CharacterPose.STANDING -> Pair(0.42f, 0.32f)
+                    CharacterPose.SITTING -> Pair(0.58f, 0.36f)
+                    CharacterPose.LYING -> Pair(0.25f, 0.38f)
                 }
             }
         }

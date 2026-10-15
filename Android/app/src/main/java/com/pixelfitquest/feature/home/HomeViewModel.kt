@@ -9,7 +9,6 @@ import com.pixelfitquest.feature.customization.model.CharacterData
 import com.pixelfitquest.feature.home.model.Achievement
 import com.pixelfitquest.feature.home.model.CharacterPose
 import com.pixelfitquest.feature.home.model.DwellingTier
-import com.pixelfitquest.feature.home.model.TimeOfDayProvider
 import com.pixelfitquest.feature.home.model.achievementsList
 import com.pixelfitquest.feature.levels.progression.LevelCurve
 import com.pixelfitquest.feature.missions.RerollResult
@@ -120,7 +119,7 @@ class HomeViewModel @Inject constructor(
     private val missionPrefs: SharedPreferences =
         context.getSharedPreferences("pixelfitquest_prefs", Context.MODE_PRIVATE)
 
-    private val _characterPose = MutableStateFlow(TimeOfDayProvider.getDefaultPoseForCurrentTime())
+    private val _characterPose = MutableStateFlow(CharacterPose.LYING)
     val characterPose: StateFlow<CharacterPose> = _characterPose.asStateFlow()
 
     val weeklyBoard: StateFlow<WeeklyMissionBoard> = weeklyMissionService.board

@@ -29,6 +29,7 @@ fun PixelArtButton(
     imageRes: Int,
     pressedRes: Int = imageRes,
     modifier: Modifier = Modifier,
+    contentDescription: String? = "Button",
     content: @Composable () -> Unit = { }
 ) {
     var isPressed by remember { mutableStateOf(false) }
@@ -55,7 +56,7 @@ fun PixelArtButton(
     ) {
         Image(
             painter = painterResource(id = if (isPressed) pressedRes else imageRes),
-            contentDescription = "Button",
+            contentDescription = contentDescription,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillBounds
         )

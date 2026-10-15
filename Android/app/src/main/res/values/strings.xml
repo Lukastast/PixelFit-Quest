@@ -463,4 +463,14 @@
         <item quantity="one">%1$d day ago</item>
         <item quantity="other">%1$d days ago</item>
     </plurals>
+    <string name="home_next_up_header">NEXT UP</string>
+    <string name="home_start_button">START</string>
+    <string name="home_choose_another_template">Choose another template</string>
+    <string name="home_this_week_header">THIS WEEK</string>
+    <string name="home_stat_workouts">WORKOUTS</string>
+    <string name="home_stat_sets">SETS</string>
+    <string name="home_week_streak_pill">WEEK STREAK %1$d</string>
+    <string name="home_level_pill">LV %1$s</string>
+    <string name="home_missions_pill">MISSIONS</string>
+    <string name="home_xp_progress_description">XP %1$d percent</string>
 </resources>
