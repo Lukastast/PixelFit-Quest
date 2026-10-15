@@ -27,11 +27,11 @@ class WorkoutOrientationTest {
     }
 
     @Test
-    fun idleCountdownAndReviewForceLandscapeWhenEnabled() {
+    fun idleAndReviewForceLandscapeWhenEnabled() {
         listOf(
             WorkoutPhase.Idle,
-            WorkoutPhase.Countdown,
-            WorkoutPhase.Reviewing,
+                        WorkoutPhase.Reviewing,
+            WorkoutPhase.Resting,
         ).forEach { phase ->
             assertEquals(
                 "phase=$phase",

@@ -42,6 +42,7 @@ object SyntheticWaveforms {
         yawRad: Float = 0f,
         includeRv: Boolean = true,
         includeGyro: Boolean = true,
+        leadRepAmplitude: Float? = null,
     ): List<ImuSample> {
         val samples = ArrayList<ImuSample>()
         var tNanos = 0L
@@ -95,6 +96,10 @@ object SyntheticWaveforms {
         val conSec = concentricSec ?: (periodSec / 2f)
 
         still(0.7f)
+        if (leadRepAmplitude != null) {
+            cosineRep(leadRepAmplitude, eccSec, conSec)
+            still(pauseSec)
+        }
         for (r in 1..repCount) {
             cosineRep(amplitude, eccSec, conSec)
             still(pauseSec)
@@ -118,6 +123,8 @@ object SyntheticWaveforms {
         periodSec: Float = 2.5f,
         pauseSec: Float = 0.35f,
         hz: Int = HZ,
+        wobbleRad: Float = 0f,
+        wobbleHz: Float = 3.2f,
     ): List<ImuSample> {
         val samples = ArrayList<ImuSample>()
         var tNanos = 0L
@@ -157,7 +164,10 @@ object SyntheticWaveforms {
         repeat(repCount) {
             for (i in 0 until steps) {
                 val localT = i * dt
-                val theta = (amplitudeRad / 2f) * (1.0 - cos(omega * localT)).toFloat()
+                val wobble = if (wobbleRad == 0f) 0f else {
+                    (wobbleRad * sin(2.0 * PI * wobbleHz * localT)).toFloat()
+                }
+                val theta = (amplitudeRad / 2f) * (1.0 - cos(omega * localT)).toFloat() + wobble
                 val omegaY = (amplitudeRad / 2f) * omega.toFloat() * sin(omega * localT).toFloat()
                 atAngle(theta, omegaY)
             }

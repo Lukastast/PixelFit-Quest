@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pixelfitquest.R
 import com.pixelfitquest.ui.theme.ImperialGold
-import com.pixelfitquest.ui.theme.LeatherDark
 import com.pixelfitquest.ui.theme.ParchmentBorder
 import com.pixelfitquest.ui.theme.SilverSteel
 import com.pixelfitquest.ui.theme.SlateDeep
@@ -155,7 +154,6 @@ fun StatsHudColumn(
     progressIndex: Int,
     onStreakClick: () -> Unit,
     onLevelClick: () -> Unit,
-    onMissionsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = MaterialTheme.spacing
@@ -241,21 +239,5 @@ fun StatsHudColumn(
             )
         }
 
-        // Missions Trigger
-        Box(
-            modifier = Modifier
-                .clickable { onMissionsClick() }
-                .background(LeatherDark.copy(alpha = 0.9f), RoundedCornerShape(spacing.cornerXs))
-                .border(1.dp, ParchmentBorder, RoundedCornerShape(spacing.cornerXs))
-                .padding(horizontal = spacing.xs, vertical = spacing.xxs),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Missions",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = ImperialGold
-            )
-        }
     }
 }

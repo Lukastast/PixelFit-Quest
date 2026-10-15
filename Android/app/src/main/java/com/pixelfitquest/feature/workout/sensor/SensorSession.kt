@@ -10,6 +10,9 @@ import kotlin.math.sqrt
  * Record-only phone IMU. Prefers SENSOR_DELAY_FASTEST (requires HIGH_SAMPLING_RATE_SENSORS
  * on API 31+), falls back to ≤200 Hz, then GAME delay. Interpolates onto the accel
  * timeline at snapshot. Does not analyze.
+ *
+ * Hot path stores samples in structure-of-arrays buffers (no per-event TimedVec3/Quat).
+ * Rates, registered sensors, and snapshot→SetAnalyzer sample sequences are unchanged.
  */
 class SensorSession(
     private val sensorManager: SensorManager,
@@ -29,10 +32,10 @@ class SensorSession(
         sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
 
     private val lock = Any()
-    private val accel = ArrayList<TimedVec3>(4096)
-    private val gyro = ArrayList<TimedVec3>(4096)
-    private val rotation = ArrayList<TimedQuat>(4096)
-    private val linear = ArrayList<TimedVec3>(2048)
+    private val accel = TimedVec3Buffer()
+    private val gyro = TimedVec3Buffer()
+    private val rotation = TimedQuatBuffer()
+    private val linear = TimedVec3Buffer(initialCapacity = 2048)
 
     @Volatile private var registered = false
 
@@ -106,43 +109,53 @@ class SensorSession(
     }
 
     override fun onSensorChanged(event: SensorEvent) {
+        // Copy event fields once — SensorEvent.values is reused by the platform.
         val t = event.timestamp
-        when (event.sensor.type) {
+        val type = event.sensor.type
+        val values = event.values
+        when (type) {
             Sensor.TYPE_GYROSCOPE, Sensor.TYPE_GYROSCOPE_UNCALIBRATED -> {
+                val x = values[0]
+                val y = values[1]
+                val z = values[2]
                 synchronized(lock) {
-                    gyro += TimedVec3(t, event.values[0], event.values[1], event.values[2])
+                    gyro.add(t, x, y, z)
                 }
             }
             Sensor.TYPE_ROTATION_VECTOR, Sensor.TYPE_GAME_ROTATION_VECTOR -> {
-                val x = event.values[0]
-                val y = event.values[1]
-                val z = event.values[2]
-                val w = if (event.values.size > 3) {
-                    event.values[3]
+                val x = values[0]
+                val y = values[1]
+                val z = values[2]
+                val w = if (values.size > 3) {
+                    values[3]
                 } else {
                     val mag2 = x * x + y * y + z * z
                     if (mag2 <= 1f) sqrt(1f - mag2) else 0f
                 }
                 synchronized(lock) {
-                    rotation += TimedQuat(t, x, y, z, w)
+                    rotation.add(t, x, y, z, w)
                 }
             }
             Sensor.TYPE_LINEAR_ACCELERATION -> {
+                val x = values[0]
+                val y = values[1]
+                val z = values[2]
                 synchronized(lock) {
-                    linear += TimedVec3(t, event.values[0], event.values[1], event.values[2])
+                    linear.add(t, x, y, z)
                 }
             }
             Sensor.TYPE_ACCELEROMETER -> {
+                val x = values[0]
+                val y = values[1]
+                val z = values[2]
                 val count: Int
                 val first: Long
-                val last: Long
                 synchronized(lock) {
-                    accel += TimedVec3(t, event.values[0], event.values[1], event.values[2])
+                    accel.add(t, x, y, z)
                     count = accel.size
-                    first = accel.first().tNanos
-                    last = t
+                    first = accel.firstTNanos()
                 }
-                onAccelTick(count, first, last)
+                onAccelTick(count, first, t)
             }
         }
     }

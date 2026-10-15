@@ -1,11 +1,6 @@
 package com.pixelfitquest.feature.workout.analysis
 
-const val ANALYSIS_VERSION = 3
-
-data class AnalyzerUser(
-    val heightCm: Int,
-    val armLengthCm: Float? = null,
-)
+const val ANALYSIS_VERSION = 4
 
 data class DetectedRep(
     val index: Int,
@@ -28,8 +23,21 @@ data class DetectedRep(
     val tags: List<String>,
     val confidence: Float,
     val accepted: Boolean,
+    val assisted: Boolean = false,
 ) {
     val isManual: Boolean get() = "manual" in tags
+
+    /** Score this measured rep against a full-range amplitude. Does not mark a manual override. */
+    fun scoredAgainst(baseline: Float): DetectedRep {
+        if (isManual || baseline <= 1e-4f || romEstimate <= 1e-4f) return this
+        val percent = ((romEstimate / baseline) * 100f).coerceIn(0f, 100f)
+        val form = formScoreFrom(romScore = percent, tempoScore = tempoScore, barQuality = stabilityScore)
+        val next = buildList {
+            addAll(tags.filter { it != "short_rom" })
+            if (percent < 70f) add("short_rom")
+        }.distinct()
+        return copy(romScore = percent, formScore = form, tags = next)
+    }
 
     fun withRomPercent(percent: Float): DetectedRep {
         val rom = percent.coerceIn(0f, 100f)

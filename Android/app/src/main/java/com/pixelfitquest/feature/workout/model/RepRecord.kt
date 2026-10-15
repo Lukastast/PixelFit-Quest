@@ -21,6 +21,7 @@ data class RepRecord(
     val formScore: Float,
     val tags: List<String> = emptyList(),
     val confidence: Float = 1f,
+    val assisted: Boolean = false,
 ) {
     fun toMap(): Map<String, Any?> = mapOf(
         "index" to index,
@@ -40,6 +41,7 @@ data class RepRecord(
         "formScore" to formScore,
         "tags" to tags,
         "confidence" to confidence,
+        "assisted" to assisted,
     )
 
     companion object {
@@ -61,6 +63,7 @@ data class RepRecord(
             formScore = rep.formScore,
             tags = rep.tags,
             confidence = rep.confidence,
+            assisted = rep.assisted,
         )
 
         fun fromMap(map: Map<String, Any?>): RepRecord = RepRecord(
@@ -83,6 +86,7 @@ data class RepRecord(
             formScore = (map["formScore"] as? Number)?.toFloat() ?: 0f,
             tags = (map["tags"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
             confidence = (map["confidence"] as? Number)?.toFloat() ?: 1f,
+            assisted = map["assisted"] as? Boolean ?: false,
         )
     }
 }

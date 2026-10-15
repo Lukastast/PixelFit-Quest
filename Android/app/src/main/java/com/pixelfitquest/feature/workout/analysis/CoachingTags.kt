@@ -9,6 +9,7 @@ object CoachingTags {
         "merged",
         "rom_override",
         "manual",
+        "assisted",
         "bar_tilt",
         "no_rotation_vector",
         "no_gyro",
@@ -23,6 +24,7 @@ object CoachingTags {
         "twist_hip" -> R.string.tag_twist_hip
         "dropped" -> R.string.tag_dropped
         "short_rom" -> R.string.tag_short_rom
+        "setup" -> R.string.tag_setup
         TAG_CLIP_POSE -> R.string.tag_clip_pose
         else -> null
     }

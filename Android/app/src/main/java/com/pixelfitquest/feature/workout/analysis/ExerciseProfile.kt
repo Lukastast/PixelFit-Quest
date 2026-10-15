@@ -48,13 +48,16 @@ data class ExerciseProfile(
     val maxRepDurationMs: Long,
     val minAmplitude: Float,
     val typicalAmplitude: Float,
-    val romFactor: Float,
-    val usesArmLength: Boolean = false,
     val quality: Set<QualityMetric>,
+    /** Smallest turn that can split one rep. Defaults to most of [minAmplitude]. */
+    val minReversal: Float? = null,
 ) {
     val romUnit: RomUnit
         get() = when (primaryMotion) {
             PrimaryMotion.PITCH_ABOUT_ELBOW -> RomUnit.RADIANS
             else -> RomUnit.METERS
         }
+
+    val reversalFloor: Float
+        get() = minReversal ?: (minAmplitude * 0.85f)
 }

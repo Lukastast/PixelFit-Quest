@@ -26,6 +26,7 @@ internal data class RawCycle(
     val tEndNanos: Long,
     val amplitude: Float,
     val truncated: Boolean,
+    val setup: Boolean = false,
 )
 
 internal data class PreparedSignals(
@@ -288,7 +289,11 @@ internal object Signal {
         val primary = when (motion) {
             PrimaryMotion.VERTICAL_VS_GRAVITY -> vertical
             PrimaryMotion.HORIZONTAL_IN_BAR_FRAME -> filtfilt(horizontal, win)
-            PrimaryMotion.PITCH_ABOUT_ELBOW -> smooth(attitude.pitch, (win / 2).coerceAtLeast(3))
+            // Wider than the bar-path smoother so sleeve wobble does not become extra reps.
+            PrimaryMotion.PITCH_ABOUT_ELBOW -> smooth(
+                attitude.pitch,
+                ((0.28f / medianDt).toInt()).coerceIn(7, 31),
+            )
         }
 
         return PreparedSignals(
@@ -313,7 +318,8 @@ internal object Signal {
         profile: ExerciseProfile,
     ): List<RawCycle> {
         val wantStartPeak = profile.cycleShape == CycleShape.HIGH_LOW_HIGH
-        val ext = completeExtrema(extrema(primary, tNanos), primary, tNanos, wantStartPeak)
+        val turned = prominentExtrema(extrema(primary, tNanos), profile.reversalFloor)
+        val ext = completeExtrema(turned, primary, tNanos, wantStartPeak)
         if (ext.isEmpty()) return emptyList()
 
         val boundaries = ext.filter { it.isPeak == wantStartPeak }
@@ -364,7 +370,54 @@ internal object Signal {
                 }
             }
         }
-        return cycles
+        return markSetupCycles(cycles)
+    }
+
+    /**
+     * Ignore a turn that does not travel [minReversal]. That keeps a bar wobble
+     * from splitting one rep into several cycles.
+     */
+    fun prominentExtrema(raw: List<Extremum>, minReversal: Float): List<Extremum> {
+        if (raw.isEmpty() || minReversal <= 0f) return raw
+        val out = ArrayList<Extremum>()
+        var candidate = raw.first()
+        for (i in 1 until raw.size) {
+            val ext = raw[i]
+            if (ext.isPeak == candidate.isPeak) {
+                val moreExtreme = if (ext.isPeak) ext.value >= candidate.value else ext.value <= candidate.value
+                if (moreExtreme) candidate = ext
+                continue
+            }
+            if (abs(ext.value - candidate.value) >= minReversal) {
+                out += candidate
+                candidate = ext
+            }
+        }
+        out += candidate
+        if (out.size >= 2 && abs(out.last().value - out[out.lastIndex - 1].value) < minReversal) {
+            out.removeAt(out.lastIndex)
+        }
+        return out
+    }
+
+    /**
+     * The first or last cycle of a press is often the lift off the hooks or the rerack.
+     * On an incline that travel is deeper than the reps, so it would otherwise count.
+     */
+    fun markSetupCycles(cycles: List<RawCycle>): List<RawCycle> {
+        if (cycles.size < 3) return cycles
+        // Compare edges to the reps between them. Absolute valley depth drifts, so only
+        // a much larger travel (lift off a higher rack, or a rerack) counts as setup.
+        val body = if (cycles.size >= 4) cycles.subList(1, cycles.lastIndex) else cycles.drop(1)
+        if (body.isEmpty()) return cycles
+        val ampValues = body.map { it.amplitude }.sorted()
+        val medianAmp = ampValues[ampValues.size / 2]
+        if (medianAmp <= 1e-4f) return cycles
+        val setupFloor = medianAmp * 1.7f
+        return cycles.mapIndexed { index, cycle ->
+            val edge = index == 0 || index == cycles.lastIndex
+            if (edge && cycle.amplitude > setupFloor) cycle.copy(setup = true) else cycle
+        }
     }
 
     private fun completeExtrema(

@@ -38,6 +38,8 @@ data class ExerciseDefinition(
     val category: ExerciseCategory,
     val equipment: ExerciseEquipment,
     val imuSupported: Boolean = false,
+    /** Done one limb at a time, so a set can be marked left or right. */
+    val unilateral: Boolean = false,
 ) {
     val id: String get() = type.type
     val subtitle: String get() = "${category.label} · ${equipment.label}"
@@ -81,7 +83,7 @@ object ExerciseCatalog {
         add(e(ExerciseType.RACK_PULL, "Rack Pull", ExerciseCategory.BACK, ExerciseEquipment.BARBELL, imu = true))
         add(e(ExerciseType.BARBELL_ROW, "Barbell Row", ExerciseCategory.BACK, ExerciseEquipment.BARBELL, imu = true))
         add(e(ExerciseType.PENDLAY_ROW, "Pendlay Row", ExerciseCategory.BACK, ExerciseEquipment.BARBELL, imu = true))
-        add(e(ExerciseType.DUMBBELL_ROW, "Dumbbell Row", ExerciseCategory.BACK, ExerciseEquipment.DUMBBELL))
+        add(e(ExerciseType.DUMBBELL_ROW, "Dumbbell Row", ExerciseCategory.BACK, ExerciseEquipment.DUMBBELL, unilateral = true))
         add(e(ExerciseType.T_BAR_ROW, "T-Bar Row", ExerciseCategory.BACK, ExerciseEquipment.BARBELL, imu = true))
         add(e(ExerciseType.MACHINE_ROW, "Machine Row", ExerciseCategory.BACK, ExerciseEquipment.MACHINE))
         add(e(ExerciseType.PULL_UP, "Pull-Up", ExerciseCategory.BACK, ExerciseEquipment.BODYWEIGHT))
@@ -103,11 +105,11 @@ object ExerciseCatalog {
         add(e(ExerciseType.SEATED_LEG_CURL, "Seated Leg Curl", ExerciseCategory.LEGS, ExerciseEquipment.MACHINE))
         add(e(ExerciseType.LYING_LEG_CURL, "Lying Leg Curl", ExerciseCategory.LEGS, ExerciseEquipment.MACHINE))
         add(e(ExerciseType.WALKING_LUNGE, "Walking Lunge", ExerciseCategory.LEGS, ExerciseEquipment.DUMBBELL))
-        add(e(ExerciseType.BULGARIAN_SPLIT_SQUAT, "Bulgarian Split Squat", ExerciseCategory.LEGS, ExerciseEquipment.DUMBBELL))
-        add(e(ExerciseType.STEP_UP, "Step-Up", ExerciseCategory.LEGS, ExerciseEquipment.DUMBBELL))
+        add(e(ExerciseType.BULGARIAN_SPLIT_SQUAT, "Bulgarian Split Squat", ExerciseCategory.LEGS, ExerciseEquipment.DUMBBELL, unilateral = true))
+        add(e(ExerciseType.STEP_UP, "Step-Up", ExerciseCategory.LEGS, ExerciseEquipment.DUMBBELL, unilateral = true))
         add(e(ExerciseType.HIP_THRUST, "Hip Thrust", ExerciseCategory.LEGS, ExerciseEquipment.BARBELL, imu = true))
         add(e(ExerciseType.GLUTE_BRIDGE, "Glute Bridge", ExerciseCategory.LEGS, ExerciseEquipment.BODYWEIGHT))
-        add(e(ExerciseType.CABLE_KICKBACK, "Cable Kickback", ExerciseCategory.LEGS, ExerciseEquipment.CABLE))
+        add(e(ExerciseType.CABLE_KICKBACK, "Cable Kickback", ExerciseCategory.LEGS, ExerciseEquipment.CABLE, unilateral = true))
         add(e(ExerciseType.STANDING_CALF_RAISE, "Standing Calf Raise", ExerciseCategory.LEGS, ExerciseEquipment.MACHINE))
         add(e(ExerciseType.SEATED_CALF_RAISE, "Seated Calf Raise", ExerciseCategory.LEGS, ExerciseEquipment.MACHINE))
         add(e(ExerciseType.LEG_ADDUCTION, "Hip Adduction", ExerciseCategory.LEGS, ExerciseEquipment.MACHINE))
@@ -121,16 +123,16 @@ object ExerciseCatalog {
         add(e(ExerciseType.ARNOLD_PRESS, "Arnold Press", ExerciseCategory.SHOULDERS, ExerciseEquipment.DUMBBELL))
         add(e(ExerciseType.SEATED_OVERHEAD_PRESS, "Seated Overhead Press", ExerciseCategory.SHOULDERS, ExerciseEquipment.BARBELL, imu = true))
         add(e(ExerciseType.PUSH_PRESS, "Push Press", ExerciseCategory.SHOULDERS, ExerciseEquipment.BARBELL))
-        add(e(ExerciseType.LATERAL_RAISE, "Lateral Raise", ExerciseCategory.SHOULDERS, ExerciseEquipment.DUMBBELL))
-        add(e(ExerciseType.FRONT_RAISE, "Front Raise", ExerciseCategory.SHOULDERS, ExerciseEquipment.DUMBBELL))
+        add(e(ExerciseType.LATERAL_RAISE, "Lateral Raise", ExerciseCategory.SHOULDERS, ExerciseEquipment.DUMBBELL, unilateral = true))
+        add(e(ExerciseType.FRONT_RAISE, "Front Raise", ExerciseCategory.SHOULDERS, ExerciseEquipment.DUMBBELL, unilateral = true))
         add(e(ExerciseType.REAR_DELT_FLY, "Rear Delt Fly", ExerciseCategory.SHOULDERS, ExerciseEquipment.DUMBBELL))
         add(e(ExerciseType.UPRIGHT_ROW, "Upright Row", ExerciseCategory.SHOULDERS, ExerciseEquipment.BARBELL))
-        add(e(ExerciseType.CABLE_LATERAL_RAISE, "Cable Lateral Raise", ExerciseCategory.SHOULDERS, ExerciseEquipment.CABLE))
+        add(e(ExerciseType.CABLE_LATERAL_RAISE, "Cable Lateral Raise", ExerciseCategory.SHOULDERS, ExerciseEquipment.CABLE, unilateral = true))
 
         // Arms
         add(e(ExerciseType.HAMMER_CURL, "Hammer Curl", ExerciseCategory.ARMS, ExerciseEquipment.DUMBBELL))
         add(e(ExerciseType.PREACHER_CURL, "Preacher Curl", ExerciseCategory.ARMS, ExerciseEquipment.BARBELL, imu = true))
-        add(e(ExerciseType.CONCENTRATION_CURL, "Concentration Curl", ExerciseCategory.ARMS, ExerciseEquipment.DUMBBELL))
+        add(e(ExerciseType.CONCENTRATION_CURL, "Concentration Curl", ExerciseCategory.ARMS, ExerciseEquipment.DUMBBELL, unilateral = true))
         add(e(ExerciseType.CABLE_CURL, "Cable Curl", ExerciseCategory.ARMS, ExerciseEquipment.CABLE))
         add(e(ExerciseType.INCLINE_CURL, "Incline Curl", ExerciseCategory.ARMS, ExerciseEquipment.DUMBBELL))
         add(e(ExerciseType.EZ_BAR_CURL, "EZ-Bar Curl", ExerciseCategory.ARMS, ExerciseEquipment.BARBELL, imu = true))
@@ -142,7 +144,7 @@ object ExerciseCatalog {
         add(e(ExerciseType.TRICEP_DIP, "Tricep Dip", ExerciseCategory.ARMS, ExerciseEquipment.BODYWEIGHT))
         add(e(ExerciseType.BENCH_DIP, "Bench Dip", ExerciseCategory.ARMS, ExerciseEquipment.BODYWEIGHT))
         add(e(ExerciseType.WRIST_CURL, "Wrist Curl", ExerciseCategory.ARMS, ExerciseEquipment.BARBELL))
-        add(e(ExerciseType.CABLE_TRICEP_KICKBACK, "Cable Tricep Kickback", ExerciseCategory.ARMS, ExerciseEquipment.CABLE))
+        add(e(ExerciseType.CABLE_TRICEP_KICKBACK, "Cable Tricep Kickback", ExerciseCategory.ARMS, ExerciseEquipment.CABLE, unilateral = true))
 
         // Core
         add(e(ExerciseType.PLANK, "Plank", ExerciseCategory.CORE, ExerciseEquipment.BODYWEIGHT))
@@ -234,12 +236,14 @@ object ExerciseCatalog {
         category: ExerciseCategory,
         equipment: ExerciseEquipment,
         imu: Boolean = false,
+        unilateral: Boolean = false,
     ) = ExerciseDefinition(
         type = type,
         displayName = displayName,
         category = category,
         equipment = equipment,
         imuSupported = imu,
+        unilateral = unilateral,
     )
 
     private fun fallbackDisplayName(type: ExerciseType): String =

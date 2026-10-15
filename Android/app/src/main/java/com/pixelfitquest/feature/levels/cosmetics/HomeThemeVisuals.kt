@@ -44,6 +44,10 @@ object HomeThemeVisuals {
         CosmeticKind.CHARACTER_SKIN -> when (definition.id) {
             CosmeticCatalog.SKIN_FITNESS -> R.drawable.fitness_character_male_idle
             CosmeticCatalog.SKIN_SHADOW -> R.drawable.locked_male_character_idle
+            CosmeticCatalog.SKIN_CAPE_HERO -> R.drawable.cape_hero_preview
+            CosmeticCatalog.SKIN_IRON_OAK -> R.drawable.iron_oak_preview
+            CosmeticCatalog.SKIN_EMBER_SPARROW -> R.drawable.ember_sparrow_preview
+            CosmeticCatalog.SKIN_COIL_SHADE -> R.drawable.coil_shade_preview
             else -> R.drawable.character_male_idle
         }
         CosmeticKind.TITLE -> when (definition.id) {

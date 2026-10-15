@@ -38,26 +38,18 @@
     <string name="customization_tab_home">Home</string>
     <string name="customization_tab_gym">Gym</string>
     <string name="customization_tab_background">Theme</string>
-    <string name="customization_tab_stats">Stats</string>
     <string name="gym_upgrade_title">Iron Gym Dwelling</string>
     <string name="gym_upgrade_desc">Upgrade your home to a 16-bit iron gym with weight equipment and workout bench.</string>
     <string name="gym_upgrade_equipped">Equipped</string>
     <string name="gym_upgrade_equip">Equip</string>
     <string name="gym_upgrade_use_default">Level Dwelling</string>
     <string name="gym_upgrade_not_enough_coins">Need more coins</string>
-    <string name="stats_title">Your stats</string>
-    <string name="height_label">Height</string>
-    <string name="stats_arm_length">Arm length</string>
-    <string name="metric_cm_value">%1$s: %2$d cm</string>
     <string name="male">Male</string>
     <string name="female">Female</string>
     <string name="fitness_bonus">+2 coins &amp; +2 exp per reward</string>
     <string name="coming_soon">Coming Soon</string>
     <string name="select">Select</string>
     <string name="coins_label"> coins</string>
-    <string name="current_height">Current height: %1$s cm</string>
-    <string name="enter_height_hint">Enter height (e.g., 175)</string>
-    <string name="set_height">Set Height</string>
 
     <!-- Splash Screen -->
     <string name="splash_screen_desc">Splash Screen</string>
@@ -244,6 +236,7 @@
     <string name="workout_status_countdown">Set: %1$d / %2$d · get ready</string>
     <string name="workout_status_recording">Set: %1$d / %2$d · recording · %3$.1f Kg · %4$.0fs</string>
     <string name="workout_status_review">Set: %1$d / %2$d · review</string>
+    <string name="workout_status_resting">Set: %1$d / %2$d · rest</string>
     <string name="workout_recording_badge">RECORDING</string>
     <string name="no_plan_error">No workout plan provided—cannot start tracking</string>
     <string name="invalid_plan_error">Error: Invalid workout plan. Returning to customization...</string>
@@ -261,6 +254,7 @@
     <string name="tag_twist_hip">Right hand toward hip</string>
     <string name="tag_dropped">Dropped the lower</string>
     <string name="tag_short_rom">Short range</string>
+    <string name="tag_setup">Unrack / rerack</string>
     <string name="tag_clip_pose">Clip pose unclear — level/twist skipped</string>
     <string name="set_review_rom_label">ROM</string>
     <string name="set_review_rom_percent">%1$d%%</string>
@@ -270,12 +264,32 @@
     <string name="set_review_add">Add rep</string>
     <string name="set_review_redo">Redo set</string>
     <string name="set_review_confirm">Confirm</string>
+    <string name="set_review_assist">Assist</string>
+    <string name="set_review_assisted">Assisted</string>
+    <string name="set_notes_title">Set Notes</string>
+    <string name="set_notes_hint">Add notes for this set (RPE, cues, form)...</string>
+    <string name="set_side_left">Left</string>
+    <string name="set_side_right">Right</string>
+    <string name="set_assisted_count">Assisted %1$d</string>
+    <string name="rest_timer_pause">Pause</string>
+    <string name="rest_timer_resume">Resume</string>
+    <string name="rest_timer_stop_autostart">Stop autostart</string>
+    <string name="rest_timer_autostart_on">Next set starts when this hits zero</string>
+    <string name="rest_timer_autostart_off">Timer only — tap play to start</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
     <string name="settings_landscape_title">Lay-flat workout</string>
     <string name="settings_landscape_on">ON</string>
     <string name="settings_landscape_off">OFF</string>
+    <string name="settings_rest_title">Rest timer</string>
+    <string name="settings_rest_subtitle">Shows between sets. Does not start the next set unless autostart is on.</string>
+    <string name="settings_rest_autostart">Autostart next set</string>
+    <string name="settings_rest_autostart_subtitle">Off unless you turn this on. You can still stop it during the rest.</string>
+    <string name="settings_rom_reset_title">Learned range</string>
+    <string name="settings_rom_reset_subtitle">Deleting workouts does not clear this. Reset if a full rep scores too low.</string>
+    <string name="settings_rom_reset_action">Reset</string>
+    <string name="settings_rom_reset_done">Learned range reset. The next full reps set a new baseline.</string>
     <string name="continue_without_account">Continue without account</string>
     <string name="guest_profile_title">Playing offline (guest)</string>
     <string name="guest_profile_subtitle">Workouts stay on this phone</string>
@@ -284,9 +298,9 @@
     <string name="backup_sync_pro_title">Backup &amp; sync (Pro)</string>
     <string name="backup_sync_pro_subtitle">Cloud backup, multi-device, leaderboards</string>
     <string name="export_card_title">Export workout log</string>
-    <string name="export_card_subtitle">Free local backup · JSON / CSV · no account</string>
+    <string name="export_card_subtitle">Free local backup · JSON / CSV · no account · JSON includes local repEdits log</string>
     <string name="export_dialog_title">Export workout log</string>
-    <string name="export_dialog_subtitle">Free · this phone · no account needed</string>
+    <string name="export_dialog_subtitle">Free · this phone · no account. JSON includes on-device rep_edits (repEdits); nothing is uploaded by PixelFit.</string>
     <string name="export_counts">Workouts: %1$d · Sets: %2$d</string>
     <string name="export_format_json">JSON</string>
     <string name="export_format_csv">CSV</string>
@@ -300,15 +314,6 @@
     <string name="export_saved">Workout log saved</string>
     <string name="export_failed">Export failed</string>
 
-    <!-- Body Metrics Screen -->
-    <string name="body_metrics_title">Body measurements</string>
-    <string name="body_metrics_card_title">Body measurements</string>
-    <string name="body_metrics_card_subtitle">Height and arm length for IMU tracking</string>
-    <string name="body_metrics_help">Arm length improves tracking for lat pulldown, bicep curl, and tricep extension. Height is used across IMU analysis.</string>
-    <string name="current_arm_length">Current arm length: %1$s cm</string>
-    <string name="enter_arm_length_hint">Enter arm length in cm (e.g., 68)</string>
-    <string name="arm_length_label">Arm length (cm)</string>
-    <string name="body_metrics_save">Save</string>
     <string name="leaderboard_pro_badge">PRO</string>
     <string name="leaderboard_pro_hint">Leaderboard</string>
 
@@ -444,6 +449,15 @@
     <string name="settings_weight_progression_subtitle">Suggest +2.5 kg upon hitting rep target</string>
     <string name="settings_rep_threshold_title">Progression Rep Target</string>
     <string name="settings_rep_threshold_hint">Hitting %1$d reps in a session suggests +2.5 kg next time</string>
+    <string name="settings_progression_preset_strength">Strength</string>
+    <string name="settings_progression_preset_strength_sub">~5 reps</string>
+    <string name="settings_progression_preset_hypertrophy">Hypertrophy</string>
+    <string name="settings_progression_preset_hypertrophy_sub">~10–12 reps</string>
+    <string name="settings_progression_preset_hypertrophy_active">%1$d reps</string>
+    <string name="settings_progression_custom_slider">Custom Target</string>
+    <string name="settings_rep_badge_strength">%1$d REPS · STRENGTH</string>
+    <string name="settings_rep_badge_hypertrophy">%1$d REPS · HYPERTROPHY</string>
+    <string name="settings_rep_badge_custom">%1$d REPS · CUSTOM</string>
     <string name="loadout_title">PRE-WORKOUT LOADOUT</string>
     <string name="loadout_subtitle">Calibrate starting weights &amp; review suggestions</string>
     <string name="loadout_progression_hit_title">PROGRESSION GOAL HIT!</string>

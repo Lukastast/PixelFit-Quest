@@ -27,6 +27,8 @@ data class WorkoutSet(
     val flags: List<String> = emptyList(),
     val repRecords: List<RepRecord> = emptyList(),
     val notes: String? = null,
+    /** "L" or "R" for one-sided exercises. Null on bilateral lifts. */
+    val side: String? = null,
 ) {
     fun toMap(): Map<String, Any?> = mapOf(
         "id" to id,
@@ -51,6 +53,7 @@ data class WorkoutSet(
         "flags" to flags,
         "repRecords" to repRecords.map { it.toMap() },
         "notes" to notes,
+        "side" to side,
     )
 
     companion object {
@@ -89,6 +92,7 @@ data class WorkoutSet(
                 flags = (map["flags"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
                 repRecords = records,
                 notes = map["notes"] as? String,
+                side = (map["side"] as? String)?.takeIf { it == "L" || it == "R" },
             )
         }
     }

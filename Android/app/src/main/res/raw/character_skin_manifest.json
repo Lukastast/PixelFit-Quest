@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "spriteBible": {
+    "idleFrameSize": [
+      480,
+      480
+    ],
+    "idleFrameCount": 13,
+    "sittingFrameCount": 8,
+    "fpsIdle": 10,
+    "fpsSitting": 8,
+    "filterQuality": "None",
+    "facing": "three_quarter_right"
+  },
+  "characters": {
+    "cape_hero": {
+      "displayName": "Cape Hero",
+      "idle": {
+        "sheet": "cape_hero_idle.png",
+        "frames": 13,
+        "fps": 10
+      },
+      "sitting": {
+        "sheet": "cape_hero_sitting.png",
+        "frames": 8,
+        "fps": 8
+      },
+      "preview": "cape_hero_preview.png",
+      "originalArchetype": true,
+      "walk": {
+        "sheet": "cape_hero_walk.png",
+        "frames": 8,
+        "fps": 10,
+        "frameSize": [
+          688,
+          768
+        ],
+        "note": "P1-3 deferred: ships in drawable-nodpi but MUST NOT be eagerly decoded. Runtime walk is bob+slide (PixelCharacterMotion) until Path B animator.",
+        "eagerLoad": false
+      }
+    },
+    "iron_oak": {
+      "displayName": "Iron Oak",
+      "idle": {
+        "sheet": "iron_oak_idle.png",
+        "frames": 13,
+        "fps": 10
+      },
+      "sitting": {
+        "sheet": "iron_oak_sitting.png",
+        "frames": 8,
+        "fps": 8
+      },
+      "preview": "iron_oak_preview.png",
+      "originalArchetype": true
+    },
+    "ember_sparrow": {
+      "displayName": "Ember Sparrow",
+      "idle": {
+        "sheet": "ember_sparrow_idle.png",
+        "frames": 13,
+        "fps": 10
+      },
+      "sitting": {
+        "sheet": "ember_sparrow_sitting.png",
+        "frames": 8,
+        "fps": 8
+      },
+      "preview": "ember_sparrow_preview.png",
+      "originalArchetype": true
+    },
+    "coil_shade": {
+      "displayName": "Coil Shade",
+      "idle": {
+        "sheet": "coil_shade_idle.png",
+        "frames": 13,
+        "fps": 10
+      },
+      "sitting": {
+        "sheet": "coil_shade_sitting.png",
+        "frames": 8,
+        "fps": 8
+      },
+      "preview": "coil_shade_preview.png",
+      "originalArchetype": true
+    }
+  },
+  "heroPoses": {
+    "squat": {
+      "sheet": "hero_pose_squat.png",
+      "size": [
+        480,
+        480
+      ],
+      "issue": 172,
+      "animated": false
+    },
+    "bench": {
+      "sheet": "hero_pose_bench.png",
+      "size": [
+        480,
+        480
+      ],
+      "issue": 172,
+      "animated": false
+    },
+    "deadlift": {
+      "sheet": "hero_pose_deadlift.png",
+      "size": [
+        480,
+        480
+      ],
+      "issue": 172,
+      "animated": false
+    },
+    "overhead_press": {
+      "sheet": "hero_pose_overhead_press.png",
+      "size": [
+        480,
+        480
+      ],
+      "issue": 172,
+      "animated": false
+    },
+    "row": {
+      "sheet": "hero_pose_row.png",
+      "size": [
+        480,
+        480
+      ],
+      "issue": 172,
+      "animated": false
+    }
+  }
+}

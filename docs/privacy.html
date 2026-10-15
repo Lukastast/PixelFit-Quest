@@ -25,7 +25,7 @@
 <body>
   <h1>Privacy Policy — PixelFit Quest</h1>
   <p class="meta"><strong>Effective date:</strong> 24 September 2026<br />
-  <strong>Last updated:</strong> 24 September 2026<br />
+  <strong>Last updated:</strong> 1 October 2026<br />
   <strong>Controller:</strong> Tast Studio / Lukas Tast (Denmark)<br />
   <strong>Contact:</strong> <a href="mailto:lukastast@gmail.com">lukastast@gmail.com</a> (preferred) · lukasrtast@yahoo.dk</p>
 
@@ -55,12 +55,16 @@
   <ul>
     <li>Workout sessions, sets, templates, and related gym log data</li>
     <li>In-app progression (level, XP, streaks, coins, cosmetics unlocks)</li>
-    <li>Body / profile metrics you enter (e.g. height)</li>
     <li>App preferences (e.g. volume)</li>
     <li>Sensor-derived workout signals from the device accelerometer / optional gyroscope (IMU tracking) — processed on device for the active workout</li>
+    <li><strong>Local rep-edit telemetry</strong> (see §3.1a) — corrections you make during set review, stored only on device</li>
     <li>Local exports you generate in cache before you share them</li>
   </ul>
   <p>This local data stays on your device unless <strong>you</strong> export/share it, back up the device with your own tools, or (<span class="todo">TODO: Pro</span>) enable paid cloud sync in a future version.</p>
+
+  <h3>3.1a Local rep-edit telemetry (on-device only)</h3>
+  <p>When you correct reps during set review (for example merge, ROM tags, assisted flag, or left/right side on unilateral lifts), PixelFit may append a small JSON line to a private app file named <code>rep_edits.jsonl</code>. Purpose: improve on-device rep detection from real sessions. The log stays in the app sandbox, is <strong>not uploaded</strong> by PixelFit, and is size-capped (rotated when it grows past roughly 500&nbsp;KB so older lines are dropped).</p>
+  <p>If you use <strong>Export workout log</strong> (JSON), the current contents of that file are included in the export payload under the key <code>repEdits</code> so you can share a session for tuning. CSV export does not include this field. Clearing app data, uninstalling, or overwriting via rotation removes older entries.</p>
 
   <h3>3.2 Optional Google account (Firebase Authentication)</h3>
   <p>If you choose Google Sign-In, Google and Firebase Authentication process identifiers such as Google account email, display name, profile photo URL (if provided), and a Firebase user ID.</p>
@@ -117,6 +121,7 @@
   <h2>6. Retention</h2>
   <ul>
     <li><strong>Local Room data:</strong> kept until you clear app data, uninstall, or delete content in-app.</li>
+    <li><strong>Rep-edit log (<code>rep_edits.jsonl</code>):</strong> kept on device until clear/uninstall; rotated to ~500&nbsp;KB (oldest lines dropped). Included in JSON exports you create as <code>repEdits</code>.</li>
     <li><strong>Exports:</strong> temporary files in app cache until cleared.</li>
     <li><strong>Firebase Auth account:</strong> until you delete the account or request deletion.</li>
     <li><strong>Pro cloud backups (future):</strong> <span class="todo">TODO define retention when Pro ships.</span></li>

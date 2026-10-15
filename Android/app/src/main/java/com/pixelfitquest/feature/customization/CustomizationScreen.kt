@@ -57,11 +57,9 @@ fun CustomizationScreen(
             .padding(top = if (useTwoPane) spacing.xxs else spacing.sm),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // --- Header with Coins, Level, and Body Stats quick action ---
         CustomizationHeader(
             coins = uiState.userCoins,
             level = uiState.userLevel,
-            onOpenStats = viewModel::openStatsDialog,
             isCompact = useTwoPane,
         )
 
@@ -90,8 +88,6 @@ fun CustomizationScreen(
                     unlockedVariants = uiState.unlockedVariants,
                     userCoins = uiState.userCoins,
                     userLevel = uiState.userLevel,
-                    heightCm = uiState.heightCm,
-                    armLengthCm = uiState.armLengthCm,
                     unlockedLevelSkinIds = unlockedLevelSkinIds,
                     onSelectGender = viewModel::selectGender,
                     onSelectCharacter = viewModel::selectCharacter,
@@ -100,7 +96,6 @@ fun CustomizationScreen(
                         levelsViewModel.equipByAvatarVariant(uiState.equippedVariant)
                     },
                     onBuyCharacter = viewModel::buyCharacter,
-                    onOpenStats = viewModel::openStatsDialog,
                     isTwoPane = useTwoPane,
                 )
                 CustomizationTab.Home -> HomeCustomizationPanel(
@@ -139,24 +134,12 @@ fun CustomizationScreen(
             }
         }
     }
-
-    // --- Body Calibration Dialog ---
-    if (uiState.isStatsDialogOpen) {
-        StatsDialog(
-            heightCm = uiState.heightCm,
-            armLengthCm = uiState.armLengthCm,
-            onHeightChange = viewModel::setHeight,
-            onArmLengthChange = viewModel::setArmLength,
-            onDismiss = viewModel::closeStatsDialog,
-        )
-    }
 }
 
 @Composable
 private fun CustomizationHeader(
     coins: Int,
     level: Int,
-    onOpenStats: () -> Unit,
     isCompact: Boolean = false,
 ) {
     val spacing = MaterialTheme.spacing
@@ -178,23 +161,6 @@ private fun CustomizationHeader(
             horizontalArrangement = Arrangement.spacedBy(spacing.xs),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Stats quick action
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(spacing.cornerSm))
-                    .background(SlateDeep.copy(alpha = 0.88f))
-                    .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
-                    .clickable(onClick = onOpenStats)
-                    .padding(horizontal = spacing.sm, vertical = spacing.xxs),
-            ) {
-                Text(
-                    text = "📏 Stats",
-                    color = SilverSteel,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp,
-                )
-            }
-
             // Level Badge
             Box(
                 modifier = Modifier

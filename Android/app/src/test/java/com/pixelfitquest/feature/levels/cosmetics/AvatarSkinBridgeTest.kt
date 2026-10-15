@@ -14,6 +14,10 @@ class AvatarSkinBridgeTest {
         assertEquals(CosmeticCatalog.SKIN_FITNESS, AvatarSkinBridge.cosmeticIdForVariant("male_fitness"))
         assertEquals(CosmeticCatalog.SKIN_FITNESS, AvatarSkinBridge.cosmeticIdForVariant("female_fitness"))
         assertEquals(CosmeticCatalog.SKIN_SHADOW, AvatarSkinBridge.cosmeticIdForVariant("shadow"))
+        assertEquals(CosmeticCatalog.SKIN_CAPE_HERO, AvatarSkinBridge.cosmeticIdForVariant("cape_hero"))
+        assertEquals(CosmeticCatalog.SKIN_IRON_OAK, AvatarSkinBridge.cosmeticIdForVariant("iron_oak"))
+        assertEquals(CosmeticCatalog.SKIN_EMBER_SPARROW, AvatarSkinBridge.cosmeticIdForVariant("ember_sparrow"))
+        assertEquals(CosmeticCatalog.SKIN_COIL_SHADE, AvatarSkinBridge.cosmeticIdForVariant("coil_shade"))
     }
 
     @Test
@@ -51,3 +55,20 @@ class AvatarSkinBridgeTest {
         )
     }
 }
+
+    @Test
+    fun originalArchetypeSprites() {
+        assertEquals(
+            "cape_hero_idle",
+            AvatarSkinBridge.spriteKey("cape_hero", gender = "male", unlocked = true),
+        )
+        assertEquals(
+            "iron_oak_idle",
+            AvatarSkinBridge.spriteKey("iron_oak", gender = "female", unlocked = true),
+        )
+        assertEquals(
+            "locked_male",
+            AvatarSkinBridge.spriteKey("ember_sparrow", gender = "male", unlocked = false),
+        )
+    }
+

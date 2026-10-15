@@ -27,6 +27,7 @@ import kotlin.math.roundToInt
  * Hybrid home-character motion prototype (#141): single still frame +
  * InfiniteTransition bob (vertical) and optional horizontal slide.
  * Avoids multi-frame walk sprite sheets for v0 motion feel.
+ * P1-3: do not decode cape_hero_walk (or any walk strip) here — bob+slide only.
  */
 @Composable
 fun PixelCharacterMotion(

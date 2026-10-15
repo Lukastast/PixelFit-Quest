@@ -49,6 +49,8 @@ import com.pixelfitquest.components.molecules.LandscapeWorkoutCard
 import com.pixelfitquest.components.molecules.PreWorkoutWeightCheckCard
 import com.pixelfitquest.components.molecules.WeightProgressionSettingsCard
 import com.pixelfitquest.components.molecules.RemoveAccountCard
+import com.pixelfitquest.components.molecules.RestTimerSettingsCard
+import com.pixelfitquest.components.molecules.RomCalibrationSettingsCard
 import com.pixelfitquest.components.molecules.SettingsActionCard
 import com.pixelfitquest.components.molecules.VolumeCard
 import com.pixelfitquest.components.molecules.launchCredManButtonUI
@@ -80,6 +82,9 @@ fun SettingsScreen(
     val weightSuggestionEnabled by viewModel.weightSuggestionEnabled.collectAsState()
     val weightSuggestionRepThreshold by viewModel.weightSuggestionRepThreshold.collectAsState()
     val godModeEnabled by viewModel.godModeEnabled.collectAsState()
+    val restTimerEnabled by viewModel.restTimerEnabled.collectAsState()
+    val restTimerSeconds by viewModel.restTimerSeconds.collectAsState()
+    val restAutostart by viewModel.restAutostart.collectAsState()
     val weeklyStreak by weeklyStreakViewModel.snapshot.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -184,6 +189,21 @@ fun SettingsScreen(
                             onSuggestionToggle = { viewModel.setWeightSuggestionEnabled(it) },
                             repThreshold = weightSuggestionRepThreshold,
                             onThresholdChange = { viewModel.setWeightSuggestionRepThreshold(it) },
+                            modifier = cardModifier,
+                        )
+
+                        RestTimerSettingsCard(
+                            enabled = restTimerEnabled,
+                            seconds = restTimerSeconds,
+                            autostart = restAutostart,
+                            onEnabled = viewModel::setRestTimerEnabled,
+                            onSeconds = viewModel::setRestTimerSeconds,
+                            onAutostart = viewModel::setRestAutostart,
+                            modifier = cardModifier,
+                        )
+
+                        RomCalibrationSettingsCard(
+                            onReset = viewModel::resetLearnedRange,
                             modifier = cardModifier,
                         )
 
@@ -337,6 +357,21 @@ fun SettingsScreen(
                     onSuggestionToggle = { viewModel.setWeightSuggestionEnabled(it) },
                     repThreshold = weightSuggestionRepThreshold,
                     onThresholdChange = { viewModel.setWeightSuggestionRepThreshold(it) },
+                    modifier = cardModifier,
+                )
+
+                RestTimerSettingsCard(
+                    enabled = restTimerEnabled,
+                    seconds = restTimerSeconds,
+                    autostart = restAutostart,
+                    onEnabled = viewModel::setRestTimerEnabled,
+                    onSeconds = viewModel::setRestTimerSeconds,
+                    onAutostart = viewModel::setRestAutostart,
+                    modifier = cardModifier,
+                )
+
+                RomCalibrationSettingsCard(
+                    onReset = viewModel::resetLearnedRange,
                     modifier = cardModifier,
                 )
 

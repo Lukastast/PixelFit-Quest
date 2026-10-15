@@ -10,6 +10,7 @@ data class SetReviewState(
     val setNumber: Int,
     val exerciseName: String,
     val edited: Boolean = false,
+    val notes: String = "",
 ) {
     val acceptedCount: Int get() = reps.count { it.accepted }
     val meanFormScore: Float
