@@ -455,4 +455,12 @@
     <string name="loadout_ready_badge">%1$d LIFT READY TO OVERLOAD</string>
     <string name="loadout_ready_badge_plural">%1$d LIFTS READY TO OVERLOAD</string>
     <string name="workout_set_weight_label">Set Weight</string>
+    <string name="home_no_recent_workouts">No recent workouts</string>
+    <string name="home_last_done_format">Last done %1$s, %2$d min</string>
+    <string name="home_last_done_today">Today</string>
+    <string name="home_last_done_yesterday">Yesterday</string>
+    <plurals name="home_last_done_days_ago">
+        <item quantity="one">%1$d day ago</item>
+        <item quantity="other">%1$d days ago</item>
+    </plurals>
 </resources>
