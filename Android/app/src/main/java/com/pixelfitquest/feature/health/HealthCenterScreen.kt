@@ -88,9 +88,6 @@ fun HealthCenterScreen(
     achievementsViewModel: AchievementsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val spacing = MaterialTheme.spacing
-    val useTwoPane = isLandscape || spacing.widthClass != PixelFitWidthClass.Compact
     val healthStatus by viewModel.healthStatus.collectAsState()
     val permissionsGranted by viewModel.permissionsGranted.collectAsState()
     val metrics by viewModel.healthMetrics.collectAsState()
@@ -287,7 +284,7 @@ internal fun QuestCenterHeader(
             text = stringResource(R.string.quest_center_title),
             color = Color.White,
             fontWeight = FontWeight.Bold,
-            fontSize = if (isCompact) 16.sp else 15.sp,
+            fontSize = 16.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f, fill = false),

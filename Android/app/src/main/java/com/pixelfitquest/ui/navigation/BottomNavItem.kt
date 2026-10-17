@@ -14,7 +14,7 @@ sealed class BottomNavItem(
     @param:StringRes val labelRes: Int,
 ) {
     data object Home : BottomNavItem(HOME_SCREEN, R.drawable.homebuttonclicked, R.drawable.homebuttonunclicked, R.string.nav_home)
-    data object Templates : BottomNavItem(TEMPLATES_ROUTE, R.drawable.workoutbuttonclicked, R.drawable.workoutbuttonunclicked, R.string.nav_templates)
+    data object Templates : BottomNavItem(TEMPLATES_ROUTE, R.drawable.templatesbuttonclicked, R.drawable.templatesbuttonunclicked, R.string.nav_templates)
     data object History : BottomNavItem(HISTORY_ROUTE, R.drawable.workoutbuttonclicked, R.drawable.workoutbuttonunclicked, R.string.nav_history)
     data object Health : BottomNavItem(HEALTH_CENTER_SCREEN, R.drawable.healthbuttonclicked, R.drawable.healthbuttonunclicked, R.string.nav_health)
 

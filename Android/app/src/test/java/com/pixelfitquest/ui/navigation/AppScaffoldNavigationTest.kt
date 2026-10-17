@@ -30,6 +30,7 @@ class AppScaffoldNavigationTest : ScreenshotTestBase() {
     @Composable
     private fun TestNavShell(isLandscape: Boolean, onNavReady: (NavHostController) -> Unit) {
         val navController = rememberNavController().also(onNavReady)
+        SyncWorkoutsTabEffect(navController)
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = backStackEntry?.destination?.route
         val currentTabArg = backStackEntry.observedTabArg()
@@ -47,6 +48,7 @@ class AppScaffoldNavigationTest : ScreenshotTestBase() {
                         Text("Screen: Workouts ($tab)", color = PlatinumWhite)
                         // Mirrors WorkoutsHistoryScreen's in-screen tab buttons -> onTabSelected wiring in pixelFitGraph.
                         Text("In-screen History", color = PlatinumWhite, modifier = Modifier.clickable { entry.setWorkoutsTab("history") })
+                        Text("In-screen Templates", color = PlatinumWhite, modifier = Modifier.clickable { entry.setWorkoutsTab("templates") })
                     }
                 }
                 composable(HEALTH_CENTER_SCREEN) {
@@ -173,9 +175,60 @@ class AppScaffoldNavigationTest : ScreenshotTestBase() {
     @Test @Config(qualifiers = QUALIFIER_LANDSCAPE)
     fun appNav_landscape_fullScreenAndNavigation() = verifyFourTabsAndNavigation("AppNav_landscape", isLandscape = true)
 
+    @Test @Config(qualifiers = QUALIFIER_PORTRAIT)
+    fun explicitTabNavigation_withLaunchSingleTop_overridesSavedInScreenTab() {
+        var controller: NavHostController? = null
+        composeTestRule.setContent { PixelFitQuestTheme { TestNavShell(isLandscape = false) { controller = it } } }
+
+        // Workouts entry on Templates -> in-screen switch to History -> push detail destination ->
+        // navigate("$WORKOUTS_HISTORY_SCREEN?tab=templates") with launchSingleTop / popUpTo existing workouts entry
+        composeTestRule.onNodeWithContentDescription("Templates").performClick()
+        composeTestRule.onNodeWithText("Screen: Workouts (templates)").assertExists()
+        composeTestRule.onNodeWithContentDescription("Templates").assertIsSelected()
+
+        composeTestRule.onNodeWithText("In-screen History").performClick()
+        composeTestRule.onNodeWithText("Screen: Workouts (history)").assertExists()
+        composeTestRule.onNodeWithContentDescription("History").assertIsSelected()
+
+        composeTestRule.runOnIdle { controller!!.navigate(WORKOUT_CUSTOMIZATION_SCREEN) }
+        composeTestRule.onNodeWithText("Screen: WorkoutBuilder").assertExists()
+
+        composeTestRule.runOnIdle {
+            controller!!.navigate("$WORKOUTS_HISTORY_SCREEN?tab=templates") {
+                popUpTo(WORKOUT_CUSTOMIZATION_SCREEN) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+        composeTestRule.onNodeWithText("Screen: Workouts (templates)").assertExists()
+        composeTestRule.onNodeWithContentDescription("Templates").assertIsSelected()
+        composeTestRule.onNodeWithContentDescription("History").assertIsNotSelected()
+
+        // Same with tab=history after an in-screen switch to templates (and verify in-screen switch still works)
+        composeTestRule.onNodeWithText("In-screen History").performClick()
+        composeTestRule.onNodeWithText("Screen: Workouts (history)").assertExists()
+        composeTestRule.onNodeWithText("In-screen Templates").performClick()
+        composeTestRule.onNodeWithText("Screen: Workouts (templates)").assertExists()
+        composeTestRule.onNodeWithContentDescription("Templates").assertIsSelected()
+
+        composeTestRule.runOnIdle { controller!!.navigate(WORKOUT_CUSTOMIZATION_SCREEN) }
+        composeTestRule.onNodeWithText("Screen: WorkoutBuilder").assertExists()
+
+        composeTestRule.runOnIdle {
+            controller!!.navigate("$WORKOUTS_HISTORY_SCREEN?tab=history") {
+                popUpTo(WORKOUT_CUSTOMIZATION_SCREEN) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+        composeTestRule.onNodeWithText("Screen: Workouts (history)").assertExists()
+        composeTestRule.onNodeWithContentDescription("History").assertIsSelected()
+        composeTestRule.onNodeWithContentDescription("Templates").assertIsNotSelected()
+    }
+
     @Test
     fun selectedBottomNavItem_andShouldShowBottomBar_mapRoutesCorrectly() {
         assertEquals(listOf(BottomNavItem.Home, BottomNavItem.Templates, BottomNavItem.History, BottomNavItem.Health), BottomNavItem.items)
+        assertNotEquals(BottomNavItem.Templates.selectedIcon, BottomNavItem.History.selectedIcon)
+        assertNotEquals(BottomNavItem.Templates.unSelectedIcon, BottomNavItem.History.unSelectedIcon)
         assertEquals(BottomNavItem.Home, selectedBottomNavItem(HOME_SCREEN))
         assertEquals(BottomNavItem.Templates, selectedBottomNavItem(WORKOUTS_HISTORY_SCREEN, null))
         assertEquals(BottomNavItem.Templates, selectedBottomNavItem("$WORKOUTS_HISTORY_SCREEN?tab={tab}", "templates"))

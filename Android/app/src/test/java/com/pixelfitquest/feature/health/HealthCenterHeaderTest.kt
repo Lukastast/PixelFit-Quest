@@ -123,7 +123,7 @@ class HealthCenterHeaderTest : ScreenshotTestBase() {
 
         val rootBounds = composeTestRule.onRoot().fetchSemanticsNode().boundsInRoot
         val nodes = listOf(
-            composeTestRule.onNodeWithText("Quest Center"),
+            composeTestRule.onNodeWithText("Health"),
             composeTestRule.onNodeWithText("Lvl 14"),
             composeTestRule.onNodeWithText("240"),
             composeTestRule.onNodeWithContentDescription("Customize character")
@@ -146,7 +146,7 @@ class HealthCenterHeaderTest : ScreenshotTestBase() {
     fun healthCenter_portrait_fullScreenScreenshot() {
         renderHealthCenterFullScreen()
         captureScreenshot("HealthCenter_portrait")
-        composeTestRule.onNodeWithText("Quest Center").assertIsDisplayed()
+        composeTestRule.onAllNodesWithText("Health").onFirst().assertIsDisplayed()
         composeTestRule.onNodeWithText("WEEKLY MISSIONS").assertIsDisplayed()
     }
 
@@ -154,7 +154,7 @@ class HealthCenterHeaderTest : ScreenshotTestBase() {
     fun healthCenter_landscape_fullScreenScreenshot() {
         renderHealthCenterFullScreen()
         captureScreenshot("HealthCenter_landscape")
-        composeTestRule.onNodeWithText("Quest Center").assertIsDisplayed()
+        composeTestRule.onAllNodesWithText("Health").onFirst().assertIsDisplayed()
         composeTestRule.onNodeWithText("WEEKLY MISSIONS").assertIsDisplayed()
     }
 
@@ -178,17 +178,17 @@ class HealthCenterHeaderTest : ScreenshotTestBase() {
             }
         }
 
-        composeTestRule.onNodeWithText("Quest Center").assertExists()
+        composeTestRule.onNodeWithText("Health").assertExists()
         composeTestRule.onNodeWithContentDescription("Settings").performClick()
         composeTestRule.onNodeWithText("Settings Destination").assertExists()
 
         composeTestRule.runOnIdle { controller!!.popBackStack() }
-        composeTestRule.onNodeWithText("Quest Center").assertExists()
+        composeTestRule.onNodeWithText("Health").assertExists()
 
         composeTestRule.onNodeWithContentDescription("Customize character").performClick()
         composeTestRule.onNodeWithText("Customization Destination").assertExists()
 
         composeTestRule.runOnIdle { controller!!.popBackStack() }
-        composeTestRule.onNodeWithText("Quest Center").assertExists()
+        composeTestRule.onNodeWithText("Health").assertExists()
     }
 }

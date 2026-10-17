@@ -75,6 +75,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -138,6 +139,34 @@ internal fun NavBackStackEntry.setWorkoutsTab(tab: String) {
     savedStateHandle[NAV_TAB_KEY] = tab
 }
 
+/**
+ * Syncs [NAV_TAB_KEY] in the workouts entry's [SavedStateHandle] whenever a new navigation
+ * to [WORKOUTS_HISTORY_SCREEN] (including `launchSingleTop` onto an existing entry) carries an
+ * explicit `?tab=` argument, while preserving in-screen switches across plain back pops.
+ */
+@Composable
+internal fun SyncWorkoutsTabEffect(navController: NavHostController) {
+    DisposableEffect(navController) {
+        // Seed with the current entry so the immediate dispatch on registration (e.g. after process-death
+        // restore) doesn't overwrite an in-screen tab the user already picked.
+        var lastWorkoutsEntry: NavBackStackEntry? = navController.currentBackStackEntry
+        val listener = NavController.OnDestinationChangedListener { controller, destination, arguments ->
+            val entry = controller.currentBackStackEntry
+            if (destination.route?.startsWith(WORKOUTS_HISTORY_SCREEN) == true && entry != null) {
+                if (entry !== lastWorkoutsEntry) {
+                    lastWorkoutsEntry = entry
+                    val explicitTab = arguments?.getString(NAV_TAB_KEY)
+                    if (explicitTab != null) {
+                        entry.savedStateHandle[NAV_TAB_KEY] = explicitTab
+                    }
+                }
+            }
+        }
+        navController.addOnDestinationChangedListener(listener)
+        onDispose { navController.removeOnDestinationChangedListener(listener) }
+    }
+}
+
 /** Observable [workoutsTab] so the bar/rail highlight follows in-screen tab switches without re-navigating. */
 @Composable
 internal fun NavBackStackEntry?.observedTabArg(): String? {
@@ -181,6 +210,7 @@ fun AppScaffold() {
     val snackbarHostState = remember { SnackbarHostState() }
     val appState = rememberAppState(snackbarHostState)
     val navController = appState.navController
+    SyncWorkoutsTabEffect(navController)
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val currentTabArg = backStackEntry.observedTabArg()
@@ -447,7 +477,7 @@ fun NavGraphBuilder.pixelFitGraph(
             }
         )
     ) { backStackEntry ->
-        val tabArg = backStackEntry.workoutsTab()
+        val tabArg = backStackEntry.observedTabArg()
         val initialTab = if (tabArg.equals("history", ignoreCase = true)) {
             WorkoutsTab.HISTORY
         } else {
