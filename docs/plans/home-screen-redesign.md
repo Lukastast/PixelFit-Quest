@@ -58,7 +58,7 @@ Redesign the home screen into a sleek, gamified, landscape-first (lay-flat defau
 |---|---|---|---|---|---|
 | **H1a** | **Building blocks, no visible Home change.** Shared `RetroPanel` / `RetroPill` / `RetroStatBox` (48dp touch targets + ripple), zone-aware `HomeStatsCalculator` + typed `LastDone`, `HomeViewModel` wiring, last-done string resources + `lastDoneText`, JVM/Roborazzi panel tests. | `components/molecules/RetroPanel.kt`<br>`feature/home/model/HomeDisplayState.kt`<br>`feature/home/LastDoneText.kt`<br>`feature/home/HomeViewModel.kt`<br>`res/values/strings.xml` | ~320 | `HomeDisplayStateTest` (week filter, Mon 00:30 CPH → this week, most-recent last-done)<br>`LastDoneTextTest`<br>`RetroPanelTest` (Roborazzi `RetroPanel_landscape.png`) | No HomeScreen visual change. Tests green. |
 | **H1b** | **Home screen rewrite** stacked on H1a. Single retro panel + pills **above** the panel, dwelling scene, portrait lifter anchors, restore Missions entry (compact `Missions` pill next to streak/level — least intrusive vs bringing back the FAB and cluttering the panel), a11y (XP semantics, START announced once), full-screen baselines. | `feature/home/HomeScreen.kt`<br>`feature/home/model/DwellingVisuals.kt`<br>`ui/navigation/AppScaffold.kt` (`workoutRoute` internal)<br>`HomeScreenTest` + baselines | ~480 | `HomeScreenTest` landscape + portrait screenshots and interactions | Full-screen captures match mockups. Missions reachable. |
-| **H2** | **Bottom Navigation (4 tabs) & Settings Relocation**<br>Updates `BottomNavItem` and `AppScaffold` (both bottom bar and landscape side rail) to 4 items: `Home`, `Templates`, `History`, `Health`. Moves Settings access to a gear button in `HealthCenterScreen` header. Preserves all routes. | `ui/navigation/BottomNavItem.kt`<br>`ui/navigation/AppScaffold.kt`<br>`feature/health/HealthCenterScreen.kt`<br>`res/values/strings.xml` | ~340 | `AppScaffoldNavigationTest` (verifies 4 tabs route to Home, Templates, History, Health)<br>`HealthCenterHeaderTest` (verifies Settings gear button exists and triggers navigation to `SETTINGS_SCREEN`)<br>Roborazzi captures of AppScaffold with 4 tabs | 4 tabs render cleanly in portrait navbar and landscape sidebar. Settings accessible from Health Center. No broken routes. |
+| **H2** | **Bottom Navigation (4 tabs) & Settings/Customization Relocation**<br>Updates `BottomNavItem` and `AppScaffold` (both bottom bar and landscape side rail) to 4 labeled items: `Home`, `Templates`, `History`, `Health`. Moves Settings (gear) and Character Customization access to 48dp pixel buttons in `HealthCenterScreen` header (`QuestCenterHeader`). Preserves all routes. | `ui/navigation/BottomNavItem.kt`<br>`ui/navigation/AppScaffold.kt`<br>`feature/health/HealthCenterScreen.kt`<br>`res/values/strings.xml`<br>`ui/navigation/AppScaffoldNavigationTest.kt`<br>`feature/health/HealthCenterHeaderTest.kt` | ~430 | `AppScaffoldNavigationTest` (4 tabs, selection state, `Templates <-> History` switching, back to Home, >=48dp touch targets, single announcement, `AppNav_portrait.png` & `AppNav_landscape.png`)<br>`HealthCenterHeaderTest` (Settings gear + Customize buttons >=48dp, callbacks, gear -> Settings -> back -> Health, `HealthCenterHeader_portrait.png` & `HealthCenterHeader_landscape.png`) | 4 tabs render cleanly in portrait navbar and landscape sidebar. Settings and Customization accessible from Health Center header. No broken routes. |
 | **H3** | **Health Connect Distance Reading & "KM RUN" Stat Box**<br>Extends `HealthConnectRepository` and `HealthMetrics` to read `DistanceRecord` for the current week. Updates `HomeDisplayState` and the "THIS WEEK" section on the Home retro panel to display the 3rd stat box (`KM RUN`). | `health/HealthMetrics.kt`<br>`health/HealthConnectRepository.kt`<br>`health/HealthPermissions.kt`<br>`feature/home/HomeScreen.kt`<br>`feature/home/model/HomeDisplayState.kt` | ~290 | `HealthConnectDistanceTest` (unit tests for distance aggregation from Health Connect records)<br>`HomeScreenScreenshotTest` (Roborazzi capture with 3 stat boxes in landscape and portrait) | "THIS WEEK" displays Workouts, Sets, and KM Run when Health Connect is available, with graceful fallback when permissions or records are missing. |
 
 ## Detailed Steps for PR H1a / H1b
@@ -106,6 +106,48 @@ H1a lands the shared components and calculator first (no HomeScreen rewrite). H1
    - Run `./gradlew :app:recordRoborazziDebug`.
    - Visually inspect the generated PNGs to verify parity with mockups.
    - Run full local gate: `./gradlew :app:testDebugUnitTest :app:lintDebug :app:compileReleaseKotlin :app:verifyRoborazziDebug`.
+
+## Detailed Steps for PR H2
+
+- **Goal:** Streamline the portrait bottom navigation bar and landscape side rail into 4 core tabs (`Home`, `Templates`, `History`, `Health`) with string-backed pixel-font labels and accessible single-announcement `Role.Tab` semantics (`>= 48dp` touch targets). Relocate `Settings` and `Customization` (`CUSTOMIZATION_SCREEN`, which previously had no entry point outside the bottom bar) to 48dp pixel-art icon buttons in the top-right header of `HealthCenterScreen` (`QuestCenterHeader`), while preserving every registered composable route in `AppScaffold`.
+- **Files touched:**
+  - `Android/app/src/main/res/values/strings.xml`
+  - `Android/app/src/main/java/com/pixelfitquest/ui/navigation/BottomNavItem.kt`
+  - `Android/app/src/main/java/com/pixelfitquest/ui/navigation/AppScaffold.kt`
+  - `Android/app/src/main/java/com/pixelfitquest/feature/health/HealthCenterScreen.kt`
+  - `Android/app/src/test/java/com/pixelfitquest/ui/navigation/AppScaffoldNavigationTest.kt`
+  - `Android/app/src/test/java/com/pixelfitquest/feature/health/HealthCenterHeaderTest.kt`
+  - `Android/app/src/test/screenshots/AppNav_portrait.png`, `Android/app/src/test/screenshots/AppNav_landscape.png`, `Android/app/src/test/screenshots/HealthCenterHeader_portrait.png`, `Android/app/src/test/screenshots/HealthCenterHeader_landscape.png`
+- **Estimated changed lines:** ~430 changed lines (excluding PNG baselines), under the ~500-line budget.
+
+### Steps
+1. **Add String Resources (`res/values/strings.xml`)**:
+   - Add `nav_home` ("Home"), `nav_templates` ("Templates"), `nav_history` ("History"), `nav_health` ("Health"), and `customize_character_desc` ("Customize character"). Reuse `settings_title` ("Settings") for the Settings gear button `contentDescription`.
+2. **Update `BottomNavItem.kt`**:
+   - Define `TEMPLATES_ROUTE = "$WORKOUTS_HISTORY_SCREEN?tab=templates"` and `HISTORY_ROUTE = "$WORKOUTS_HISTORY_SCREEN?tab=history"`.
+   - Replace `label: String` with `@StringRes val labelRes: Int`.
+   - Keep exactly the 4 ordered bottom-nav items: `Home` (`HOME_SCREEN`, `homebuttonclicked`/`unclicked`), `Templates` (`TEMPLATES_ROUTE`, `workoutbuttonclicked`/`unclicked`), `History` (`HISTORY_ROUTE`, `workoutbuttonclicked`/`unclicked` stone tile pair so both states match the stone navbar aesthetic, distinguished by the pixel-font label underneath), and `Health` (`HEALTH_CENTER_SCREEN`, `healthbuttonclicked`/`unclicked`).
+   - Delete the dead `Workouts`, `Customization`, `Settings`, and `WorkoutCustomization` objects from `BottomNavItem`. Expose `BottomNavItem.items` in order: `listOf(Home, Templates, History, Health)`.
+3. **Update `AppScaffold.kt` (Stateless Nav Bar / Rail, Selection & Navigation Helpers)**:
+   - Extract `internal fun shouldShowBottomBar(currentRoute: String?): Boolean` keeping the bar visible on `HOME_SCREEN`, `WORKOUTS_HISTORY_SCREEN*`, `HEALTH_CENTER_SCREEN`, `CUSTOMIZATION_SCREEN`, `SETTINGS_SCREEN`, `PROGRESS_SCREEN`, and `WORKOUT_CUSTOMIZATION_SCREEN*`.
+   - Extract `internal fun selectedBottomNavItem(currentRoute: String?, tabArg: String? = null): BottomNavItem?`:
+     - `HOME_SCREEN` -> `BottomNavItem.Home`
+     - `WORKOUTS_HISTORY_SCREEN*` -> `BottomNavItem.History` when `tabArg` (or query param `tab`) equals `"history"` (case-insensitive); `BottomNavItem.Templates` otherwise (including default/`null` tab, matching `WorkoutsHistoryScreen`'s default `WorkoutsTab.TEMPLATES`).
+     - `WORKOUT_CUSTOMIZATION_SCREEN*` -> `BottomNavItem.Templates` (template/workout builder belongs to Templates).
+     - `PROGRESS_SCREEN` -> `BottomNavItem.History` (gym progression charts are launched from History).
+     - `HEALTH_CENTER_SCREEN` -> `BottomNavItem.Health`.
+   - Extract `internal fun NavHostController.navigateToBottomNav(route: String)` using `popUpTo(HOME_SCREEN)` + `launchSingleTop = true` + `restoreState` semantics (skipping state save/restore on `WORKOUTS_HISTORY_SCREEN` so switching between `Templates` and `History` always applies the new `tab` argument without stale state restoration, while Back from any tab returns directly to `HOME_SCREEN`).
+   - Extract stateless `internal fun PixelFitNavBar(...)` (portrait) and `internal fun PixelFitNavRail(...)` (landscape):
+     - Render each item with `>= 48.dp` minimum touch width and height, `selectable(selected = isSelected, role = Role.Tab, ...)`, icon + pixel-font (`determination`) label below, and merged semantics (`semantics(mergeDescendants = true) { contentDescription = label }` on the tab container, `contentDescription = null` on `Icon`, `Modifier.clearAndSetSemantics {}` on `Text`) so screen readers announce each tab once.
+   - Keep all composable routes registered in `pixelFitGraph` (`CUSTOMIZATION_SCREEN`, `SETTINGS_SCREEN`, etc.), and pass `onOpenSettings = { appState.navigate(SETTINGS_SCREEN) }` and `onOpenCustomization = { appState.navigate(CUSTOMIZATION_SCREEN) }` to `HealthCenterScreen`.
+4. **Relocate Settings & Customization to `HealthCenterScreen.kt`**:
+   - Thread `onOpenSettings: () -> Unit = {}` and `onOpenCustomization: () -> Unit = {}` into `HealthCenterScreen` and `internal fun QuestCenterHeader(...)`.
+   - Add two `48.dp` `PixelArtButton`s in the top-right of `QuestCenterHeader`:
+     - Customize character button (`customizationbuttonunclicked` / `customizationbuttonclicked`, `contentDescription = stringResource(R.string.customize_character_desc)`).
+     - Settings gear button (`settingsbuttonunclicked` / `settingsbuttonclicked`, `contentDescription = stringResource(R.string.settings_title)`).
+5. **Tests & Full-Screen Roborazzi Baselines**:
+   - `AppScaffoldNavigationTest.kt`: tests `selectedBottomNavItem` & `shouldShowBottomBar` pure logic, portrait `PixelFitNavBar` and landscape `PixelFitNavRail` (4 items, `>= 48dp` touch targets via `assertTouchWidthIsAtLeast`/`assertTouchHeightIsAtLeast`, `contentDescription` present, single announcement without duplicate text semantics, no Settings/Customization items), `TestNavHost` integration (clicking each tab selects it and navigates, `Templates <-> History` switches the `tab` argument, back from a tab returns to `Home`), and records/verifies `AppNav_portrait.png` and `AppNav_landscape.png`.
+   - `HealthCenterHeaderTest.kt`: tests `QuestCenterHeader` (Settings gear and Customize buttons exist with `contentDescription`, `>= 48dp` touch targets, clicks invoke `onOpenSettings` / `onOpenCustomization`), nav-level test (`Health -> gear click -> Settings -> back -> Health`), and records/verifies `HealthCenterHeader_portrait.png` and `HealthCenterHeader_landscape.png`.
 
 ## Database changes
 
