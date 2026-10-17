@@ -144,7 +144,7 @@
     <string name="achievements_button_desc">Achievements</string>
     <string name="no_workouts_yet">No completed workouts yet</string>
     <string name="daily_missions_title">Weekly Missions</string>
-    <string name="quest_center_title">Quest Center</string>
+    <string name="quest_center_title">Health</string>
     <string name="quest_center_subtitle">Missions, achievements, and health</string>
     <string name="quest_tab_missions">Missions</string>
     <string name="quest_tab_achievements">Achievements</string>
@@ -473,4 +473,9 @@
     <string name="home_level_pill">LV %1$s</string>
     <string name="home_missions_pill">MISSIONS</string>
     <string name="home_xp_progress_description">XP %1$d percent</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_templates">Templates</string>
+    <string name="nav_history">History</string>
+    <string name="nav_health">Health</string>
+    <string name="customize_character_desc">Customize character</string>
 </resources>
