@@ -1,6 +1,7 @@
 package com.pixelfitquest.ui.navigation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,7 +32,7 @@ class AppScaffoldNavigationTest : ScreenshotTestBase() {
         val navController = rememberNavController().also(onNavReady)
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = backStackEntry?.destination?.route
-        val currentTabArg = backStackEntry?.arguments?.getString("tab")
+        val currentTabArg = backStackEntry.observedTabArg()
         val host: @Composable (Modifier) -> Unit = { mod ->
             NavHost(navController = navController, startDestination = HOME_SCREEN, modifier = mod) {
                 composable(HOME_SCREEN) {
@@ -41,8 +42,12 @@ class AppScaffoldNavigationTest : ScreenshotTestBase() {
                     route = "$WORKOUTS_HISTORY_SCREEN?tab={tab}",
                     arguments = listOf(navArgument("tab") { type = NavType.StringType; nullable = true; defaultValue = null }),
                 ) { entry ->
-                    val tab = entry.arguments?.getString("tab") ?: "templates"
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Screen: Workouts ($tab)", color = PlatinumWhite) }
+                    val tab = entry.observedTabArg() ?: "templates"
+                    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Screen: Workouts ($tab)", color = PlatinumWhite)
+                        // Mirrors WorkoutsHistoryScreen's in-screen tab buttons -> onTabSelected wiring in pixelFitGraph.
+                        Text("In-screen History", color = PlatinumWhite, modifier = Modifier.clickable { entry.setWorkoutsTab("history") })
+                    }
                 }
                 composable(HEALTH_CENTER_SCREEN) {
                     Column(Modifier.fillMaxSize()) {
@@ -117,6 +122,15 @@ class AppScaffoldNavigationTest : ScreenshotTestBase() {
         composeTestRule.onNodeWithContentDescription("Templates").performClick()
         composeTestRule.onNodeWithContentDescription("Templates").assertIsSelected()
         composeTestRule.onNodeWithText("Screen: Workouts (templates)").assertExists()
+
+        // In-screen tab switch updates the bar highlight without re-navigating; re-tapping the bar keeps it
+        composeTestRule.onNodeWithText("In-screen History").performClick()
+        composeTestRule.onNodeWithText("Screen: Workouts (history)").assertExists()
+        composeTestRule.onNodeWithContentDescription("History").assertIsSelected()
+        composeTestRule.onNodeWithContentDescription("Templates").assertIsNotSelected()
+        composeTestRule.onNodeWithContentDescription("Templates").performClick()
+        composeTestRule.onNodeWithText("Screen: Workouts (templates)").assertExists()
+        composeTestRule.onNodeWithContentDescription("Templates").assertIsSelected()
 
         composeTestRule.onNodeWithContentDescription("Health").performClick()
         composeTestRule.onNodeWithContentDescription("Health").assertIsSelected()

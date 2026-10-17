@@ -74,6 +74,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -125,9 +126,30 @@ internal fun selectedBottomNavItem(currentRoute: String?, tabArg: String? = null
     else -> null
 }
 
+internal const val NAV_TAB_KEY = "tab"
+
+private fun NavBackStackEntry.isWorkoutsEntry() = destination.route?.startsWith(WORKOUTS_HISTORY_SCREEN) == true
+
+/** Current workouts tab: an in-screen switch (saved state) wins over the route argument. */
+internal fun NavBackStackEntry.workoutsTab(): String? =
+    (if (isWorkoutsEntry()) savedStateHandle.get<String>(NAV_TAB_KEY) else null) ?: arguments?.getString(NAV_TAB_KEY)
+
+internal fun NavBackStackEntry.setWorkoutsTab(tab: String) {
+    savedStateHandle[NAV_TAB_KEY] = tab
+}
+
+/** Observable [workoutsTab] so the bar/rail highlight follows in-screen tab switches without re-navigating. */
+@Composable
+internal fun NavBackStackEntry?.observedTabArg(): String? {
+    val entry = this ?: return null
+    if (!entry.isWorkoutsEntry()) return entry.arguments?.getString(NAV_TAB_KEY)
+    val flow = remember(entry) { entry.savedStateHandle.getStateFlow<String?>(NAV_TAB_KEY, null) }
+    return flow.collectAsState().value ?: entry.arguments?.getString(NAV_TAB_KEY)
+}
+
 internal fun NavHostController.navigateToBottomNav(route: String) {
     val currentRoute = currentBackStackEntry?.destination?.route
-    val currentTabArg = currentBackStackEntry?.arguments?.getString("tab")
+    val currentTabArg = currentBackStackEntry?.workoutsTab()
     val currentItem = selectedBottomNavItem(currentRoute, currentTabArg)
     val targetItem = selectedBottomNavItem(route)
     val atRoot = currentRoute == HOME_SCREEN || currentRoute == HEALTH_CENTER_SCREEN ||
@@ -141,7 +163,7 @@ internal fun NavHostController.navigateToBottomNav(route: String) {
                 popBackStack("$WORKOUTS_HISTORY_SCREEN?tab={tab}", inclusive = false) ||
                     popBackStack(WORKOUTS_HISTORY_SCREEN, inclusive = false)
         }
-        if (popped && selectedBottomNavItem(currentBackStackEntry?.destination?.route, currentBackStackEntry?.arguments?.getString("tab")) == targetItem) {
+        if (popped && selectedBottomNavItem(currentBackStackEntry?.destination?.route, currentBackStackEntry?.workoutsTab()) == targetItem) {
             return
         }
     }
@@ -161,7 +183,7 @@ fun AppScaffold() {
     val navController = appState.navController
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val currentTabArg = backStackEntry?.arguments?.getString("tab")
+    val currentTabArg = backStackEntry.observedTabArg()
     val globalSettingsViewModel: GlobalSettingsViewModel = hiltViewModel()
     val userSettings by globalSettingsViewModel.userRepository.getUserData().collectAsState(initial = null)
     val characterData by globalSettingsViewModel.userRepository.getCharacterData().collectAsState(initial = null)
@@ -425,7 +447,7 @@ fun NavGraphBuilder.pixelFitGraph(
             }
         )
     ) { backStackEntry ->
-        val tabArg = backStackEntry.arguments?.getString("tab")
+        val tabArg = backStackEntry.workoutsTab()
         val initialTab = if (tabArg.equals("history", ignoreCase = true)) {
             WorkoutsTab.HISTORY
         } else {
@@ -453,10 +475,7 @@ fun NavGraphBuilder.pixelFitGraph(
                 appState.navigate(PROGRESS_SCREEN)
             },
             onTabSelected = { tab ->
-                val targetRoute = if (tab == WorkoutsTab.HISTORY) HISTORY_ROUTE else TEMPLATES_ROUTE
-                if (selectedBottomNavItem(WORKOUTS_HISTORY_SCREEN, tabArg) != selectedBottomNavItem(targetRoute)) {
-                    appState.navController.navigateToBottomNav(targetRoute)
-                }
+                backStackEntry.setWorkoutsTab(if (tab == WorkoutsTab.HISTORY) "history" else "templates")
             }
         )
     }
