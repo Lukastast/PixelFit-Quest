@@ -78,6 +78,7 @@ fun WorkoutsHistoryScreen(
     onEditTemplate: (String) -> Unit = {},
     onStartWorkout: (WorkoutPlan, String) -> Unit = { _, _ -> },
     onOpenProgression: () -> Unit = {},
+    onTabSelected: (WorkoutsTab) -> Unit = {},
     viewModel: WorkoutsHistoryViewModel = hiltViewModel(),
 ) {
     val workouts by viewModel.workouts.collectAsState()
@@ -249,7 +250,12 @@ fun WorkoutsHistoryScreen(
                 horizontalArrangement = Arrangement.spacedBy(spacing.sm),
             ) {
                 PixelArtButton(
-                    onClick = { selectedTab = WorkoutsTab.TEMPLATES },
+                    onClick = {
+                        if (selectedTab != WorkoutsTab.TEMPLATES) {
+                            selectedTab = WorkoutsTab.TEMPLATES
+                            onTabSelected(WorkoutsTab.TEMPLATES)
+                        }
+                    },
                     imageRes = if (selectedTab == WorkoutsTab.TEMPLATES) R.drawable.button_clicked else R.drawable.button_unclicked,
                     pressedRes = R.drawable.button_clicked,
                     modifier = Modifier
@@ -265,7 +271,12 @@ fun WorkoutsHistoryScreen(
                 }
 
                 PixelArtButton(
-                    onClick = { selectedTab = WorkoutsTab.HISTORY },
+                    onClick = {
+                        if (selectedTab != WorkoutsTab.HISTORY) {
+                            selectedTab = WorkoutsTab.HISTORY
+                            onTabSelected(WorkoutsTab.HISTORY)
+                        }
+                    },
                     imageRes = if (selectedTab == WorkoutsTab.HISTORY) R.drawable.button_clicked else R.drawable.button_unclicked,
                     pressedRes = R.drawable.button_clicked,
                     modifier = Modifier

@@ -15,6 +15,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.pixelfitquest.feature.health.QuestCenterHeader
 import com.pixelfitquest.testing.ScreenshotTestBase
 import com.pixelfitquest.ui.theme.PixelFitQuestTheme
 import com.pixelfitquest.ui.theme.PlatinumWhite
@@ -44,7 +45,25 @@ class AppScaffoldNavigationTest : ScreenshotTestBase() {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Screen: Workouts ($tab)", color = PlatinumWhite) }
                 }
                 composable(HEALTH_CENTER_SCREEN) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Screen: Health", color = PlatinumWhite) }
+                    Column(Modifier.fillMaxSize()) {
+                        QuestCenterHeader(
+                            coins = 240, level = 14, isCompact = isLandscape,
+                            onOpenSettings = { navController.navigate(SETTINGS_SCREEN) },
+                            onOpenCustomization = { navController.navigate(CUSTOMIZATION_SCREEN) },
+                        )
+                        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Text("Screen: Health", color = PlatinumWhite)
+                        }
+                    }
+                }
+                composable(SETTINGS_SCREEN) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Screen: Settings", color = PlatinumWhite) }
+                }
+                composable(CUSTOMIZATION_SCREEN) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Screen: Customization", color = PlatinumWhite) }
+                }
+                composable(WORKOUT_CUSTOMIZATION_SCREEN) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Screen: WorkoutBuilder", color = PlatinumWhite) }
                 }
             }
         }
@@ -83,6 +102,13 @@ class AppScaffoldNavigationTest : ScreenshotTestBase() {
         composeTestRule.onNodeWithContentDescription("Home").assertIsNotSelected()
         composeTestRule.onNodeWithText("Screen: Workouts (templates)").assertExists()
 
+        composeTestRule.runOnIdle { controller!!.navigate(WORKOUT_CUSTOMIZATION_SCREEN) }
+        composeTestRule.onNodeWithText("Screen: WorkoutBuilder").assertExists()
+        composeTestRule.onNodeWithContentDescription("Templates").assertIsSelected()
+        composeTestRule.onNodeWithContentDescription("Templates").performClick()
+        composeTestRule.onNodeWithText("Screen: Workouts (templates)").assertExists()
+        composeTestRule.onNodeWithContentDescription("Templates").assertIsSelected()
+
         composeTestRule.onNodeWithContentDescription("History").performClick()
         composeTestRule.onNodeWithContentDescription("History").assertIsSelected()
         composeTestRule.onNodeWithContentDescription("Templates").assertIsNotSelected()
@@ -95,6 +121,32 @@ class AppScaffoldNavigationTest : ScreenshotTestBase() {
         composeTestRule.onNodeWithContentDescription("Health").performClick()
         composeTestRule.onNodeWithContentDescription("Health").assertIsSelected()
         composeTestRule.onNodeWithText("Screen: Health").assertExists()
+
+        // Health -> gear -> Settings -> tap Health tab -> Health
+        composeTestRule.onNodeWithContentDescription("Settings").performClick()
+        composeTestRule.onNodeWithText("Screen: Settings").assertExists()
+        composeTestRule.onNodeWithContentDescription("Health").assertIsSelected()
+        composeTestRule.onNodeWithContentDescription("Health").performClick()
+        composeTestRule.onNodeWithText("Screen: Health").assertExists()
+        composeTestRule.onNodeWithContentDescription("Health").assertIsSelected()
+
+        // Health -> hanger -> Customization -> tap Health tab -> Health
+        composeTestRule.onNodeWithContentDescription("Customize character").performClick()
+        composeTestRule.onNodeWithText("Screen: Customization").assertExists()
+        composeTestRule.onNodeWithContentDescription("Health").assertIsSelected()
+        composeTestRule.onNodeWithContentDescription("Health").performClick()
+        composeTestRule.onNodeWithText("Screen: Health").assertExists()
+        composeTestRule.onNodeWithContentDescription("Health").assertIsSelected()
+
+        // Health -> gear -> Settings -> tap Home -> tap Health -> lands on Health (not Settings)
+        composeTestRule.onNodeWithContentDescription("Settings").performClick()
+        composeTestRule.onNodeWithText("Screen: Settings").assertExists()
+        composeTestRule.onNodeWithContentDescription("Home").performClick()
+        composeTestRule.onNodeWithText("Screen: Home").assertExists()
+        composeTestRule.onNodeWithContentDescription("Home").assertIsSelected()
+        composeTestRule.onNodeWithContentDescription("Health").performClick()
+        composeTestRule.onNodeWithText("Screen: Health").assertExists()
+        composeTestRule.onNodeWithContentDescription("Health").assertIsSelected()
 
         composeTestRule.runOnIdle { controller!!.popBackStack() }
         composeTestRule.onNodeWithContentDescription("Home").assertIsSelected()
@@ -118,8 +170,9 @@ class AppScaffoldNavigationTest : ScreenshotTestBase() {
         assertEquals(BottomNavItem.Templates, selectedBottomNavItem(WORKOUT_CUSTOMIZATION_SCREEN))
         assertEquals(BottomNavItem.History, selectedBottomNavItem(PROGRESS_SCREEN))
         assertEquals(BottomNavItem.Health, selectedBottomNavItem(HEALTH_CENTER_SCREEN))
-        assertNull(selectedBottomNavItem(SETTINGS_SCREEN))
-        assertNull(selectedBottomNavItem(CUSTOMIZATION_SCREEN))
+        assertEquals(BottomNavItem.Health, selectedBottomNavItem(SETTINGS_SCREEN))
+        assertEquals(BottomNavItem.Health, selectedBottomNavItem(CUSTOMIZATION_SCREEN))
+        assertNull(selectedBottomNavItem(SPLASH_SCREEN))
         listOf(
             HOME_SCREEN, TEMPLATES_ROUTE, HISTORY_ROUTE, HEALTH_CENTER_SCREEN,
             SETTINGS_SCREEN, CUSTOMIZATION_SCREEN, PROGRESS_SCREEN, WORKOUT_CUSTOMIZATION_SCREEN,

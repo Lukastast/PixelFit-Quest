@@ -122,6 +122,70 @@ fun HealthCenterScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    HealthCenterContent(
+        coins = coins,
+        level = level,
+        section = section,
+        board = board,
+        achievementsUnlockedCount = achievements.unlockedCount,
+        achievementsTotalCount = achievements.totalCount,
+        healthStatus = healthStatus,
+        permissionsGranted = permissionsGranted,
+        metrics = metrics,
+        claims = claims,
+        onOpenSettings = onOpenSettings,
+        onOpenCustomization = onOpenCustomization,
+        onSectionSelected = viewModel::onSectionSelected,
+        onRerollMission = viewModel::rerollMission,
+        onConnectHealth = {
+            when (healthStatus) {
+                HealthConnectStatus.AVAILABLE -> {
+                    runCatching { permissionLauncher.launch(viewModel.healthPermissions) }
+                }
+                HealthConnectStatus.UPDATE_REQUIRED -> {
+                    HealthConnectIntents.openPlayStore(context)
+                }
+                HealthConnectStatus.UNAVAILABLE -> Unit
+            }
+        },
+        onManageHealth = {
+            runCatching { HealthConnectIntents.openHealthConnectSettings(context) }
+        },
+        achievementsContent = {
+            AchievementsScreen(
+                onBack = {},
+                embedded = true,
+                modifier = Modifier.fillMaxSize(),
+                viewModel = achievementsViewModel,
+            )
+        },
+    )
+}
+
+@Composable
+internal fun HealthCenterContent(
+    coins: Int,
+    level: Int,
+    section: QuestSection = QuestSection.MISSIONS,
+    board: WeeklyMissionBoard = WeeklyMissionBoard.EMPTY,
+    achievementsUnlockedCount: Int = 0,
+    achievementsTotalCount: Int = 0,
+    healthStatus: HealthConnectStatus = HealthConnectStatus.UNAVAILABLE,
+    permissionsGranted: Boolean = false,
+    metrics: HealthMetrics = HealthMetrics.EMPTY,
+    claims: HealthGoalClaims = HealthGoalClaims(),
+    onOpenSettings: () -> Unit = {},
+    onOpenCustomization: () -> Unit = {},
+    onSectionSelected: (QuestSection) -> Unit = {},
+    onRerollMission: (String) -> Unit = {},
+    onConnectHealth: () -> Unit = {},
+    onManageHealth: () -> Unit = {},
+    achievementsContent: @Composable () -> Unit = {},
+) {
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val spacing = MaterialTheme.spacing
+    val useTwoPane = isLandscape || spacing.widthClass != PixelFitWidthClass.Compact
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -150,18 +214,18 @@ fun HealthCenterScreen(
                     board.missions.size,
                 ),
                 selected = section == QuestSection.MISSIONS,
-                onClick = { viewModel.onSectionSelected(QuestSection.MISSIONS) },
+                onClick = { onSectionSelected(QuestSection.MISSIONS) },
                 modifier = Modifier.weight(1f),
             )
             QuestTab(
                 label = stringResource(R.string.quest_tab_achievements),
                 count = stringResource(
                     R.string.quest_tab_count,
-                    achievements.unlockedCount,
-                    achievements.totalCount,
+                    achievementsUnlockedCount,
+                    achievementsTotalCount,
                 ),
                 selected = section == QuestSection.ACHIEVEMENTS,
-                onClick = { viewModel.onSectionSelected(QuestSection.ACHIEVEMENTS) },
+                onClick = { onSectionSelected(QuestSection.ACHIEVEMENTS) },
                 modifier = Modifier.weight(1f),
             )
             QuestTab(
@@ -172,7 +236,7 @@ fun HealthCenterScreen(
                     HealthRewards.REWARDED_GOAL_COUNT,
                 ),
                 selected = section == QuestSection.HEALTH,
-                onClick = { viewModel.onSectionSelected(QuestSection.HEALTH) },
+                onClick = { onSectionSelected(QuestSection.HEALTH) },
                 modifier = Modifier.weight(1f),
             )
         }
@@ -184,38 +248,19 @@ fun HealthCenterScreen(
                     healthStatus = healthStatus,
                     permissionsGranted = permissionsGranted,
                     useTwoPane = useTwoPane,
-                    onOpenHealth = { viewModel.onSectionSelected(QuestSection.HEALTH) },
-                    onReroll = viewModel::rerollMission,
+                    onOpenHealth = { onSectionSelected(QuestSection.HEALTH) },
+                    onReroll = onRerollMission,
                     modifier = Modifier.fillMaxSize(),
                 )
-                QuestSection.ACHIEVEMENTS -> AchievementsScreen(
-                    onBack = {},
-                    embedded = true,
-                    modifier = Modifier.fillMaxSize(),
-                    viewModel = achievementsViewModel,
-                )
+                QuestSection.ACHIEVEMENTS -> achievementsContent()
                 QuestSection.HEALTH -> HealthPane(
                     healthStatus = healthStatus,
                     permissionsGranted = permissionsGranted,
                     metrics = metrics,
                     claims = claims,
                     useTwoPane = useTwoPane,
-                    onConnect = {
-                        when (healthStatus) {
-                            HealthConnectStatus.AVAILABLE -> {
-                                runCatching {
-                                    permissionLauncher.launch(viewModel.healthPermissions)
-                                }
-                            }
-                            HealthConnectStatus.UPDATE_REQUIRED -> {
-                                HealthConnectIntents.openPlayStore(context)
-                            }
-                            HealthConnectStatus.UNAVAILABLE -> Unit
-                        }
-                    },
-                    onManage = {
-                        runCatching { HealthConnectIntents.openHealthConnectSettings(context) }
-                    },
+                    onConnect = onConnectHealth,
+                    onManage = onManageHealth,
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -242,7 +287,10 @@ internal fun QuestCenterHeader(
             text = stringResource(R.string.quest_center_title),
             color = Color.White,
             fontWeight = FontWeight.Bold,
-            fontSize = if (isCompact) 16.sp else 17.sp,
+            fontSize = if (isCompact) 16.sp else 15.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false),
         )
 
         Row(
@@ -255,13 +303,14 @@ internal fun QuestCenterHeader(
                     .clip(RoundedCornerShape(spacing.cornerSm))
                     .background(SlateDeep.copy(alpha = 0.88f))
                     .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
-                    .padding(horizontal = spacing.sm, vertical = spacing.xxs),
+                    .padding(horizontal = spacing.xs, vertical = spacing.xxs),
             ) {
                 Text(
                     text = "Lvl $level",
                     color = ImperialGold,
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp,
+                    maxLines = 1,
                 )
             }
 
@@ -271,7 +320,7 @@ internal fun QuestCenterHeader(
                     .clip(RoundedCornerShape(spacing.cornerSm))
                     .background(SlateDeep.copy(alpha = 0.88f))
                     .border(1.dp, SlateBorder, RoundedCornerShape(spacing.cornerSm))
-                    .padding(horizontal = spacing.sm, vertical = spacing.xxs),
+                    .padding(horizontal = spacing.xs, vertical = spacing.xxs),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
@@ -285,6 +334,7 @@ internal fun QuestCenterHeader(
                         color = ImperialGold,
                         fontWeight = FontWeight.Bold,
                         fontSize = 11.sp,
+                        maxLines = 1,
                     )
                 }
             }

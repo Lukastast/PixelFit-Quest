@@ -9,6 +9,11 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
+import com.pixelfitquest.feature.missions.MissionProgress
+import com.pixelfitquest.feature.missions.WeeklyMissionBoard
+import com.pixelfitquest.feature.missions.WeeklyMissions
+import com.pixelfitquest.health.HealthConnectStatus
+import com.pixelfitquest.health.HealthMetrics
 import com.pixelfitquest.testing.ScreenshotTestBase
 import com.pixelfitquest.ui.navigation.CUSTOMIZATION_SCREEN
 import com.pixelfitquest.ui.navigation.HEALTH_CENTER_SCREEN
@@ -46,6 +51,44 @@ class HealthCenterHeaderTest : ScreenshotTestBase() {
         }
     }
 
+    private fun renderHealthCenterFullScreen() {
+        val missions = WeeklyMissions.boardForWeek("2026-W42").mapIndexed { index, def ->
+            MissionProgress(
+                definition = def,
+                current = if (index == 0) def.target else def.target / 2,
+                claimed = index == 0,
+            )
+        }
+        val board = WeeklyMissionBoard(weekKey = "2026-W42", missions = missions)
+        val metrics = HealthMetrics(
+            steps = 6_420,
+            stepGoal = 8_000,
+            weeklySteps = 32_500,
+            sleepMinutes = 465,
+            weeklyHeartPoints = 110,
+            weeklyHeartGoal = 150,
+            heartRateBpm = 58,
+        )
+        composeTestRule.setContent {
+            PixelFitQuestTheme {
+                Box(modifier = Modifier.fillMaxSize().background(SlateDeep)) {
+                    HealthCenterContent(
+                        coins = 240,
+                        level = 14,
+                        section = QuestSection.MISSIONS,
+                        board = board,
+                        achievementsUnlockedCount = 8,
+                        achievementsTotalCount = 24,
+                        healthStatus = HealthConnectStatus.AVAILABLE,
+                        permissionsGranted = true,
+                        metrics = metrics,
+                        claims = HealthGoalClaims(steps = false, sleep = true),
+                    )
+                }
+            }
+        }
+    }
+
     @Test @Config(qualifiers = QUALIFIER_PORTRAIT)
     fun healthCenterHeader_portrait_screenshotAndCallbacks() {
         var settingsClicked = false
@@ -71,6 +114,48 @@ class HealthCenterHeaderTest : ScreenshotTestBase() {
             .assertExists().assertWidthIsAtLeast(48.dp).assertHeightIsAtLeast(48.dp)
         composeTestRule.onNodeWithContentDescription("Customize character")
             .assertExists().assertWidthIsAtLeast(48.dp).assertHeightIsAtLeast(48.dp)
+    }
+
+    @Test @Config(qualifiers = "en-rUS-w360dp-h800dp-xxhdpi")
+    fun healthCenterHeader_360dp_screenshotAndNoClipping() {
+        renderHeaderFrame(isCompact = false)
+        captureScreenshot("HealthCenterHeader_360dp")
+
+        val rootBounds = composeTestRule.onRoot().fetchSemanticsNode().boundsInRoot
+        val nodes = listOf(
+            composeTestRule.onNodeWithText("Quest Center"),
+            composeTestRule.onNodeWithText("Lvl 14"),
+            composeTestRule.onNodeWithText("240"),
+            composeTestRule.onNodeWithContentDescription("Customize character")
+                .assertWidthIsAtLeast(48.dp).assertHeightIsAtLeast(48.dp),
+            composeTestRule.onNodeWithContentDescription("Settings")
+                .assertWidthIsAtLeast(48.dp).assertHeightIsAtLeast(48.dp),
+        )
+        var prevRight = 0f
+        nodes.forEach { interaction ->
+            interaction.assertIsDisplayed()
+            val b = interaction.fetchSemanticsNode().boundsInRoot
+            assertTrue("Expected width > 0 for $b", b.width > 0f)
+            assertTrue("Expected left >= 0 and right <= ${rootBounds.width} for $b", b.left >= 0f && b.right <= rootBounds.width)
+            assertTrue("Expected non-overlapping horizontal order: $prevRight <= ${b.left}", b.left >= prevRight - 1f)
+            prevRight = b.right
+        }
+    }
+
+    @Test @Config(qualifiers = QUALIFIER_PORTRAIT)
+    fun healthCenter_portrait_fullScreenScreenshot() {
+        renderHealthCenterFullScreen()
+        captureScreenshot("HealthCenter_portrait")
+        composeTestRule.onNodeWithText("Quest Center").assertIsDisplayed()
+        composeTestRule.onNodeWithText("WEEKLY MISSIONS").assertIsDisplayed()
+    }
+
+    @Test @Config(qualifiers = QUALIFIER_LANDSCAPE)
+    fun healthCenter_landscape_fullScreenScreenshot() {
+        renderHealthCenterFullScreen()
+        captureScreenshot("HealthCenter_landscape")
+        composeTestRule.onNodeWithText("Quest Center").assertIsDisplayed()
+        composeTestRule.onNodeWithText("WEEKLY MISSIONS").assertIsDisplayed()
     }
 
     @Test @Config(qualifiers = QUALIFIER_PORTRAIT)

@@ -64,6 +64,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -99,8 +100,8 @@ import com.pixelfitquest.feature.health.HealthCenterScreen
 import com.pixelfitquest.feature.workout.WorkoutScreen
 import com.pixelfitquest.viewmodel.GlobalSettingsViewModel
 import com.pixelfitquest.feature.workoutResume.WorkoutResumeViewModel
-import com.pixelfitquest.ui.theme.CrystalCyan
-import com.pixelfitquest.ui.theme.PlatinumWhite
+import com.pixelfitquest.ui.theme.SlateDeep
+import com.pixelfitquest.ui.theme.SlateGroove
 import com.pixelfitquest.ui.theme.determination
 import com.pixelfitquest.ui.theme.spacing
 
@@ -120,17 +121,36 @@ internal fun selectedBottomNavItem(currentRoute: String?, tabArg: String? = null
     }
     currentRoute.startsWith(WORKOUT_CUSTOMIZATION_SCREEN) -> BottomNavItem.Templates
     currentRoute == PROGRESS_SCREEN -> BottomNavItem.History
-    currentRoute == HEALTH_CENTER_SCREEN -> BottomNavItem.Health
+    currentRoute == HEALTH_CENTER_SCREEN || currentRoute == SETTINGS_SCREEN || currentRoute == CUSTOMIZATION_SCREEN -> BottomNavItem.Health
     else -> null
 }
 
 internal fun NavHostController.navigateToBottomNav(route: String) {
-    val fromWorkouts = currentBackStackEntry?.destination?.route?.startsWith(WORKOUTS_HISTORY_SCREEN) == true
+    val currentRoute = currentBackStackEntry?.destination?.route
+    val currentTabArg = currentBackStackEntry?.arguments?.getString("tab")
+    val currentItem = selectedBottomNavItem(currentRoute, currentTabArg)
+    val targetItem = selectedBottomNavItem(route)
+    val atRoot = currentRoute == HOME_SCREEN || currentRoute == HEALTH_CENTER_SCREEN ||
+        currentRoute?.startsWith(WORKOUTS_HISTORY_SCREEN) == true
+    if (currentItem != null && currentItem == targetItem) {
+        if (atRoot) return
+        val popped = when (targetItem) {
+            BottomNavItem.Health -> popBackStack(HEALTH_CENTER_SCREEN, inclusive = false)
+            BottomNavItem.Home -> popBackStack(HOME_SCREEN, inclusive = false)
+            BottomNavItem.Templates, BottomNavItem.History ->
+                popBackStack("$WORKOUTS_HISTORY_SCREEN?tab={tab}", inclusive = false) ||
+                    popBackStack(WORKOUTS_HISTORY_SCREEN, inclusive = false)
+        }
+        if (popped && selectedBottomNavItem(currentBackStackEntry?.destination?.route, currentBackStackEntry?.arguments?.getString("tab")) == targetItem) {
+            return
+        }
+    }
+    val fromWorkouts = currentRoute?.startsWith(WORKOUTS_HISTORY_SCREEN) == true
     val toWorkouts = route.startsWith(WORKOUTS_HISTORY_SCREEN)
     navigate(route) {
-        popUpTo(HOME_SCREEN) { saveState = !fromWorkouts && !toWorkouts }
+        popUpTo(HOME_SCREEN) { saveState = atRoot && !fromWorkouts && !toWorkouts }
         launchSingleTop = true
-        restoreState = !toWorkouts
+        restoreState = atRoot && !toWorkouts
     }
 }
 
@@ -359,7 +379,8 @@ private fun NavTabItem(
         )
         Text(
             text = label, fontFamily = determination, fontSize = fontSize, lineHeight = fontSize,
-            fontWeight = FontWeight.Bold, color = if (isSelected) CrystalCyan else PlatinumWhite,
+            fontWeight = FontWeight.Bold, color = if (isSelected) SlateGroove else SlateDeep,
+            textDecoration = if (isSelected) TextDecoration.Underline else TextDecoration.None,
             maxLines = 1, overflow = TextOverflow.Ellipsis,
             modifier = Modifier.offset(y = (-3).dp).clearAndSetSemantics {},
         )
@@ -430,6 +451,12 @@ fun NavGraphBuilder.pixelFitGraph(
             },
             onOpenProgression = {
                 appState.navigate(PROGRESS_SCREEN)
+            },
+            onTabSelected = { tab ->
+                val targetRoute = if (tab == WorkoutsTab.HISTORY) HISTORY_ROUTE else TEMPLATES_ROUTE
+                if (selectedBottomNavItem(WORKOUTS_HISTORY_SCREEN, tabArg) != selectedBottomNavItem(targetRoute)) {
+                    appState.navController.navigateToBottomNav(targetRoute)
+                }
             }
         )
     }
