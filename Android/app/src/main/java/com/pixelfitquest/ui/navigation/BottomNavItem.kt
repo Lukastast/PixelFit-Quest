@@ -1,45 +1,24 @@
 package com.pixelfitquest.ui.navigation
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import com.pixelfitquest.R
+
+const val TEMPLATES_ROUTE = "$WORKOUTS_HISTORY_SCREEN?tab=templates"
+const val HISTORY_ROUTE = "$WORKOUTS_HISTORY_SCREEN?tab=history"
 
 sealed class BottomNavItem(
     val route: String,
-    val selectedIcon: Int,
-    val unSelectedIcon: Int,
-    val label: String) {
-    object Home : BottomNavItem(
-        route = HOME_SCREEN,
-        selectedIcon = R.drawable.homebuttonclicked,
-        unSelectedIcon = R.drawable.homebuttonunclicked,
-        label = "Home")
+    @param:DrawableRes val selectedIcon: Int,
+    @param:DrawableRes val unSelectedIcon: Int,
+    @param:StringRes val labelRes: Int,
+) {
+    data object Home : BottomNavItem(HOME_SCREEN, R.drawable.homebuttonclicked, R.drawable.homebuttonunclicked, R.string.nav_home)
+    data object Templates : BottomNavItem(TEMPLATES_ROUTE, R.drawable.workoutbuttonclicked, R.drawable.workoutbuttonunclicked, R.string.nav_templates)
+    data object History : BottomNavItem(HISTORY_ROUTE, R.drawable.workoutbuttonclicked, R.drawable.workoutbuttonunclicked, R.string.nav_history)
+    data object Health : BottomNavItem(HEALTH_CENTER_SCREEN, R.drawable.healthbuttonclicked, R.drawable.healthbuttonunclicked, R.string.nav_health)
 
-    object Workouts : BottomNavItem(
-        route = WORKOUTS_HISTORY_SCREEN,
-        selectedIcon = R.drawable.workoutbuttonclicked,
-        unSelectedIcon = R.drawable.workoutbuttonunclicked,
-        label = "Workouts")
-
-    object HealthCenter : BottomNavItem(
-        route = HEALTH_CENTER_SCREEN,
-        selectedIcon = R.drawable.healthbuttonclicked,
-        unSelectedIcon = R.drawable.healthbuttonunclicked,
-        label = "Quests")
-
-    object Customization : BottomNavItem(
-        route = CUSTOMIZATION_SCREEN,
-        selectedIcon = R.drawable.customizationbuttonclicked,
-        unSelectedIcon = R.drawable.customizationbuttonunclicked,
-        label = "Customization")
-
-    object Settings : BottomNavItem(
-        route = SETTINGS_SCREEN,
-        selectedIcon = R.drawable.settingsbuttonclicked,
-        unSelectedIcon = R.drawable.settingsbuttonunclicked,
-        label = "Settings")
-
-    object WorkoutCustomization : BottomNavItem(
-        route = WORKOUT_CUSTOMIZATION_SCREEN,
-        selectedIcon = R.drawable.workoutbuttonclicked,
-        unSelectedIcon = R.drawable.workoutbuttonunclicked,
-        label = "workout_customization")
+    companion object {
+        val items: List<BottomNavItem> = listOf(Home, Templates, History, Health)
+    }
 }

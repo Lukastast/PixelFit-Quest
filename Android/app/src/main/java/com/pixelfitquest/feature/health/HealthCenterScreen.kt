@@ -82,6 +82,8 @@ import com.pixelfitquest.ui.theme.spacing
 
 @Composable
 fun HealthCenterScreen(
+    onOpenSettings: () -> Unit = {},
+    onOpenCustomization: () -> Unit = {},
     viewModel: HealthCenterViewModel = hiltViewModel(),
     achievementsViewModel: AchievementsViewModel = hiltViewModel(),
 ) {
@@ -132,6 +134,8 @@ fun HealthCenterScreen(
             coins = coins,
             level = level,
             isCompact = useTwoPane,
+            onOpenSettings = onOpenSettings,
+            onOpenCustomization = onOpenCustomization,
         )
         Spacer(modifier = Modifier.height(if (useTwoPane) spacing.xxs else spacing.sm))
         Row(
@@ -220,10 +224,12 @@ fun HealthCenterScreen(
 }
 
 @Composable
-private fun QuestCenterHeader(
+internal fun QuestCenterHeader(
     coins: Int,
     level: Int,
     isCompact: Boolean = false,
+    onOpenSettings: () -> Unit = {},
+    onOpenCustomization: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val spacing = MaterialTheme.spacing
@@ -236,11 +242,11 @@ private fun QuestCenterHeader(
             text = stringResource(R.string.quest_center_title),
             color = Color.White,
             fontWeight = FontWeight.Bold,
-            fontSize = if (isCompact) 17.sp else 20.sp,
+            fontSize = if (isCompact) 16.sp else 17.sp,
         )
 
         Row(
-            horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(spacing.xxs),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Level Badge
@@ -282,6 +288,22 @@ private fun QuestCenterHeader(
                     )
                 }
             }
+
+            PixelArtButton(
+                onClick = onOpenCustomization,
+                imageRes = R.drawable.customizationbuttonunclicked,
+                pressedRes = R.drawable.customizationbuttonclicked,
+                contentDescription = stringResource(R.string.customize_character_desc),
+                modifier = Modifier.size(48.dp),
+            )
+
+            PixelArtButton(
+                onClick = onOpenSettings,
+                imageRes = R.drawable.settingsbuttonunclicked,
+                pressedRes = R.drawable.settingsbuttonclicked,
+                contentDescription = stringResource(R.string.settings_title),
+                modifier = Modifier.size(48.dp),
+            )
         }
     }
 }

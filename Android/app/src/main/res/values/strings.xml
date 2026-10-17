@@ -473,4 +473,9 @@
     <string name="home_level_pill">LV %1$s</string>
     <string name="home_missions_pill">MISSIONS</string>
     <string name="home_xp_progress_description">XP %1$d percent</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_templates">Templates</string>
+    <string name="nav_history">History</string>
+    <string name="nav_health">Health</string>
+    <string name="customize_character_desc">Customize character</string>
 </resources>
